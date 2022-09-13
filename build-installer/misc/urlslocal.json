@@ -1,0 +1,5 @@
+{
+  "speckleUrl": "https://speckle.xyz",
+  "snaptrudeReactUrl": "http://localhost:3000",
+  "snaptrudeDjangoUrl": "http://localhost:8000"
+}
