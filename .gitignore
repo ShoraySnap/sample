@@ -12,4 +12,20 @@ build-installer/out/*
 build-installer/revit-addin-files/*
 build-installer/misc/custom_families
 
+# Build results
 revit-addin/**/[Pp]ackages/*
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/

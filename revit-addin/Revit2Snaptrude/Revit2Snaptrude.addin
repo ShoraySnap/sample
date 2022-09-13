@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+ <AddIn Type="Application">
+    <Name>Revit to Snaptrude</Name>
+    <Description>Snaptrude Plugin for Revit</Description>
+    <Assembly>C:\Users\kuladeep\source\repos\Revit2Snaptrude\Revit2Snaptrude\bin\Debug\Revit2Snaptrude.dll</Assembly>
+    <FullClassName>Revit2Snaptrude.Application</FullClassName>
+    <AddInId>502fe383-2648-4e98-adf8-5e6047f9cd69</AddInId>
+    <VendorId>Snaptrude</VendorId>
+    <VendorDescription>Snaptrude: Collaborative Building Design for Architects</VendorDescription>
+ </AddIn>
+</RevitAddIns>
