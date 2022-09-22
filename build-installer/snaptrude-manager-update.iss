@@ -2,21 +2,21 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Snaptrude"
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.4"
 #define MyAppPublisher "Snaptrude, Inc."
 #define MyAppURL "https://www.snaptrude.com/"
 #define MyAppExeName "MyProg.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".trude"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
-#define Base "C:\Users\kuladeep\Documents\Code\revit-addin\build-installer"
+#define Base "C:\Users\nisch\snaptrudemanager\build-installer"
 #define BaseDynamoScripts Base + "\dynamo-scripts"
 #define BaseInstallers Base + "\installers"
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
 #define BaseOut Base + "\out"
-#define DynamoScriptVersion "1.4.5.3"
-#define WeWork 1
+#define DynamoScriptVersion "1.4.5.4"
+#define WeWork 0
 ;1 is true, 0 is false
 
 [Setup]
@@ -45,7 +45,7 @@ VersionInfoVersion=1.0.0.0
 #if WeWork == 1
 OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-WeWork-Update
 #else
-OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}
+OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-Update
 #endif
 
 
