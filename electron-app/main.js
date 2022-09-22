@@ -120,6 +120,7 @@ const enableEventListeners = function () {
     });
     ipcMain.on('updateUserData', (event, [data]) => store.setAllAndSave(data));
     ipcMain.on('uploadToSnaptrude', electronCommunicator.uploadToSnaptrude);
+    ipcMain.on('importFromSnaptrude', electronCommunicator.importFromSnaptrude);
     ipcMain.on('log', (event, [messages]) => logger.log(...messages));
     ipcMain.on('operationSucceeded', electronCommunicator.operationSucceeded);
     ipcMain.on('operationFailed', electronCommunicator.operationFailed);

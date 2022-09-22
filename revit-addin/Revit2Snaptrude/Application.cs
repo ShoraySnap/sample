@@ -36,6 +36,11 @@ namespace Revit2Snaptrude
             button.LargeImage = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo24.png");
             button.ToolTip = "Export the model to Snaptrude";
 
+            //PushButton importButton = panel.AddItem(new PushButtonData("Import", "Trude Importer", assemblyPath, "Snaptrude.TrudeImporter")) as PushButton;
+            //importButton.Image = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo16.png");
+            //importButton.LargeImage = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo24.png");
+            //importButton.ToolTip = "Import model from Snaptrude";
+
             return Result.Succeeded;
         }
 
