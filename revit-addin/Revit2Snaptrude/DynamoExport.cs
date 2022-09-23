@@ -10,6 +10,7 @@ using Dynamo.Applications;
 using Newtonsoft.Json;
 using System.IO;
 using System.IO.Pipes;
+using Snaptrude;
 
 namespace Revit2Snaptrude
 {
@@ -78,10 +79,11 @@ namespace Revit2Snaptrude
 
                 // Console.WriteLine(data);
 
-                var REVIT_PIPE_MSG_BEGIN = "beginExport"; // 11 characters
+                var REVIT_PIPE_MSG_BEGIN_IMPORT = "beginImport"; // 11 characters
+                var REVIT_PIPE_MSG_BEGIN_EXPORT = "beginExport"; // 11 characters
                 var REVIT_PIPE_MSG_STOP = "stopWaiting"; // 11 characters
 
-                if (data == REVIT_PIPE_MSG_BEGIN)
+                if (data == REVIT_PIPE_MSG_BEGIN_EXPORT)
                 // if (!String.IsNullOrEmpty(data))
                 {
                     server.Close();
@@ -99,6 +101,16 @@ namespace Revit2Snaptrude
                     writeAndClose();
 
                     return Result.Failed;
+                }
+                else if (data == REVIT_PIPE_MSG_BEGIN_IMPORT)
+                {
+                    server.Close();
+
+                    log("Calling snaptrude importer");
+                    writeAndClose();
+
+                    TrudeImporter trudeImporter = new TrudeImporter();
+                    return trudeImporter.Execute(commandData, ref message, elements);
                 }
                 else
                 {

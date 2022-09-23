@@ -13,7 +13,8 @@ const electronCommunicator = (function (){
   
   let mainWindow;
   
-  const REVIT_PIPE_MSG_BEGIN = "beginExport"; // 11 characters
+  const REVIT_PIPE_MSG_BEGIN_IMPORT = "beginImport"; // 11 characters
+  const REVIT_PIPE_MSG_BEGIN_EXPORT = "beginExport"; // 11 characters
   const REVIT_PIPE_MSG_STOP = "stopWaiting"; // 11 characters
   const REVIT_WAIT_THRESHOLD = 60 * 1e3;
   
@@ -34,6 +35,32 @@ const electronCommunicator = (function (){
       logger.log(e.stack)
     });
   };
+
+  const sendPipeCommandForImport = function() {
+    if (!isRevitWaiting) return;
+    
+    try {
+      const client = net.createConnection(PIPE_PATH + PIPE_NAME, () => {
+        logger.log('Connected to Revit pipe server!', 'Sending command to import from Snaptrude');
+        client.write(REVIT_PIPE_MSG_BEGIN_IMPORT);
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        isRevitWaiting = false;
+      });
+      
+      client.on('data', (data) => {
+        logger.log(data.toString());
+      });
+      
+      client.on('end', () => {
+        logger.log('Disconnected from Revit pipe server');
+      });
+    }
+    catch (e) {
+      logger.log("No pipe server");
+    }
+    
+  }
   
   const sendPipeCommandForExport = function (){
     if (!isRevitWaiting) return;
@@ -41,7 +68,7 @@ const electronCommunicator = (function (){
     try {
       const client = net.createConnection(PIPE_PATH + PIPE_NAME, () => {
         logger.log('Connected to Revit pipe server!', 'Sending command to export to Snaptrude');
-        client.write(REVIT_PIPE_MSG_BEGIN);
+        client.write(REVIT_PIPE_MSG_BEGIN_EXPORT);
         
         if (timeoutId) clearTimeout(timeoutId);
         isRevitWaiting = false;
@@ -124,6 +151,15 @@ const electronCommunicator = (function (){
       logger.log(e);
     }
     
+  }
+
+  const importFromSnaptrude = async function () {
+    if (!isRevitWaiting) {
+      logger.log("Upload clicked but Revit is not waiting for a command");
+      return;
+    }
+
+    sendPipeCommandForImport();
   }
   
   const uploadToSnaptrude = async function () {
@@ -270,6 +306,7 @@ const electronCommunicator = (function (){
     generateStreamID,
     startPollingForStreamUploadCompletion,
     uploadToSnaptrude,
+    importFromSnaptrude,
     operationSucceeded,
     operationFailed,
     revitIsWaiting,

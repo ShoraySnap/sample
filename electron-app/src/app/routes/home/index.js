@@ -49,7 +49,7 @@ const Home = () => {
     title: "Reconcile to Revit",
     icon: reconcile,
     onClick: () => {
-    
+      window.electronAPI.importFromSnaptrude();
     }
   }
   
@@ -130,8 +130,6 @@ const Home = () => {
           if (!isLoggedIn){
             if (button.id !== BUTTONS.login) isDisabled = true;
           }
-          
-          if (button.id === BUTTONS.reconcile) isDisabled = true;
           
           return (
             <RowButton

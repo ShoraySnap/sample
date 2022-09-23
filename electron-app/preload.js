@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     flushUserData: () => ipcRenderer.send('flushUserData'),
     updateUserData: (data) => ipcRenderer.send('updateUserData', [data]),
     uploadToSnaptrude: () => ipcRenderer.send('uploadToSnaptrude'),
+    importFromSnaptrude: () => ipcRenderer.send('importFromSnaptrude'),
     log: (messages) => ipcRenderer.send('log', [messages]),
     operationSucceeded: () => ipcRenderer.send('operationSucceeded'),
     operationFailed: () => ipcRenderer.send('operationFailed'),
