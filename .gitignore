@@ -7,7 +7,6 @@ electron-app/build
 electron-app/out
 electron-app/.env
 
-build-installer/dynamo-scripts/*
 build-installer/installers/*
 build-installer/out/*
 build-installer/revit-addin-files/*
