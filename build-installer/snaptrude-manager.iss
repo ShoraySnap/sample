@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Snaptrude"
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.0.5"
 #define MyAppPublisher "Snaptrude, Inc."
 #define MyAppURL "https://www.snaptrude.com/"
 #define MyAppExeName "MyProg.exe"
