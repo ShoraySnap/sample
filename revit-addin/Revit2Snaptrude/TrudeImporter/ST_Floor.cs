@@ -149,7 +149,7 @@ namespace Snaptrude
             return zLeast;
         }
 
-        public ST_Floor(JToken roofData, Document newDoc)
+        public ST_Floor(JToken roofData, Document newDoc, FloorType floorType = null)
         {
             this.Name = roofData["meshes"].First["name"].ToString();
             this.Position = STDataConverter.GetPosition(roofData);
@@ -166,12 +166,14 @@ namespace Snaptrude
             }
             else
             {
-                CreateDepricated(newDoc, roofData, thickness);
+                CreateDepricated(newDoc, roofData, thickness, floorType);
             }
         }
 
-        private void CreateDepricated(Document newDoc, JToken roofData, double thickness)
+        private void CreateDepricated(Document newDoc, JToken roofData, double thickness, FloorType floorType = null)
         {
+            ElementId levelIdForfloor = TrudeImporter.LevelIdByNumber[this.levelNumber];
+
             JToken topVerticesNormal = roofData["topVerticesNormal"];
             JToken topVerticesUntitNormal = roofData["topVerticesUnitNormal"];
 
@@ -194,10 +196,18 @@ namespace Snaptrude
             }
 
             CurveArray profile = getDepricatedProfile(bottomVertices);
-            this.floor = newDoc.Create.NewFloor(profile, false);
+            //this.floor = newDoc.Create.NewFloor(profile, false);
+            var newFloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
+            try
+            {
+                this.floor = newDoc.Create.NewFloor(profile, newFloorType, newDoc.GetElement(levelIdForfloor) as Level, false);
+            }
+            catch
+            {
+                this.floor = newDoc.Create.NewFloor(profile, floorType, newDoc.GetElement(levelIdForfloor) as Level, false);
+            }
 
-            var levelIdForfloor = TrudeImporter.LevelIdByNumber[this.levelNumber];
-            this.floor.get_Parameter(BuiltInParameter.LEVEL_PARAM).Set(levelIdForfloor);
+            //this.floor.get_Parameter(BuiltInParameter.LEVEL_PARAM).Set(levelIdForfloor);
 
             // Rotate and move the slab
 
@@ -207,7 +217,7 @@ namespace Snaptrude
 
             if (!result) throw new Exception("Move floor location failed.");
 
-            this.setType();
+            //this.setType(floorType);
 
             Level level = newDoc.GetElement(levelIdForfloor) as Level;
             double bottomZ = bottomVertices[0].Z * Scaling.Z;
@@ -294,9 +304,16 @@ namespace Snaptrude
         //    this.setHeight(thickness, bottomZ, level);
         //}
 
-        private void setType()
+        private void setType(FloorType floorType = null)
         {
-            this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
+            try
+            {
+                this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
+            }
+            catch (Exception e)
+            {
+                this.floor.FloorType = floorType;
+            }
         }
     }
 }
