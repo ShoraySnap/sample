@@ -11,6 +11,11 @@ namespace Snaptrude
     public static class Extensions
     {
 
+        public static XYZ MultiplyEach(this XYZ p, XYZ q)
+        {
+            return new XYZ(p.X * q.X, p.Y * q.Y, p.Z * q.Z);
+        }
+
         public static bool IsNullOrEmpty(this JToken token)
         {
             return (token == null) ||

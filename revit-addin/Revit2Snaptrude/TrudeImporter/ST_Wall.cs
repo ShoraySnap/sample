@@ -96,6 +96,8 @@ namespace Snaptrude
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
 
+            List<XYZ> revitFaceNormals = new List<XYZ>();
+
             while (geoObjectItor.MoveNext())
             {
                 Solid theSolid = geoObjectItor.Current as Solid;
@@ -105,6 +107,7 @@ namespace Snaptrude
                     {
                         PlanarFace p = (PlanarFace)face;
                         var normal = p.FaceNormal;
+                        revitFaceNormals.Add(normal.Round(3));
                         if (!normalToRevitFace.ContainsKey(normal.Round(3).Stringify()))
                         {
                             normalToRevitFace.Add(normal.Round(3).Stringify(), face);
@@ -121,26 +124,37 @@ namespace Snaptrude
                 XYZ _normalInXYZFormat = STDataConverter.ArrayToXYZ(subMesh["normal"], false).Round(3);
                 int _materialIndex = (int)subMesh["materialIndex"];
 
-                Face revitFace = normalToRevitFace[_normalInXYZFormat.Stringify()];
-                if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
+                try
+                {
+                    String key = _normalInXYZFormat.Stringify();
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
+                }
+                catch
+                {
+                    // find the closest key
+                    double leastDistance = Double.MaxValue;
+                    String key = _normalInXYZFormat.Stringify();
+                    foreach (XYZ normal in revitFaceNormals)
+                    {
+                        double distance = _normalInXYZFormat.MultiplyEach(Scaling).DistanceTo(normal);
+                        if (distance < leastDistance)
+                        {
+                            leastDistance = distance;
+                            key = normal.Stringify();
+                        }
+                    }
+
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
+                }
             }
-
-
-            ////compare Normal from snaptrude to Normal In Revit and Getting SubMeshes For Each Face.
-            //foreach ( var faceInRevit in normalToRevitFace)
-            //{
-            //    foreach ( var faceInSnaptrude in faceNormalToMaterialIndex)
-            //    {
-            //        if( faceInRevit.Value.RoundedEquals(faceInSnaptrude.Key) )
-            //        {
-            //            if (!revitFaceAndItsSubMeshIndex.ContainsKey(faceInRevit.Key))
-            //                revitFaceAndItsSubMeshIndex.Add(faceInRevit.Key, faceInSnaptrude.Value);
-            //        }
-            //    }
-            //}
 
             FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
             IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+            
             
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {

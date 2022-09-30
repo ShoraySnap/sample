@@ -548,6 +548,8 @@ namespace Snaptrude
 
                                 st_wall.Layers = STDataConverter.GetLayers(wallData);
 
+                                st_wall.Scaling = STDataConverter.GetScaling(wallData);
+
                                 if (wallMeshDataforLevel["storey"] == null)
                                 {
                                     continue;
@@ -826,6 +828,28 @@ namespace Snaptrude
                     {
                         transactionFloor.Start("Create Floors");
 
+                        FloorType existingFloorType = null;
+                        int revitId;
+                        ElementId existingElementId = null;
+
+                        bool isExistingFloor = false;
+                        try
+                        {
+                            if (!floorData["dsProps"]["revitMetaData"].IsNullOrEmpty())
+                            {
+                                isExistingFloor = true;
+                                String _revitId = (String)floorData["dsProps"]["revitMetaData"]["elementId"];
+                                revitId = (int)floorData["dsProps"]["revitMetaData"]["elementId"];
+                                existingElementId = new ElementId(revitId);
+                                Floor existingFloor = newDoc.GetElement(existingElementId) as Floor;
+                                existingFloorType = existingFloor.FloorType;
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+
                         try
                         {
                             if (IsThrowAway(floorData))
@@ -833,7 +857,7 @@ namespace Snaptrude
                                 continue;
                             }
 
-                            ST_Floor st_floor = new ST_Floor(floorData, newDoc);
+                            ST_Floor st_floor = new ST_Floor(floorData, newDoc, existingFloorType);
 
                             if (_materialElement != null)
                             {
@@ -842,11 +866,16 @@ namespace Snaptrude
 
                             count++;
 
-                            if (!floorData["dsProps"]["revitMetaData"].IsNullOrEmpty())
+                            if (isExistingFloor)
                             {
-                                int revitId = (int)floorData["dsProps"]["revitMetaData"]["elementId"];
+                                try
+                                {
+                                    newDoc.Delete(existingElementId);
+                                }
+                                catch
+                                {
 
-                                newDoc.Delete(new ElementId(revitId));
+                                }
                             }
 
                             TransactionStatus status = transactionFloor.Commit();
