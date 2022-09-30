@@ -548,6 +548,8 @@ namespace Snaptrude
 
                                 st_wall.Layers = STDataConverter.GetLayers(wallData);
 
+                                st_wall.Scaling = STDataConverter.GetScaling(wallData);
+
                                 if (wallMeshDataforLevel["storey"] == null)
                                 {
                                     continue;
