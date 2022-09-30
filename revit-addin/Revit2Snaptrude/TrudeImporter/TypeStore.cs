@@ -17,6 +17,7 @@ namespace Snaptrude
         public  T_Type GetType(T_RawKey rawKey, T_Type defaultType)
         {
             string key = KeyAdapter(rawKey, defaultType);
+            key = CleanKey(key);
 
             if (!Types.ContainsKey(key))
             {
@@ -31,6 +32,23 @@ namespace Snaptrude
         public void Clear()
         {
             Types.Clear();
+        }
+
+        private string CleanKey(string key)
+        {
+            return key
+                .Replace("{", "_")
+                .Replace("}", "_")
+                .Replace("[", "_")
+                .Replace("]", "_")
+                .Replace(";", "_")
+                .Replace("<", "_")
+                .Replace(">", "_")
+                .Replace("?", "_")
+                .Replace("`", "_")
+                .Replace("~", "_")
+                .Replace("\n", "_")
+                .Replace("\\n", "_");
         }
 
         // Implement method to get key postfix

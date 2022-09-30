@@ -560,32 +560,32 @@ namespace Snaptrude
                                 // Calculate and set thickness
                                 string wallDirection = wallData["dsProps"]["direction"].Value<string>();
 
-                                //bool coreIsFound = false;
-                                ////TODO remove this loop after wall core layer thickness is fixed after doing freemove
-                                //for (int i = 0; i < st_wall.Layers.Length; i++)
-                                //{
-                                //    if (st_wall.Layers[i].IsCore)
-                                //    {
-                                //        coreIsFound = true;
-                                //        st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                                //    }
-                                //}
+                                bool coreIsFound = false;
+                                //TODO remove this loop after wall core layer thickness is fixed after doing freemove
+                                for (int i = 0; i < st_wall.Layers.Length; i++)
+                                {
+                                    if (st_wall.Layers[i].IsCore)
+                                    {
+                                        coreIsFound = true;
+                                        //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                                    }
+                                }
 
-                                //if (!coreIsFound)
-                                //{
-                                //    int index = (int)(st_wall.Layers.Length / 2);
+                                if (!coreIsFound)
+                                {
+                                    int index = (int)(st_wall.Layers.Length / 2);
 
-                                //    double sumOfOtherThicknesses = 0;
-                                //    for (int i = 0; i < st_wall.Layers.Length; i++)
-                                //    {
-                                //        if (i == index) continue;
+                                    //double sumOfOtherThicknesses = 0;
+                                    //for (int i = 0; i < st_wall.Layers.Length; i++)
+                                    //{
+                                    //    if (i == index) continue;
 
-                                //        sumOfOtherThicknesses += st_wall.Layers[i].ThicknessInMm;
-                                //    }
+                                    //    sumOfOtherThicknesses += st_wall.Layers[i].ThicknessInMm;
+                                    //}
 
-                                //    st_wall.Layers[index].ThicknessInMm = UnitsAdapter.FeetToMM(thickness) - sumOfOtherThicknesses;
-                                //    st_wall.Layers[index].IsCore = true;
-                                //}
+                                    //st_wall.Layers[index].ThicknessInMm = UnitsAdapter.FeetToMM(thickness) - sumOfOtherThicknesses;
+                                    st_wall.Layers[index].IsCore = true;
+                                }
 
                                 ElementId levelIdForWall;
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
@@ -739,8 +739,9 @@ namespace Snaptrude
                                         catch { }
                                     }
 
-                                    t.Commit();
+                                    var transstatus = t.Commit();
 
+                                    LogTrace(transstatus.ToString());
                                 }
                             }
                             catch (Exception e)
