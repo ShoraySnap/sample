@@ -83,6 +83,10 @@ const Workspace = () => {
     navigate(ROUTES.home);
   };
 
+  const closeApplication = () =>{
+    window.electronAPI.closeApplication();
+  }
+
   const onSubmit = async () => {
     setIsLoading(true);
     const projectLink = await snaptrudeService.createProject(
@@ -105,7 +109,7 @@ const Workspace = () => {
 
   const onSubmitGoToPayment = async () => {
     const upgradePlanLink =
-      urls.get("snaptrudeReactUrl") + "/dashboard/profile/plans";
+      urls.get("snaptrudeReactUrl") + "/dashboard/profile/billing";
 
     if (upgradePlanLink) {
       window.electronAPI.openPageInDefaultBrowser(upgradePlanLink);
@@ -120,7 +124,7 @@ const Workspace = () => {
   const onWorkspaceClick = (id) => {
     setSelectedWorkspace(id);
   };
-
+  
   const [selectedWorkspace, setSelectedWorkspace] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isWorkSpaceLoading, setIsWorkSpaceLoading] = useState(true);
@@ -172,7 +176,7 @@ const Workspace = () => {
               color: colors.secondaryGrey,
             }}
             title={"Cancel"}
-            onPress={goHome}
+            onPress={closeApplication}
           />
         </div>
         <div className="button-wrapper">
@@ -216,7 +220,7 @@ const Workspace = () => {
               color: colors.secondaryGrey,
             }}
             title={"Cancel"}
-            onPress={goHome}
+            onPress={closeApplication}
           />
         </div>
         <div className="button-wrapper">

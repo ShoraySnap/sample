@@ -281,6 +281,11 @@ const electronCommunicator = (function (){
     // syncSessionData();
     app.quit();
   }
+
+  const closeApplication = function () {
+    logger.log("Upload cancelled");
+    app.quit();
+  }
   
   const syncSessionData = function (data = store.getData()){
     mainWindow.webContents.send('syncSessionData', data);
@@ -318,6 +323,7 @@ const electronCommunicator = (function (){
     updateUIShowLoadingPage,
     syncSessionData,
     goHome,
+    closeApplication,
   }
   
 })();
