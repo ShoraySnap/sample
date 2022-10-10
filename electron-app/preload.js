@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     log: (messages) => ipcRenderer.send('log', [messages]),
     operationSucceeded: () => ipcRenderer.send('operationSucceeded'),
     operationFailed: () => ipcRenderer.send('operationFailed'),
+    closeApplication: () => ipcRenderer.send('closeApplication'),
     openDevtools: () => ipcRenderer.send('openDevtools'),
     showLogs: () => ipcRenderer.send('showLogs'),
     

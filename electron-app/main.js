@@ -124,6 +124,7 @@ const enableEventListeners = function () {
     ipcMain.on('log', (event, [messages]) => logger.log(...messages));
     ipcMain.on('operationSucceeded', electronCommunicator.operationSucceeded);
     ipcMain.on('operationFailed', electronCommunicator.operationFailed);
+    ipcMain.on('closeApplication', electronCommunicator.closeApplication);
     ipcMain.on('openDevtools', electronCommunicator.openDevtools);
     ipcMain.on('showLogs', logger.showLogs);
     
