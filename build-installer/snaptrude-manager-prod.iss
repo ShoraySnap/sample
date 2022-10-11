@@ -16,7 +16,6 @@
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
 #define BaseOut Base + "\out"
 #define DynamoScriptVersion "1.4.6"
-#define WeWork 1
 ;1 is true, 0 is false
 
 [Setup]
@@ -42,12 +41,7 @@ SolidCompression=yes
 WizardStyle=modern
 VersionInfoVersion=1.0.0.0
 
-#if WeWork == 1
-OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-WeWork
-#else
 OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}
-#endif
-
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -64,13 +58,8 @@ begin
   Result := exists;
 end;
 
-function IsWeWork: Boolean;
-begin
-  Result := {#WeWork} = 1;
-end;
-
 [Files]
-Source: "{#BaseMisc}\urlswework.json"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion; Check: IsWeWork;
+Source: "{#BaseMisc}\urls.json"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
 
 ;dynamo scripts
 Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2019.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2019.dyn"; Flags: ignoreversion
@@ -96,24 +85,6 @@ Source: "{#BaseRevitAddinFiles}\Revit2Snaptrude.addin"; DestDir: "{userappdata}\
 
 
 Source: "{#BaseMisc}\custom_families\*" ; DestDir: "{commonappdata}\Snaptrude\"; Flags: ignoreversion recursesubdirs
-
-;2019
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019\Snaptrude"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2019'))
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2019'))
-;2020
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020\Snaptrude"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2020'))
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2020'))
-;2021
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021\Snaptrude"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2021'))
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2021'))
-;2022
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022\Snaptrude"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2022'))
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2022'))
-;2023
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\Snaptrude"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2023'))
-;Source: "{#BaseRevitAddinFiles}\Snaptrude.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2023'))
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-
 
 Source: "{#BaseInstallers}\*.exe"; DestDir: "{tmp}"; Flags: createallsubdirs recursesubdirs deleteafterinstall ignoreversion uninsremovereadonly; 
 

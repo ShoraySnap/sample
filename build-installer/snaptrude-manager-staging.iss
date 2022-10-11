@@ -16,7 +16,7 @@
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
 #define BaseOut Base + "\out"
 #define DynamoScriptVersion "1.4.6"
-;1 is true, 0 is false
+
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -32,7 +32,7 @@ AppUpdatesURL={#MyAppURL}
 CreateAppDir=no
 ChangesAssociations=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
+; PrivilegesRequired=lowest
 OutputDir={#BaseOut}
 ;OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}
 SetupIconFile={#Base}\favicon.ico
@@ -41,12 +41,25 @@ SolidCompression=yes
 WizardStyle=modern
 VersionInfoVersion=1.0.0.0
 
-OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-Update
+OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-Staging
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[Code]
+
+function ShouldInstallDynamo: Boolean;
+var
+  exists: Boolean;
+  path: String;
+begin
+  path := ExpandConstant('{userappdata}') + '\Autodesk\RVT\2019';
+  exists := DirExists(path);
+  Result := exists;
+end;
+
 [Files]
+Source: "{#BaseMisc}\urlsstaging.json"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
 
 ;dynamo scripts
 Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2019.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2019.dyn"; Flags: ignoreversion
@@ -69,6 +82,20 @@ Source: "{#BaseRevitAddinFiles}\Revit2Snaptrude.addin"; DestDir: "{userappdata}\
 Source: "{#BaseRevitAddinFiles}\Revit2Snaptrude.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2023'))
 Source: "{#BaseRevitAddinFiles}\Revit2Snaptrude.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2023'))
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+
+Source: "{#BaseMisc}\custom_families\*" ; DestDir: "{commonappdata}\Snaptrude\"; Flags: ignoreversion recursesubdirs
+
+Source: "{#BaseInstallers}\*.exe"; DestDir: "{tmp}"; Flags: createallsubdirs recursesubdirs deleteafterinstall ignoreversion uninsremovereadonly; 
+
+
+[Run]
+
+FileName: "{tmp}\DynamoInstall2.0.4.exe"; Description: "Install Dynamo"; Check: ShouldInstallDynamo; Flags: postinstall shellexec waituntilterminated
+
+Filename: "{tmp}\dynamo-2.6.1.exe"; Description: "Install Dynamo Connector"; Flags: postinstall shellexec waituntilterminated
+
+Filename: "{tmp}\snaptrude-manager-1.0.0 Setup.exe"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

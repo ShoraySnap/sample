@@ -1,5 +1,5 @@
 {
-  "speckleUrl": "https://weworkspeckle.snaptrude.co",
-  "snaptrudeReactUrl": "https://wework.snaptrude.co",
-  "snaptrudeDjangoUrl": "https://weworkapi.snaptrude.co"
+  "speckleUrl": "https://speckle.snaptrude.com",
+  "snaptrudeReactUrl": "https://app.snaptrude.com",
+  "snaptrudeDjangoUrl": "https://api.snaptrude.com"
 }
