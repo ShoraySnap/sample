@@ -1228,7 +1228,12 @@ namespace Snaptrude
                                 {
                                     if (revitFamilyName is null)
                                     {
-                                        LoadCustomDoorFamily(fsFamilyName);
+                                        var family = LoadCustomDoorFamily(fsFamilyName);
+                                        if (family is null)
+                                        {
+                                            LogTrace("couln't find door family");
+                                            continue;
+                                        }
                                     }
 
                                     defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
