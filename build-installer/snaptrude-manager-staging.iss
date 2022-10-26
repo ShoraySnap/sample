@@ -15,7 +15,7 @@
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
 #define BaseOut Base + "\out"
-#define DynamoScriptVersion "1.4.6.1"
+#define DynamoScriptVersion "1.4.7"
 
 
 [Setup]
