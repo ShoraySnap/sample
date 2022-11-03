@@ -1592,6 +1592,8 @@ namespace Snaptrude
 
                     XYZ localOriginOffset = XYZ.Zero;
 
+                    string revitFamilyName = (string)furnitureData["dsProps"]["revitMetaData"]["family"];
+
                     try
                     {
                         if (!furnitureData["dsProps"]["revitMetaData"]["offset"].IsNullOrEmpty())
@@ -1622,7 +1624,6 @@ namespace Snaptrude
 
 
                         string revitId = (string)furnitureData["dsProps"]["revitMetaData"]["elementId"];
-                        string revitFamilyName = (string)furnitureData["dsProps"]["revitMetaData"]["family"];
                         bool isExistingFurniture = false;
                         FamilyInstance existingFamilyInstance = null;
                         AssemblyInstance existingAssemblyInstance = null;
@@ -1737,7 +1738,7 @@ namespace Snaptrude
                             }
                             else if (revitFamilyName != null)
                             {
-                                if (existingFamilySymbol.Category.Name == "Casework")
+                                if (existingFamilySymbol?.Category?.Name == "Casework")
                                 {
                                     XYZ originalPoint = ((LocationPoint)existingFamilyInstance.Location).Point;
 
@@ -1882,7 +1883,9 @@ namespace Snaptrude
                             }
                             else
                             {
-                                String familyName = st_interior.Name.RemoveIns();
+                                //String familyName = st_interior.Name.RemoveIns();
+                                String familyName = st_interior.FamilyName;
+
                                 FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
                                 //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, "Casework Assembly", "Casework 044");
                                 if (defaultFamilySymbol is null)

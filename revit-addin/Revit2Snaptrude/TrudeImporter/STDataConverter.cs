@@ -106,6 +106,20 @@ namespace Snaptrude
             return !(data["meshes"][0]["rotationQuaternion"] is null);
         }
 
+        public static String GetFamilyName(JToken data)
+        {
+            JToken revitMetaData  = data["dsProps"]["revitMetaData"];
+
+            return (string)revitMetaData["family"];
+        }
+
+        public static String GetFamilyTypeName(JToken data)
+        {
+            JToken revitMetaData  = data["dsProps"]["revitMetaData"];
+
+            return (string)revitMetaData["type"];
+        }
+
         public static ST_Layer[] GetLayers(JToken data)
         {
             if (!data["dsProps"]["properties"]["_components"].HasValues) return null;
