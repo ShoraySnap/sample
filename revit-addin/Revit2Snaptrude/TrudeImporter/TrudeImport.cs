@@ -29,7 +29,13 @@ namespace Snaptrude
             uiapp.Application.FailuresProcessing += Application_FailuresProcessing;
             try
             {
-                bool status = ParseTrude(uiapp, doc);
+                bool status = false;
+                using(Transaction t = new Transaction(doc, "Parse Trude"))
+                {
+                    t.Start();
+                    status = ParseTrude(uiapp, doc);
+                    t.Commit();
+                }
 
                 if (status) ShowSuccessDialogue();
 
@@ -87,7 +93,7 @@ namespace Snaptrude
             if (jObject["metadata"] != null && jObject["metadata"]["revitDeleteIds"] != null)
             {
 
-                using (Transaction t = new Transaction(GlobalVariables.Document, "delete elements"))
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
                     foreach (JToken elementId in jObject["metadata"]["revitDeleteIds"])
@@ -358,18 +364,11 @@ namespace Snaptrude
                         try
                         {
 
-                            using (Transaction t = new Transaction(newDoc))
+                            using (SubTransaction t = new SubTransaction(newDoc))
                             {
-                                t.Start("Create Level");
-                                //if (newStorey.levelNumber == 1)
-                                //{
-                                //    baseLevel.Elevation = newStorey.basePosition;
-                                //}
-                                //else
-                                //{
-                                    newStorey.CreateLevel(newDoc);
-                                    LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
-                                //}
+                                t.Start();
+                                newStorey.CreateLevel(newDoc);
+                                LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
                                 t.Commit();
                             }
 
@@ -386,9 +385,9 @@ namespace Snaptrude
                             try
                             {
 
-                                using (Transaction t = new Transaction(newDoc))
+                                using (SubTransaction t = new SubTransaction(newDoc))
                                 {
-                                    t.Start("Create Level");
+                                    t.Start();
 
                                     newStorey.CreateLevel(newDoc);
                                     LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
@@ -451,7 +450,7 @@ namespace Snaptrude
                         WallType existingWallType = null;
                         if (revitId != null)
                         {
-                            using (Transaction t = new Transaction(newDoc, "delete edited walls"))
+                            using (SubTransaction t = new SubTransaction(newDoc))
                             {
                                 try
                                 {
@@ -481,10 +480,10 @@ namespace Snaptrude
                         processedElements++;
                         LogProgress(processedElements, totalElements);
 
-                        using (Transaction trans = new Transaction(newDoc))
+                        using (SubTransaction trans = new SubTransaction(newDoc))
                         {
                             ST_Wall st_wall = new ST_Wall();
-                            trans.Start("Create WALLS");
+                            trans.Start();
                             try
                             {
                                 if (IsThrowAway(wallData))
@@ -723,7 +722,7 @@ namespace Snaptrude
                                     childUniqueIdToWallElementId.Add((int)childUID, wallId);
                                 }
 
-                                using (Transaction t = new Transaction(newDoc, "delete wall"))
+                                using (SubTransaction t = new SubTransaction(newDoc))
                                 {
                                     t.Start();
 
@@ -824,9 +823,9 @@ namespace Snaptrude
                     processedElements++;
                     LogProgress(processedElements, totalElements);
 
-                    using (Transaction transactionFloor = new Transaction(newDoc))
+                    using (SubTransaction transactionFloor = new SubTransaction(newDoc))
                     {
-                        transactionFloor.Start("Create Floors");
+                        transactionFloor.Start();
 
                         FloorType existingFloorType = null;
                         int revitId;
@@ -899,10 +898,9 @@ namespace Snaptrude
                     processedElements++;
                     LogProgress(processedElements, totalElements);
 
-                    using (Transaction transactionRoofs = new Transaction(newDoc))
+                    using (SubTransaction transactionRoofs = new SubTransaction(newDoc))
                     {
-                        transactionRoofs.Start("Create Roofs");
-
+                        transactionRoofs.Start();
 
                         try
                         {
@@ -1059,7 +1057,7 @@ namespace Snaptrude
                                     }
                                 }
 
-                                using (Transaction transaction = new Transaction(newDoc, "update profile"))
+                                using (SubTransaction transaction = new SubTransaction(newDoc))
                                 {
                                     transaction.Start();
 
@@ -1091,7 +1089,7 @@ namespace Snaptrude
                                     Element existingMass = e;
                                     ElementId existingLevelId = existingMass.LevelId;
 
-                                    using (Transaction t = new Transaction(newDoc, "delete mass"))
+                                    using (SubTransaction t = new SubTransaction(newDoc))
                                     {
                                         t.Start();
                                         var val = newDoc.Delete(existingMass.Id);
@@ -1118,8 +1116,6 @@ namespace Snaptrude
 
                 //DOORS
                 JToken doors = geometryParent["doors"];
-                //Transaction transactionDoors = new Transaction(newDoc);
-                //transactionDoors.Start("Create doors");
                 foreach (var door in doors)
                 {
                     if (!ShouldImport(door)) continue;
@@ -1139,7 +1135,7 @@ namespace Snaptrude
                     FamilySymbol existingFamilySymbol = null;
                     if (revitId != null)
                     {
-                        using (Transaction t = new Transaction(newDoc, "delete edited walls"))
+                        using (SubTransaction t = new SubTransaction(newDoc))
                         {
                             try
                             {
@@ -1164,9 +1160,9 @@ namespace Snaptrude
                             }
                         }
                     }
-                    using (Transaction transaction = new Transaction(newDoc))
+                    using (SubTransaction transaction = new SubTransaction(newDoc))
                     {
-                        transaction.Start("Creating door");
+                        transaction.Start();
                         try
                         {
                             ST_Door st_door = new ST_Door();
@@ -1294,8 +1290,6 @@ namespace Snaptrude
                 //WINDOWS
 
                 JToken windows = geometryParent["windows"];
-                //Transaction transactionWindows = new Transaction(newDoc);
-                //transactionWindows.Start("Create windows");
                 foreach (var window in windows)
                 {
                     if (!ShouldImport(window)) continue;
@@ -1313,7 +1307,7 @@ namespace Snaptrude
                     bool isExistingWindow = false;
                     FamilyInstance existingWindow = null;
                     FamilySymbol existingFamilySymbol = null;
-                    using (Transaction t = new Transaction(newDoc, "delete edited walls"))
+                    using (SubTransaction t = new SubTransaction(newDoc))
                     {
                         try
                         {
@@ -1325,7 +1319,6 @@ namespace Snaptrude
                             {
                                 isExistingWindow = true;
                                 existingWindow = (FamilyInstance)e;
-                                //existingFamilySymbol = existingWindow.Symbol;
                                 existingFamilySymbol = idToFamilySymbol[revitId];
 
                                 // delete original window
@@ -1339,9 +1332,9 @@ namespace Snaptrude
                         }
                     }
 
-                    using (Transaction transaction = new Transaction(newDoc))
+                    using (SubTransaction transaction = new SubTransaction(newDoc))
                     {
-                        transaction.Start("Create window");
+                        transaction.Start();
                         try
                         {
                             ST_Window st_window = new ST_Window();
@@ -1519,7 +1512,7 @@ namespace Snaptrude
                         using (StairsEditScope newStairsScope = new StairsEditScope(newDoc, "edit Stairs"))
                         {
                             ElementId newStairsId = newStairsScope.Start(staircase);
-                            using (Transaction stairsTrans = new Transaction(newDoc, "edit existing stairs"))
+                            using (SubTransaction stairsTrans = new SubTransaction(newDoc))
                             {
                                 stairsTrans.Start();
                                 currStair = newDoc.GetElement(newStairsId) as Stairs;
@@ -1544,7 +1537,7 @@ namespace Snaptrude
                         }
 
                         // DELETE EXISTING RAILINGS
-                        using(Transaction transactionDeleteRailings = new Transaction(newDoc, "Delete Railings"))
+                        using(SubTransaction transactionDeleteRailings = new SubTransaction(newDoc))
                         {
                             transactionDeleteRailings.Start();
                             try
@@ -1639,9 +1632,9 @@ namespace Snaptrude
 
                         if (revitId != null)
                         {
-                            using (Transaction trans = new Transaction(newDoc))
+                            using (SubTransaction trans = new SubTransaction(newDoc))
                             {
-                                trans.Start("Get existing furniture data");
+                                trans.Start();
                                 try
                                 {
                                     Element e = newDoc.GetElement(new ElementId(int.Parse(revitId)));
@@ -1679,9 +1672,9 @@ namespace Snaptrude
                                 }
                             }
                         }
-                        using (Transaction trans = new Transaction(newDoc))
+                        using (SubTransaction trans = new SubTransaction(newDoc))
                         {
-                            trans.Start("Create furniture");
+                            trans.Start();
 
                             // Creation ...................
                             ST_Interior st_interior = new ST_Interior(furnitureData);
@@ -1947,7 +1940,7 @@ namespace Snaptrude
                 }
                 try
                 {
-                    using (Transaction t = new Transaction(newDoc, "delete source ids"))
+                    using (SubTransaction t = new SubTransaction(newDoc))
                     {
                         t.Start();
                         newDoc.Delete(sourcesIdsToDelete);
@@ -2146,7 +2139,7 @@ namespace Snaptrude
                 using (StairsEditScope newStairsScope = new StairsEditScope(document, "New Stairs"))
                 {
                     newStairsId = newStairsScope.Start(this.levelBottom.Id, this.levelTop.Id);
-                    using (Transaction stairsTrans = new Transaction(document, "Add Runs and Landings to Stairs"))
+                    using (SubTransaction stairsTrans = new SubTransaction(document))
                     {
                         stairsTrans.Start();
                         double tread_depth = UnitsAdapter.convertToRevit(Convert.ToDouble(this.Props["tread"].ToString()));
@@ -2288,7 +2281,7 @@ namespace Snaptrude
                 using (StairsEditScope newStairsScope = new StairsEditScope(document, "New Stairs"))
                 {
                     newStairsId = newStairsScope.Start(this.levelBottom.Id, this.levelTop.Id);
-                    using (Transaction stairsTrans = new Transaction(document, "Add Runs and Landings to Stairs"))
+                    using (SubTransaction stairsTrans = new SubTransaction(document))
                     {
                         stairsTrans.Start();
                         double tread_depth = UnitsAdapter.convertToRevit(Convert.ToDouble(this.Props["tread"].ToString()));
@@ -2477,7 +2470,7 @@ namespace Snaptrude
                 using (StairsEditScope newStairsScope = new StairsEditScope(document, "New Stairs"))
                 {
                     newStairsId = newStairsScope.Start(this.levelBottom.Id, this.levelTop.Id);
-                    using (Transaction stairsTrans = new Transaction(document, "Add Runs and Landings to Stairs"))
+                    using (SubTransaction stairsTrans = new SubTransaction(document))
                     {
                         stairsTrans.Start();
                         double tread_depth = UnitsAdapter.convertToRevit(Convert.ToDouble(this.Props["tread"].ToString()));
@@ -2687,7 +2680,7 @@ namespace Snaptrude
                 using (StairsEditScope newStairsScope = new StairsEditScope(document, "New Stairs"))
                 {
                     newStairsId = newStairsScope.Start(this.levelBottom.Id, this.levelTop.Id);
-                    using (Transaction stairsTrans = new Transaction(document, "Add Runs and Landings to Stairs"))
+                    using (SubTransaction stairsTrans = new SubTransaction(document))
                     {
                         stairsTrans.Start();
                         double tread_depth = UnitsAdapter.convertToRevit(Convert.ToDouble(this.Props["tread"].ToString()));

@@ -184,10 +184,6 @@ namespace Snaptrude
 
         private void CreateFamilyInstance(Document doc, string familyName, ElementId levelId, ShapeProperties props)
         {
-            using (Transaction t = new Transaction(doc, "Create beam instance"))
-            {
-                t.Start();
-
                 FamilySymbol familySymbol;
                 if (types.ContainsKey(familyName)) { familySymbol = types[familyName]; }
                 else
@@ -204,9 +200,6 @@ namespace Snaptrude
                 FamilyInstance beam = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Beam);
                 beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
                 beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int) ZJustification.Center);
-
-                t.Commit();
-            }
         }
 
         private Curve GetPositionCurve(ShapeProperties props)
@@ -234,10 +227,6 @@ namespace Snaptrude
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open rectangular beam rfa"))
-                    {
-                        t.Start();
-
                         string defaultRfaPath = "resourceFile/beams/Rectangular.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "Rectangular");
@@ -247,16 +236,9 @@ namespace Snaptrude
                         newFamilyType.GetParameters("d")[0].Set((shapeProperties as RectangularProperties).depth);
 
                         types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
                 }
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open L Shaped Beam rfa"))
-                    {
-                        t.Start();
-
                         string defaultRfaPath = "resourceFile/beams/L-Shaped.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "L-Shaped");
@@ -267,15 +249,9 @@ namespace Snaptrude
                         newFamilyType.GetParameters("t")[0].Set((shapeProperties as LShapeProperties).thickness);
 
                         types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
                 }
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open I Shaped Beam rfa"))
-                    {
-                        t.Start();
 
                         string defaultRfaPath = "resourceFile/beams/I-Shaped.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
@@ -288,16 +264,9 @@ namespace Snaptrude
                         newFamilyType.GetParameters("tw")[0].Set((shapeProperties as HShapeProperties).webThickness);
 
                         types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
                 }
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open C Shaped Beam rfa"))
-                    {
-                        t.Start();
-
                         string defaultRfaPath = "resourceFile/beams/C-Shaped.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "C-Shaped");
@@ -309,9 +278,6 @@ namespace Snaptrude
                         newFamilyType.GetParameters("tw")[0].Set((shapeProperties as CShapeProperties).webThickness);
 
                         types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
                 }
             }
         }
