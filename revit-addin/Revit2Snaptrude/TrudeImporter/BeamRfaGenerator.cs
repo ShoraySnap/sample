@@ -15,7 +15,7 @@ namespace Snaptrude
 
         public static void DeleteAll()
         {
-            if(Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
+            if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
         public void CreateRFAFile(Application app, string familyName, double height, List<XYZ> _countour)
         {
@@ -27,12 +27,7 @@ namespace Snaptrude
 
             Extrusion extrusion = CreateExtrusion(fdoc, _countour);
 
-            using (Transaction t = new Transaction(fdoc, "add alignments"))
-            {
-                t.Start();
-                AddAlignments(fdoc, extrusion);
-                t.Commit();
-            }
+            AddAlignments(fdoc, extrusion);
 
             SaveAsOptions opt = new SaveAsOptions();
             opt.OverwriteExistingFile = true;
@@ -69,28 +64,18 @@ namespace Snaptrude
             ReferencePlane referencePlane = Utils.FindElement(doc, typeof(ReferencePlane), "Member Right") as ReferencePlane;
             Extrusion existingExtrusion = Utils.FindElement(doc, typeof(Extrusion)) as Extrusion;
 
-            using (Transaction t = new Transaction(doc, "Delete Existing Extrusion"))
-            {
-                t.Start();
-                doc.Delete(existingExtrusion.Id);
-                t.Commit();
-            }
+            doc.Delete(existingExtrusion.Id);
 
             CurveArray loop = CreateLoop(pts);
             CurveArrArray profile = new CurveArrArray();
             profile.Append(loop);
 
             Extrusion extrusion;
-            using (Transaction t = new Transaction(doc, "Create Extrusion"))
-            {
-                t.Start();
-                SketchPlane sketch = SketchPlane.Create(doc, referencePlane.GetPlane());
-                // Use 2500m, top face MUST align with left member reference plane for alignment
-                extrusion = doc.FamilyCreate.NewExtrusion(true, profile, sketch, UnitsAdapter.MMToFeet(2500));
+            SketchPlane sketch = SketchPlane.Create(doc, referencePlane.GetPlane());
+            // Use 2500m, top face MUST align with left member reference plane for alignment
+            extrusion = doc.FamilyCreate.NewExtrusion(true, profile, sketch, UnitsAdapter.MMToFeet(2500));
 
-                doc.Regenerate();
-                t.Commit();
-            }
+            doc.Regenerate();
 
             return extrusion;
         }

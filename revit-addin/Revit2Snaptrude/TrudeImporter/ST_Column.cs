@@ -4,12 +4,9 @@ using Autodesk.Revit.DB.Structure;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Media.Media3D;
 
 namespace Snaptrude
 {
-
     public class ST_Column : ST_Abstract
     {
         private XYZ CenterPosition;
@@ -87,51 +84,45 @@ namespace Snaptrude
 
         private void CreateFamilyInstance(Document doc, string familyName, ElementId levelId, double height, ShapeProperties props)
         {
-            using (Transaction t = new Transaction(doc, "Create column instance"))
+            FamilySymbol familySymbol;
+            if (types.ContainsKey(familyName)) { familySymbol = types[familyName]; }
+            else
             {
-                t.Start();
+                doc.LoadFamily(columnRfaGenerator.fileName(familyName), out Family columnFamily);
+                familySymbol = ST_Abstract.GetFamilySymbolByName(doc, familyName);
+                types.Add(familyName, familySymbol);
+            }
 
-                FamilySymbol familySymbol;
-                if (types.ContainsKey(familyName)) { familySymbol = types[familyName]; }
-                else
+            Curve curve = GetPositionCurve(props, height);
+
+            Level level = doc.GetElement(levelId) as Level;
+
+            FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
+            column.Location.Rotate(curve as Line, props?.rotation ?? 0);
+
+            //double zBase = Position.Z - (height / 2d);
+            double zBase = Position.Z + zLeast;
+            column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.Elevation);
+            ElementId baseLevelId = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM).AsElementId();
+            ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
+            if (baseLevelId == topLevelId)
+            {
+                // TODO: use  ST_Storey to create levels
+
+                double topElevation = level.Elevation + height;
+                if (!NewLevelsByElevation.ContainsKey(topElevation))
                 {
-                    doc.LoadFamily(columnRfaGenerator.fileName(familyName), out Family columnFamily);
-                    familySymbol = ST_Abstract.GetFamilySymbolByName(doc, familyName);
-                    types.Add(familyName, familySymbol);
-                }
-
-                Curve curve = GetPositionCurve(props, height);
-
-                Level level = doc.GetElement(levelId) as Level;
-
-                FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
-                column.Location.Rotate(curve as Line, props?.rotation ?? 0);
-
-                //double zBase = Position.Z - (height / 2d);
-                double zBase = Position.Z + zLeast;
-                column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.Elevation);
-                ElementId baseLevelId = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM).AsElementId();
-                ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
-                if (baseLevelId == topLevelId)
-                {
-                    // TODO: use  ST_Storey to create levels
-
-                    double topElevation = level.Elevation + height;
-                    if (!NewLevelsByElevation.ContainsKey(topElevation))
+                    ST_Storey storey = new ST_Storey()
                     {
-                        ST_Storey storey = new ST_Storey()
-                        {
-                            basePosition = topElevation
-                        };
+                        basePosition = topElevation
+                    };
 
-                        Level newLevel = storey.CreateLevel(doc);
+                    Level newLevel = storey.CreateLevel(doc);
 
-                        NewLevelsByElevation.Add(topElevation, newLevel);
-                    }
-
-                    column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(NewLevelsByElevation[topElevation].Id);
+                    NewLevelsByElevation.Add(topElevation, newLevel);
                 }
-                t.Commit();
+
+                column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(NewLevelsByElevation[topElevation].Id);
             }
         }
 
@@ -164,92 +155,62 @@ namespace Snaptrude
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open rectangular column rfa"))
-                    {
-                        t.Start();
 
+                    //string defaultRfaPath = "resourceFile/columns/rectangular.rfa";
+                    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                    string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/rectangular.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
-                        //string defaultRfaPath = "resourceFile/columns/rectangular.rfa";
-                        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                        string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/rectangular.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+                    newFamilyType.GetParameters("Width")[0].Set((shapeProperties as RectangularProperties).width);
+                    newFamilyType.GetParameters("Depth")[0].Set((shapeProperties as RectangularProperties).depth);
 
-                        newFamilyType.GetParameters("Width")[0].Set((shapeProperties as RectangularProperties).width);
-                        newFamilyType.GetParameters("Depth")[0].Set((shapeProperties as RectangularProperties).depth);
-
-                        types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
+                    types.Add(familyName, newFamilyType);
                 }
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open L Shaped Column rfa"))
-                    {
-                        t.Start();
+                    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                    string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/L Shaped.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "L Shaped");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
-                        //string defaultRfaPath = "resourceFile/columns/L Shaped.rfa";
-                        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                        string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/L Shaped.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "L Shaped");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as LShapeProperties).depth);
+                    newFamilyType.GetParameters("b")[0].Set((shapeProperties as LShapeProperties).breadth);
+                    newFamilyType.GetParameters("t")[0].Set((shapeProperties as LShapeProperties).thickness);
 
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as LShapeProperties).depth);
-                        newFamilyType.GetParameters("b")[0].Set((shapeProperties as LShapeProperties).breadth);
-                        newFamilyType.GetParameters("t")[0].Set((shapeProperties as LShapeProperties).thickness);
-
-                        types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
+                    types.Add(familyName, newFamilyType);
                 }
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open H Shaped Column rfa"))
-                    {
-                        t.Start();
+                    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                    string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/H Shaped.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "H Shaped");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
-                        //string defaultRfaPath = "resourceFile/columns/H Shaped.rfa";
-                        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                        string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/H Shaped.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "H Shaped");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as HShapeProperties).depth);
+                    newFamilyType.GetParameters("bf")[0].Set((shapeProperties as HShapeProperties).flangeBreadth);
+                    newFamilyType.GetParameters("tf")[0].Set((shapeProperties as HShapeProperties).flangeThickness);
+                    newFamilyType.GetParameters("tw")[0].Set((shapeProperties as HShapeProperties).webThickness);
 
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as HShapeProperties).depth);
-                        newFamilyType.GetParameters("bf")[0].Set((shapeProperties as HShapeProperties).flangeBreadth);
-                        newFamilyType.GetParameters("tf")[0].Set((shapeProperties as HShapeProperties).flangeThickness);
-                        newFamilyType.GetParameters("tw")[0].Set((shapeProperties as HShapeProperties).webThickness);
-
-                        types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
+                    types.Add(familyName, newFamilyType);
                 }
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
-                    using (Transaction t = new Transaction(doc, "open C Shaped Column rfa"))
-                    {
-                        t.Start();
+                    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                    string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/C Shaped.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "C Shaped");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
-                        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                        string defaultRfaPath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Columns/C Shaped.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "C Shaped");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as CShapeProperties).depth);
+                    newFamilyType.GetParameters("bf")[0].Set((shapeProperties as CShapeProperties).flangeBreadth);
+                    newFamilyType.GetParameters("tf")[0].Set((shapeProperties as CShapeProperties).flangeThickness);
+                    newFamilyType.GetParameters("tw")[0].Set((shapeProperties as CShapeProperties).webThickness);
 
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as CShapeProperties).depth);
-                        newFamilyType.GetParameters("bf")[0].Set((shapeProperties as CShapeProperties).flangeBreadth);
-                        newFamilyType.GetParameters("tf")[0].Set((shapeProperties as CShapeProperties).flangeThickness);
-                        newFamilyType.GetParameters("tw")[0].Set((shapeProperties as CShapeProperties).webThickness);
-
-                        types.Add(familyName, newFamilyType);
-
-                        t.Commit();
-                    }
+                    types.Add(familyName, newFamilyType);
                 }
             }
 

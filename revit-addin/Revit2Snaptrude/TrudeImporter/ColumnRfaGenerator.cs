@@ -12,12 +12,12 @@ namespace Snaptrude
     {
         private const string BASE_DIRECTORY = "tmp_columns";
         static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        static string TEMPLATE_FILE_NAME = documentsPath + "/"+ Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Column.rft";
+        static string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Column.rft";
         //const string TEMPLATE_FILE_NAME = "resourceFile/Metric Column.rft";
 
         public static void DeleteAll()
         {
-            if(Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
+            if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
         public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double width, double depth)
         {
@@ -27,62 +27,43 @@ namespace Snaptrude
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 
-            using (Transaction t = new Transaction(fdoc, "Set Width and Depth"))
-            {
-                t.Start();
-
-                FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
-                FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
-                fdoc.FamilyManager.Set(depthParam, depth);
-                fdoc.FamilyManager.Set(widthParam, width);
-
-                t.Commit();
-            }
+            FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
+            FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
+            fdoc.FamilyManager.Set(depthParam, depth);
+            fdoc.FamilyManager.Set(widthParam, width);
 
             Extrusion extrusion = CreateExtrusion(fdoc, _countour);
 
-            using (Transaction t = new Transaction(fdoc, "add material"))
+            string materialName = "Concrete for Columns";
+            Material material = Utils.FindElement(GlobalVariables.Document, typeof(Material), materialName) as Material;
+            ElementId materialId;
+            if (material is null)
             {
-                t.Start();
+                materialId = Material.Create(fdoc, materialName);
 
-                string materialName = "Concrete for Columns";
-                Material material = Utils.FindElement(GlobalVariables.Document, typeof(Material), materialName) as Material;
-                ElementId materialId;
-                if (material is null)
-                {
-                    materialId = Material.Create(fdoc, materialName);
-
-                    material = fdoc.GetElement(materialId) as Material;
-                    material.Color = new Color(127, 127, 127);
-                }
-                else
-                {
-                    materialId = material.Id;
-                }
-
-                FillPatternElement fillPatternElement = Utils.GetSolidFillPatternElement(fdoc);
-
-                material.CutForegroundPatternColor = new Color(120, 120, 120);
-                try
-                {
-                    material.CutForegroundPatternId = fillPatternElement.Id;
-                }
-                catch (Exception e)
-                {
-                    TrudeImporter.LogTrace("Failed to set fill pattern of custom column", e.Message);
-                }
-
-                extrusion.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM).Set(materialId);
-
-                t.Commit();
+                material = fdoc.GetElement(materialId) as Material;
+                material.Color = new Color(127, 127, 127);
+            }
+            else
+            {
+                materialId = material.Id;
             }
 
-            using (Transaction t = new Transaction(fdoc, "add alignments"))
+            FillPatternElement fillPatternElement = Utils.GetSolidFillPatternElement(fdoc);
+
+            material.CutForegroundPatternColor = new Color(120, 120, 120);
+            try
             {
-                t.Start();
-                AddAlignments(fdoc, extrusion);
-                t.Commit();
+                material.CutForegroundPatternId = fillPatternElement.Id;
             }
+            catch (Exception e)
+            {
+                TrudeImporter.LogTrace("Failed to set fill pattern of custom column", e.Message);
+            }
+
+            extrusion.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM).Set(materialId);
+
+            AddAlignments(fdoc, extrusion);
 
             SaveAsOptions opt = new SaveAsOptions();
             opt.OverwriteExistingFile = true;
@@ -120,17 +101,11 @@ namespace Snaptrude
             profile.Append(loop);
 
             Extrusion extrusion;
-            using (Transaction t = new Transaction(doc, "Create Extrusion"))
-            {
-                t.Start();
+            SketchPlane sketch = SketchPlane.Create(doc, referencePlane.GetPlane());
+            // Use 4000mm, top face MUST align with upper reference plane
+            extrusion = doc.FamilyCreate.NewExtrusion(true, profile, sketch, UnitsAdapter.MMToFeet(4000));
 
-                SketchPlane sketch = SketchPlane.Create(doc, referencePlane.GetPlane());
-                // Use 4000mm, top face MUST align with upper reference plane
-                extrusion = doc.FamilyCreate.NewExtrusion(true, profile, sketch, UnitsAdapter.MMToFeet(4000));
-
-                doc.Regenerate();
-                t.Commit();
-            }
+            doc.Regenerate();
 
             return extrusion;
         }

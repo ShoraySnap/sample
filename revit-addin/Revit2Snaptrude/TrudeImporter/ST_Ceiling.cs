@@ -11,8 +11,6 @@ namespace Snaptrude
     {
         public ST_Layer[] Layers;
 
-        //public static CeilingTypeStore TypeStore = new CeilingTypeStore();
-
         public Ceiling ceiling { get; set; }
 
         private void setThickness(double thickness)
