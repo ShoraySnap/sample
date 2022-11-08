@@ -1861,7 +1861,7 @@ namespace Snaptrude
 
                                 ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
 
-                                ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                                ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position - localOriginOffset);
 
                                 BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                                 //XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
