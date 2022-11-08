@@ -28,6 +28,9 @@ namespace Snaptrude
         public XYZ worldCentroid;
         public XYZ localCentroid;
 
+        public String FamilyName;
+        public String FamilyTypeName;
+
         public ST_Interior(JToken furnitureData)
         {
             JToken furnitureMeshData = furnitureData["meshes"].First;
@@ -43,6 +46,9 @@ namespace Snaptrude
             eulerAngles = STDataConverter.GetEulerAnglesFromRotationQuaternion(furnitureData);
             ShapeBuildersKey = Name + Scaling.Stringify() + Rotation.Stringify() + eulerAngles.Stringify();
             levelNumber = STDataConverter.GetLevelNumber(furnitureData);
+
+            FamilyName = STDataConverter.GetFamilyName(furnitureData); 
+            FamilyTypeName = STDataConverter.GetFamilyTypeName(furnitureData); 
 
             XYZ localMinimum = STDataConverter.ArrayToXYZ(furnitureMeshData["localBoundingBox"]["min"]);
             localBaseZ = localMinimum.Z;
