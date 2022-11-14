@@ -1878,6 +1878,7 @@ namespace Snaptrude
                             {
                                 //String familyName = st_interior.Name.RemoveIns();
                                 String familyName = st_interior.FamilyName;
+                                if (familyName is null) familyName = st_interior.FamilyTypeName;
 
                                 FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
                                 //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, "Casework Assembly", "Casework 044");
@@ -1885,6 +1886,10 @@ namespace Snaptrude
                                 {
                                     Family family = LoadCustomFamily(familyName);
                                     defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
+                                    if (defaultFamilySymbol == null)
+                                    {
+                                        defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName.Replace("_", " "));
+                                    }
                                 }
 
                                 if (!defaultFamilySymbol.IsActive)

@@ -38,6 +38,8 @@ namespace Snaptrude
                            .FirstOrDefault();
                 }
 
+                if (familySymbol == null) return null;
+
                 if (!familySymbol.IsActive)
                 {
                     familySymbol.Activate();
