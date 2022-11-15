@@ -561,6 +561,8 @@ namespace Snaptrude
                                 // Calculate and set thickness
                                 string wallDirection = wallData["dsProps"]["direction"].Value<string>();
 
+                                float thickness = wallData["thickness"] is null ? -1 : (float) wallData["thickness"];
+
                                 bool coreIsFound = false;
                                 //TODO remove this loop after wall core layer thickness is fixed after doing freemove
                                 for (int i = 0; i < st_wall.Layers.Length; i++)
@@ -569,6 +571,7 @@ namespace Snaptrude
                                     {
                                         coreIsFound = true;
                                         //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                                        if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
                                     }
                                 }
 
@@ -586,6 +589,7 @@ namespace Snaptrude
 
                                     //st_wall.Layers[index].ThicknessInMm = UnitsAdapter.FeetToMM(thickness) - sumOfOtherThicknesses;
                                     st_wall.Layers[index].IsCore = true;
+                                    if (thickness > 0) st_wall.Layers[index].ThicknessInMm = thickness;
                                 }
 
                                 ElementId levelIdForWall;
