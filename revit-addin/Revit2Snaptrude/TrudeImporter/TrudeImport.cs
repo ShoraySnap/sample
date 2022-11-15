@@ -1775,6 +1775,10 @@ namespace Snaptrude
                                 else
                                 {
                                     FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, revitFamilyName, familyType);
+                                    if (defaultFamilySymbol is null)
+                                    {
+                                        defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, revitFamilyName);
+                                    }
                                     if (!defaultFamilySymbol.IsActive)
                                     {
                                         defaultFamilySymbol.Activate();
