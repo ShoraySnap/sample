@@ -556,7 +556,34 @@ namespace Snaptrude
 
                                 st_wall.levelNumber = int.Parse(wallMeshDataforLevel["storey"].ToString());
 
-                                IList<Curve> profile = st_wall.GetProfile(profilePoints);
+                                List<XYZ> profilePointsXYZ = profilePoints.Select(p => p.ToXYZ()).ToList();
+                                IList<Curve> profile = st_wall.GetProfile(profilePointsXYZ);
+
+                                ReferenceArray referenceArray = new ReferenceArray();
+
+
+                                List<List<XYZ>> holes = new List<List<XYZ>>();
+
+                                foreach (JToken holeJtoken in wallData["holes"])
+                                {
+                                    List<XYZ> holePoints = new List<XYZ>();
+                                    foreach(JToken holeArray in holeJtoken)
+                                    {
+                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray) - st_wall.Position);
+                                    }
+
+                                    holes.Add(holePoints);
+                                }
+
+                                foreach(List<XYZ> hole in holes)
+                                {
+                                    IList<Curve> holeProfile = st_wall.GetProfile(hole);
+                                    foreach (Curve c in holeProfile)
+                                    {
+                                        //profile.Add(c);
+                                        referenceArray.Append(c.Reference);
+                                    }
+                                }
 
                                 // Calculate and set thickness
                                 string wallDirection = wallData["dsProps"]["direction"].Value<string>();
@@ -652,6 +679,55 @@ namespace Snaptrude
                                 double baseOffset = baseHeight - level.Elevation;
 
                                 st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
+
+
+                                try
+                                {
+                                    newDoc.Regenerate();
+
+                                    // Get angle between wall face and YZ plane (void is an extrusion drawn on the YZ plane)
+                                    Face face = st_wall.GetFaces().First();
+                                    double angle = ((PlanarFace)face).FaceNormal.AngleTo(XYZ.BasisX);
+
+                                    foreach (List<XYZ> hole in holes)
+                                    {
+                                        // rotate hole
+                                        List<XYZ> rotatedHole = new List<XYZ>();
+
+                                        XYZ localOrigin = hole.Aggregate(XYZ.Zero, (acc, p) => acc + p) / hole.Count;
+                                        foreach(XYZ point in hole)
+                                        {
+                                            Transform transform = Transform.CreateRotationAtPoint(XYZ.BasisZ, -angle, localOrigin);
+                                            XYZ rotatedPoint = transform.OfPoint(point);
+                                            rotatedHole.Add(rotatedPoint);
+                                        }
+
+                                        // Create cutting family
+                                        VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
+                                        string familyName = "snaptrudeVoidFamily" + RandomString(4);
+                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, rotatedHole, angle);
+
+                                        newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+                                        FamilySymbol cuttingFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
+
+                                        if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
+
+                                        Line locationLine = (st_wall.wall.Location as LocationCurve).Curve as Line;
+                                        
+                                        FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(localOrigin + st_wall.Position,
+                                                                                                               cuttingFamilySymbol,
+                                                                                                               Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                                        //cuttingFamilyInstance.Location.Rotate(Line.CreateBound(localOrigin, localOrigin + XYZ.BasisZ), angle);
+
+
+                                        InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
+                                    }
+                                }
+                                catch
+                                {
+
+                                }
 
                                 newDoc.Regenerate();
                                 try
@@ -3282,6 +3358,22 @@ namespace Snaptrude
             }
 
             return false;
+        }
+
+        public static Family LoadVoidFamily()
+        {
+            try
+            {
+                string filePath = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/Cutter.rfa";
+
+                GlobalVariables.Document.LoadFamily(filePath, out Family family);
+
+                return family;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
 
         public static Family LoadCustomFamily(String familyName)

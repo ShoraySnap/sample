@@ -19,18 +19,18 @@ namespace Snaptrude
 
         public Wall wall { get; set; }
 
-        public IList<Curve> GetProfile(List<Point3D> points)
+        public IList<Curve> GetProfile(List<XYZ> points)
         {
             IList<Curve> profile = new List<Curve>();
 
-            for(int i = 0; i < points.Count(); i++)
+            for (int i = 0; i < points.Count(); i++)
             {
-                XYZ point0 = points[i].ToXYZ();
-                XYZ point1 = points[(i+1).Mod(points.Count())].ToXYZ();
+                XYZ point0 = points[i];
+                XYZ point1 = points[(i+1).Mod(points.Count())];
 
                 if (point1.IsAlmostEqualTo(point0))
                 {
-                    point1 = points[(i + 2).Mod(points.Count())].ToXYZ();
+                    point1 = points[(i + 2).Mod(points.Count())];
                 }
                 profile.Add(Line.CreateBound(point0, point1));
             }
@@ -83,21 +83,43 @@ namespace Snaptrude
             }
         }
 
-        public void ApplyMaterialByFace( Document document, String materialNameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        public GeometryElement GetGeometryElement()
         {
-
             Options geoOptions = new Options();
             geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
 
-            GeometryElement geoElem = wall.get_Geometry(geoOptions);
+            return wall.get_Geometry(geoOptions);
+        }
 
-            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
+        public List<Face> GetFaces()
+        {
+            List<Face> faces = new List<Face>();
 
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        faces.Add(face);
+                    }
+                }
+            }
+
+            return faces;
+        }
+
+        public void ApplyMaterialByFace( Document document, String materialNameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        {
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
 
             List<XYZ> revitFaceNormals = new List<XYZ>();
 
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
             while (geoObjectItor.MoveNext())
             {
                 Solid theSolid = geoObjectItor.Current as Solid;
