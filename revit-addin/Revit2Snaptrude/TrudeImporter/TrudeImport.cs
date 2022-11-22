@@ -714,12 +714,7 @@ namespace Snaptrude
 
                                         Line locationLine = (st_wall.wall.Location as LocationCurve).Curve as Line;
                                         
-                                        FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(localOrigin + st_wall.Position,
-                                                                                                               cuttingFamilySymbol,
-                                                                                                               Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-                                        //cuttingFamilyInstance.Location.Rotate(Line.CreateBound(localOrigin, localOrigin + XYZ.BasisZ), angle);
-
+                                        FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(face, localOrigin + st_wall.Position, XYZ.BasisX, cuttingFamilySymbol);
 
                                         InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
                                     }

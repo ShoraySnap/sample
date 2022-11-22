@@ -83,8 +83,8 @@ namespace Snaptrude
 
             extrusion = doc.FamilyCreate.NewExtrusion(false, profile, sketch, UnitsAdapter.MMToFeet(3000));
 
-            Parameter p = doc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS);
-            p.Set(1);
+            doc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS).Set(1);
+            doc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_WORK_PLANE_BASED).Set(1);
 
             doc.Regenerate();
 
