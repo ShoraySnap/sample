@@ -8,16 +8,16 @@ namespace Snaptrude
 {
     public class VoidRfaGenerator
     {
-        private const string BASE_DIRECTORY = "tmp_voids";
         static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model.rft";
+        private static string BASE_DIRECTORY = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "tmp_voids";
+        string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model wall based.rft";
         public double height;
 
         public static void DeleteAll()
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double rotationAngle)
+        public bool CreateRFAFile(Application app, string familyName, List<XYZ> _countour, XYZ localOrigin, double thickness, double rotationAngle)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
@@ -29,8 +29,15 @@ namespace Snaptrude
             using(Transaction t = new Transaction(fdoc, "create extrusion"))
             {
                 t.Start();
-                Extrusion extrusion = CreateExtrusion(fdoc, _countour);
-                extrusion.Location.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisZ), rotationAngle);
+                Extrusion extrusion = CreateExtrusion(fdoc, _countour, localOrigin, thickness);
+
+                //extrusion.Location.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisZ), rotationAngle);
+
+
+                fdoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS).Set(1);
+                //fdoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_WORK_PLANE_BASED).Set(1);
+
+                fdoc.Regenerate();
                 t.Commit();
             }
 
@@ -38,7 +45,7 @@ namespace Snaptrude
             opt.OverwriteExistingFile = true;
 
             fdoc.SaveAs(fileName(familyName), opt);
-            fdoc.Close(true);
+            return fdoc.Close(true);
         }
 
         public string fileName(string familyName)
@@ -46,7 +53,7 @@ namespace Snaptrude
             return $"{BASE_DIRECTORY}/{familyName}.rfa";
         }
 
-        private CurveArray CreateLoop(List<XYZ> pts)
+        private CurveArray CreateLoop(List<XYZ> pts, double thickness, XYZ localOrigin)
         {
             CurveArray loop = new CurveArray();
 
@@ -56,37 +63,21 @@ namespace Snaptrude
             {
                 int j = (0 == i) ? _n - 1 : i - 1;
 
-                loop.Append(Line.CreateBound(pts[j] - new XYZ(5, 0, 0), pts[i] - new XYZ(5, 0, 0)));
+                loop.Append(Line.CreateBound(new XYZ(pts[j].X, thickness / 2, pts[j].Z), new XYZ(pts[i].X, thickness / 2, pts[i].Z)));
             }
             return loop;
         }
 
-        private Extrusion CreateExtrusion(Document doc, List<XYZ> pts)
+        private Extrusion CreateExtrusion(Document doc, List<XYZ> pts, XYZ localOrigin, double thickness)
         {
-
-            CurveArray loop = CreateLoop(pts);
+            CurveArray loop = CreateLoop(pts, thickness, localOrigin);
             CurveArrArray profile = new CurveArrArray();
             profile.Append(loop);
 
-            Extrusion extrusion;
+            ReferencePlane referencePlane = Utils.FindElement(doc, typeof(ReferencePlane), "Wall") as ReferencePlane;
+            SketchPlane sketch = SketchPlane.Create(doc, referencePlane.GetPlane());
 
-            // Build now data before creation
-            XYZ bubbleEnd = new XYZ(0, 0, -100);   // bubble end applied to reference plane
-            XYZ freeEnd = new XYZ(0, 0, 100);    // free end applied to reference plane
-                                                // Third point should not be on the bubbleEnd-freeEnd line 
-            XYZ thirdPnt = new XYZ(00, 100, 0);   // 3rd point to define reference plane
-
-            // Create the reference plane in X-Y, applying the active view
-            //ReferencePlane refPlane = doc.FamilyCreate.NewReferencePlane2(bubbleEnd, freeEnd, thirdPnt, doc.ActiveView);
-            ReferencePlane refPlane = Utils.FindElement(doc, typeof(ReferencePlane), "Center (Left/Right)") as ReferencePlane;
-            SketchPlane sketch = SketchPlane.Create(doc, refPlane.GetPlane());
-
-            extrusion = doc.FamilyCreate.NewExtrusion(false, profile, sketch, UnitsAdapter.MMToFeet(3000));
-
-            doc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS).Set(1);
-            doc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_WORK_PLANE_BASED).Set(1);
-
-            doc.Regenerate();
+            Extrusion extrusion = doc.FamilyCreate.NewExtrusion(false, profile, sketch, thickness);
 
             return extrusion;
         }

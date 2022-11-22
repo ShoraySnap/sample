@@ -10,6 +10,12 @@ namespace Snaptrude
 {
     public static class Extensions
     {
+        public static double SignedDistanceTo(this Plane plane, XYZ p)
+        {
+            XYZ v = p - plane.Origin;
+
+            return plane.Normal.DotProduct(v);
+        }
 
         public static XYZ MultiplyEach(this XYZ p, XYZ q)
         {

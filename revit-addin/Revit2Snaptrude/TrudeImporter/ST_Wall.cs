@@ -92,24 +92,16 @@ namespace Snaptrude
             return wall.get_Geometry(geoOptions);
         }
 
-        public List<Face> GetFaces()
+        public FaceArray GetFaces()
         {
-            List<Face> faces = new List<Face>();
-
             IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
             while (geoObjectItor.MoveNext())
             {
                 Solid theSolid = geoObjectItor.Current as Solid;
-                if (null != theSolid)
-                {
-                    foreach (Face face in theSolid.Faces)
-                    {
-                        faces.Add(face);
-                    }
-                }
+                if (null != theSolid) return theSolid.Faces;
             }
 
-            return faces;
+            return null;
         }
 
         public void ApplyMaterialByFace( Document document, String materialNameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, Wall wall )
@@ -146,18 +138,17 @@ namespace Snaptrude
                 XYZ _normalInXYZFormat = STDataConverter.ArrayToXYZ(subMesh["normal"], false).Round(3);
                 int _materialIndex = (int)subMesh["materialIndex"];
 
-                try
+                String key = _normalInXYZFormat.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
                 {
-                    String key = _normalInXYZFormat.Stringify();
                     Face revitFace = normalToRevitFace[key];
 
                     if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
                 }
-                catch
+                else
                 {
                     // find the closest key
                     double leastDistance = Double.MaxValue;
-                    String key = _normalInXYZFormat.Stringify();
                     foreach (XYZ normal in revitFaceNormals)
                     {
                         double distance = _normalInXYZFormat.MultiplyEach(Scaling).DistanceTo(normal);
