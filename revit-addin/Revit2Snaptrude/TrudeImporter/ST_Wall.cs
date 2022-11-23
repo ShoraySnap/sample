@@ -19,18 +19,18 @@ namespace Snaptrude
 
         public Wall wall { get; set; }
 
-        public IList<Curve> GetProfile(List<Point3D> points)
+        public static IList<Curve> GetProfile(List<XYZ> points)
         {
             IList<Curve> profile = new List<Curve>();
 
-            for(int i = 0; i < points.Count(); i++)
+            for (int i = 0; i < points.Count(); i++)
             {
-                XYZ point0 = points[i].ToXYZ();
-                XYZ point1 = points[(i+1).Mod(points.Count())].ToXYZ();
+                XYZ point0 = points[i];
+                XYZ point1 = points[(i+1).Mod(points.Count())];
 
                 if (point1.IsAlmostEqualTo(point0))
                 {
-                    point1 = points[(i + 2).Mod(points.Count())].ToXYZ();
+                    point1 = points[(i + 2).Mod(points.Count())];
                 }
                 profile.Add(Line.CreateBound(point0, point1));
             }
@@ -83,21 +83,35 @@ namespace Snaptrude
             }
         }
 
-        public void ApplyMaterialByFace( Document document, String materialNameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        public GeometryElement GetGeometryElement()
         {
-
             Options geoOptions = new Options();
             geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
 
-            GeometryElement geoElem = wall.get_Geometry(geoOptions);
+            return wall.get_Geometry(geoOptions);
+        }
 
-            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
+        public FaceArray GetFaces()
+        {
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid) return theSolid.Faces;
+            }
 
+            return null;
+        }
+
+        public void ApplyMaterialByFace( Document document, String materialNameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        {
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
 
             List<XYZ> revitFaceNormals = new List<XYZ>();
 
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
             while (geoObjectItor.MoveNext())
             {
                 Solid theSolid = geoObjectItor.Current as Solid;
@@ -124,18 +138,17 @@ namespace Snaptrude
                 XYZ _normalInXYZFormat = STDataConverter.ArrayToXYZ(subMesh["normal"], false).Round(3);
                 int _materialIndex = (int)subMesh["materialIndex"];
 
-                try
+                String key = _normalInXYZFormat.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
                 {
-                    String key = _normalInXYZFormat.Stringify();
                     Face revitFace = normalToRevitFace[key];
 
                     if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
                 }
-                catch
+                else
                 {
                     // find the closest key
                     double leastDistance = Double.MaxValue;
-                    String key = _normalInXYZFormat.Stringify();
                     foreach (XYZ normal in revitFaceNormals)
                     {
                         double distance = _normalInXYZFormat.MultiplyEach(Scaling).DistanceTo(normal);

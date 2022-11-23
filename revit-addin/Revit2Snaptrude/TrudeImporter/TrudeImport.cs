@@ -556,7 +556,21 @@ namespace Snaptrude
 
                                 st_wall.levelNumber = int.Parse(wallMeshDataforLevel["storey"].ToString());
 
-                                IList<Curve> profile = st_wall.GetProfile(profilePoints);
+                                List<XYZ> profilePointsXYZ = profilePoints.Select(p => p.ToXYZ()).ToList();
+                                IList<Curve> profile = ST_Wall.GetProfile(profilePointsXYZ);
+
+                                List<List<XYZ>> holes = new List<List<XYZ>>();
+
+                                foreach (JToken holeJtoken in wallData["holes"])
+                                {
+                                    List<XYZ> holePoints = new List<XYZ>();
+                                    foreach(JToken holeArray in holeJtoken)
+                                    {
+                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray));
+                                    }
+
+                                    holes.Add(holePoints);
+                                }
 
                                 // Calculate and set thickness
                                 string wallDirection = wallData["dsProps"]["direction"].Value<string>();
@@ -594,7 +608,6 @@ namespace Snaptrude
 
                                 ElementId levelIdForWall;
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
-
 
                                 if (existingWall == null)
                                 {
@@ -652,6 +665,58 @@ namespace Snaptrude
                                 double baseOffset = baseHeight - level.Elevation;
 
                                 st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
+
+
+                                // Create holes
+                                newDoc.Regenerate();
+
+                                foreach (List<XYZ> hole in holes)
+                                {
+                                    try
+                                    {
+                                        XYZ localOrigin = hole.Aggregate(XYZ.Zero, (acc, p) => acc + p) / hole.Count;
+                                        //XYZ localOrigin = st_wall.Position;
+
+                                        XYZ normal = STDataConverter.ArrayToXYZ(wallData["normal"], false);
+
+                                        XYZ lowestPoint = hole.Aggregate(hole[0], (least, next) => least.Z < next.Z ? least : next); 
+
+                                        double angle = normal.AngleTo(XYZ.BasisY);
+                                        //if (normal.Round(2).InThirdQuadrant() || normal.Round(2).InFourthQuadrant())
+                                        //{
+                                        //    angle = -angle;
+                                        //}
+
+                                        var transform = Transform.CreateRotationAtPoint(XYZ.BasisZ, -angle, localOrigin);
+                                        List<XYZ> rotatedHoles = new List<XYZ>();
+                                        foreach (var p in hole)
+                                        {
+                                            rotatedHoles.Add(transform.OfPoint(p) - localOrigin);
+                                        }
+
+                                        // Create cutting family
+                                        VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
+                                        string familyName = "snaptrudeVoidFamily" + RandomString(4);
+                                        bool rfaCreateStatus = voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, rotatedHoles, st_wall.wall.WallType.Width);
+
+                                        newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+                                        FamilySymbol cuttingFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
+
+                                        if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
+
+                                        FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(
+                                            new XYZ(localOrigin.X, localOrigin.Y, lowestPoint.Z),
+                                            cuttingFamilySymbol,
+                                            st_wall.wall,
+                                            Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                                        InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
+                                    }
+                                    catch
+                                    {
+
+                                    }
+                                }
 
                                 newDoc.Regenerate();
                                 try
@@ -862,6 +927,34 @@ namespace Snaptrude
 
                             ST_Floor st_floor = new ST_Floor(floorData, newDoc, existingFloorType);
 
+                            try
+                            {
+                                List<List<XYZ>> holes = new List<List<XYZ>>();
+
+                                foreach (JToken holeJtoken in floorData["holes"])
+                                {
+                                    List<XYZ> holePoints = new List<XYZ>();
+                                    foreach (JToken holeArray in holeJtoken)
+                                    {
+                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray));
+                                    }
+
+                                    holes.Add(holePoints);
+                                }
+
+                                foreach (var hole in holes)
+                                {
+                                    var holeProfile = ST_Wall.GetProfile(hole);
+                                    CurveArray curveArray1 = new CurveArray();
+                                    foreach (Curve c in holeProfile)
+                                    {
+                                        curveArray1.Append(c);
+                                    }
+                                    newDoc.Create.NewOpening(st_floor.floor, curveArray1, true);
+                                }
+                            }
+                            catch { }
+
                             if (_materialElement != null)
                             {
                                 st_floor.ApplyPaintByMaterial(newDoc, st_floor.floor, _materialElement);
@@ -915,6 +1008,36 @@ namespace Snaptrude
                             }
 
                             ST_Roof st_roof = new ST_Roof(roofData, newDoc);
+
+                            try
+                            {
+
+                                List<List<XYZ>> holes = new List<List<XYZ>>();
+
+                                foreach (JToken holeJtoken in roofData["holes"])
+                                {
+                                    List<XYZ> holePoints = new List<XYZ>();
+                                    foreach (JToken holeArray in holeJtoken)
+                                    {
+                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray));
+                                    }
+
+                                    holes.Add(holePoints);
+                                }
+
+                                foreach (var hole in holes)
+                                {
+                                    var holeProfile = ST_Wall.GetProfile(hole);
+                                    CurveArray curveArray1 = new CurveArray();
+                                    foreach (Curve c in holeProfile)
+                                    {
+                                        curveArray1.Append(c);
+                                    }
+                                    newDoc.Create.NewOpening(st_roof.floor, curveArray1, true);
+                                }
+
+                            }
+                            catch { }
 
                             count++;
 
@@ -973,112 +1096,118 @@ namespace Snaptrude
                         }
                         else if (massType.Equals("Ceiling"))
                         {
-                            String curveId = (String)massData["dsProps"]["revitMetaData"]["curveId"];
-
-                            ElementId ceilingId = new ElementId(int.Parse(revitId));
-
-                            Element ceiling = newDoc.GetElement(ceilingId);
-
-                            //get ceiling sketch
-                            ElementClassFilter filter = new ElementClassFilter(typeof(Sketch));
-
-                            ElementId sketchId = ceiling.GetDependentElements(filter).First();
-
-                            Sketch ceilingSketch = newDoc.GetElement(sketchId) as Sketch;
-
-                            CurveArrArray ceilingProfile = ceilingSketch.Profile;
-
-
-                            filter = new ElementClassFilter(typeof(CurveElement));
-
-                            IEnumerable<Element> curves = ceiling.GetDependentElements(filter)
-                                .Select(id => newDoc.GetElement(id));
-
-                            IEnumerable<ModelLine> modelLines = curves.Where(e => e is ModelLine).Cast<ModelLine>();//target
-
-                            if (curves.Count() != modelLines.Count())
-                                throw new Exception("The ceiling contains non straight lines");
-
-
-
-                            IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
-
-                            Dictionary<String, CurveArray> profiles = new Dictionary<string, CurveArray>();
-
-                            foreach(CurveArray loop in ceilingProfile)
+                            if (massData["dsProps"]["revitMetaData"]["curveId"] != null)
                             {
-                                profiles.Add(loop.GenerateCurveId(revitId), loop);
-                            }
+                                String curveId = (String)massData["dsProps"]["revitMetaData"]["curveId"];
 
-                            List<XYZ> profilePoints = STDataConverter.ListToPoint3d(massData["topVertices"])
-                                .Distinct()
-                                .Select((Point3D p) => p.ToXYZ())
-                                .ToList();
+                                ElementId ceilingId = new ElementId(int.Parse(revitId));
 
-                            Dictionary<String, List<XYZ>> allProfiles = new Dictionary<String, List<XYZ>>();
+                                Element ceiling = newDoc.GetElement(ceilingId);
 
-                            allProfiles.Add(curveId, profilePoints);
+                                //get ceiling sketch
+                                ElementClassFilter filter = new ElementClassFilter(typeof(Sketch));
 
-                            if (!massData["voids"].IsNullOrEmpty())
-                            {
-                                foreach (var voidj in massData["voids"])
+                                ElementId sketchId = ceiling.GetDependentElements(filter).First();
+
+                                Sketch ceilingSketch = newDoc.GetElement(sketchId) as Sketch;
+
+                                CurveArrArray ceilingProfile = ceilingSketch.Profile;
+
+
+                                filter = new ElementClassFilter(typeof(CurveElement));
+
+                                IEnumerable<Element> curves = ceiling.GetDependentElements(filter)
+                                    .Select(id => newDoc.GetElement(id));
+
+                                IEnumerable<ModelLine> modelLines = curves.Where(e => e is ModelLine).Cast<ModelLine>();//target
+
+                                if (curves.Count() != modelLines.Count())
+                                    throw new Exception("The ceiling contains non straight lines");
+
+
+
+                                IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
+
+                                Dictionary<String, CurveArray> profiles = new Dictionary<string, CurveArray>();
+
+                                foreach (CurveArray loop in ceilingProfile)
                                 {
-                                    string key = (string)voidj["curveId"];
-                                    List<XYZ> _profilePoints = STDataConverter.ListToPoint3d(voidj["profile"])
-                                        .Select((Point3D p) => p.ToXYZ())
-                                        .ToList();
-
-                                    allProfiles.Add(key, _profilePoints);
+                                    profiles.Add(loop.GenerateCurveId(revitId), loop);
                                 }
-                            }
 
-                            foreach (CurveArray loop in ceilingProfile)
-                            {
-                                List<ModelLine> newLoop = new List<ModelLine>();
+                                List<XYZ> profilePoints = STDataConverter.ListToPoint3d(massData["topVertices"])
+                                    .Distinct()
+                                    .Select((Point3D p) => p.ToXYZ())
+                                    .ToList();
 
-                                var currentLoopId = loop.GenerateCurveId(revitId);
+                                Dictionary<String, List<XYZ>> allProfiles = new Dictionary<String, List<XYZ>>();
 
-                                if (!allProfiles.ContainsKey(currentLoopId)) continue;
+                                allProfiles.Add(curveId, profilePoints);
 
-                                var currentProfilePoints = allProfiles[currentLoopId];
-
-                                foreach (Curve edge in loop)
+                                if (!massData["voids"].IsNullOrEmpty())
                                 {
-                                    foreach (ModelLine modelLine in modelLines)
+                                    foreach (var voidj in massData["voids"])
                                     {
+                                        string key = (string)voidj["curveId"];
+                                        List<XYZ> _profilePoints = STDataConverter.ListToPoint3d(voidj["profile"])
+                                            .Select((Point3D p) => p.ToXYZ())
+                                            .ToList();
 
-                                        Curve currentLine = ((modelLine as ModelLine)
-                                          .Location as LocationCurve).Curve;
+                                        allProfiles.Add(key, _profilePoints);
+                                    }
+                                }
 
-                                        if (currentLine.Intersect(edge) == SetComparisonResult.Equal)
+                                foreach (CurveArray loop in ceilingProfile)
+                                {
+                                    List<ModelLine> newLoop = new List<ModelLine>();
+
+                                    var currentLoopId = loop.GenerateCurveId(revitId);
+
+                                    if (!allProfiles.ContainsKey(currentLoopId)) continue;
+
+                                    var currentProfilePoints = allProfiles[currentLoopId];
+
+                                    foreach (Curve edge in loop)
+                                    {
+                                        foreach (ModelLine modelLine in modelLines)
                                         {
 
-                                            newLoop.Add(modelLine);
-                                            break;
+                                            Curve currentLine = ((modelLine as ModelLine)
+                                              .Location as LocationCurve).Curve;
+
+                                            if (currentLine.Intersect(edge) == SetComparisonResult.Equal)
+                                            {
+
+                                                newLoop.Add(modelLine);
+                                                break;
+                                            }
+
+                                            editableSketch.Add(newLoop);
+                                        }
+                                    }
+
+                                    using (SubTransaction transaction = new SubTransaction(newDoc))
+                                    {
+                                        transaction.Start();
+
+                                        for (int i = 0; i < newLoop.Count(); i++)
+                                        {
+                                            LocationCurve lCurve = newLoop[i].Location as LocationCurve;
+
+                                            XYZ pt1New = currentProfilePoints[i];
+                                            XYZ pt2New = currentProfilePoints[(i + 1).Mod(newLoop.Count())];
+                                            Line newLine = Line.CreateBound(pt1New, pt2New);
+                                            lCurve.Curve = newLine;
                                         }
 
-                                        editableSketch.Add(newLoop);
+                                        transaction.Commit();
                                     }
-                                }
-
-                                using (SubTransaction transaction = new SubTransaction(newDoc))
-                                {
-                                    transaction.Start();
-
-                                    for (int i = 0; i < newLoop.Count(); i++)
-                                    {
-                                        LocationCurve lCurve = newLoop[i].Location as LocationCurve;
-
-                                        XYZ pt1New = currentProfilePoints[i];
-                                        XYZ pt2New = currentProfilePoints[(i + 1).Mod(newLoop.Count())];
-                                        Line newLine = Line.CreateBound(pt1New, pt2New);
-                                        lCurve.Curve = newLine;
-                                    }
-
-                                    transaction.Commit();
                                 }
                             }
-
+                            else
+                            {
+                                // TODO: Ceiling creation is not supported by revit 2019 API!!!! SMH FML
+                            }
                         }
 
                         if (revitId != null)
@@ -3282,6 +3411,22 @@ namespace Snaptrude
             }
 
             return false;
+        }
+
+        public static Family LoadVoidFamily()
+        {
+            try
+            {
+                string filePath = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/Cutter.rfa";
+
+                GlobalVariables.Document.LoadFamily(filePath, out Family family);
+
+                return family;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
 
         public static Family LoadCustomFamily(String familyName)

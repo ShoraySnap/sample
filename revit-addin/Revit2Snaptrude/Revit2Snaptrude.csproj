@@ -94,6 +94,7 @@
     <Compile Include="TrudeImporter\TypeStore.cs" />
     <Compile Include="TrudeImporter\UnitsAdapter.cs" />
     <Compile Include="TrudeImporter\Utils.cs" />
+    <Compile Include="TrudeImporter\VoidRfaGenerator.cs" />
     <Compile Include="TrudeImporter\WallTypeStore.cs" />
     <Compile Include="TrudeImporter\WindowTypeStore.cs" />
   </ItemGroup>
