@@ -19,7 +19,7 @@ namespace Snaptrude
 
         public Wall wall { get; set; }
 
-        public IList<Curve> GetProfile(List<XYZ> points)
+        public static IList<Curve> GetProfile(List<XYZ> points)
         {
             IList<Curve> profile = new List<Curve>();
 
