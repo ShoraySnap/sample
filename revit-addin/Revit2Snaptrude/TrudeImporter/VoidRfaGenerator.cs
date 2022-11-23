@@ -17,7 +17,7 @@ namespace Snaptrude
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public bool CreateRFAFile(Application app, string familyName, List<XYZ> _countour, XYZ localOrigin, double thickness, double rotationAngle)
+        public bool CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double thickness)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
@@ -29,13 +29,9 @@ namespace Snaptrude
             using(Transaction t = new Transaction(fdoc, "create extrusion"))
             {
                 t.Start();
-                Extrusion extrusion = CreateExtrusion(fdoc, _countour, localOrigin, thickness);
-
-                //extrusion.Location.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisZ), rotationAngle);
-
+                Extrusion extrusion = CreateExtrusion(fdoc, _countour, thickness);
 
                 fdoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS).Set(1);
-                //fdoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_WORK_PLANE_BASED).Set(1);
 
                 fdoc.Regenerate();
                 t.Commit();
@@ -53,7 +49,7 @@ namespace Snaptrude
             return $"{BASE_DIRECTORY}/{familyName}.rfa";
         }
 
-        private CurveArray CreateLoop(List<XYZ> pts, double thickness, XYZ localOrigin)
+        private CurveArray CreateLoop(List<XYZ> pts, double thickness)
         {
             CurveArray loop = new CurveArray();
 
@@ -68,9 +64,9 @@ namespace Snaptrude
             return loop;
         }
 
-        private Extrusion CreateExtrusion(Document doc, List<XYZ> pts, XYZ localOrigin, double thickness)
+        private Extrusion CreateExtrusion(Document doc, List<XYZ> pts, double thickness)
         {
-            CurveArray loop = CreateLoop(pts, thickness, localOrigin);
+            CurveArray loop = CreateLoop(pts, thickness);
             CurveArrArray profile = new CurveArrArray();
             profile.Append(loop);
 
