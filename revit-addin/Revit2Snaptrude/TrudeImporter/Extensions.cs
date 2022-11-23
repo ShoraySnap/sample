@@ -10,6 +10,38 @@ namespace Snaptrude
 {
     public static class Extensions
     {
+
+        public const int XY = 0;
+        public const int YZ = 1;
+
+        public static bool InFirstQuadrant(this XYZ p, int planeId = XY)
+        {
+            if(planeId == XY) return p.X >= 0 && p.Y >= 0;
+            if(planeId == YZ) return p.Y >= 0 && p.Z >= 0;
+
+            return false;
+        }
+        public static bool InSecondQuadrant(this XYZ p, int planeId = XY)
+        {
+            if (planeId == XY) return p.X <= 0 && p.Y >= 0;
+            if (planeId == YZ) return p.Y <= 0 && p.Z >= 0;
+
+            return false;
+        }
+        public static bool InThirdQuadrant(this XYZ p, int planeId = XY)
+        {
+            if (planeId == XY) return p.X <= 0 && p.Y <= 0;
+            if (planeId == YZ) return p.Y <= 0 && p.Z <= 0;
+
+            return false;
+        }
+        public static bool InFourthQuadrant(this XYZ p, int planeId = XY)
+        {
+            if (planeId == XY) return p.X >= 0 && p.Y <= 0;
+            if (planeId == YZ) return p.Y >= 0 && p.Z <= 0;
+
+            return false;
+        }
         public static double SignedDistanceTo(this Plane plane, XYZ p)
         {
             XYZ v = p - plane.Origin;
