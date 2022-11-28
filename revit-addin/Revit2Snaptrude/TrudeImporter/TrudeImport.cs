@@ -663,30 +663,39 @@ namespace Snaptrude
                                 {
                                     try
                                     {
-                                        XYZ localOrigin = hole.Aggregate(XYZ.Zero, (acc, p) => acc + p) / hole.Count;
+                                        //XYZ localOrigin = hole.Aggregate(XYZ.Zero, (acc, p) => acc + p) / hole.Count;
+                                        XYZ localOrigin = XYZ.Zero;
 
-                                        XYZ normal = STDataConverter.ArrayToXYZ(wallData["normal"], false);
+                                        //XYZ normal = STDataConverter.ArrayToXYZ(wallData["normal"], false);
 
-                                        XYZ lowestPoint = hole.Aggregate(hole[0], (least, next) => least.Z < next.Z ? least : next); 
+                                        XYZ lowestPoint = hole.Aggregate(hole[0], (least, next) => least.Z < next.Z ? least : next);
 
-                                        double angle = normal.AngleTo(XYZ.BasisY);
+                                        //normal = normal.SetZ(0);
+                                        //double angle = normal.AngleTo(XYZ.BasisY);
 
-                                        if (normal.InThirdQuadrant() || normal.InFourthQuadrant())
-                                        {
-                                            angle = Math.PI - angle;
-                                        }
+                                        //angle = Math.PI - angle;
 
-                                        var transform = Transform.CreateRotationAtPoint(XYZ.BasisZ, angle, localOrigin);
-                                        List<XYZ> rotatedHoles = new List<XYZ>();
-                                        foreach (var p in hole)
-                                        {
-                                            rotatedHoles.Add(transform.OfPoint(p) - localOrigin);
-                                        }
+                                        //var transform = Transform.CreateRotationAtPoint(XYZ.BasisZ, -angle, localOrigin);
+                                        //List<XYZ> rotatedHoles = new List<XYZ>();
+                                        //foreach (var p in hole)
+                                        //{
+                                        //    rotatedHoles.Add(transform.OfPoint(p) - localOrigin);
+                                        //}
 
                                         // Create cutting family
                                         VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
                                         string familyName = "snaptrudeVoidFamily" + RandomString(4);
-                                        bool rfaCreateStatus = voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, rotatedHoles, st_wall.wall.WallType.Width);
+                                        Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
+
+                                        // project points on the plane
+                                        List<XYZ> projectedPoints = new List<XYZ>();
+                                        foreach (var p in hole)
+                                        {
+                                            projectedPoints.Add(plane.ProjectOnto(p));
+                                        }
+
+
+                                        bool rfaCreateStatus = voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
 
                                         newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
                                         FamilySymbol cuttingFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
@@ -694,9 +703,8 @@ namespace Snaptrude
                                         if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
 
                                         FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(
-                                            new XYZ(localOrigin.X, localOrigin.Y, lowestPoint.Z),
+                                            localOrigin,
                                             cuttingFamilySymbol,
-                                            st_wall.wall,
                                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
                                         InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
