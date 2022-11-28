@@ -14,6 +14,30 @@ namespace Snaptrude
         public const int XY = 0;
         public const int YZ = 1;
 
+        public static XYZ ProjectOnto( this Plane plane, XYZ p)
+        {
+            double d = plane.SignedDistanceTo(p);
+
+            XYZ q = p - d * plane.Normal;
+
+            return q;
+        }
+
+        public static XYZ SetX(this XYZ p, double value)
+        {
+            return new XYZ(value, p.Y, p.Z);
+        }
+
+        public static XYZ SetY(this XYZ p, double value)
+        {
+            return new XYZ(p.X, value, p.Z);
+        }
+
+        public static XYZ SetZ(this XYZ p, double value)
+        {
+            return new XYZ(p.X, p.Y, value);
+        }
+
         public static bool InFirstQuadrant(this XYZ p, int planeId = XY)
         {
             if(planeId == XY) return p.X >= 0 && p.Y >= 0;

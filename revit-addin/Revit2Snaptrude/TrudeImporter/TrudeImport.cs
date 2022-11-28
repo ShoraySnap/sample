@@ -559,19 +559,6 @@ namespace Snaptrude
                                 List<XYZ> profilePointsXYZ = profilePoints.Select(p => p.ToXYZ()).ToList();
                                 IList<Curve> profile = ST_Wall.GetProfile(profilePointsXYZ);
 
-                                List<List<XYZ>> holes = new List<List<XYZ>>();
-
-                                foreach (JToken holeJtoken in wallData["holes"])
-                                {
-                                    List<XYZ> holePoints = new List<XYZ>();
-                                    foreach(JToken holeArray in holeJtoken)
-                                    {
-                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray));
-                                    }
-
-                                    holes.Add(holePoints);
-                                }
-
                                 // Calculate and set thickness
                                 string wallDirection = wallData["dsProps"]["direction"].Value<string>();
 
@@ -670,44 +657,31 @@ namespace Snaptrude
                                 // Create holes
                                 newDoc.Regenerate();
 
-                                foreach (List<XYZ> hole in holes)
+                                foreach (List<XYZ> hole in STDataConverter.GetHoles(wallData))
                                 {
                                     try
                                     {
-                                        XYZ localOrigin = hole.Aggregate(XYZ.Zero, (acc, p) => acc + p) / hole.Count;
-                                        //XYZ localOrigin = st_wall.Position;
-
-                                        XYZ normal = STDataConverter.ArrayToXYZ(wallData["normal"], false);
-
-                                        XYZ lowestPoint = hole.Aggregate(hole[0], (least, next) => least.Z < next.Z ? least : next); 
-
-                                        double angle = normal.AngleTo(XYZ.BasisY);
-                                        //if (normal.Round(2).InThirdQuadrant() || normal.Round(2).InFourthQuadrant())
-                                        //{
-                                        //    angle = -angle;
-                                        //}
-
-                                        var transform = Transform.CreateRotationAtPoint(XYZ.BasisZ, -angle, localOrigin);
-                                        List<XYZ> rotatedHoles = new List<XYZ>();
-                                        foreach (var p in hole)
-                                        {
-                                            rotatedHoles.Add(transform.OfPoint(p) - localOrigin);
-                                        }
-
                                         // Create cutting family
                                         VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
                                         string familyName = "snaptrudeVoidFamily" + RandomString(4);
-                                        bool rfaCreateStatus = voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, rotatedHoles, st_wall.wall.WallType.Width);
+                                        Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
 
+                                        // Project points on to the plane to make sure all the points are co-planar.
+                                        // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
+                                        // this is especially true for walls that are rotated.
+                                        List<XYZ> projectedPoints = new List<XYZ>();
+                                        projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
+
+                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
                                         newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+
                                         FamilySymbol cuttingFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
 
                                         if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
 
                                         FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(
-                                            new XYZ(localOrigin.X, localOrigin.Y, lowestPoint.Z),
+                                            XYZ.Zero,
                                             cuttingFamilySymbol,
-                                            st_wall.wall,
                                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
                                         InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
@@ -929,18 +903,7 @@ namespace Snaptrude
 
                             try
                             {
-                                List<List<XYZ>> holes = new List<List<XYZ>>();
-
-                                foreach (JToken holeJtoken in floorData["holes"])
-                                {
-                                    List<XYZ> holePoints = new List<XYZ>();
-                                    foreach (JToken holeArray in holeJtoken)
-                                    {
-                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray));
-                                    }
-
-                                    holes.Add(holePoints);
-                                }
+                                List<List<XYZ>> holes = STDataConverter.GetHoles(floorData);
 
                                 foreach (var hole in holes)
                                 {
@@ -1011,19 +974,7 @@ namespace Snaptrude
 
                             try
                             {
-
-                                List<List<XYZ>> holes = new List<List<XYZ>>();
-
-                                foreach (JToken holeJtoken in roofData["holes"])
-                                {
-                                    List<XYZ> holePoints = new List<XYZ>();
-                                    foreach (JToken holeArray in holeJtoken)
-                                    {
-                                        holePoints.Add(STDataConverter.ArrayToXYZ(holeArray));
-                                    }
-
-                                    holes.Add(holePoints);
-                                }
+                                List<List<XYZ>> holes = STDataConverter.GetHoles(roofData);
 
                                 foreach (var hole in holes)
                                 {
@@ -1035,7 +986,6 @@ namespace Snaptrude
                                     }
                                     newDoc.Create.NewOpening(st_roof.floor, curveArray1, true);
                                 }
-
                             }
                             catch { }
 

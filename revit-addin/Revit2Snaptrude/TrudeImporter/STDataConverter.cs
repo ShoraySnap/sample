@@ -9,6 +9,22 @@ namespace Snaptrude
 {
     class STDataConverter
     {
+        public static List<List<XYZ>> GetHoles(JToken data)
+        {
+            List<List<XYZ>> holes = new List<List<XYZ>>();
+
+            if (data["holes"] is null) return holes;
+
+            foreach (JToken holeJtoken in data["holes"])
+            {
+                List<XYZ> holePoints = holeJtoken.Select(point => STDataConverter.ArrayToXYZ(point)).ToList();
+
+                holes.Add(holePoints);
+            }
+
+            return holes;
+        }
+
         public static string GetDataType(JToken data)
         {
             return data["meshes"][0]["type"].ToString();
