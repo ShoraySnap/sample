@@ -657,53 +657,30 @@ namespace Snaptrude
                                 // Create holes
                                 newDoc.Regenerate();
 
-                                List<List<XYZ>> holes = STDataConverter.GetHoles(wallData);
-
-                                foreach (List<XYZ> hole in holes)
+                                foreach (List<XYZ> hole in STDataConverter.GetHoles(wallData))
                                 {
                                     try
                                     {
-                                        //XYZ localOrigin = hole.Aggregate(XYZ.Zero, (acc, p) => acc + p) / hole.Count;
-                                        XYZ localOrigin = XYZ.Zero;
-
-                                        //XYZ normal = STDataConverter.ArrayToXYZ(wallData["normal"], false);
-
-                                        XYZ lowestPoint = hole.Aggregate(hole[0], (least, next) => least.Z < next.Z ? least : next);
-
-                                        //normal = normal.SetZ(0);
-                                        //double angle = normal.AngleTo(XYZ.BasisY);
-
-                                        //angle = Math.PI - angle;
-
-                                        //var transform = Transform.CreateRotationAtPoint(XYZ.BasisZ, -angle, localOrigin);
-                                        //List<XYZ> rotatedHoles = new List<XYZ>();
-                                        //foreach (var p in hole)
-                                        //{
-                                        //    rotatedHoles.Add(transform.OfPoint(p) - localOrigin);
-                                        //}
-
                                         // Create cutting family
                                         VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
                                         string familyName = "snaptrudeVoidFamily" + RandomString(4);
                                         Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
 
-                                        // project points on the plane
+                                        // Project points on to the plane to make sure all the points are co-planar.
+                                        // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
+                                        // this is especially true for walls that are rotated.
                                         List<XYZ> projectedPoints = new List<XYZ>();
-                                        foreach (var p in hole)
-                                        {
-                                            projectedPoints.Add(plane.ProjectOnto(p));
-                                        }
+                                        projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
 
-
-                                        bool rfaCreateStatus = voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
-
+                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
                                         newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+
                                         FamilySymbol cuttingFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, familyName);
 
                                         if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
 
                                         FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(
-                                            localOrigin,
+                                            XYZ.Zero,
                                             cuttingFamilySymbol,
                                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
