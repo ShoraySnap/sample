@@ -17,9 +17,9 @@ const snaptrudeService = (function () {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
     for (let item in data) formData.append(item, data[item]);
-    if (requestType == RequestType.POST) {
+    if (requestType === RequestType.POST) {
       return await _callByPostMethod(DJANGO_URL, endPoint, formData);
-    } else if (requestType == RequestType.GET) {
+    } else if (requestType === RequestType.GET) {
       return await _callByGetMethod(DJANGO_URL, endPoint);
     }
   };
