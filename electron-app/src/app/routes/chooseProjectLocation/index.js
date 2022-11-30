@@ -55,23 +55,25 @@ const Wrapper = styled.div`
     }
 `
 
-const pages = ["workspace", "folder"];
 
 const ChooseProjectLocation = (props) => {
   
-  const [currentPage, setCurrentPage] = useState(pages[0]);
-  const ref = useRef(null);
+  const rootFolder = {
+    id: "root",
+    name: ""
+  };
   
-  const updatePage = (newPage) => {
-    setCurrentPage(newPage);
-  }
-  
-  const location = useLocation();
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState("");
+  const [foldersArray, setFoldersArray] = useState([rootFolder]);
   
   return (
     <Wrapper>
-      { currentPage === pages[0] && <Workspace updatePage={updatePage} nextPage={pages[1]} /> }
-      {/*{ currentPage === pages[1] && <Folder updatePage={updatePage} nextPage={pages[3]} /> }*/}
+      <Workspace
+        selectedWorkspaceId={selectedWorkspaceId}
+        setSelectedWorkspaceId={setSelectedWorkspaceId}
+        foldersArray={foldersArray}
+        setFoldersArray={setFoldersArray}
+      />
     </Wrapper>
   );
   

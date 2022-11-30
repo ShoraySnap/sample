@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import team from "../../assets/team.svg";
 import personal from "../../assets/personal.svg";
+import folder from "../../assets/folder.svg";
 import logger from "../../services/logger";
 import LoadingScreen from "../../components/Loader";
 import urls from "../../services/urls";
@@ -76,7 +77,13 @@ const WorkspaceTitle = styled.p`
 `;
 
 
-const Workspace = () => {
+const Workspace = ({
+  selectedWorkspaceId,
+  setSelectedWorkspaceId,
+  foldersArray,
+  setFoldersArray,
+}) => {
+  
   const navigate = useNavigate();
 
   const goHome = () => {
@@ -89,9 +96,14 @@ const Workspace = () => {
 
   const onSubmit = async () => {
     setIsLoading(true);
+    
+    const workspaceId = selectedWorkspaceId;
+    const folderId = selectedEntry;
+    
     const projectLink = await snaptrudeService.createProject(
       sessionData.getUserData()["streamId"],
-      selectedWorkspace
+      workspaceId,
+      folderId
     );
     // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
@@ -121,47 +133,118 @@ const Workspace = () => {
     goHome();
   };
 
-  const onWorkspaceClick = (id) => {
-    setSelectedWorkspace(id);
+  const onWorkspaceClick = (workspaceId, workspaceName) => {
+    setSelectedEntry(workspaceId);
   };
   
-  const [selectedWorkspace, setSelectedWorkspace] = useState("");
+  const onFolderClick = (folderId, folderName) => {
+    // setSelectedEntry(folderId);
+    setFoldersArray([...foldersArray, {id: folderId, name: folderName}]);
+  };
+  
+  const goBackToWorkspaces = () => {
+    setSelectedWorkspaceId("");
+    setFoldersArray([{id: "root", name: ""}]);
+  }
+  
+  const goOneFolderUp = () => {
+    foldersArray.pop();
+    setFoldersArray([...foldersArray]);
+  }
+  
+  const chooseWorkspace = () => setSelectedWorkspaceId(selectedEntry);
+  
+  const getWorkspaces = async () => {
+    let userWorkspaces = await snaptrudeService.getUserWorkspaces();
+
+    if (userWorkspaces) {
+      userWorkspaces.forEach((space) => (space.icon = team));
+
+      const personalWorkspace = {
+        id: "",
+        name: "My Workspace",
+        icon: personal,
+      };
+
+      const isValidPersonalWorkspace =
+        await snaptrudeService.checkPersonalWorkspaces();
+      if (isValidPersonalWorkspace) {
+        userWorkspaces.unshift(personalWorkspace);
+      }
+
+      if (userWorkspaces.length) {
+        setEntries(userWorkspaces);
+      }
+    }
+  };
+  
+  const getFolders = async () => {
+    let folders = await snaptrudeService.getFolders(selectedWorkspaceId, currentFolderId);
+    
+    if (folders) {
+      folders.forEach((folder) => (folder.icon = folder));
+      
+      const currentFolder = {
+        id: currentFolderId,
+        name: currentFolderName,
+        icon: folder,
+      };
+      
+      const currentWorkspace = {
+        id: selectedWorkspaceId,
+        name: currentFolderName,
+        icon: team,
+      };
+      
+      const firstEntry = isRootFolderPage ? currentWorkspace : currentFolder;
+
+      folders.unshift(firstEntry);
+
+      if (folders.length) {
+        setEntries(folders);
+      }
+    }
+  };
+  
+  const isWorkspacesPage = selectedWorkspaceId === "";
+  const isFoldersPage = !isWorkspacesPage;
+  
+  const currentFolderId = _.last(foldersArray).id;
+  const currentFolderName = _.last(foldersArray).name;
+  
+  const isRootFolderPage = foldersArray.length === 1;
+  
+  const leftButtonText = isWorkspacesPage ? "Cancel" : "Back";
+  const rightButtonText = isWorkspacesPage ? "Next" : "Done";
+  
+  const leftButtonCallback = isWorkspacesPage ?
+    closeApplication
+    : isRootFolderPage ?
+      goBackToWorkspaces
+      : goOneFolderUp;
+  
+  const rightButtonCallback = isWorkspacesPage ? chooseWorkspace : onSubmit;
+  const entryClickCallback = isWorkspacesPage ? onWorkspaceClick : onFolderClick;
+  
+  const headingText = isWorkspacesPage ? "workspace" : "folder";
+  const heading = `Select the ${headingText} to upload to`;
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isWorkSpaceLoading, setIsWorkSpaceLoading] = useState(true);
 
-  const [workspaces, setWorkspaces] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [selectedEntry, setSelectedEntry] = useState("");
 
   useEffect(() => {
-    const getWorkspaces = async () => {
-      let userWorkspaces = await snaptrudeService.getUserWorkspaces();
-
-      if (userWorkspaces) {
-        userWorkspaces.forEach((space) => (space.icon = team));
-
-        const personalWorkspace = {
-          id: "",
-          name: "My Workspace",
-          icon: personal,
-        };
-
-        const isValidPersonalWorkspace =
-          await snaptrudeService.checkPersonalWorkspaces();
-        if (isValidPersonalWorkspace) {
-          userWorkspaces.unshift(personalWorkspace);
-        }
-
-        if (userWorkspaces.length) {
-          setWorkspaces(userWorkspaces);
-        }
-      }
-    };
-    getWorkspaces().then(() => {
+    const getEntries = isWorkspacesPage ? getWorkspaces : getFolders;
+    
+    getEntries().then(() => {
       setIsWorkSpaceLoading(false);
     });
   }, []);
 
   if (isWorkSpaceLoading) return <LoadingScreen />;
-  if (!workspaces.length)
+  if (!entries.length)
     return (
       <>
         <p>
@@ -192,12 +275,12 @@ const Workspace = () => {
   return (
     <Wrapper>
       <div className="content">
-        <p>Select the workspace to upload to</p>
+        <p>{heading}</p>
         <WorkspacesGrid>
-          {workspaces.map(({ id, name, icon }, idx) => {
-            const className = id === selectedWorkspace ? "selected" : "";
+          {entries.map(({ id, name, icon }, idx) => {
+            const className = id === selectedEntry ? "selected" : "";
             return (
-              <WorkspaceInfo key={idx} onClick={() => onWorkspaceClick(id)}>
+              <WorkspaceInfo key={idx} onClick={() => entryClickCallback(id, name)}>
                 <WorkspaceIcon
                   className={className + "-img"}
                   src={icon}
@@ -219,16 +302,16 @@ const Workspace = () => {
               backgroundColor: colors.fullWhite,
               color: colors.secondaryGrey,
             }}
-            title={"Cancel"}
-            onPress={closeApplication}
+            title={leftButtonText}
+            onPress={leftButtonCallback}
           />
         </div>
         <div className="button-wrapper">
           <Button
             isLoading={isLoading}
             primary={true}
-            title={"Done"}
-            onPress={onSubmit}
+            title={rightButtonText}
+            onPress={rightButtonCallback}
           />
         </div>
       </footer>

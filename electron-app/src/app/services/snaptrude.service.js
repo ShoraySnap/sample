@@ -86,7 +86,7 @@ const snaptrudeService = (function () {
       });
   };
 
-  const createProject = async function (streamId, teamId) {
+  const createProject = async function (streamId, teamId, folderId) {
     logger.log("Creating Snaptrude project for", streamId, teamId);
     const REACT_URL = urls.get("snaptrudeReactUrl");
 
@@ -94,6 +94,7 @@ const snaptrudeService = (function () {
     const data = {
       stream_id: streamId,
       team_id: teamId,
+      folder_id: folderId,
       project_name: sessionData.getUserData()["revitProjectName"],
     };
 
@@ -115,6 +116,25 @@ const snaptrudeService = (function () {
         return {
           id: team.id,
           name: team.name,
+        };
+      });
+    }
+  };
+  
+  const getFolders = async function (teamId, currentFolderId) {
+    const endPoint = `/team/${teamId}/folder/`;
+    const data = {
+      limit: 1000,
+      offset: 0,
+      folder: currentFolderId,
+    };
+    
+    const response = await _callApi(endPoint, RequestType.POST, data);
+    if (response) {
+      return response.data.folders.map((folder) => {
+        return {
+          id: folder.id,
+          name: folder.name,
         };
       });
     }
@@ -243,6 +263,7 @@ const snaptrudeService = (function () {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
+    getFolders,
   };
 })();
 
