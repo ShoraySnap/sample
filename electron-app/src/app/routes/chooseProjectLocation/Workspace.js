@@ -54,20 +54,25 @@ const WorkspaceInfo = styled.div`
     cursor: pointer;
     font-weight: 500;
   }
+  
+  [class*="folder"] { // has this string somewhere
+    padding: 8px;
+  }
 
-  .selected-img {
+  [class$="selected-img"] { // ends with this string
     filter: invert(26%) sepia(94%) saturate(4987%) hue-rotate(337deg)
       brightness(93%) contrast(98%);
   }
 
-  .selected-txt {
+  [class$="selected-txt"] {
     font-weight: 600;
   }
 `;
 
 const WorkspaceIcon = styled.img`
-  padding: 6px;
+  padding: 2px;
   padding-right: 2px;
+  margin-top: 4px;
   // width: 16px;
   // height: 14px;
 `;
@@ -77,6 +82,8 @@ const WorkspaceTitle = styled.p`
   font-size: 14px;
 `;
 
+const CSS_FOLDER_TAG = "folder-";
+const CSS_WORKSPACE_TAG = "";
 
 const Workspace = ({
   selectedWorkspaceId,
@@ -170,12 +177,16 @@ const Workspace = ({
     let userWorkspaces = await snaptrudeService.getUserWorkspaces();
 
     if (userWorkspaces) {
-      userWorkspaces.forEach((space) => (space.icon = team));
+      userWorkspaces.forEach((space) => {
+        space.icon = team;
+        space.type = CSS_WORKSPACE_TAG;
+      });
 
       const personalWorkspace = {
         id: PERSONAL_WORKSPACE_ID,
         name: PERSONAL_WORKSPACE_NAME,
         icon: personal,
+        type: CSS_WORKSPACE_TAG
       };
 
       const isValidPersonalWorkspace =
@@ -194,18 +205,23 @@ const Workspace = ({
     let folders = await snaptrudeService.getFolders(selectedWorkspaceId, currentFolderId);
     
     if (folders) {
-      folders.forEach((f) => (f.icon = folder));
+      folders.forEach((f) => {
+        f.icon = folder;
+        f.type = CSS_FOLDER_TAG;
+      });
       
       const currentFolder = {
         id: currentFolderId,
         name: currentFolderName,
         icon: folder,
+        type: CSS_FOLDER_TAG
       };
       
       const currentWorkspace = {
         id: ROOT_FOLDER_ID,
         name: selectedWorkspaceName,
         icon: team,
+        type: CSS_WORKSPACE_TAG
       };
       
       const firstEntry = isRootFolderPage ? currentWorkspace : currentFolder;
@@ -295,16 +311,17 @@ const Workspace = ({
       <div className="content">
         <p>{heading}</p>
         <WorkspacesGrid>
-          {entries.map(({ id, name, icon }, idx) => {
-            const className = id === selectedEntryId ? "selected" : "";
+          {entries.map(({ id, name, icon, type }, idx) => {
+            const classNameIcon = type + (id === selectedEntryId ? "selected" : "");
+            const classNameTxt = (id === selectedEntryId ? "selected" : "");
             return (
               <WorkspaceInfo key={idx} onClick={() => entryClickCallback(id, name)}>
                 <WorkspaceIcon
-                  className={className + "-img"}
+                  className={classNameIcon + "-img"}
                   src={icon}
                   alt={"workspace"}
                 />
-                <WorkspaceTitle className={className + "-txt"}>
+                <WorkspaceTitle className={classNameTxt + "-txt"}>
                   {" "}
                   {name}{" "}
                 </WorkspaceTitle>
