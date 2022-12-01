@@ -13,3 +13,7 @@ export const BUTTONS = {
   switch: 5,
   logout: 6,
 }
+
+export const PERSONAL_WORKSPACE_ID = "";
+export const PERSONAL_WORKSPACE_NAME = "My Workspace";
+export const ROOT_FOLDER_ID = "root";

@@ -2,6 +2,7 @@ import axios from "axios";
 import sessionData from "./sessionData";
 import logger from "./logger";
 import urls from "./urls";
+import {PERSONAL_WORKSPACE_ID} from "../routes/constants";
 
 const snaptrudeService = (function () {
   const RequestType = {
@@ -122,7 +123,10 @@ const snaptrudeService = (function () {
   };
   
   const getFolders = async function (teamId, currentFolderId) {
-    const endPoint = `/team/${teamId}/folder/`;
+    
+    const fetchFromPersonalWorkspace = teamId === PERSONAL_WORKSPACE_ID;
+    
+    const endPoint = fetchFromPersonalWorkspace ? "/folder/" : `/team/${teamId}/folder/`;
     const data = {
       limit: 1000,
       offset: 0,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import snaptrudeService from "../../services/snaptrude.service";
 import sessionData from "../../services/sessionData";
-import { ROUTES } from "../constants";
+import {PERSONAL_WORKSPACE_ID, PERSONAL_WORKSPACE_NAME, ROOT_FOLDER_ID, ROUTES} from "../constants";
 import styled from "styled-components";
 import { colors } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ import folder from "../../assets/folder.svg";
 import logger from "../../services/logger";
 import LoadingScreen from "../../components/Loader";
 import urls from "../../services/urls";
+import _ from "lodash";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -80,6 +81,8 @@ const WorkspaceTitle = styled.p`
 const Workspace = ({
   selectedWorkspaceId,
   setSelectedWorkspaceId,
+  selectedWorkspaceName,
+  setSelectedWorkspaceName,
   foldersArray,
   setFoldersArray,
 }) => {
@@ -98,7 +101,7 @@ const Workspace = ({
     setIsLoading(true);
     
     const workspaceId = selectedWorkspaceId;
-    const folderId = selectedEntry;
+    const folderId = currentFolderId;
     
     const projectLink = await snaptrudeService.createProject(
       sessionData.getUserData()["streamId"],
@@ -134,25 +137,34 @@ const Workspace = ({
   };
 
   const onWorkspaceClick = (workspaceId, workspaceName) => {
-    setSelectedEntry(workspaceId);
+    setSelectedEntryId(workspaceId);
+    setSelectedEntryName(workspaceName);
   };
   
   const onFolderClick = (folderId, folderName) => {
-    // setSelectedEntry(folderId);
+    if (currentFolderId === folderId) return;
+    
+    setSelectedEntryId(folderId);
     setFoldersArray([...foldersArray, {id: folderId, name: folderName}]);
   };
   
   const goBackToWorkspaces = () => {
-    setSelectedWorkspaceId("");
-    setFoldersArray([{id: "root", name: ""}]);
+    setSelectedWorkspaceId(null);
+    setSelectedEntryId(selectedWorkspaceId);
+    setFoldersArray([{id: ROOT_FOLDER_ID, name: ""}]);
   }
   
   const goOneFolderUp = () => {
+    setSelectedEntryId(parentFolderId);
     foldersArray.pop();
     setFoldersArray([...foldersArray]);
   }
   
-  const chooseWorkspace = () => setSelectedWorkspaceId(selectedEntry);
+  const chooseWorkspace = () => {
+    setSelectedWorkspaceId(selectedEntryId);
+    setSelectedWorkspaceName(selectedEntryName);
+    setSelectedEntryId(ROOT_FOLDER_ID);
+  }
   
   const getWorkspaces = async () => {
     let userWorkspaces = await snaptrudeService.getUserWorkspaces();
@@ -161,8 +173,8 @@ const Workspace = ({
       userWorkspaces.forEach((space) => (space.icon = team));
 
       const personalWorkspace = {
-        id: "",
-        name: "My Workspace",
+        id: PERSONAL_WORKSPACE_ID,
+        name: PERSONAL_WORKSPACE_NAME,
         icon: personal,
       };
 
@@ -182,7 +194,7 @@ const Workspace = ({
     let folders = await snaptrudeService.getFolders(selectedWorkspaceId, currentFolderId);
     
     if (folders) {
-      folders.forEach((folder) => (folder.icon = folder));
+      folders.forEach((f) => (f.icon = folder));
       
       const currentFolder = {
         id: currentFolderId,
@@ -191,8 +203,8 @@ const Workspace = ({
       };
       
       const currentWorkspace = {
-        id: selectedWorkspaceId,
-        name: currentFolderName,
+        id: ROOT_FOLDER_ID,
+        name: selectedWorkspaceName,
         icon: team,
       };
       
@@ -206,11 +218,13 @@ const Workspace = ({
     }
   };
   
-  const isWorkspacesPage = selectedWorkspaceId === "";
+  const isWorkspacesPage = _.isNull(selectedWorkspaceId);
   const isFoldersPage = !isWorkspacesPage;
   
   const currentFolderId = _.last(foldersArray).id;
   const currentFolderName = _.last(foldersArray).name;
+  
+  const parentFolderId = _.nth(foldersArray, -2)?.id ?? ROOT_FOLDER_ID;
   
   const isRootFolderPage = foldersArray.length === 1;
   
@@ -229,11 +243,15 @@ const Workspace = ({
   const headingText = isWorkspacesPage ? "workspace" : "folder";
   const heading = `Select the ${headingText} to upload to`;
   
+  const initiallySelectedEntryId = isWorkspacesPage ? PERSONAL_WORKSPACE_ID : ROOT_FOLDER_ID;
+  const initiallySelectedEntryName = isWorkspacesPage ? PERSONAL_WORKSPACE_NAME : "";
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isWorkSpaceLoading, setIsWorkSpaceLoading] = useState(true);
 
   const [entries, setEntries] = useState([]);
-  const [selectedEntry, setSelectedEntry] = useState("");
+  const [selectedEntryId, setSelectedEntryId] = useState(initiallySelectedEntryId);
+  const [selectedEntryName, setSelectedEntryName] = useState(initiallySelectedEntryName);
 
   useEffect(() => {
     const getEntries = isWorkspacesPage ? getWorkspaces : getFolders;
@@ -241,7 +259,7 @@ const Workspace = ({
     getEntries().then(() => {
       setIsWorkSpaceLoading(false);
     });
-  }, []);
+  }, [selectedWorkspaceId, foldersArray]);
 
   if (isWorkSpaceLoading) return <LoadingScreen />;
   if (!entries.length)
@@ -278,7 +296,7 @@ const Workspace = ({
         <p>{heading}</p>
         <WorkspacesGrid>
           {entries.map(({ id, name, icon }, idx) => {
-            const className = id === selectedEntry ? "selected" : "";
+            const className = id === selectedEntryId ? "selected" : "";
             return (
               <WorkspaceInfo key={idx} onClick={() => entryClickCallback(id, name)}>
                 <WorkspaceIcon

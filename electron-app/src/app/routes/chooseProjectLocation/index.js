@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Workspace from "./Workspace";
 import {colors} from "../../themes/constant";
 import {useLocation} from "react-router-dom";
+import {PERSONAL_WORKSPACE_ID, ROOT_FOLDER_ID} from "../constants";
 
 const Wrapper = styled.div`
     display: flex;
@@ -59,11 +60,12 @@ const Wrapper = styled.div`
 const ChooseProjectLocation = (props) => {
   
   const rootFolder = {
-    id: "root",
+    id: ROOT_FOLDER_ID,
     name: ""
   };
   
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState("");
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(null);
+  const [selectedWorkspaceName, setSelectedWorkspaceName] = useState("");
   const [foldersArray, setFoldersArray] = useState([rootFolder]);
   
   return (
@@ -71,6 +73,8 @@ const ChooseProjectLocation = (props) => {
       <Workspace
         selectedWorkspaceId={selectedWorkspaceId}
         setSelectedWorkspaceId={setSelectedWorkspaceId}
+        selectedWorkspaceName={selectedWorkspaceName}
+        setSelectedWorkspaceName={setSelectedWorkspaceName}
         foldersArray={foldersArray}
         setFoldersArray={setFoldersArray}
       />
