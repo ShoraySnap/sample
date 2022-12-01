@@ -1251,7 +1251,6 @@ namespace Snaptrude
                             ST_Door st_door = new ST_Door();
 
                             JToken doorMeshData = doorData["meshes"].First;
-                            JToken doorGeometry = doorData["geometries"];
 
                             double width = UnitsAdapter.convertToRevit(doorMeshData["width"]);
                             double height = UnitsAdapter.convertToRevit(doorMeshData["height"]);
@@ -1259,11 +1258,6 @@ namespace Snaptrude
                                 ? XYZ.Zero
                                 : STDataConverter.ArrayToXYZ(doorMeshData["direction"], false).Round();
 
-                            if (doorGeometry != null)
-                            {
-                                // DOOR IS NOT AN INSTANCE OF ORIGINAL SO CONTINUE WITH OTHERS
-                                continue;
-                            }
                             st_door.Name = doorMeshData["name"].ToString();
                             st_door.Geom_ID = doorMeshData["storey"].ToString();
                             st_door.Position = STDataConverter.GetPosition(doorData);
@@ -1422,14 +1416,7 @@ namespace Snaptrude
                         {
                             ST_Window st_window = new ST_Window();
 
-                            var windowGeometry = windowData["geometries"];
                             var windowMeshData = windowData["meshes"].First;
-                            if (windowGeometry != null)
-                            {
-                                //WINDOW IS NOT AN INSTANCE OF THE ORIGINAL SO CONTINUE WITH OTHERS
-                                continue;
-                            }
-
 
                             double width = UnitsAdapter.convertToRevit(windowMeshData["width"]);
                             double height = UnitsAdapter.convertToRevit(windowMeshData["height"]);
