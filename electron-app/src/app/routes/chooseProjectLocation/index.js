@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Workspace from "./Workspace";
 import {colors} from "../../themes/constant";
 import {useLocation} from "react-router-dom";
+import {PERSONAL_WORKSPACE_ID, ROOT_FOLDER_ID} from "../constants";
 
 const Wrapper = styled.div`
     display: flex;
@@ -55,23 +56,28 @@ const Wrapper = styled.div`
     }
 `
 
-const pages = ["workspace", "folder"];
 
 const ChooseProjectLocation = (props) => {
   
-  const [currentPage, setCurrentPage] = useState(pages[0]);
-  const ref = useRef(null);
+  const rootFolder = {
+    id: ROOT_FOLDER_ID,
+    name: ""
+  };
   
-  const updatePage = (newPage) => {
-    setCurrentPage(newPage);
-  }
-  
-  const location = useLocation();
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(null);
+  const [selectedWorkspaceName, setSelectedWorkspaceName] = useState("");
+  const [foldersArray, setFoldersArray] = useState([rootFolder]);
   
   return (
     <Wrapper>
-      { currentPage === pages[0] && <Workspace updatePage={updatePage} nextPage={pages[1]} /> }
-      {/*{ currentPage === pages[1] && <Folder updatePage={updatePage} nextPage={pages[3]} /> }*/}
+      <Workspace
+        selectedWorkspaceId={selectedWorkspaceId}
+        setSelectedWorkspaceId={setSelectedWorkspaceId}
+        selectedWorkspaceName={selectedWorkspaceName}
+        setSelectedWorkspaceName={setSelectedWorkspaceName}
+        foldersArray={foldersArray}
+        setFoldersArray={setFoldersArray}
+      />
     </Wrapper>
   );
   

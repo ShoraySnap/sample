@@ -2,6 +2,7 @@ import axios from "axios";
 import sessionData from "./sessionData";
 import logger from "./logger";
 import urls from "./urls";
+import {PERSONAL_WORKSPACE_ID} from "../routes/constants";
 
 const snaptrudeService = (function () {
   const RequestType = {
@@ -17,9 +18,9 @@ const snaptrudeService = (function () {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
     for (let item in data) formData.append(item, data[item]);
-    if (requestType == RequestType.POST) {
+    if (requestType === RequestType.POST) {
       return await _callByPostMethod(DJANGO_URL, endPoint, formData);
-    } else if (requestType == RequestType.GET) {
+    } else if (requestType === RequestType.GET) {
       return await _callByGetMethod(DJANGO_URL, endPoint);
     }
   };
@@ -86,7 +87,7 @@ const snaptrudeService = (function () {
       });
   };
 
-  const createProject = async function (streamId, teamId) {
+  const createProject = async function (streamId, teamId, folderId) {
     logger.log("Creating Snaptrude project for", streamId, teamId);
     const REACT_URL = urls.get("snaptrudeReactUrl");
 
@@ -94,6 +95,7 @@ const snaptrudeService = (function () {
     const data = {
       stream_id: streamId,
       team_id: teamId,
+      folder_id: folderId,
       project_name: sessionData.getUserData()["revitProjectName"],
     };
 
@@ -115,6 +117,28 @@ const snaptrudeService = (function () {
         return {
           id: team.id,
           name: team.name,
+        };
+      });
+    }
+  };
+  
+  const getFolders = async function (teamId, currentFolderId) {
+    
+    const fetchFromPersonalWorkspace = teamId === PERSONAL_WORKSPACE_ID;
+    
+    const endPoint = fetchFromPersonalWorkspace ? "/folder/" : `/team/${teamId}/folder/`;
+    const data = {
+      limit: 1000,
+      offset: 0,
+      folder: currentFolderId,
+    };
+    
+    const response = await _callApi(endPoint, RequestType.POST, data);
+    if (response) {
+      return response.data.folders.map((folder) => {
+        return {
+          id: folder.id,
+          name: folder.name,
         };
       });
     }
@@ -243,6 +267,7 @@ const snaptrudeService = (function () {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
+    getFolders,
   };
 })();
 
