@@ -520,6 +520,7 @@ namespace Snaptrude
                                 }
 
                                 double baseHeight = UnitsAdapter.convertToRevit(wallData["baseHeight"]);
+                                double height = UnitsAdapter.convertToRevit(wallData["height"]);
 
                                 bool hasChildComponents = wallData["meshes"][0]["childrenComp"].HasValues;
                                 bool useOriginalMesh = wallData["useOriginalMesh"] is null
@@ -621,7 +622,7 @@ namespace Snaptrude
                                         wallType = ST_Wall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
                                     }
 
-                                    st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall);
+                                    st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall, height);
                                 }
                                 else
                                 {
@@ -630,7 +631,7 @@ namespace Snaptrude
 
                                     if (areLayersSame || isWeworksMessedUpStackedWall)
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, existingWallType.Id, levelIdForWall);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, existingWallType.Id, levelIdForWall, height);
                                         if (isWeworksMessedUpStackedWall)
                                         {
                                             var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
@@ -642,16 +643,16 @@ namespace Snaptrude
                                     {
                                         WallType wallType = ST_Wall.GetWallTypeByWallLayers(st_wall.Layers, newDoc, existingWallType);
 
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall, height);
                                     }
                                 }
                                 ElementId wallId = st_wall.wall.Id;
 
                                 Level level = (Level) newDoc.GetElement(st_wall.wall.LevelId);
 
-                                double baseOffset = baseHeight - level.Elevation;
+                                //double baseOffset = baseHeight - level.Elevation;
 
-                                st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
+                                //st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
 
 
                                 // Create holes
@@ -737,15 +738,13 @@ namespace Snaptrude
                                 if (transactionStatus == TransactionStatus.RolledBack)
                                 {
                                     trans.Start();
-                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, levelIdForWall);
+                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, levelIdForWall, height);
                                     wallId = st_wall.wall.Id;
 
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 1);
 
-                                    if (!st_wall.wall.Location.Move(st_wall.Position)) throw new Exception("Move wall location failed.");
-
-                                    st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
+                                    //st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
                                     transactionStatus = trans.Commit();
                                 }
 
