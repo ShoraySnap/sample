@@ -17,14 +17,18 @@ import _ from "lodash";
 const Wrapper = styled.div`
   // position: relative;
   min-width: 100vw;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   font-weight: 400;
   font-size: 14px;
   color: ${colors.primeBlack};
+  overflow: auto;
 
   .content {
-    // overflow: auto;
+    display: flex;
+    overflow: auto;
+    flex-direction:column ;
     padding: 1em 1em 5em 1em;
   }
 `;
@@ -33,19 +37,17 @@ const WorkspacesGrid = styled.div`
   display: grid;
   grid-template-rows: 40px 40px 40px 40px;
   grid-template-columns: 45vw 45vw;
-
-  margin-top: 40px;
-
-  // overflow-y: scroll;
+  margin-top: 20px;
+  overflow: auto;
 `;
 
 const WorkspaceInfo = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: left;
-  // align-items: center;
-
+  align-items: center;
   margin-left: 30px;
+  flex-flow: row;
 
   border-radius: 0.5rem;
 
@@ -72,14 +74,14 @@ const WorkspaceInfo = styled.div`
 const WorkspaceIcon = styled.img`
   padding: 2px;
   padding-right: 2px;
-  margin-top: 4px;
-  // width: 16px;
-  // height: 14px;
 `;
 
 const WorkspaceTitle = styled.p`
   font-weight: 500;
   font-size: 14px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 `;
 
 const CSS_FOLDER_TAG = "folder-";
@@ -203,6 +205,7 @@ const Workspace = ({
   
   const getFolders = async () => {
     let folders = await snaptrudeService.getFolders(selectedWorkspaceId, currentFolderId);
+    setIsLoading(false);
     
     if (folders) {
       folders.forEach((f) => {
@@ -225,7 +228,6 @@ const Workspace = ({
       };
       
       const firstEntry = isRootFolderPage ? currentWorkspace : currentFolder;
-
       folders.unshift(firstEntry);
 
       if (folders.length) {
@@ -270,12 +272,21 @@ const Workspace = ({
   const [selectedEntryName, setSelectedEntryName] = useState(initiallySelectedEntryName);
 
   useEffect(() => {
+    if (isFoldersPage) {
+      setIsLoading(true);
+      isRootFolderPage
+        ? setSelectedEntryId(selectedWorkspaceId)
+        : setSelectedEntryId(parentFolderId);
+    }
     const getEntries = isWorkspacesPage ? getWorkspaces : getFolders;
-    
+
     getEntries().then(() => {
       setIsWorkSpaceLoading(false);
+      if (isFoldersPage) {
+        setSelectedEntryId(currentFolderId);
+      }
     });
-  }, [selectedWorkspaceId, foldersArray]);
+  }, [selectedWorkspaceId, foldersArray, parentFolderId]);
 
   if (isWorkSpaceLoading) return <LoadingScreen />;
   if (!entries.length)
@@ -321,7 +332,7 @@ const Workspace = ({
                   src={icon}
                   alt={"workspace"}
                 />
-                <WorkspaceTitle className={classNameTxt + "-txt"}>
+                <WorkspaceTitle className={classNameTxt + "-txt"} >
                   {" "}
                   {name}{" "}
                 </WorkspaceTitle>
