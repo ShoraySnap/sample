@@ -18,6 +18,7 @@ import logger from "../../services/logger";
 import LoadingScreen from "../../components/Loader";
 import urls from "../../services/urls";
 import _ from "lodash";
+import UpgradePlan from "../../components/UpgradePlan";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -310,31 +311,7 @@ const Workspace = ({
   if (isWorkSpaceLoading) return <LoadingScreen />;
   if (!entries.length)
     return (
-      <>
-        <p>
-          You’re currently on Free plan, please upgrade to continue using
-          Snaptrude
-        </p>
-        <footer>
-          <div className="button-wrapper">
-            <Button
-              customButtonStyle={{
-                backgroundColor: colors.fullWhite,
-                color: colors.secondaryGrey,
-              }}
-              title={"Cancel"}
-              onPress={closeApplication}
-            />
-          </div>
-          <div className="button-wrapper">
-            <Button
-              primary={true}
-              title={"Upgrade Plan"}
-              onPress={onSubmitGoToPayment}
-            />
-          </div>
-        </footer>
-      </>
+    <UpgradePlan closeApplication = {closeApplication} onSubmitGoToPayment = {onSubmitGoToPayment}/>
     );
   return (
     <Wrapper>
