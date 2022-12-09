@@ -2,7 +2,8 @@ import axios from "axios";
 import sessionData from "./sessionData";
 import logger from "./logger";
 import urls from "./urls";
-import {PERSONAL_WORKSPACE_ID} from "../routes/constants";
+import { PERSONAL_WORKSPACE_ID } from "../routes/constants";
+import _ from "lodash";
 
 const snaptrudeService = (function () {
   const RequestType = {
@@ -121,9 +122,8 @@ const snaptrudeService = (function () {
       });
     }
   };
-  
+
   const getFolders = async function (teamId, currentFolderId) {
-    
     const fetchFromPersonalWorkspace = teamId === PERSONAL_WORKSPACE_ID;
 
     const endPoint = fetchFromPersonalWorkspace
@@ -134,7 +134,7 @@ const snaptrudeService = (function () {
       offset: 0,
       folder: currentFolderId,
     };
-    
+
     const response = await _callApi(endPoint, RequestType.POST, data);
     if (response) {
       return response.data.folders.map((folder) => {
@@ -146,10 +146,31 @@ const snaptrudeService = (function () {
     }
   };
 
+  const checkRoleForPermissionToCreateProject = async (team) => {
+    if (["viewer", "editor"].includes(team.role)) {
+      return false;
+    }
+    if (!["admin", "creator"].includes(team.role)) {
+      const endPoint = `/team/${team.id}/getrole/`;
+      const response = await _callApi(endPoint, RequestType.POST, {});
+      if (response.status === 200) {
+        const permissionObject = response.data.team.permissions;
+        const roleBasedPermissions = _.keyBy(permissionObject, (o) => o.name);
+        if (!roleBasedPermissions[team.role].create_project) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   const getValidTeams = async function (teams) {
     const validTeams = [];
     for (let i = 0; i < teams.length; ++i) {
       const team = teams[i];
+      const isPermissionToCreateProject =
+        await checkRoleForPermissionToCreateProject(team);
+      if (!isPermissionToCreateProject) continue;
       if (team.isManuallyPaid) {
         validTeams.push(team);
         continue;
