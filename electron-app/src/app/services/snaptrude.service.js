@@ -125,8 +125,10 @@ const snaptrudeService = (function () {
   const getFolders = async function (teamId, currentFolderId) {
     
     const fetchFromPersonalWorkspace = teamId === PERSONAL_WORKSPACE_ID;
-    
-    const endPoint = fetchFromPersonalWorkspace ? "/folder/" : `/team/${teamId}/folder/`;
+
+    const endPoint = fetchFromPersonalWorkspace
+      ? "/folderWithoutProject/"
+      : `/team/${teamId}/folderWithoutProject/`;
     const data = {
       limit: 1000,
       offset: 0,
