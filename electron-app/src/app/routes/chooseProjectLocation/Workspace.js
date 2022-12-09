@@ -141,7 +141,7 @@ const Workspace = ({
 
   const onSubmitGoToPayment = async () => {
     const upgradePlanLink =
-      urls.get("snaptrudeReactUrl") + "/dashboard/profile/billing";
+      urls.get("snaptrudeReactUrl") + "/dashboard/profile/plans";
 
     if (upgradePlanLink) {
       window.electronAPI.openPageInDefaultBrowser(upgradePlanLink);

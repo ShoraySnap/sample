@@ -1,7 +1,7 @@
 import { colors } from "../../themes/constant";
 import Button from "../../components/Button";
 
-export default function UpgradePlan(closeApplication, onSubmitGoToPayment) {
+export default function UpgradePlan({closeApplication, onSubmitGoToPayment}) {
   return (
     <>
       <p>
