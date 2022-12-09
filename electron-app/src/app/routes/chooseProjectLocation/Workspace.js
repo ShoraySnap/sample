@@ -19,6 +19,7 @@ import LoadingScreen from "../../components/Loader";
 import urls from "../../services/urls";
 import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
+import { Tooltip } from "antd";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -326,6 +327,7 @@ const Workspace = ({
               type + (id === selectedEntryId ? "selected" : "");
             const classNameTxt = id === selectedEntryId ? "selected" : "";
             return (
+              <Tooltip placement="top" key = {idx} title={name.length > 25 ? name : undefined} color = {colors.primeBlack} >
               <WorkspaceInfo
                 key={idx}
                 onClick={() => entryClickCallback(id, name)}
@@ -340,6 +342,7 @@ const Workspace = ({
                   {name}{" "}
                 </WorkspaceTitle>
               </WorkspaceInfo>
+              </Tooltip>
             );
           })}
         </WorkspacesGrid>
