@@ -215,7 +215,7 @@ const Workspace = ({
       selectedWorkspaceId,
       currentFolderId
     );
-    setIsLoading(false);
+   
 
     if (folders) {
       folders.forEach((f) => {
@@ -297,10 +297,13 @@ const Workspace = ({
       isRootFolderPage
         ? setSelectedEntryId(selectedWorkspaceId)
         : setSelectedEntryId(parentFolderId);
+    }else{
+      setIsWorkSpaceLoading(true);
     }
     const getEntries = isWorkspacesPage ? getWorkspaces : getFolders;
 
     getEntries().then(() => {
+      setIsLoading(false);
       setIsWorkSpaceLoading(false);
       if (isFoldersPage) {
         setSelectedEntryId(currentFolderId);
