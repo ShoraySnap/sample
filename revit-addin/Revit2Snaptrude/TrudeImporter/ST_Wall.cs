@@ -38,19 +38,28 @@ namespace Snaptrude
             return profile;
         }
 
-        public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, ElementId levelIdForWall, double height)
+        public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, ElementId levelIdForWall, double height = -1)
         {
             wall = Wall.Create(newDoc, profile, wallTypeId, levelIdForWall, false);
             //wall = Wall.Create(newDoc, profile, false);
             //wall.ChangeTypeId(wallTypeId);
 
-            Parameter top_constraint_param = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-            top_constraint_param.Set("Unconnected");
-            top_constraint_param.SetValueString("Unconnected");
-            top_constraint_param.Set(ElementId.InvalidElementId);
 
-            Parameter heightParam = wall.LookupParameter("Unconnected Height");
-            heightParam.Set(height);
+            if (height > 0)
+            {
+                Parameter top_constraint_param = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
+                top_constraint_param.Set("Unconnected");
+                top_constraint_param.SetValueString("Unconnected");
+                top_constraint_param.Set(ElementId.InvalidElementId);
+
+                Parameter heightParam = wall.LookupParameter("Unconnected Height");
+                heightParam.Set(height);
+            }
+            else
+            {
+                Parameter top_constraint_param = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
+                top_constraint_param.Set(TrudeImporter.LevelIdByNumber[levelNumber + 1]);
+            }
 
             return wall;
         }

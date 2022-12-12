@@ -278,29 +278,39 @@ namespace Snaptrude
 
         public bool AreLayersSame(ST_Layer[] stLayers, WallType wallType)
         {
-            CompoundStructure compoundStructure = wallType.GetCompoundStructure();
-            if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
-
-            IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
-
-            if (stLayers.Length != layers.Count) return false;
-
-            bool areSame = true;
-            for (int i = 0; i < stLayers.Length; i++)
+            try
             {
-                ST_Layer stLayer = stLayers[i];
-                CompoundStructureLayer layer = layers[i];
 
-                if (!stLayer.ThicknessInMm.AlmostEquals(UnitsAdapter.FeetToMM(layer.Width), 0.5))
+                CompoundStructure compoundStructure = wallType.GetCompoundStructure();
+                if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
+
+                IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
+
+                //if (stLayers.Length != layers.Count) return false;
+
+                bool areSame = true;
+                for (int i = 0; i < stLayers.Length; i++)
                 {
-                    //if (stLayer.IsCore && layer.Function == MaterialFunctionAssignment.Structure) continue; // TODO: remove this after core thickness is fixed on snaptrude end. 
+                    ST_Layer stLayer = stLayers[i];
+                    CompoundStructureLayer layer = layers[i];
 
-                    areSame = false;
-                    break;
+                    if (!stLayer.IsCore) continue;
+
+                    if (!stLayer.ThicknessInMm.AlmostEquals(UnitsAdapter.FeetToMM(layer.Width), 0.5))
+                    {
+                        //if (stLayer.IsCore && layer.Function == MaterialFunctionAssignment.Structure) continue; // TODO: remove this after core thickness is fixed on snaptrude end. 
+
+                        areSame = false;
+                        break;
+                    }
                 }
-            }
 
-            return areSame;
+                return areSame;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
 
         private void ImportSnaptrude(JObject jObject, Document newDoc)
@@ -615,16 +625,25 @@ namespace Snaptrude
                                         }
                                     }
 
+                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
+
                                     if (wallType is null)
                                     {
                                         wallType = ST_Wall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
                                     }
-                                    else if (!AreLayersSame(st_wall.Layers, wallType))
+                                    else if (!AreLayersSame(st_wall.Layers, wallType) && !isWeworksMessedUpStackedWall)
                                     {
                                         wallType = ST_Wall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
                                     }
+                                    if (isWeworksMessedUpStackedWall)
+                                    {
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall);
+                                    }
+                                    else
+                                    {
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall, height);
+                                    }
 
-                                    st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall, height);
                                 }
                                 else
                                 {
