@@ -14,6 +14,20 @@ namespace Snaptrude
         public const int XY = 0;
         public const int YZ = 1;
 
+        public static CompoundStructureLayer GetCoreLayer(this CompoundStructure compoundStructure)
+        {
+            CompoundStructureLayer coreLayer = null;
+            foreach (CompoundStructureLayer layer in compoundStructure.GetLayers())
+            {
+                if (layer.Function == MaterialFunctionAssignment.Structure)
+                {
+                    coreLayer = layer;
+                }
+            }
+
+            return coreLayer;
+        }
+
         public static XYZ ProjectOnto( this Plane plane, XYZ p)
         {
             double d = plane.SignedDistanceTo(p);

@@ -280,32 +280,45 @@ namespace Snaptrude
         {
             try
             {
-
                 CompoundStructure compoundStructure = wallType.GetCompoundStructure();
                 if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
 
-                IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
+                CompoundStructureLayer coreLayer = compoundStructure.GetCoreLayer();
 
-                //if (stLayers.Length != layers.Count) return false;
+                if (coreLayer is null)
+                {
+                    int coreLayerIndex = compoundStructure.GetFirstCoreLayerIndex();
+                    coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
+                }
+                if (coreLayer is null)
+                {
+                    int coreLayerIndex = compoundStructure.GetLastCoreLayerIndex();
+                    coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
+                }
+                if (coreLayer is null)
+                {
+                    return false;
+                }
 
-                bool areSame = true;
+                ST_Layer stCoreLayer = null;
                 for (int i = 0; i < stLayers.Length; i++)
                 {
                     ST_Layer stLayer = stLayers[i];
-                    CompoundStructureLayer layer = layers[i];
 
-                    if (!stLayer.IsCore) continue;
-
-                    if (!stLayer.ThicknessInMm.AlmostEquals(UnitsAdapter.FeetToMM(layer.Width), 0.5))
+                    if (stLayer.IsCore)
                     {
-                        //if (stLayer.IsCore && layer.Function == MaterialFunctionAssignment.Structure) continue; // TODO: remove this after core thickness is fixed on snaptrude end. 
-
-                        areSame = false;
+                        stCoreLayer = stLayer;
                         break;
                     }
+
                 }
 
-                return areSame;
+                if (stCoreLayer is null) return false;
+
+                double coreLayerThicknessInMm = UnitsAdapter.FeetToMM(coreLayer.Width);
+                if (stCoreLayer.ThicknessInMm.AlmostEquals(coreLayerThicknessInMm, 0.5)) return true;
+
+                return false;
             }
             catch (Exception e)
             {
