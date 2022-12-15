@@ -469,7 +469,6 @@ namespace Snaptrude
                         }
                         catch { }
 
-                        bool wallInExistingWalls = false;
                         Wall existingWall = null;
                         ElementId existingLevelId = null;
                         WallType existingWallType = null;
@@ -485,7 +484,6 @@ namespace Snaptrude
                                     bool isExistingWall = idToElement.TryGetValue(revitId, out e);
                                     if (isExistingWall)
                                     {
-                                        wallInExistingWalls = true;
                                         existingWall = (Wall)e;
                                         existingLevelId = existingWall.LevelId;
                                         existingWallType = existingWall.WallType;
@@ -1046,6 +1044,183 @@ namespace Snaptrude
                 ST_Floor.TypeStore.Types.Clear();
                 LogTrace("Roofs created");
 
+                JToken ceilings = geometryParent["ceilings"];
+                foreach (var ceiling in ceilings)
+                {
+                    if (!ShouldImport(ceiling)) continue;
+
+                    processedElements++;
+                    LogProgress(processedElements, totalElements);
+
+                    try
+                    {
+                        JToken ceilingData = ceiling.First;
+
+                        string revitId = (string)ceilingData["dsProps"]["revitMetaData"]["elementId"];
+
+                        if (IsThrowAway(ceilingData)) continue;
+                        if (ceilingData["dsProps"]["storey"].Value<String>() is null) continue;
+
+                        if (ceilingData["dsProps"]["revitMetaData"]["curveId"] != null)
+                        {
+                            string curveId = (string)ceilingData["dsProps"]["revitMetaData"]["curveId"];
+
+                            ElementId ceilingId = new ElementId(int.Parse(revitId));
+
+                            Element ceilingElement = newDoc.GetElement(ceilingId);
+
+                            //get ceiling sketch
+                            ElementClassFilter filter = new ElementClassFilter(typeof(Sketch));
+
+                            ElementId sketchId = ceilingElement.GetDependentElements(filter).First();
+
+                            Sketch ceilingSketch = newDoc.GetElement(sketchId) as Sketch;
+
+                            CurveArrArray ceilingProfile = ceilingSketch.Profile;
+
+                            filter = new ElementClassFilter(typeof(CurveElement));
+
+                            IEnumerable<Element> curves = ceilingElement.GetDependentElements(filter)
+                                .Select(id => newDoc.GetElement(id));
+
+                            IEnumerable<ModelLine> modelLines = curves.Where(e => e is ModelLine).Cast<ModelLine>();//target
+
+                            if (curves.Count() != modelLines.Count())
+                                throw new Exception("The ceiling contains non straight lines");
+
+
+
+                            IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
+
+                            Dictionary<String, CurveArray> profiles = new Dictionary<string, CurveArray>();
+
+                            foreach (CurveArray loop in ceilingProfile)
+                            {
+                                profiles.Add(loop.GenerateCurveId(revitId), loop);
+                            }
+
+                            List<XYZ> profilePoints = STDataConverter.ListToPoint3d(ceilingData["topVertices"])
+                                .Distinct()
+                                .Select((Point3D p) => p.ToXYZ())
+                                .ToList();
+
+                            Dictionary<String, List<XYZ>> allProfiles = new Dictionary<String, List<XYZ>>();
+
+                            allProfiles.Add(curveId, profilePoints);
+
+                            if (!ceilingData["voids"].IsNullOrEmpty())
+                            {
+                                foreach (var voidj in ceilingData["voids"])
+                                {
+                                    string key = (string)voidj["curveId"];
+                                    List<XYZ> _profilePoints = STDataConverter.ListToPoint3d(voidj["profile"])
+                                        .Select((Point3D p) => p.ToXYZ())
+                                        .ToList();
+
+                                    allProfiles.Add(key, _profilePoints);
+                                }
+                            }
+
+                            foreach (CurveArray loop in ceilingProfile)
+                            {
+                                List<ModelLine> newLoop = new List<ModelLine>();
+
+                                var currentLoopId = loop.GenerateCurveId(revitId);
+
+                                if (!allProfiles.ContainsKey(currentLoopId)) continue;
+
+                                var currentProfilePoints = allProfiles[currentLoopId];
+
+                                foreach (Curve edge in loop)
+                                {
+                                    foreach (ModelLine modelLine in modelLines)
+                                    {
+
+                                        Curve currentLine = ((modelLine as ModelLine)
+                                          .Location as LocationCurve).Curve;
+
+                                        if (currentLine.Intersect(edge) == SetComparisonResult.Equal)
+                                        {
+
+                                            newLoop.Add(modelLine);
+                                            break;
+                                        }
+
+                                        editableSketch.Add(newLoop);
+                                    }
+                                }
+
+                                using (SubTransaction transaction = new SubTransaction(newDoc))
+                                {
+                                    transaction.Start();
+
+                                    for (int i = 0; i < newLoop.Count(); i++)
+                                    {
+                                        LocationCurve lCurve = newLoop[i].Location as LocationCurve;
+
+                                        XYZ pt1New = currentProfilePoints[i];
+                                        XYZ pt2New = currentProfilePoints[(i + 1).Mod(newLoop.Count())];
+                                        Line newLine = Line.CreateBound(pt1New, pt2New);
+                                        lCurve.Curve = newLine;
+                                    }
+
+                                    transaction.Commit();
+                                }
+                            }
+
+                            try
+                            {
+                                List<List<XYZ>> holes = STDataConverter.GetHoles(ceilingData);
+
+                                foreach (var hole in holes)
+                                {
+                                    var holeProfile = ST_Wall.GetProfile(hole);
+                                    CurveArray curveArray1 = new CurveArray();
+                                    foreach (Curve c in holeProfile)
+                                    {
+                                        curveArray1.Append(c);
+                                    }
+                                    newDoc.Create.NewOpening(ceilingElement, curveArray1, true);
+                                }
+                            }
+                            catch { }
+                        }
+                        else
+                        {
+                            // TODO: Ceiling creation is not supported by revit 2019 API!!!! SMH FML
+                        }
+
+                        if (revitId != null)
+                        {
+                            try
+                            {
+                                Element e;
+                                bool isExistingMass = idToElement.TryGetValue(revitId, out e);
+                                if (isExistingMass)
+                                {
+                                    Element existingMass = e;
+                                    ElementId existingLevelId = existingMass.LevelId;
+
+                                    using (SubTransaction t = new SubTransaction(newDoc))
+                                    {
+                                        t.Start();
+                                        var val = newDoc.Delete(existingMass.Id);
+                                        t.Commit();
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                LogTrace(e.Message);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        LogTrace("Error Creating beam/column");
+                    }
+                }
+
                 // Columns and Beams
                 JToken masses = geometryParent["masses"];
                 foreach (var mass in masses)
@@ -1077,121 +1252,6 @@ namespace Snaptrude
                         {
                             ST_Beam.FromMassData(massData).CreateBeam(newDoc);
                         }
-                        else if (massType.Equals("Ceiling"))
-                        {
-                            if (massData["dsProps"]["revitMetaData"]["curveId"] != null)
-                            {
-                                String curveId = (String)massData["dsProps"]["revitMetaData"]["curveId"];
-
-                                ElementId ceilingId = new ElementId(int.Parse(revitId));
-
-                                Element ceiling = newDoc.GetElement(ceilingId);
-
-                                //get ceiling sketch
-                                ElementClassFilter filter = new ElementClassFilter(typeof(Sketch));
-
-                                ElementId sketchId = ceiling.GetDependentElements(filter).First();
-
-                                Sketch ceilingSketch = newDoc.GetElement(sketchId) as Sketch;
-
-                                CurveArrArray ceilingProfile = ceilingSketch.Profile;
-
-
-                                filter = new ElementClassFilter(typeof(CurveElement));
-
-                                IEnumerable<Element> curves = ceiling.GetDependentElements(filter)
-                                    .Select(id => newDoc.GetElement(id));
-
-                                IEnumerable<ModelLine> modelLines = curves.Where(e => e is ModelLine).Cast<ModelLine>();//target
-
-                                if (curves.Count() != modelLines.Count())
-                                    throw new Exception("The ceiling contains non straight lines");
-
-
-
-                                IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
-
-                                Dictionary<String, CurveArray> profiles = new Dictionary<string, CurveArray>();
-
-                                foreach (CurveArray loop in ceilingProfile)
-                                {
-                                    profiles.Add(loop.GenerateCurveId(revitId), loop);
-                                }
-
-                                List<XYZ> profilePoints = STDataConverter.ListToPoint3d(massData["topVertices"])
-                                    .Distinct()
-                                    .Select((Point3D p) => p.ToXYZ())
-                                    .ToList();
-
-                                Dictionary<String, List<XYZ>> allProfiles = new Dictionary<String, List<XYZ>>();
-
-                                allProfiles.Add(curveId, profilePoints);
-
-                                if (!massData["voids"].IsNullOrEmpty())
-                                {
-                                    foreach (var voidj in massData["voids"])
-                                    {
-                                        string key = (string)voidj["curveId"];
-                                        List<XYZ> _profilePoints = STDataConverter.ListToPoint3d(voidj["profile"])
-                                            .Select((Point3D p) => p.ToXYZ())
-                                            .ToList();
-
-                                        allProfiles.Add(key, _profilePoints);
-                                    }
-                                }
-
-                                foreach (CurveArray loop in ceilingProfile)
-                                {
-                                    List<ModelLine> newLoop = new List<ModelLine>();
-
-                                    var currentLoopId = loop.GenerateCurveId(revitId);
-
-                                    if (!allProfiles.ContainsKey(currentLoopId)) continue;
-
-                                    var currentProfilePoints = allProfiles[currentLoopId];
-
-                                    foreach (Curve edge in loop)
-                                    {
-                                        foreach (ModelLine modelLine in modelLines)
-                                        {
-
-                                            Curve currentLine = ((modelLine as ModelLine)
-                                              .Location as LocationCurve).Curve;
-
-                                            if (currentLine.Intersect(edge) == SetComparisonResult.Equal)
-                                            {
-
-                                                newLoop.Add(modelLine);
-                                                break;
-                                            }
-
-                                            editableSketch.Add(newLoop);
-                                        }
-                                    }
-
-                                    using (SubTransaction transaction = new SubTransaction(newDoc))
-                                    {
-                                        transaction.Start();
-
-                                        for (int i = 0; i < newLoop.Count(); i++)
-                                        {
-                                            LocationCurve lCurve = newLoop[i].Location as LocationCurve;
-
-                                            XYZ pt1New = currentProfilePoints[i];
-                                            XYZ pt2New = currentProfilePoints[(i + 1).Mod(newLoop.Count())];
-                                            Line newLine = Line.CreateBound(pt1New, pt2New);
-                                            lCurve.Curve = newLine;
-                                        }
-
-                                        transaction.Commit();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                // TODO: Ceiling creation is not supported by revit 2019 API!!!! SMH FML
-                            }
-                        }
 
                         if (revitId != null)
                         {
@@ -1201,7 +1261,6 @@ namespace Snaptrude
                                 bool isExistingMass = idToElement.TryGetValue(revitId, out e);
                                 if (isExistingMass)
                                 {
-                                    bool wallInExistingWalls = true;
                                     Element existingMass = e;
                                     ElementId existingLevelId = existingMass.LevelId;
 
