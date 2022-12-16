@@ -13,7 +13,7 @@ elseif ($branch -eq "dev")
 {
     $version_number= Get-Content -Path .\version.txt -TotalCount 1
     $version= -join("dev-", $version_number)
-    # C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-staging.iss /DMyAppVersion=$version
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-staging.iss /DMyAppVersion=$version
     C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version
 }
 else
