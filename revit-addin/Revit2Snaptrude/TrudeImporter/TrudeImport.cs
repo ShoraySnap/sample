@@ -569,7 +569,12 @@ namespace Snaptrude
                                                  ? STDataConverter.ArrayToXYZ(wallMeshDataforLevel["position"])
                                                  : STDataConverter.ArrayToXYZ(wallMeshData["position"]);
 
-                                st_wall.Layers = STDataConverter.GetLayers(wallData);
+                                float thickness = wallData["thickness"] is null ? -1 : (float) wallData["thickness"];
+
+                                if (thickness > 0)
+                                    st_wall.Layers = STDataConverter.GetLayers(wallData, thickness);
+                                else
+                                    st_wall.Layers = STDataConverter.GetLayers(wallData);
 
                                 st_wall.Scaling = STDataConverter.GetScaling(wallData);
 
@@ -585,8 +590,6 @@ namespace Snaptrude
 
                                 // Calculate and set thickness
                                 string wallDirection = wallData["dsProps"]["direction"].Value<string>();
-
-                                float thickness = wallData["thickness"] is null ? -1 : (float) wallData["thickness"];
 
                                 bool coreIsFound = false;
                                 //TODO remove this loop after wall core layer thickness is fixed after doing freemove

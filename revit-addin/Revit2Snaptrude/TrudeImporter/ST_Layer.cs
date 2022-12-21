@@ -11,11 +11,11 @@ namespace Snaptrude
         public bool IsCore;
         public string Function;
 
-        public ST_Layer(JToken wallLayerJToken, string baseType, string function = null)
+        public ST_Layer(JToken wallLayerJToken, string baseType, string function = null, double defaultThickness = 25)
         {
             this.BaseTypeName = baseType;
             this.Name = (string)wallLayerJToken["value"];
-            this.ThicknessInMm = (string)wallLayerJToken["thickness"] == "Variable" ? 25 : (double)wallLayerJToken["thickness"];
+            this.ThicknessInMm = (string)wallLayerJToken["thickness"] == "Variable" ? defaultThickness : (double)wallLayerJToken["thickness"];
             this.IsCore = wallLayerJToken["core"] is null ? false : (bool)wallLayerJToken["core"];
             this.Function = function;
         }

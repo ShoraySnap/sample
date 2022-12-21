@@ -134,7 +134,7 @@ namespace Snaptrude
             return (string)revitMetaData["type"];
         }
 
-        public static ST_Layer[] GetLayers(JToken data)
+        public static ST_Layer[] GetLayers(JToken data, double fallbackThickness = 25)
         {
             if (!data["dsProps"]["properties"]["_components"].HasValues) return null;
 
@@ -172,12 +172,12 @@ namespace Snaptrude
                 if (shouldSetFunction)
                 {
                     string function = (string)revitMetaData["layersData"][i]["function"];
-                    ST_Layer stLayer = new ST_Layer(layers[i], baseType, function);
+                    ST_Layer stLayer = new ST_Layer(layers[i], baseType, function, fallbackThickness);
                     stLayers.Add(stLayer);
                 }
                 else
                 {
-                    ST_Layer stLayer = new ST_Layer(layers[i], baseType);
+                    ST_Layer stLayer = new ST_Layer(layers[i], baseType, null, fallbackThickness);
                     stLayers.Add(stLayer);
                 }
             }
