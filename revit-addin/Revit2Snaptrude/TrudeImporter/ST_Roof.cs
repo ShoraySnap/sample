@@ -274,7 +274,10 @@ namespace Snaptrude
 
         private void setType()
         {
-            this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
+            FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(FloorType));
+            FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+
+            this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document, defaultFloorType);
         }
     }
 }

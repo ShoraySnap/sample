@@ -197,7 +197,14 @@ namespace Snaptrude
 
             CurveArray profile = getDepricatedProfile(bottomVertices);
             //this.floor = newDoc.Create.NewFloor(profile, false);
-            var newFloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
+
+            if (floorType is null)
+            {
+                FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(FloorType));
+                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+                floorType = defaultFloorType;
+            }
+            var newFloorType = TypeStore.GetType(Layers, GlobalVariables.Document, floorType);
             try
             {
                 this.floor = newDoc.Create.NewFloor(profile, newFloorType, newDoc.GetElement(levelIdForfloor) as Level, false);

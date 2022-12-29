@@ -7,10 +7,11 @@ namespace Snaptrude
     public abstract class TypeStore<T_RawKey, T_Type> where T_Type : ElementType
     {
         public  IDictionary<string, T_Type> Types = new Dictionary<string, T_Type>();
-        public  T_Type GetType(T_RawKey rawKey, Document doc)
+        public  T_Type GetType(T_RawKey rawKey, Document doc, T_Type defaultType = null)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(T_Type));
-            T_Type defaultType = collector.First() as T_Type;
+
+            if (defaultType is null) defaultType = collector.First() as T_Type;
 
             return GetType(rawKey, defaultType);
         }

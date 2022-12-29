@@ -933,6 +933,7 @@ namespace Snaptrude
                                 continue;
                             }
 
+
                             ST_Floor st_floor = new ST_Floor(floorData, newDoc, existingFloorType);
 
                             try
