@@ -1000,12 +1000,36 @@ namespace Snaptrude
                         try
                         {
                             JToken roofData = roof.First;
+
+
+                            FloorType existingFloorType = null;
+                            int revitId;
+                            ElementId existingElementId = null;
+
+                            bool isExistingFloor = false;
+                            try
+                            {
+                                if (!roofData["dsProps"]["revitMetaData"].IsNullOrEmpty())
+                                {
+                                    isExistingFloor = true;
+                                    String _revitId = (String)roofData["dsProps"]["revitMetaData"]["elementId"];
+                                    revitId = (int)roofData["dsProps"]["revitMetaData"]["elementId"];
+                                    existingElementId = new ElementId(revitId);
+                                    Floor existingFloor = newDoc.GetElement(existingElementId) as Floor;
+                                    existingFloorType = existingFloor.FloorType;
+                                }
+                            }
+                            catch
+                            {
+
+                            }
+
                             if (IsThrowAway(roofData))
                             {
                                 continue;
                             }
 
-                            ST_Roof st_roof = new ST_Roof(roofData, newDoc);
+                            ST_Roof st_roof = new ST_Roof(roofData, newDoc, existingFloorType);
 
                             try
                             {
@@ -1026,16 +1050,18 @@ namespace Snaptrude
 
                             count++;
 
-                            try
-                            {
-                                if (!roof.First["dsProps"]["revitMetaData"]["elementId"].IsNullOrEmpty())
-                                {
-                                    int revitId = (int)roof.First["dsProps"]["revitMetaData"]["elementId"];
 
-                                    newDoc.Delete(new ElementId(revitId));
+                            if (isExistingFloor)
+                            {
+                                try
+                                {
+                                    newDoc.Delete(existingElementId);
+                                }
+                                catch
+                                {
+
                                 }
                             }
-                            catch { }
 
                             TransactionStatus status = transactionRoofs.Commit();
                         }

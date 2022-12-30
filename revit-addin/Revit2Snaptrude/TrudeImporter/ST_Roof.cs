@@ -161,7 +161,7 @@ namespace Snaptrude
             return zLeast;
         }
 
-        public ST_Roof(JToken roofData, Document newDoc)
+        public ST_Roof(JToken roofData, Document newDoc, FloorType existingFloorType = null)
         {
             this.Name = roofData["meshes"].First["name"].ToString();
             this.Position = STDataConverter.GetPosition(roofData);
@@ -178,11 +178,11 @@ namespace Snaptrude
             }
             else
             {
-                CreateDepricated(newDoc, roofData, thickness);
+                CreateDepricated(newDoc, roofData, thickness, existingFloorType);
             }
         }
 
-        private void CreateDepricated(Document newDoc, JToken roofData, double thickness)
+        private void CreateDepricated(Document newDoc, JToken roofData, double thickness, FloorType existingFloorType = null)
         {
             JToken topVerticesNormal = roofData["topVerticesNormal"];
             JToken topVerticesUntitNormal = roofData["topVerticesUnitNormal"];
@@ -219,7 +219,7 @@ namespace Snaptrude
 
             if (!result) throw new Exception("Move floor location failed.");
 
-            this.setType();
+            this.setType(existingFloorType);
 
             Level level = newDoc.GetElement(levelIdForfloor) as Level;
             double bottomZ = bottomVertices[0].Z * Scaling.Z;
@@ -272,10 +272,13 @@ namespace Snaptrude
         //    this.setHeight(thickness, bottomZ, level);
         //}
 
-        private void setType()
+        private void setType(FloorType defaultFloorType = null)
         {
-            FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(FloorType));
-            FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+            if (defaultFloorType is null)
+            {
+                FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(FloorType));
+                defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+            }
 
             this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document, defaultFloorType);
         }
