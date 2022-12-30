@@ -280,7 +280,12 @@ namespace Snaptrude
                 defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
             }
 
-            this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document, defaultFloorType);
+            FloorType floorType = TypeStore.GetType(Layers, GlobalVariables.Document, defaultFloorType); 
+
+            if (floorType.IsValidObject)
+            {
+                this.floor.FloorType = floorType;
+            }
         }
     }
 }
