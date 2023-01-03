@@ -15,7 +15,7 @@
 #define BaseRevitAddinFiles Base + "\revit-addin-files"  
 #define RevitAddinDllPath "C:\Users\nisch\snaptrudemanager\revit-addin\Revit2Snaptrude\bin\Debug\Revit2Snaptrude.dll"
 #define BaseOut Base + "\out"
-#define DynamoScriptVersion "1.5"
+#define DynamoScriptVersion "1.5.1"
 
 
 [Setup]
