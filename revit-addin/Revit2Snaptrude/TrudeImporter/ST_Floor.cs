@@ -34,9 +34,10 @@ namespace Snaptrude
             }
             if (!foundCore)
             {
-                int i = this.Layers.Length / 2;
-                this.Layers[i].IsCore = true;
-                this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                //int i = this.Layers.Length / 2;
+                //this.Layers[i].IsCore = true;
+                //this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                this.Layers = new ST_Layer[] { new ST_Layer("Floor", "screed" + TrudeImporter.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
             }
         }
 
