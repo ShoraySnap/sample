@@ -38,6 +38,7 @@ const snaptrudeService = (function () {
         } else if (res.data.error) {
           logger.log("Server error");
           logger.log(res.data.error);
+          logger.log(res.data.message);
           return null;
         } else {
           return res;
@@ -69,6 +70,7 @@ const snaptrudeService = (function () {
         } else if (res.data.error) {
           logger.log("Server error");
           logger.log(res.data.error);
+          logger.log(res.data.message);
           return null;
         } else {
           return res;
