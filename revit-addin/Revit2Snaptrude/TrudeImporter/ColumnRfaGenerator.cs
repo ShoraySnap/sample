@@ -27,13 +27,31 @@ namespace Snaptrude
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 
-            FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
-            FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
-            fdoc.FamilyManager.Set(depthParam, depth);
-            fdoc.FamilyManager.Set(widthParam, width);
+            using (Transaction transaction = new Transaction(fdoc, "create column rfa file"))
+            {
+                transaction.Start();
 
-            Extrusion extrusion = CreateExtrusion(fdoc, _countour);
+                FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
+                FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
+                fdoc.FamilyManager.Set(depthParam, depth);
+                fdoc.FamilyManager.Set(widthParam, width);
 
+                Extrusion extrusion = CreateExtrusion(fdoc, _countour);
+                ApplyMaterial(fdoc, extrusion);
+                AddAlignments(fdoc, extrusion);
+
+                transaction.Commit();
+            }
+
+            SaveAsOptions opt = new SaveAsOptions();
+            opt.OverwriteExistingFile = true;
+
+            fdoc.SaveAs(fileName(familyName), opt);
+            fdoc.Close(true);
+        }
+
+        private void ApplyMaterial(Document fdoc, Extrusion extrusion)
+        {
             string materialName = "Concrete for Columns";
             Material material = Utils.FindElement(GlobalVariables.Document, typeof(Material), materialName) as Material;
             ElementId materialId;
@@ -62,14 +80,6 @@ namespace Snaptrude
             }
 
             extrusion.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM).Set(materialId);
-
-            AddAlignments(fdoc, extrusion);
-
-            SaveAsOptions opt = new SaveAsOptions();
-            opt.OverwriteExistingFile = true;
-
-            fdoc.SaveAs(fileName(familyName), opt);
-            fdoc.Close(true);
         }
 
         public string fileName(string familyName)
