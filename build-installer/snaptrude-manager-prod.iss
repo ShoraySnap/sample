@@ -15,8 +15,6 @@
 #define BaseRevitAddinFiles Base + "\revit-addin-files"       
 #define RevitAddinDllPath "C:\Users\nisch\snaptrudemanager\revit-addin\Revit2Snaptrude\bin\Debug\Revit2Snaptrude.dll"
 #define BaseOut Base + "\out"
-#define DynamoScriptVersion "1.5.1"
-;1 is true, 0 is false
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
