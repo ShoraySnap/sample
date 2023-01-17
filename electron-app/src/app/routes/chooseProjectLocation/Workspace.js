@@ -231,10 +231,12 @@ const Workspace = ({
         type: CSS_FOLDER_TAG,
       };
 
+      const workspaceIcon = selectedWorkspaceName === PERSONAL_WORKSPACE_NAME ? personal : team;
+
       const currentWorkspace = {
         id: ROOT_FOLDER_ID,
         name: selectedWorkspaceName,
-        icon: team,
+        icon: workspaceIcon,
         type: CSS_WORKSPACE_TAG,
       };
 

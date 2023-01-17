@@ -38,6 +38,7 @@ const snaptrudeService = (function () {
         } else if (res.data.error) {
           logger.log("Server error");
           logger.log(res.data.error);
+          logger.log(res.data.message);
           return null;
         } else {
           return res;
@@ -69,6 +70,7 @@ const snaptrudeService = (function () {
         } else if (res.data.error) {
           logger.log("Server error");
           logger.log(res.data.error);
+          logger.log(res.data.message);
           return null;
         } else {
           return res;
@@ -200,10 +202,16 @@ const snaptrudeService = (function () {
     return validTeams;
   };
 
+  const checkIfUserLoggedIn = async function (){
+    // TODO: need better way to check if refresh token is expired for now checking if user is pro or not.
+    const endPoint = "/payments/ispro";
+    const response = await _callApi(endPoint, RequestType.GET);
+    return response
+  }
+
   const checkPersonalWorkspaces = async function () {
     const endPoint = "/payments/ispro";
     const response = await _callApi(endPoint, RequestType.GET);
-    // console.log(response);
     if (response) {
       const isPro = response.data.isPro;
       if (isPro) return true;
@@ -291,6 +299,7 @@ const snaptrudeService = (function () {
     getUserWorkspaces,
     checkPersonalWorkspaces,
     getFolders,
+    checkIfUserLoggedIn
   };
 })();
 
