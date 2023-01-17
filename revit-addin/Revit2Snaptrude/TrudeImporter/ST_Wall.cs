@@ -38,9 +38,9 @@ namespace Snaptrude
             return profile;
         }
 
-        public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, ElementId levelIdForWall, double height = -1)
+        public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, Level level, double height = -1, double baseOffset = 0)
         {
-            wall = Wall.Create(newDoc, profile, wallTypeId, levelIdForWall, false);
+            wall = Wall.Create(newDoc, profile, wallTypeId, level.Id, false);
             //wall = Wall.Create(newDoc, profile, false);
             //wall.ChangeTypeId(wallTypeId);
 
@@ -54,6 +54,9 @@ namespace Snaptrude
 
                 Parameter heightParam = wall.LookupParameter("Unconnected Height");
                 heightParam.Set(height);
+
+                Parameter baseOffsetParam = wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET);
+                baseOffsetParam.Set(baseOffset - level.Elevation);
             }
             else
             {

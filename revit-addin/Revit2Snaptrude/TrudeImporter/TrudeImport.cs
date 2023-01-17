@@ -622,6 +622,7 @@ namespace Snaptrude
 
                                 ElementId levelIdForWall;
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
+                                Level level = (Level) newDoc.GetElement(levelIdForWall);
 
                                 if (existingWall == null)
                                 {
@@ -651,11 +652,11 @@ namespace Snaptrude
                                     }
                                     if (isWeworksMessedUpStackedWall)
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level);
                                     }
                                     else
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall, height);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level, height, baseHeight);
                                     }
 
                                 }
@@ -666,7 +667,7 @@ namespace Snaptrude
 
                                     if (areLayersSame || isWeworksMessedUpStackedWall)
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, existingWallType.Id, levelIdForWall, height);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, existingWallType.Id, level, height, baseHeight);
                                         if (isWeworksMessedUpStackedWall)
                                         {
                                             var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
@@ -678,17 +679,10 @@ namespace Snaptrude
                                     {
                                         WallType wallType = ST_Wall.GetWallTypeByWallLayers(st_wall.Layers, newDoc, existingWallType);
 
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, levelIdForWall, height);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level, height, baseHeight);
                                     }
                                 }
                                 ElementId wallId = st_wall.wall.Id;
-
-                                Level level = (Level) newDoc.GetElement(st_wall.wall.LevelId);
-
-                                //double baseOffset = baseHeight - level.Elevation;
-
-                                //st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
-
 
                                 // Create holes
                                 newDoc.Regenerate();
@@ -773,23 +767,14 @@ namespace Snaptrude
                                 if (transactionStatus == TransactionStatus.RolledBack)
                                 {
                                     trans.Start();
-                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, levelIdForWall, height);
+                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, level, height, baseHeight);
                                     wallId = st_wall.wall.Id;
 
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 1);
 
-                                    //st_wall.wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseOffset);
                                     transactionStatus = trans.Commit();
                                 }
-
-                                //if (!(revitId is null))
-                                //{
-                                //    trans.Start();
-                                //    StoreDataInElement(st_wall.wall, revitId);
-                                //    //GetDataFromElement(st_wall);
-                                //    trans.Commit();
-                                //}
 
                                 LogTrace("wall created");
                                 wallCount++;
@@ -1514,6 +1499,7 @@ namespace Snaptrude
 
                             Element e;
                             isExistingWindow = idToElement.TryGetValue(revitId, out e);
+
                             if (isExistingWindow)
                             {
                                 isExistingWindow = true;
