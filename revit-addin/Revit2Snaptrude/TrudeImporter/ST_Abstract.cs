@@ -106,18 +106,11 @@ namespace Snaptrude
 
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             collector.OfClass(typeof(Wall));
-            List<Wall> walls = new List<Wall>();
-            foreach (Wall wl in collector)
-            {
-                if (wl.LevelId == levelId)
-                {
-                    walls.Add(wl);
-                }
-            }
             double distance = double.MaxValue;
-
-            foreach (Wall w in walls)
+            foreach (Wall w in collector)
             {
+                //if (w.LevelId != levelId) continue;
+
                 double proximity = (w.Location as LocationCurve).Curve.Distance(xyz);
                 if (proximity < distance)
                 {
