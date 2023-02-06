@@ -22,9 +22,16 @@ namespace Snaptrude
 
             if (!Types.ContainsKey(key))
             {
-                T_Type newType = defaultType.Duplicate(key) as T_Type;
-                TypeModifier(rawKey, newType);
-                Types.Add(key, newType);
+                try
+                {
+                    T_Type newType = defaultType.Duplicate(key) as T_Type;
+                    TypeModifier(rawKey, newType);
+                    Types.Add(key, newType);
+                }
+                catch
+                {
+                    return defaultType;
+                }
             }
 
             return Types[key];
