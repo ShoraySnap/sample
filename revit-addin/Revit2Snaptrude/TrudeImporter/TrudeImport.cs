@@ -1897,7 +1897,7 @@ namespace Snaptrude
 
                                     if (st_interior.Scaling.Z < 0)
                                     {
-                                        st_interior.SnaptrudeFlip(st_interior.element as FamilyInstance, centerAfterMove);
+                                        st_interior.SnaptrudeFlip(st_interior.element, centerAfterMove);
                                     }
                                 }
                                 else
@@ -1947,7 +1947,7 @@ namespace Snaptrude
 
                                     if (st_interior.Scaling.Z < 0)
                                     {
-                                        st_interior.SnaptrudeFlip(st_interior.element as FamilyInstance, centerAfterMove);
+                                        st_interior.SnaptrudeFlip(st_interior.element, centerAfterMove);
                                     }
                                 }
                                 else
@@ -2009,7 +2009,7 @@ namespace Snaptrude
 
                                 if (st_interior.Scaling.Z < 0)
                                 {
-                                    st_interior.SnaptrudeFlip(st_interior.element as FamilyInstance, centerAfterMove);
+                                    st_interior.SnaptrudeFlip(st_interior.element, centerAfterMove);
                                 }
                             }
                             else if (existingGroup != null)
@@ -2033,14 +2033,27 @@ namespace Snaptrude
                                 LocationPoint pt = (LocationPoint)st_interior.element.Location;
                                 XYZ centerNew = pt.Point;
                                 //ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
-
-                                ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
-
                                 ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position - localOriginOffset);
 
-                                BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
-                                //XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
                                 XYZ centerAfterMove = ((LocationPoint)st_interior.element.Location).Point;
+
+                                if (st_interior.Scaling.Z < 0)
+                                {
+                                    ElementTransformUtils.RotateElement(
+                                        newDoc,
+                                        newId,
+                                        Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
+                                        st_interior.eulerAngles.heading);
+                                }
+                                else
+                                {
+                                    ElementTransformUtils.RotateElement(
+                                        newDoc,
+                                        newId,
+                                        Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
+                                        -st_interior.eulerAngles.heading);
+                                }
+
 
                                 if (isFacingFlip)
                                 {
@@ -2053,7 +2066,7 @@ namespace Snaptrude
 
                                 if (st_interior.Scaling.Z < 0)
                                 {
-                                    st_interior.SnaptrudeFlip(st_interior.element as FamilyInstance, centerAfterMove);
+                                    st_interior.SnaptrudeFlip(st_interior.element, st_interior.Position);
                                 }
                             }
                             else

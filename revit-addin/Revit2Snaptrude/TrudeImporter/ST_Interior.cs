@@ -73,6 +73,7 @@ namespace Snaptrude
 
         public Parameter GetOffsetParameter(FamilyInstance instance)
         {
+            if (instance == null) return null;
 
             Parameter offset = GlobalVariables.RvtApp.VersionNumber == "2019"
                 ? instance.LookupParameter("Offset")
@@ -94,11 +95,11 @@ namespace Snaptrude
             }
         }
 
-        public void SnaptrudeFlip(FamilyInstance instance, XYZ origin = null)
+        public void SnaptrudeFlip(Element element, XYZ origin = null)
         {
-            Parameter offset = GetOffsetParameter(instance);
+            Parameter offset = GetOffsetParameter(element as FamilyInstance);
 
-            if (origin == null) origin = (instance.Location as LocationPoint).Point;
+            if (origin == null) origin = (element.Location as LocationPoint).Point;
 
             //XYZ normal = new XYZ(0, 0, 1);
             XYZ normal = new XYZ(0, 1, 0);
@@ -108,7 +109,7 @@ namespace Snaptrude
             double originalOffset = 0;
             if (offset != null) originalOffset = offset.AsDouble();
 
-            var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { instance.Id }, pl, false);
+            var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { element.Id }, pl, false);
 
             if (offset != null) offset.Set(originalOffset);
         }
