@@ -728,21 +728,42 @@ namespace Snaptrude
                                     if(subMeshes.Count == 1)
                                     {
                                         int _materialIndex = (int)subMeshes[0]["materialIndex"];
-                                        String _materialName = getMaterialNameFromMaterialId(_materialNameWithId, subMeshes, _materials, _multiMaterials, _materialIndex);
+                                        String snaptrudeMaterialName = getMaterialNameFromMaterialId(
+                                            _materialNameWithId,
+                                            subMeshes,
+                                            _materials,
+                                            _multiMaterials,
+                                            _materialIndex);
 
-                                        FilteredElementCollector collector1 = new FilteredElementCollector(newDoc).OfClass(typeof(Autodesk.Revit.DB.Material));
-                                        IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+                                        FilteredElementCollector materialCollector =
+                                            new FilteredElementCollector(newDoc)
+                                            .OfClass(typeof(Autodesk.Revit.DB.Material));
+
+                                        IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
 
                                         Autodesk.Revit.DB.Material _materialElement = null;
 
                                         foreach (var materialElement in materialsEnum)
                                         {
                                             String matName = materialElement.Name;
-                                            if (matName.Replace("_", " ") == _materialName)
+                                            if (matName.Replace("_", " ") == snaptrudeMaterialName)
                                             {
                                                 _materialElement = materialElement;
+                                                break;
                                             }
                                         }
+                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass")) {
+                                            foreach (var materialElement in materialsEnum)
+                                            {
+                                                String matName = materialElement.Name;
+                                                if (matName.ToLower().Contains("glass"))
+                                                {
+                                                    _materialElement = materialElement;
+                                                    break;
+                                                }
+                                            }
+                                        }
+
                                         if (_materialElement != null)
                                         {
                                             st_wall.ApplyMaterialByObject(newDoc, st_wall.wall, _materialElement);
