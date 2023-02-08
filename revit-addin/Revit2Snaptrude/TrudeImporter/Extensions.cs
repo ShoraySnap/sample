@@ -28,6 +28,15 @@ namespace Snaptrude
             return coreLayer;
         }
 
+
+        public static XYZ ToSnaptrudeUnits(this XYZ p)
+        {
+            return new XYZ(
+                Math.Round((double)(p.X * 12 / 10), 6),
+                Math.Round((double)(p.Z * 12 / 10), 6),
+                Math.Round((double)(p.Y * 12 / 10), 6));
+        }
+
         public static XYZ ProjectOnto( this Plane plane, XYZ p)
         {
             double d = plane.SignedDistanceTo(p);
