@@ -523,14 +523,17 @@ namespace Snaptrude
 
                                 JArray subMeshes = null;
 
-                                if (wallData["meshes"][0]["subMeshes"].IsNullOrEmpty())
+                                try
                                 {
-                                    subMeshes = wallData["subMeshes"].Value<JArray>();
-                                }
-                                else
-                                {
-                                    subMeshes = wallData["meshes"][0]["subMeshes"].Value<JArray>();
-                                }
+                                    if (wallData["meshes"][0]["subMeshes"].IsNullOrEmpty())
+                                    {
+                                        subMeshes = wallData["subMeshes"].Value<JArray>();
+                                    }
+                                    else
+                                    {
+                                        subMeshes = wallData["meshes"][0]["subMeshes"].Value<JArray>();
+                                    }
+                                } catch { }
 
                                 JArray _materials = jObject["materials"].Value<JArray>();
                                 JArray _multiMaterials = jObject["multiMaterials"].Value<JArray>();
