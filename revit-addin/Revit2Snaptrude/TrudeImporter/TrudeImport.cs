@@ -776,7 +776,9 @@ namespace Snaptrude
                                     }
                                     
                                 }
-                                catch { }
+                                catch {
+                                    LogTrace("Failed to set wall material");
+                                }
 
                                 WallType _wallType = st_wall.wall.WallType;
 
