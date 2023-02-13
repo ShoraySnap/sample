@@ -34,7 +34,6 @@ namespace TrudeImporter
             st_column.Position = TrudeRepository.GetPosition(massData);
             st_column.CenterPosition = TrudeRepository.GetCenterPosition(massData);
             st_column.levelNumber = TrudeRepository.GetLevelNumber(massData);
-            st_column.levelId = Command.LevelIdByNumber[st_column.levelNumber];
 
             // Find face vertices calculate depth, width and height
             List<XYZ> vertices = TrudeRepository.GetVertices(massData, 6);
@@ -68,12 +67,12 @@ namespace TrudeImporter
             return st_column;
         }
 
-        public void CreateColumn(Document doc)
+        public void CreateColumn(Document doc, ElementId levelId)
         {
             ShapeProperties shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
 
             string familyName = shapeProperties is null
-                ? $"column_custom_{Command.RandomString(5)}"
+                ? $"column_custom_{Utils.RandomString(5)}"
                 : $"column_{shapeProperties.ToFamilyName()}";
 
             CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties);

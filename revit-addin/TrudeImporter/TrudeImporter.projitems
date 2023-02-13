@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>32cc7e8c-1571-4044-9eb7-4d662c104917</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>TrudeImporter</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Configs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\FamilyInstanceExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\GlobalVariables.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\EulerAngles.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeBeam.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeCeiling.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeColumn.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeInterior.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeLayer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeRoof.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Repository\TrudeRepository.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\BeamRfaGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\ColumnRfaGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\VoidRfaGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ShapeIdentifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\DoorTypeStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\FloorTypeStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\TypeStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\WallTypeStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\WindowTypeStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\UnitsAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Utils.cs" />
+  </ItemGroup>
+</Project>

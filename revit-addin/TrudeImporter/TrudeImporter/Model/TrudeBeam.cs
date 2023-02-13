@@ -38,7 +38,6 @@ namespace TrudeImporter
             st_beam.CenterPosition      = TrudeRepository.GetCenterPosition(massData);
             st_beam.levelNumber         = TrudeRepository.GetLevelNumber(massData);
             st_beam.vertices            = TrudeRepository.GetVertices(massData, 6);
-            st_beam.levelId             = Command.LevelIdByNumber[st_beam.levelNumber];
 
             // Get global face vertices
             foreach (var point in massData["faceVertices"])
@@ -123,14 +122,14 @@ namespace TrudeImporter
             return st_beam;
         }
 
-        public void CreateBeam(Document doc)
+        public void CreateBeam(Document doc, ElementId levelId)
         {
             List<XYZ> rotatedFaceVertices = RotateCountoursParallelToMemberRightPlane();
 
             ShapeIdentifier shapeIdentifier = new ShapeIdentifier(ShapeIdentifier.YZ);
             ShapeProperties shapeProperties = shapeIdentifier.GetShapeProperties(rotatedFaceVertices, inverseDirection);
 
-            familyName = shapeProperties is null ? $"beam_custom_{Command.RandomString(5)}" : $"beam_{shapeProperties.ToFamilyName()}";
+            familyName = shapeProperties is null ? $"beam_custom_{Utils.RandomString(5)}" : $"beam_{shapeProperties.ToFamilyName()}";
 
             CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties, rotatedFaceVertices, length);
             CreateFamilyInstance(doc, familyName, levelId, shapeProperties);

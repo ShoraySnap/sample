@@ -63,38 +63,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
-    <Compile Include="TrudeImporter\RfaGenerator\BeamRfaGenerator.cs" />
-    <Compile Include="TrudeImporter\RfaGenerator\ColumnRfaGenerator.cs" />
-    <Compile Include="TrudeImporter\Configs.cs" />
-    <Compile Include="TrudeImporter\TypeStore\DoorTypeStore.cs" />
+    <Compile Include="Command.cs" />
     <Compile Include="DynamoExport.cs" />
-    <Compile Include="TrudeImporter\Model\EulerAngles.cs" />
-    <Compile Include="TrudeImporter\Extensions\Extensions.cs" />
-    <Compile Include="TrudeImporter\Extensions\FamilyInstanceExtensions.cs" />
-    <Compile Include="TrudeImporter\TypeStore\FloorTypeStore.cs" />
-    <Compile Include="TrudeImporter\GlobalVariables.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TrudeImporter\ShapeIdentifier.cs" />
-    <Compile Include="TrudeImporter\Repository\TrudeRepository.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeModel.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeBeam.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeCeiling.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeColumn.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeDoor.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeFloor.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeInterior.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeLayer.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeRoof.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeStorey.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeWall.cs" />
-    <Compile Include="TrudeImporter\Model\TrudeWindow.cs" />
-    <Compile Include="TrudeImporter\Command.cs" />
-    <Compile Include="TrudeImporter\TypeStore\TypeStore.cs" />
-    <Compile Include="TrudeImporter\UnitsAdapter.cs" />
-    <Compile Include="TrudeImporter\Utils.cs" />
-    <Compile Include="TrudeImporter\RfaGenerator\VoidRfaGenerator.cs" />
-    <Compile Include="TrudeImporter\TypeStore\WallTypeStore.cs" />
-    <Compile Include="TrudeImporter\TypeStore\WindowTypeStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -106,5 +77,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Icons\logo24.png" />
   </ItemGroup>
+  <Import Project="..\TrudeImporter\TrudeImporter.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

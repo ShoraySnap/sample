@@ -10,7 +10,7 @@ using Dynamo.Applications;
 using Newtonsoft.Json;
 using System.IO;
 using System.IO.Pipes;
-using TrudeImporter;
+using SnaptrudeManagerAddin;
 
 namespace SnaptrudeManagerAddin
 {
@@ -109,7 +109,7 @@ namespace SnaptrudeManagerAddin
                     log("Calling snaptrude importer");
                     writeAndClose();
 
-                    TrudeImporter.Command trudeImporter = new TrudeImporter.Command();
+                    SnaptrudeManagerAddin.Command trudeImporter = new SnaptrudeManagerAddin.Command();
                     return trudeImporter.Execute(commandData, ref message, elements);
                 }
                 else

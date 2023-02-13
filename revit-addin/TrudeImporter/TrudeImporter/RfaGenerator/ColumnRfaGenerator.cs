@@ -76,7 +76,7 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                Command.LogTrace("Failed to set fill pattern of custom column", e.Message);
+                Utils.LogTrace("Failed to set fill pattern of custom column", e.Message);
             }
 
             extrusion.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM).Set(materialId);

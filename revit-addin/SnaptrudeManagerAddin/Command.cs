@@ -12,8 +12,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Windows.Media.Media3D;
+using TrudeImporter;
 
-namespace TrudeImporter
+namespace SnaptrudeManagerAddin
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -731,7 +732,7 @@ namespace TrudeImporter
                                     if(subMeshes.Count == 1)
                                     {
                                         int _materialIndex = (int)subMeshes[0]["materialIndex"];
-                                        String snaptrudeMaterialName = getMaterialNameFromMaterialId(
+                                        String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
                                             _materialNameWithId,
                                             subMeshes,
                                             _materials,
@@ -884,17 +885,11 @@ namespace TrudeImporter
                     JArray _materials = jObject["materials"].Value<JArray>();
                     JArray _multiMaterials = jObject["multiMaterials"].Value<JArray>();
 
-                    String _materialName = getMaterialNameFromMaterialId(_materialNameWithId, subMeshes, _materials, _multiMaterials, 0);
+                    String _materialName = Utils.getMaterialNameFromMaterialId(_materialNameWithId, subMeshes, _materials, _multiMaterials, 0);
 
                     FilteredElementCollector collector1 = new FilteredElementCollector(newDoc).OfClass(typeof(Autodesk.Revit.DB.Material));
 
                     IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
-
-                    /*
-                                        Autodesk.Revit.DB.Material _materialElement = (from materialElement in materialsEnum
-                                                                                       where materialElement.Name.Contains(_materialName)
-                                                                                       select materialElement).FirstOrDefault();
-                    */
 
                     Autodesk.Revit.DB.Material _materialElement = null;
 
@@ -944,8 +939,8 @@ namespace TrudeImporter
                                 continue;
                             }
 
-
-                            TrudeFloor st_floor = new TrudeFloor(floorData, newDoc, existingFloorType);
+                            ElementId levelId = Command.LevelIdByNumber[TrudeRepository.GetLevelNumber(floorData)];
+                            TrudeFloor st_floor = new TrudeFloor(floorData, newDoc, levelId, existingFloorType);
 
                             try
                             {
@@ -1040,7 +1035,8 @@ namespace TrudeImporter
                                 continue;
                             }
 
-                            TrudeRoof st_roof = new TrudeRoof(roofData, newDoc, existingFloorType);
+                            ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(roofData)];
+                            TrudeRoof st_roof = new TrudeRoof(roofData, newDoc, levelId, existingFloorType);
 
                             try
                             {
@@ -1287,11 +1283,18 @@ namespace TrudeImporter
                         string massType = massData["dsProps"]["massType"].Value<String>();
                         if (massType.Equals("Column"))
                         {
-                            TrudeColumn.FromMassData(massData).CreateColumn(newDoc);
+
+                            ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
+                            TrudeColumn
+                                .FromMassData(massData)
+                                .CreateColumn(newDoc, levelId);
                         }
                         else if (massType.Equals("Beam"))
                         {
-                            TrudeBeam.FromMassData(massData).CreateBeam(newDoc);
+                            ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
+                            TrudeBeam
+                                .FromMassData(massData)
+                                .CreateBeam(newDoc, levelId);
                         }
 
                         if (revitId != null)
@@ -3411,59 +3414,6 @@ namespace TrudeImporter
         private static bool IsThrowAway(JToken data)
         {
             return IsThrowAway(data["meshes"][0]["type"].ToString());
-        }
-
-        public static String getMaterialNameFromMaterialId ( String materialnameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, int materialIndex )
-        {
-            if(materialnameWithId == null)
-            {
-                return null;
-            }
-            if(subMeshes == null)
-            {
-                subMeshes = new JArray();
-            }
-
-            if (materials is null)
-            {
-                throw new ArgumentNullException(nameof(materials));
-            }
-
-            if (multiMaterials is null)
-            {
-                throw new ArgumentNullException(nameof(multiMaterials));
-            }
-
-            String materialName = null;
-            
-            //materialIndex = (int)subMeshes[0]["materialIndex"];
-
-            foreach ( JToken eachMaterial in materials ){
-
-                if ( materialnameWithId == (String)eachMaterial["id"] )
-                {
-                    materialName = materialnameWithId;
-                }
-
-            }
-
-            if (materialName == null)
-            {
-                foreach (JToken eachMultiMaterial in multiMaterials )
-                {
-                    if ( materialnameWithId == (String)eachMultiMaterial["id"])
-                    {
-                        if( !eachMultiMaterial["materials"].IsNullOrEmpty() )
-                        {
-                            materialName = (String)eachMultiMaterial["materials"][materialIndex];
-                        }
-                    }
-                }
-
-            }
-
-            return materialName;
-
         }
 
         private static bool ShouldImport(JToken data)

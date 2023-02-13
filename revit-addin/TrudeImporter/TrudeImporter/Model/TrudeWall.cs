@@ -41,9 +41,6 @@ namespace TrudeImporter
         public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, Level level, double height = -1, double baseOffset = 0)
         {
             wall = Wall.Create(newDoc, profile, wallTypeId, level.Id, false);
-            //wall = Wall.Create(newDoc, profile, false);
-            //wall.ChangeTypeId(wallTypeId);
-
 
             if (height > 0)
             {
@@ -61,7 +58,7 @@ namespace TrudeImporter
             else
             {
                 Parameter top_constraint_param = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-                top_constraint_param.Set(Command.LevelIdByNumber[levelNumber + 1]);
+                //top_constraint_param.Set(Command.LevelIdByNumber[levelNumber + 1]); // TODO: fix this
             }
 
             return wall;
@@ -195,7 +192,7 @@ namespace TrudeImporter
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
                 String _materialName = null;
-                _materialName = Command.getMaterialNameFromMaterialId(materialNameWithId, subMeshes, materials, multiMaterials, face.Value);
+                _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, subMeshes, materials, multiMaterials, face.Value);
 
                 Autodesk.Revit.DB.Material _materialElement = null;
 
