@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Configs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\FamilyInstanceExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\FamilyLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\GlobalVariables.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\EulerAngles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeBeam.cs" />

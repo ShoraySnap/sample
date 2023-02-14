@@ -84,7 +84,7 @@ namespace SnaptrudeManagerAddin
 
             ImportSnaptrude(structureCollection, newDoc);
 
-            LoadedFamilies.Clear();
+            FamilyLoader.LoadedFamilies.Clear();
 
             return true;
         }
@@ -662,7 +662,6 @@ namespace SnaptrudeManagerAddin
                                     {
                                         st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level, height, baseHeight);
                                     }
-
                                 }
                                 else
                                 {
@@ -1437,7 +1436,7 @@ namespace SnaptrudeManagerAddin
                                 {
                                     if (revitFamilyName is null)
                                     {
-                                        var family = LoadCustomDoorFamily(fsFamilyName);
+                                        var family = FamilyLoader.LoadCustomDoorFamily(fsFamilyName);
                                         if (family is null)
                                         {
                                             LogTrace("couln't find door family");
@@ -1622,7 +1621,7 @@ namespace SnaptrudeManagerAddin
                                 {
                                     if (revitFamilyName is null)
                                     {
-                                        LoadCustomWindowFamily(fsFamilyName);
+                                        FamilyLoader.LoadCustomWindowFamily(fsFamilyName);
                                     }
 
                                     defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
@@ -2107,7 +2106,7 @@ namespace SnaptrudeManagerAddin
                                 //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, "Casework Assembly", "Casework 044");
                                 if (defaultFamilySymbol is null)
                                 {
-                                    Family family = LoadCustomFamily(familyName);
+                                    Family family = FamilyLoader.LoadCustomFamily(familyName);
                                     defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
                                     if (defaultFamilySymbol == null)
                                     {
@@ -3446,77 +3445,6 @@ namespace SnaptrudeManagerAddin
             return false;
         }
 
-        public static Dictionary<string, Family> LoadedFamilies = new Dictionary<string, Family>();
-
-        public static Family LoadCustomFamily(String familyName)
-        {
-            if (LoadedFamilies.ContainsKey(familyName))
-            {
-                return LoadedFamilies[familyName];
-            }
-
-            try
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/{familyName}.rfa";
-
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
-
-                LoadedFamilies.Add(familyName, family);
-
-                return family;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-        public static Family LoadCustomDoorFamily(String familyName)
-        {
-            if (LoadedFamilies.ContainsKey(familyName))
-            {
-                return LoadedFamilies[familyName];
-            }
-
-            try
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors/{familyName}.rfa";
-
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
-
-                LoadedFamilies.Add(familyName, family);
-
-                return family;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-        public static Family LoadCustomWindowFamily(String familyName)
-        {
-            if (LoadedFamilies.ContainsKey(familyName))
-            {
-                return LoadedFamilies[familyName];
-            }
-
-            try
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows/{familyName}.rfa";
-
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
-
-                LoadedFamilies.Add(familyName, family);
-
-                return family;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
         private void ShowSuccessDialogue()
         {
             TaskDialog mainDialog = new TaskDialog("Snaptrude Import Status");
