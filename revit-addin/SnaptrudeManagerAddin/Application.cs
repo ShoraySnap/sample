@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -31,15 +32,12 @@ namespace SnaptrudeManagerAddin
             RibbonPanel panel = application.CreateRibbonPanel(tabName, panelName);
 
             // Create the push button
-            PushButton button = panel.AddItem(new PushButtonData("Export", "Snaptrude Manager", assemblyPath, "Revit2Snaptrude.DynamoExport")) as PushButton;
-            button.Image = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo16.png");
-            button.LargeImage = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo24.png");
+            string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.DynamoExport));
+            PushButtonData buttonData = new PushButtonData("Export", "Snaptrude Manager", assemblyPath, className);
+            PushButton button = panel.AddItem(buttonData) as PushButton;
+            button.Image = GetEmbeddedImage(myAssembly, "SnaptrudeManagerAddin.Icons.logo16.png");
+            button.LargeImage = GetEmbeddedImage(myAssembly, "SnaptrudeManagerAddin.Icons.logo24.png");
             button.ToolTip = "Export the model to Snaptrude";
-
-            //PushButton importButton = panel.AddItem(new PushButtonData("Import", "Trude Importer", assemblyPath, "Snaptrude.TrudeImporter")) as PushButton;
-            //importButton.Image = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo16.png");
-            //importButton.LargeImage = GetEmbeddedImage(myAssembly, "Revit2Snaptrude.Icons.logo24.png");
-            //importButton.ToolTip = "Import model from Snaptrude";
 
             return Result.Succeeded;
         }
