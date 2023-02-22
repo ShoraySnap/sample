@@ -87,6 +87,11 @@ namespace TrudeImporter
             compoundStructure.SetNumberOfShellLayers(ShellLayerType.Interior, numberOfInteriorShellLayers);
             compoundStructure.StructuralMaterialIndex = coreIndex;
 
+            IDictionary<int, CompoundStructureError> errMap = new Dictionary<int, CompoundStructureError>();
+            IDictionary<int, int> twoLayerErrorsMap = new Dictionary<int, int>();
+
+            compoundStructure.IsValid(GlobalVariables.Document, out errMap, out twoLayerErrorsMap);
+
             wallType.SetCompoundStructure(compoundStructure);
         }
 
