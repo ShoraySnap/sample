@@ -60,16 +60,20 @@ namespace SnaptrudeForgeExport
 
             ImportSnaptrude(structureCollection, newDoc);
 
-            using(Transaction t = new Transaction(newDoc, "remove structural view"))
+            try
             {
-                View structuralView = Utils.GetElements(newDoc, typeof(View))
-                                           .Select(e => e as View)
-                                           .Where(e => e.Title == "Structural Plan: Level 1")
-                                           .ToList().First();
-                t.Start();
-                newDoc.Delete(structuralView.Id);
-                t.Commit();
-            }
+                using (Transaction t = new Transaction(newDoc, "remove structural view"))
+                {
+
+                    View structuralView = Utils.GetElements(newDoc, typeof(View))
+                                               .Select(e => e as View)
+                                               .Where(e => e.Title == "Structural Plan: Level 1")
+                                               .ToList().First();
+                    t.Start();
+                    newDoc.Delete(structuralView.Id);
+                    t.Commit();
+                }
+            } catch { }
 
             List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
                                        .Select(e => e as View)
@@ -165,6 +169,7 @@ namespace SnaptrudeForgeExport
             SAO.OverwriteExistingFile = true;
 
             newDoc.SaveAs(ProjectModelPath, SAO);
+            newDoc.Close();
         }
 
         private void ExportAllViewsAsDWG(Document newDoc)
