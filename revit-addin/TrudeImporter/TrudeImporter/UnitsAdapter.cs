@@ -33,7 +33,7 @@ namespace TrudeImporter
 
         public static double FeetToMM(double feet)
         {
-            return Math.Round((feet / 3.2808399) * 1000, 0); // remove decimals for mm
+            return Math.Round((feet / 3.2808399) * 1000, 1); // remove decimals for mm
         }
 
         public static double MMToFeet(double mm)

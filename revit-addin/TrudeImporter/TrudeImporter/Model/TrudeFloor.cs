@@ -10,6 +10,7 @@ namespace TrudeImporter
     public class TrudeFloor : TrudeModel
     {
         public TrudeLayer[] Layers;
+        private List<TrudeLayer> _layers = new List<TrudeLayer>();
 
         public static FloorTypeStore TypeStore = new FloorTypeStore();
 
@@ -19,26 +20,48 @@ namespace TrudeImporter
         {
             // TODO: Remove after thickness of layers is fixed on snaptrude
             bool foundCore = false;
-            for (int i = 0; i < this.Layers.Length; i++)
-            {
-                if (this.Layers[i].IsCore)
-                {
-                    if (thickness != 0) this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                    else thickness = UnitsAdapter.MMToFeet(this.Layers[i].ThicknessInMm);
-                    foundCore = true;
-                }
-            }
             if (this.Layers.Length == 0)
             {
                 this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
+                return;
             }
+
+            foreach (var layer in this.Layers)
+            {
+                if (layer.IsCore)
+                {
+                    if (thickness != 0) layer.ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                    else thickness = UnitsAdapter.MMToFeet(layer.ThicknessInMm);
+                    foundCore = true;
+                }
+            }
+
             if (!foundCore)
             {
-                //int i = this.Layers.Length / 2;
-                //this.Layers[i].IsCore = true;
-                //this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
+                foreach (var layer in this.Layers)
+                {
+                    if (layer.Name == "Screed" && !foundCore)
+                    {
+                        foundCore = true;
+                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness/2), true));
+                    }
+                    else
+                    {
+                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness/2), false));
+                    }
+                }
+                this.Layers = _layers.ToArray();
             }
+
+            //if (!foundCore)
+            //{
+            //    //int i = this.Layers.Length / 2;
+            //    //this.Layers[i].IsCore = true;
+            //    //this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+            //    this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
+            //}
+
+
         }
 
 
@@ -196,7 +219,7 @@ namespace TrudeImporter
                 FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
                 floorType = defaultFloorType;
             }
-            var newFloorType = TypeStore.GetType(Layers, GlobalVariables.Document, floorType);
+            var newFloorType = TypeStore.GetType(this.Layers, GlobalVariables.Document, floorType);
             try
             {
                 this.floor = newDoc.Create.NewFloor(profile, newFloorType, newDoc.GetElement(levelId) as Level, false);
