@@ -607,14 +607,14 @@ namespace SnaptrudeForgeExport
                                 ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
                                 TrudeColumn
                                     .FromMassData(massData)
-                                    .CreateColumn(newDoc, levelId);
+                                    .CreateColumn(newDoc, levelId, true);
                             }
                             else if (massType.Equals("Beam"))
                             {
                                 ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
                                 TrudeBeam
                                     .FromMassData(massData)
-                                    .CreateBeam(newDoc, levelId);
+                                    .CreateBeam(newDoc, levelId, true);
                             }
                             transaction.Commit();
                         }
@@ -644,6 +644,9 @@ namespace SnaptrudeForgeExport
                             TrudeDoor st_door = new TrudeDoor();
 
                             var doorData = door.First;
+
+                            if (IsThrowAway(doorData)) { continue; }
+
                             int uniqueId = (int)doorData["dsProps"]["uniqueID"];
                             JToken doorMeshData = doorData["meshes"].First;
 
@@ -678,10 +681,10 @@ namespace SnaptrudeForgeExport
                                 FamilySymbol familySymbol = null;
                                 FamilySymbol defaultFamilySymbol = null;
 
-                                var family = FamilyLoader.LoadCustomDoorFamily(fsFamilyName);
+                                var family = FamilyLoader.LoadCustomDoorFamily(fsFamilyName, true);
                                 if (family is null)
                                 {
-                                    LogTrace("couln't find door family");
+                                    LogTrace("couldn't find door family: " + fsFamilyName);
                                     continue;
                                 }
 
@@ -751,6 +754,9 @@ namespace SnaptrudeForgeExport
                             TrudeWindow st_window = new TrudeWindow();
 
                             var windowData = window.First;
+
+                            if (IsThrowAway(windowData)) { continue; }
+
                             int uniqueId = (int)windowData["dsProps"]["uniqueID"];
                             var windowMeshData = windowData["meshes"].First;
 
@@ -801,7 +807,7 @@ namespace SnaptrudeForgeExport
 
                                 FamilySymbol familySymbol = null;
                                 FamilySymbol defaultFamilySymbol = null;
-                                FamilyLoader.LoadCustomWindowFamily(fsFamilyName);
+                                FamilyLoader.LoadCustomWindowFamily(fsFamilyName, true);
 
                                 defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
 

@@ -122,7 +122,7 @@ namespace TrudeImporter
             return st_beam;
         }
 
-        public void CreateBeam(Document doc, ElementId levelId)
+        public void CreateBeam(Document doc, ElementId levelId, bool forForge = false)
         {
             List<XYZ> rotatedFaceVertices = RotateCountoursParallelToMemberRightPlane();
 
@@ -131,7 +131,11 @@ namespace TrudeImporter
 
             familyName = shapeProperties is null ? $"beam_custom_{Utils.RandomString(5)}" : $"beam_{shapeProperties.ToFamilyName()}";
 
-            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties, rotatedFaceVertices, length);
+            string baseDir = forForge
+                ? "."
+                : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
+
+            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties, rotatedFaceVertices, length, baseDir, forForge);
             CreateFamilyInstance(doc, familyName, levelId, shapeProperties);
 
             BeamRfaGenerator.DeleteAll();
@@ -215,18 +219,18 @@ namespace TrudeImporter
         }
 
         private void CreateFamilyTypeIfNotExist(Application app, Document doc, string familyName, ShapeProperties shapeProperties,
-            List<XYZ> rotatedCountours, double height)
+            List<XYZ> rotatedCountours, double height, string baseDir, bool forForge)
         {
             if (!types.ContainsKey(familyName))
             {
 
                 if (shapeProperties is null)
                 {
-                    beamRfaGenerator.CreateRFAFile(app, familyName, height, rotatedCountours);
+                    beamRfaGenerator.CreateRFAFile(app, familyName, height, rotatedCountours, forForge);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
-                        string defaultRfaPath = "resourceFile/beams/Rectangular.rfa";
+                        string defaultRfaPath = $"{baseDir}/resourceFile/beams/Rectangular.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "Rectangular");
                         FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
@@ -238,7 +242,7 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
-                        string defaultRfaPath = "resourceFile/beams/L-Shaped.rfa";
+                        string defaultRfaPath = $"{baseDir}resourceFile/beams/L-Shaped.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "L-Shaped");
                         FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
@@ -252,7 +256,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
 
-                        string defaultRfaPath = "resourceFile/beams/I-Shaped.rfa";
+                        string defaultRfaPath = $"{baseDir}resourceFile/beams/I-Shaped.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "I-Shaped");
                         FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
@@ -266,7 +270,7 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
-                        string defaultRfaPath = "resourceFile/beams/C-Shaped.rfa";
+                        string defaultRfaPath = $"{baseDir}resourceFile/beams/C-Shaped.rfa";
                         doc.LoadFamily(defaultRfaPath, out Family family);
                         FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "C-Shaped");
                         FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Media.Converters;
 
 namespace TrudeImporter
 {
@@ -32,7 +33,7 @@ namespace TrudeImporter
                 return null;
             }
         }
-        public static Family LoadCustomDoorFamily(String familyName)
+        public static Family LoadCustomDoorFamily(String familyName, bool forForge = false)
         {
             if (LoadedFamilies.ContainsKey(familyName))
             {
@@ -42,7 +43,11 @@ namespace TrudeImporter
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors/{familyName}.rfa";
+                string filePath = forForge
+                    ? $"resourceFile/Doors/{familyName}.rfa"
+                    : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors/{familyName}.rfa";
+
+                Utils.LogTrace(filePath);
 
                 GlobalVariables.Document.LoadFamily(filePath, out Family family);
 
@@ -55,7 +60,7 @@ namespace TrudeImporter
                 return null;
             }
         }
-        public static Family LoadCustomWindowFamily(String familyName)
+        public static Family LoadCustomWindowFamily(String familyName, bool forForge = false)
         {
             if (LoadedFamilies.ContainsKey(familyName))
             {
@@ -65,7 +70,9 @@ namespace TrudeImporter
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows/{familyName}.rfa";
+                string filePath = forForge 
+                    ? $"resourceFile/Windows/{familyName}.rfa"
+                    : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows/{familyName}.rfa";
 
                 GlobalVariables.Document.LoadFamily(filePath, out Family family);
 

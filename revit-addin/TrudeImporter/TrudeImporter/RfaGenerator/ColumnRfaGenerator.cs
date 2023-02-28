@@ -19,11 +19,11 @@ namespace TrudeImporter
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double width, double depth)
+        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double width, double depth, bool forForge = false)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
-            Document fdoc = app.NewFamilyDocument(TEMPLATE_FILE_NAME);
+            Document fdoc = app.NewFamilyDocument(forForge ? "resourceFile/Metric Column.rft" : TEMPLATE_FILE_NAME);
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 
