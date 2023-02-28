@@ -636,103 +636,105 @@ namespace SnaptrudeForgeExport
                 //transactionDoors.Start("Create doors");
                 foreach (var door in doors)
                 {
-                    Transaction transaction = new Transaction(newDoc);
-                    transaction.Start("Creating door");
-                    try
+                    using (Transaction transaction = new Transaction(newDoc, "Creating door"))
                     {
-                        TrudeDoor st_door = new TrudeDoor();
-
-                        var doorData = door.First;
-                        int uniqueId = (int)doorData["dsProps"]["uniqueID"];
-                        JToken doorMeshData = doorData["meshes"].First;
-
-                        double width = UnitsAdapter.convertToRevit(doorMeshData["width"]);
-                        double height = UnitsAdapter.convertToRevit(doorMeshData["height"]);
-                        XYZ direction = doorMeshData["direction"].IsNullOrEmpty()
-                            ? XYZ.Zero
-                            : TrudeRepository.ArrayToXYZ(doorMeshData["direction"], false).Round();
-
-                        st_door.Name = doorMeshData["name"].ToString();
-                        st_door.Geom_ID = doorMeshData["storey"].ToString();
-                        st_door.Position = TrudeRepository.GetPosition(doorData);
-                        st_door.family = doorMeshData["id"].ToString();
-                        st_door.levelNumber = TrudeRepository.GetLevelNumber(doorData);
-                        ElementId levelIdForWall = LevelIdByNumber[st_door.levelNumber];
-
+                        transaction.Start();
                         try
                         {
-                            st_door.family = st_door.family.RemoveIns();
+                            TrudeDoor st_door = new TrudeDoor();
 
-                            string fsFamilyName = st_door.family;
-                            string fsName = st_door.family;
+                            var doorData = door.First;
+                            int uniqueId = (int)doorData["dsProps"]["uniqueID"];
+                            JToken doorMeshData = doorData["meshes"].First;
 
-                            Wall wall = null;
-                            if (childUniqueIdToWallElementId.ContainsKey(uniqueId))
+                            double width = UnitsAdapter.convertToRevit(doorMeshData["width"]);
+                            double height = UnitsAdapter.convertToRevit(doorMeshData["height"]);
+                            XYZ direction = doorMeshData["direction"].IsNullOrEmpty()
+                                ? XYZ.Zero
+                                : TrudeRepository.ArrayToXYZ(doorMeshData["direction"], false).Round();
+
+                            st_door.Name = doorMeshData["name"].ToString();
+                            st_door.Geom_ID = doorMeshData["storey"].ToString();
+                            st_door.Position = TrudeRepository.GetPosition(doorData);
+                            st_door.family = doorMeshData["id"].ToString();
+                            st_door.levelNumber = TrudeRepository.GetLevelNumber(doorData);
+                            ElementId levelIdForWall = LevelIdByNumber[st_door.levelNumber];
+
+                            try
                             {
-                                ElementId wallElementId = childUniqueIdToWallElementId[uniqueId];
-                                wall = (Wall)newDoc.GetElement(wallElementId);
+                                st_door.family = st_door.family.RemoveIns();
+
+                                string fsFamilyName = st_door.family;
+                                string fsName = st_door.family;
+
+                                Wall wall = null;
+                                if (childUniqueIdToWallElementId.ContainsKey(uniqueId))
+                                {
+                                    ElementId wallElementId = childUniqueIdToWallElementId[uniqueId];
+                                    wall = (Wall)newDoc.GetElement(wallElementId);
+                                }
+
+
+                                FamilySymbol familySymbol = null;
+                                FamilySymbol defaultFamilySymbol = null;
+
+                                var family = FamilyLoader.LoadCustomDoorFamily(fsFamilyName);
+                                if (family is null)
+                                {
+                                    LogTrace("couln't find door family");
+                                    continue;
+                                }
+
+                                defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
+
+                                if (!defaultFamilySymbol.IsActive)
+                                {
+                                    defaultFamilySymbol.Activate();
+                                    newDoc.Regenerate();
+                                }
+
+                                // Check if familySymbol BuiltInParameter.DOOR_HEIGHT and  BuiltInParameter.DOOR_WIDTH
+                                // if so, then set the height and with in the familySymbol itself, otherwise find the correct
+                                // parameter in the instance.
+
+                                Parameter heightTypeParam = defaultFamilySymbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT);
+                                Parameter widthTypeParam = defaultFamilySymbol.get_Parameter(BuiltInParameter.DOOR_WIDTH);
+
+                                bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
+                                if (setHeightAndWidthParamsInFamilySymbol)
+                                {
+                                    familySymbol = TrudeDoor.TypeStore.GetType(new double[] { height, width }, defaultFamilySymbol);
+                                }
+                                else
+                                {
+                                    familySymbol = defaultFamilySymbol;
+                                }
+
+                                st_door.CreateDoor(newDoc, familySymbol, levelIdForWall, wall, direction);
+
+                                (Parameter widthInstanceParam, Parameter heightInstanceParam) = st_door.instance.FindWidthAndHeightParameters();
+                                if (!setHeightAndWidthParamsInFamilySymbol)
+                                {
+                                    heightInstanceParam.Set(height);
+                                    widthInstanceParam.Set(width);
+                                }
+                                if (heightTypeParam.IsReadOnly) heightInstanceParam.Set(height);
+                                if (widthTypeParam.IsReadOnly) widthInstanceParam.Set(width);
+
+                                var tstatus = transaction.Commit();
+                            }
+                            catch (Exception e)
+                            {
+                                LogTrace($"No door with name {st_door.family} {st_door.Name}");
+                                LogTrace(e.Message);
                             }
 
-
-                            FamilySymbol familySymbol = null;
-                            FamilySymbol defaultFamilySymbol = null;
-
-                            var family = FamilyLoader.LoadCustomDoorFamily(fsFamilyName);
-                            if (family is null)
-                            {
-                                LogTrace("couln't find door family");
-                                continue;
-                            }
-
-                            defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
-
-                            if (!defaultFamilySymbol.IsActive)
-                            {
-                                defaultFamilySymbol.Activate();
-                                newDoc.Regenerate();
-                            }
-
-                            // Check if familySymbol BuiltInParameter.DOOR_HEIGHT and  BuiltInParameter.DOOR_WIDTH
-                            // if so, then set the height and with in the familySymbol itself, otherwise find the correct
-                            // parameter in the instance.
-
-                            Parameter heightTypeParam = defaultFamilySymbol.get_Parameter(BuiltInParameter.DOOR_HEIGHT);
-                            Parameter widthTypeParam = defaultFamilySymbol.get_Parameter(BuiltInParameter.DOOR_WIDTH);
-
-                            bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
-                            if (setHeightAndWidthParamsInFamilySymbol)
-                            {
-                                familySymbol = TrudeDoor.TypeStore.GetType(new double[] { height, width }, defaultFamilySymbol);
-                            }
-                            else
-                            {
-                                familySymbol = defaultFamilySymbol;
-                            }
-
-                            st_door.CreateDoor(newDoc, familySymbol, levelIdForWall, wall, direction);
-
-                            (Parameter widthInstanceParam, Parameter heightInstanceParam) = st_door.instance.FindWidthAndHeightParameters();
-                            if (!setHeightAndWidthParamsInFamilySymbol)
-                            {
-                                heightInstanceParam.Set(height);
-                                widthInstanceParam.Set(width);
-                            }
-                            if (heightTypeParam.IsReadOnly) heightInstanceParam.Set(height);
-                            if (widthTypeParam.IsReadOnly) widthInstanceParam.Set(width);
-
-                            var tstatus = transaction.Commit();
                         }
                         catch (Exception e)
                         {
-                            LogTrace($"No door with name {st_door.family} {st_door.Name}");
-                            LogTrace(e.Message);
+                            transaction.RollBack();
+                            LogTrace("Error in creating door", e.ToString());
                         }
-
-                    }
-                    catch (Exception e)
-                    {
-                        transaction.RollBack();
-                        LogTrace("Error in creating door", e.ToString());
                     }
                 }
                 LogTrace("doors created");
