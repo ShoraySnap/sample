@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.ApplicationServices;
+using Autodesk.Revit.DB;
 using Newtonsoft.Json.Linq;
 
 namespace TrudeImporter
@@ -35,7 +36,13 @@ namespace TrudeImporter
         {
             if (this.ThicknessInMm == 0) materialFunctionAssignment = MaterialFunctionAssignment.Membrane;
 
-            return new CompoundStructureLayer(UnitsAdapter.MMToFeet(this.ThicknessInMm), materialFunctionAssignment, materialId);
+            double thickness = UnitsAdapter.MMToFeet(this.ThicknessInMm);
+            if (thickness < CompoundStructure.GetMinimumLayerThickness())
+            {
+                thickness = CompoundStructure.GetMinimumLayerThickness() + 0.0001;
+            }
+
+            return new CompoundStructureLayer(thickness, materialFunctionAssignment, materialId);
         }
         public override string ToString()
         {
