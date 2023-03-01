@@ -1,5 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TrudeImporter
@@ -10,12 +12,14 @@ namespace TrudeImporter
         public double basePosition { get; set; }
         public int levelNumber { get; set; }
         public Level level { get; set; }
+        public string name { get; set; }
 
         public TrudeStorey() { }
         public TrudeStorey(JToken storeyData)
         {
             id = storeyData["id"].ToString();
             levelNumber = (int)storeyData["value"];
+            name = storeyData["name"].ToString();
             basePosition = UnitsAdapter.convertToRevit((double)storeyData["base"]);
         }
 
@@ -27,7 +31,7 @@ namespace TrudeImporter
         public Level CreateLevel(Document newDoc)
         {
             this.level = Level.Create(newDoc, this.basePosition);
-
+            this.level.Name = (string.IsNullOrEmpty(name)? ((levelNumber > 0)? (levelNumber-1).ToString(): levelNumber.ToString()) : name);
             ViewFamilyType floorPlanType = new FilteredElementCollector(newDoc)
                                 .OfClass(typeof(ViewFamilyType))
                                 .Cast<ViewFamilyType>()
@@ -35,7 +39,6 @@ namespace TrudeImporter
 
             ViewPlan floorPlan = ViewPlan.Create(newDoc, floorPlanType.Id, level.Id);
             if (floorPlan.CanModifyViewDiscipline()) floorPlan.Discipline = ViewDiscipline.Architectural;
-
             return level;
         }
     }

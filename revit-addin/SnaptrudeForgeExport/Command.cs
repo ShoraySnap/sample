@@ -67,7 +67,7 @@ namespace SnaptrudeForgeExport
 
                     View structuralView = Utils.GetElements(newDoc, typeof(View))
                                                .Select(e => e as View)
-                                               .Where(e => e.Title == "Structural Plan: Level 1")
+                                               .Where(e => e.Title == "Structural Plan: 0")
                                                .ToList().First();
                     t.Start();
                     newDoc.Delete(structuralView.Id);
@@ -253,6 +253,7 @@ namespace SnaptrudeForgeExport
                         if (newStorey.levelNumber == 1)
                         {
                             baseLevel.Elevation = newStorey.basePosition;
+                            baseLevel.Name = "0";
                         }
                         else
                         {

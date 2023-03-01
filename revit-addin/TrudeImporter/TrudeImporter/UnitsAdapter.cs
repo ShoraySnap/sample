@@ -31,9 +31,9 @@ namespace TrudeImporter
             return convertToRevit(SnaptrudeUnits);
         }
 
-        public static double FeetToMM(double feet)
+        public static double FeetToMM(double feet, int precision = 0) 
         {
-            return Math.Round((feet / 3.2808399) * 1000, 0); // remove decimals for mm
+            return Math.Round((feet / 3.2808399) * 1000, precision);
         }
 
         public static double MMToFeet(double mm)
