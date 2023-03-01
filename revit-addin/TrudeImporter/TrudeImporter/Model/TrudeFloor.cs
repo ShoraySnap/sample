@@ -30,7 +30,7 @@ namespace TrudeImporter
             {
                 if (layer.IsCore)
                 {
-                    if (thickness != 0) layer.ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                    if (thickness != 0) layer.ThicknessInMm = UnitsAdapter.FeetToMM(thickness, 1);
                     else thickness = UnitsAdapter.MMToFeet(layer.ThicknessInMm);
                     foundCore = true;
                 }
@@ -43,25 +43,15 @@ namespace TrudeImporter
                     if (layer.Name == "Screed" && !foundCore)
                     {
                         foundCore = true;
-                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness/2), true));
+                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness, 1), true));
                     }
                     else
                     {
-                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness/2), false));
+                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness, 1), false));
                     }
                 }
                 this.Layers = _layers.ToArray();
             }
-
-            //if (!foundCore)
-            //{
-            //    //int i = this.Layers.Length / 2;
-            //    //this.Layers[i].IsCore = true;
-            //    //this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-            //    this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
-            //}
-
-
         }
 
 
