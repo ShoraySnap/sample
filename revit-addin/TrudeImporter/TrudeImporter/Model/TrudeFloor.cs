@@ -10,50 +10,44 @@ namespace TrudeImporter
     public class TrudeFloor : TrudeModel
     {
         public TrudeLayer[] Layers;
-        private List<TrudeLayer> _layers = new List<TrudeLayer>();
 
         public static FloorTypeStore TypeStore = new FloorTypeStore();
 
         public Floor floor { get; set; }
 
-        private void setThickness(double thickness)
+        private void setCoreLayerIfNotExist(double fallbackThickness)
         {
-            // TODO: Remove after thickness of layers is fixed on snaptrude
-            bool foundCore = false;
             if (this.Layers.Length == 0)
             {
-                this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
+                this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(fallbackThickness), true) };
+
                 return;
             }
 
-            foreach (var layer in this.Layers)
+            TrudeLayer coreLayer = this.Layers.FirstOrDefault(layer => layer.IsCore);
+
+            if (coreLayer != null)
             {
-                if (layer.IsCore)
+                if (fallbackThickness != 0)
                 {
-                    if (thickness != 0) layer.ThicknessInMm = UnitsAdapter.FeetToMM(thickness, 1);
-                    else thickness = UnitsAdapter.MMToFeet(layer.ThicknessInMm);
-                    foundCore = true;
+                    coreLayer.ThicknessInMm = UnitsAdapter.FeetToMM(fallbackThickness, 1);
+                }
+
+                return;
+            }
+
+            foreach (TrudeLayer layer in this.Layers)
+            {
+                if (layer.Name.ToLower() == "screed")
+                {
+                    layer.IsCore = true;
+                    return;
                 }
             }
 
-            if (!foundCore)
-            {
-                foreach (var layer in this.Layers)
-                {
-                    if (layer.Name == "Screed" && !foundCore)
-                    {
-                        foundCore = true;
-                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness, 1), true));
-                    }
-                    else
-                    {
-                        _layers.Add(new TrudeLayer("Floor", layer.Name.ToLower() + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness, 1), false));
-                    }
-                }
-                this.Layers = _layers.ToArray();
-            }
+            int coreIndex = this.Layers.Count() / 2;
+            Layers[coreIndex].IsCore = true;
         }
-
 
         private List<CurveLoop> getProfile(List<Point3D> vertices)
         {
@@ -165,7 +159,7 @@ namespace TrudeImporter
             this.Layers = TrudeRepository.GetLayers(floorData);
 
             double thickness = UnitsAdapter.convertToRevit((double)floorData["thickness"]);
-            this.setThickness(Math.Abs(thickness));
+            this.setCoreLayerIfNotExist(Math.Abs(thickness));
 
             if (int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023)
             {
