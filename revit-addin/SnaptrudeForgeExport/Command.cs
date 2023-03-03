@@ -386,6 +386,43 @@ namespace SnaptrudeForgeExport
 
                                 WallType _wallType = st_wall.wall.WallType;
 
+                                foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
+                                {
+                                    try
+                                    {
+                                        // Create cutting family
+                                        VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
+                                        string familyName = "snaptrudeVoidFamily" + RandomString(4);
+                                        Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
+
+                                        // Project points on to the plane to make sure all the points are co-planar.
+                                        // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
+                                        // this is especially true for walls that are rotated.
+                                        List<XYZ> projectedPoints = new List<XYZ>();
+                                        projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
+
+                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane, true);
+                                        newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+
+                                        FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
+
+                                        if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
+
+                                        FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(
+                                            XYZ.Zero,
+                                            cuttingFamilySymbol,
+                                            Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                                        InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
+
+                                        VoidRfaGenerator.DeleteAll();
+                                    }
+                                    catch
+                                    {
+
+                                    }
+                                }
+
                                 TransactionStatus transactionStatus = trans.Commit();
 
                                 // For some reason in a few rare cases, some transactions rolledback when walls are joined.
