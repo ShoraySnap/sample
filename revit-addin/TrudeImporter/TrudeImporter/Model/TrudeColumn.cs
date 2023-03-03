@@ -110,22 +110,24 @@ namespace TrudeImporter
             ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
             if (baseLevelId == topLevelId)
             {
-                // TODO: use  ST_Storey to create levels
-
-                double topElevation = level.Elevation + height;
-                if (!NewLevelsByElevation.ContainsKey(topElevation))
+                try
                 {
-                    TrudeStorey storey = new TrudeStorey()
+                    double topElevation = level.Elevation + height;
+                    if (!NewLevelsByElevation.ContainsKey(topElevation))
                     {
-                        basePosition = topElevation
-                    };
+                        TrudeStorey storey = new TrudeStorey()
+                        {
+                            basePosition = topElevation
+                        };
 
-                    Level newLevel = storey.CreateLevel(doc);
+                        Level newLevel = storey.CreateLevel(doc);
 
-                    NewLevelsByElevation.Add(topElevation, newLevel);
+                        NewLevelsByElevation.Add(topElevation, newLevel);
+                    }
+
+                    column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(NewLevelsByElevation[topElevation].Id);
                 }
-
-                column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(NewLevelsByElevation[topElevation].Id);
+                catch { }
             }
         }
 
