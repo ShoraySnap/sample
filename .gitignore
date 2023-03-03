@@ -12,6 +12,8 @@ build-installer/out/*
 build-installer/revit-addin-files/*
 build-installer/misc/custom_families
 
+revit-addin/SnaptrudeForgeExport/assets/*
+
 # Build results
 revit-addin/**/[Pp]ackages/*
 [Dd]ebug/
