@@ -547,7 +547,12 @@ namespace SnaptrudeManagerAddin
                                 }
 
                                 double baseHeight = UnitsAdapter.convertToRevit(wallData["baseHeight"]);
-                                double height = UnitsAdapter.convertToRevit(wallData["height"]);
+                                double height = -1;
+
+                                if (!wallData["height"].IsNullOrEmpty())
+                                {
+                                    height = UnitsAdapter.convertToRevit(wallData["height"]);
+                                }
 
                                 bool hasChildComponents = wallData["meshes"][0]["childrenComp"].HasValues;
                                 bool useOriginalMesh = wallData["useOriginalMesh"] is null
@@ -628,21 +633,21 @@ namespace SnaptrudeManagerAddin
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
                                 Level level = (Level) newDoc.GetElement(levelIdForWall);
 
+                                string familyName = (string)wallData["wallType"];
+
+                                FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
+                                if (familyName != null)
+                                {
+                                    var wallType = collector.Where(wt => ((WallType)wt).Name == familyName).FirstOrDefault() as WallType;
+                                    if (wallType != null)
+                                    {
+                                        existingWallType = wallType;
+                                    }
+                                }
+
                                 if (existingWall == null)
                                 {
-                                    string familyName = (string)wallData["dsProps"]["revitMetaData"]["family"];
-
-                                    FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
-                                    WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
-
-                                    foreach (WallType wt in collector.ToElements())
-                                    {
-                                        if (wt.Name == familyName)
-                                        {
-                                            wallType = wt;
-                                            break;
-                                        }
-                                    }
+                                    WallType wallType = existingWallType;
 
                                     bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
 
@@ -696,7 +701,7 @@ namespace SnaptrudeManagerAddin
                                     {
                                         // Create cutting family
                                         VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
-                                        string familyName = "snaptrudeVoidFamily" + RandomString(4);
+                                        string voidFamilyName = "snaptrudeVoidFamily" + RandomString(4);
                                         Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
 
                                         // Project points on to the plane to make sure all the points are co-planar.
@@ -705,10 +710,10 @@ namespace SnaptrudeManagerAddin
                                         List<XYZ> projectedPoints = new List<XYZ>();
                                         projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
 
-                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
-                                        newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, voidFamilyName, projectedPoints, st_wall.wall.WallType.Width, plane);
+                                        newDoc.LoadFamily(voidRfaGenerator.fileName(voidFamilyName), out Family beamFamily);
 
-                                        FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
+                                        FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, voidFamilyName);
 
                                         if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
 
@@ -1081,6 +1086,10 @@ namespace SnaptrudeManagerAddin
                 LogTrace("Roofs created");
 
                 JToken ceilings = geometryParent["ceilings"];
+                if (ceilings == null)
+                {
+                    ceilings = new JArray();
+                }
                 foreach (var ceiling in ceilings)
                 {
                     if (!ShouldImport(ceiling)) continue;

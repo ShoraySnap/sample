@@ -136,12 +136,19 @@ namespace TrudeImporter
 
         public static TrudeLayer[] GetLayers(JToken data, double fallbackThickness = 25)
         {
-            if (!data["dsProps"]["properties"]["_components"].HasValues) return null;
-
             JToken revitMetaData  = data["dsProps"]["revitMetaData"];
 
-            string baseType = (string) data["dsProps"]["properties"]["_components"]["_name"];
-            JArray layers = (JArray) data["dsProps"]["properties"]["_components"]["_layers"];
+            string baseType = null;
+            JArray layers = null;
+
+            if (data["baseType"].IsNullOrEmpty())
+            {
+                baseType = (string)data["dsProps"]["properties"]["_components"]["_name"];
+            }
+            else
+            {
+                baseType = (string) data["baseType"];
+            }
 
             if (data["layers"].IsNullOrEmpty())
             {
@@ -183,10 +190,6 @@ namespace TrudeImporter
             }
 
             return stLayers.ToArray();
-
-            //return layers
-            //    .Select(jv => new ST_Layer(jv, baseType))
-            //    .ToArray();
         }
 
         public static List<Point3D> ListToPoint3d(JToken vertices)
