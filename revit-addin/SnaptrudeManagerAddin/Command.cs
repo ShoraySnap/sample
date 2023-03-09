@@ -3440,6 +3440,11 @@ namespace SnaptrudeManagerAddin
         
         private static bool IsStackedWall(JToken data)
         {
+            if (!data.First["wallType"].IsNullOrEmpty())
+            {
+                string familyName = (string)data.First["wallType"];
+                if (familyName.ToLower().Contains("storefront")) return true;
+            }
             if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return false;
 
             return (bool)data.First["dsProps"]["revitMetaData"]["isStackedWall"];
