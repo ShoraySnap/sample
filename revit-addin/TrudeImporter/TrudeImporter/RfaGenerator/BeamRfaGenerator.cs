@@ -18,7 +18,7 @@ namespace TrudeImporter
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName, double height, List<XYZ> _countour, bool forForge = false)
+        public void CreateRFAFile(Application app, string familyName,/* double height,*/ List<XYZ> _countour, bool forForge = false)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
