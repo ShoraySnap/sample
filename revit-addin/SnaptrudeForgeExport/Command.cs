@@ -46,15 +46,10 @@ namespace SnaptrudeForgeExport
             JObject structureCollection = JObject.Parse(File.ReadAllText(Configs.INPUT_TRUDE));
 
             Application rvtApp = data.RevitApp;
-
-            UnitsAdapter.metricSystem = (int) structureCollection.GetValue("userSettings")["unitsType"];
-            //UnitSystem system = UnitsAdapter.metricSystem <= 2 ? UnitSystem.Metric : UnitSystem.Imperial;
-            //Document newDoc = rvtApp.NewProjectDocument(system);
             Document newDoc = rvtApp.OpenDocumentFile("host.rvt");
 
             GlobalVariables.RvtApp = rvtApp;
             GlobalVariables.Document = newDoc;
-
 
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
 
@@ -241,29 +236,6 @@ namespace SnaptrudeForgeExport
 
                 JToken storeys = structureData["storeys"];
                 if (!storeys.HasValues) continue;
-
-                foreach (JToken storey in storeys)
-                {
-                    JToken storeyData = storey.First;
-                    TrudeStorey newStorey = new TrudeStorey(storeyData);
-
-                    using (Transaction t = new Transaction(newDoc))
-                    {
-                        t.Start("Create Level");
-                        if (newStorey.levelNumber == 1)
-                        {
-                            baseLevel.Elevation = newStorey.basePosition;
-                            baseLevel.Name = "0";
-                        }
-                        else
-                        {
-                            newStorey.CreateLevel(newDoc);
-                            LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
-                        }
-                        t.Commit();
-                    }
-                }
-                LogTrace("storey created");
 
                 JToken geometryParent = structureData["01"];
                 if (geometryParent is null) continue;

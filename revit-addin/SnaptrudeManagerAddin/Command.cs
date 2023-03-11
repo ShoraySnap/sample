@@ -6,6 +6,7 @@ using Autodesk.Revit.DB.ExtensibleStorage;
 using Autodesk.Revit.DB.Visual;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,6 +63,11 @@ namespace SnaptrudeManagerAddin
 
         private bool ParseTrude(UIApplication rvtApp, Document newDoc)
         {
+            GlobalVariables.Document = newDoc;
+            GlobalVariables.RvtApp = rvtApp.Application;
+            LevelIdByNumber.Clear();
+            FamilyLoader.LoadedFamilies.Clear();
+
             FileOpenDialog trudeFileOpenDialog = new FileOpenDialog("Trude (*.trude)|*.trude");
 
             trudeFileOpenDialog.Show();
@@ -75,18 +81,77 @@ namespace SnaptrudeManagerAddin
 
             String path = ModelPathUtils.ConvertModelPathToUserVisiblePath(trudeFileOpenDialog.GetSelectedModelPath());
 
-            JObject structureCollection = JObject.Parse(File.ReadAllText(path));
+            JObject trudeData = JObject.Parse(File.ReadAllText(path));
 
-            UnitsAdapter.metricSystem = (int)structureCollection.GetValue("userSettings")["unitsType"];
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
+            JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
 
-            GlobalVariables.RvtApp = rvtApp.Application;
-            GlobalVariables.Document = newDoc;
+            TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>();
+            ImportStories(trudeProperties.Storeys);
 
-            ImportSnaptrude(structureCollection, newDoc);
+            //ImportSnaptrude(trudeData, newDoc);
 
             FamilyLoader.LoadedFamilies.Clear();
+            LevelIdByNumber.Clear();
 
             return true;
+        }
+        private void ImportStories(List<StoreyProperties> propsList)
+        {
+            if (propsList.Count == 0)
+            {
+
+                    try
+                    {
+                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                        {
+                            TrudeStorey newStorey = new TrudeStorey(0, 0, Utils.RandomString(5));
+
+                            t.Start();
+                            newStorey.CreateLevel(GlobalVariables.Document);
+                            LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
+                            t.Commit();
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+                        LogTrace(e.Message);
+                    }
+            }
+
+            foreach (StoreyProperties props in propsList)
+            {
+                TrudeStorey newStorey = new TrudeStorey(props);
+
+                if (props.RevitElementId == 0)
+                {
+                    try
+                    {
+
+                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                        {
+                            t.Start();
+
+                            newStorey.CreateLevel(GlobalVariables.Document);
+                            LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
+
+                            t.Commit();
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+                        LogTrace(e.Message);
+                    }
+                }
+                else
+                {
+                    ElementId elementId = new ElementId(props.RevitElementId);
+                    LevelIdByNumber.Add(newStorey.levelNumber, elementId);
+                }
+            }
+            LogTrace("storey created");
         }
 
         private static int countTotalElement(JObject jObject)
@@ -329,6 +394,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportSnaptrude(JObject jObject, Document newDoc)
         {
+            JArray _materials = jObject["materials"].Value<JArray>();
+            JArray _multiMaterials = jObject["multiMaterials"].Value<JArray>();
 
             int totalElements = countTotalElement(jObject);
             int processedElements = 0;
@@ -366,6 +433,7 @@ namespace SnaptrudeManagerAddin
 
             foreach (JToken structure in jObject.GetValue("structures"))
             {
+
                 JToken structureData = structure.First;
 
                 // STOREYS
@@ -383,7 +451,7 @@ namespace SnaptrudeManagerAddin
                     LogProgress(processedElements, totalElements);
 
                     JToken storeyData = storey.First;
-                    TrudeStorey newStorey = new TrudeStorey(storeyData);
+                    TrudeStorey newStorey = new TrudeStorey();
 
                     if (storeyData.IsNullOrEmpty())
                     {
@@ -535,9 +603,6 @@ namespace SnaptrudeManagerAddin
                                         subMeshes = wallData["meshes"][0]["subMeshes"].Value<JArray>();
                                     }
                                 } catch { }
-
-                                JArray _materials = jObject["materials"].Value<JArray>();
-                                JArray _multiMaterials = jObject["multiMaterials"].Value<JArray>();
 
                                 List<Point3D> profilePoints = new List<Point3D>();
                                 
@@ -880,9 +945,6 @@ namespace SnaptrudeManagerAddin
                     {
                         subMeshes = floorData["meshes"][0]["subMeshes"].Value<JArray>();
                     }
-
-                    JArray _materials = jObject["materials"].Value<JArray>();
-                    JArray _multiMaterials = jObject["multiMaterials"].Value<JArray>();
 
                     String _materialName = Utils.getMaterialNameFromMaterialId(_materialNameWithId, subMeshes, _materials, _multiMaterials, 0);
 

@@ -12,9 +12,6 @@ namespace TrudeImporter
 {
     public class TrudeWall : TrudeModel
     {
-        public string Material_ID { get; set; }
-        public double[][] Wall_Polygons { get; set; }
-
         public TrudeLayer[] Layers;
 
         public Wall wall { get; set; }

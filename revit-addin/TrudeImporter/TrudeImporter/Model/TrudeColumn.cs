@@ -117,7 +117,7 @@ namespace TrudeImporter
                     {
                         TrudeStorey storey = new TrudeStorey()
                         {
-                            basePosition = topElevation
+                            Elevation = topElevation
                         };
 
                         Level newLevel = storey.CreateLevel(doc);

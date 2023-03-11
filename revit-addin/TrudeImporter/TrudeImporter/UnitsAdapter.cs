@@ -7,15 +7,8 @@ using System.Threading.Tasks;
 
 namespace TrudeImporter
 {
-    /// <summary>
-    /// Units Adapter Class to convert local internal units to Revit internal units.
-    /// </summary>
     public static class UnitsAdapter
     {
-        /// <summary>
-        /// Integer representing the units used in Snaptrude project.
-        /// </summary>
-        public static int metricSystem { get; set; }
         /// <summary>
         /// Method to convert local units to Revit units.
         /// </summary>
