@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-#pragma warning disable IDE1006 // Naming Styles
 namespace TrudeImporter
 {
     public class TrudeProperties
@@ -10,7 +9,9 @@ namespace TrudeImporter
         public List<StoreyProperties> Storeys { get; set; }
 
         [JsonProperty("walls")]
-        public List<WallProperties> walls { get; set; }
+        public List<WallProperties> Walls { get; set; }
+
+        [JsonProperty("deletedElements")]
+        public List<int> DeletedElements { get; set; }
     }
 }
-#pragma warning restore IDE1006 // Naming Styles

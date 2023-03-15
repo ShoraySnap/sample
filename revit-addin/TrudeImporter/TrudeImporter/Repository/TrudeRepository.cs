@@ -188,10 +188,6 @@ namespace TrudeImporter
             }
 
             return stLayers.ToArray();
-
-            //return layers
-            //    .Select(jv => new ST_Layer(jv, baseType))
-            //    .ToArray();
         }
 
         public static List<Point3D> ListToPoint3d(JToken vertices)

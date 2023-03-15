@@ -23,10 +23,19 @@ namespace SnaptrudeManagerAddin
     {
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
 
+        public static JArray materials;
+        public static JArray multiMaterials;
+
+        public static Dictionary<String, Element> idToElement = new Dictionary<String, Element>();
+        public static Dictionary<String, FamilySymbol> idToFamilySymbol = new Dictionary<String, FamilySymbol>();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
             Document doc = uiapp.ActiveUIDocument.Document;
+
+            GlobalVariables.Document = doc;
+            GlobalVariables.RvtApp = uiapp.Application;
 
             uiapp.Application.FailuresProcessing += Application_FailuresProcessing;
             try
@@ -35,7 +44,7 @@ namespace SnaptrudeManagerAddin
                 using(Transaction t = new Transaction(doc, "Parse Trude"))
                 {
                     t.Start();
-                    status = ParseTrude(uiapp, doc);
+                    status = ParseTrude();
                     t.Commit();
                 }
 
@@ -61,10 +70,8 @@ namespace SnaptrudeManagerAddin
             fa.DeleteAllWarnings();
         }
 
-        private bool ParseTrude(UIApplication rvtApp, Document newDoc)
+        private bool ParseTrude()
         {
-            GlobalVariables.Document = newDoc;
-            GlobalVariables.RvtApp = rvtApp.Application;
             LevelIdByNumber.Clear();
             FamilyLoader.LoadedFamilies.Clear();
 
@@ -83,18 +90,348 @@ namespace SnaptrudeManagerAddin
 
             JObject trudeData = JObject.Parse(File.ReadAllText(path));
 
+            materials = trudeData["materials"] as JArray;
+            multiMaterials = trudeData["multiMaterials"] as JArray;
+
             JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
             JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
 
-            TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>();
+            Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
+            JToken walls = trudeData["walls"];
+            JToken profile = walls[0]["profile"];
+            serializer.Converters.Add(new XyzConverter());
+
+            TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             ImportStories(trudeProperties.Storeys);
 
-            //ImportSnaptrude(trudeData, newDoc);
+            //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
             LevelIdByNumber.Clear();
 
             return true;
+        }
+
+        private void ImportWalls(List<WallProperties> propsList)
+        {
+            int wallCount = 0;
+
+            IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
+
+            Dictionary<int, Exception> failedWalls = new Dictionary<int, Exception>();
+
+
+            int wallsProcessed = 0;
+            foreach (WallProperties props in propsList)
+            {
+                wallsProcessed++;
+                if (props.IsStackedWall && !props.IsStackedWallParent) continue;
+                try
+                {
+                    Wall existingWall = null;
+                    ElementId existingLevelId = null;
+                    WallType existingWallType = null;
+                    if (props.ExistingElementId != null)
+                    {
+                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                        {
+                            try
+                            {
+                                t.Start();
+
+                                Element e;
+                                bool isExistingWall = idToElement.TryGetValue(props.ExistingElementId, out e);
+                                if (isExistingWall)
+                                {
+                                    existingWall = (Wall)e;
+                                    existingLevelId = existingWall.LevelId;
+                                    existingWallType = existingWall.WallType;
+
+                                    t.Commit();
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                LogTrace(e.Message);
+                            }
+                        }
+                    }
+
+                    using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
+                    {
+                        TrudeWall st_wall = new TrudeWall();
+                        trans.Start();
+                        try
+                        {
+                            double baseHeight = props.BaseHeight;
+                            double height = props.Height;
+
+                            bool useOriginalMesh = false;
+
+                            st_wall.Layers = props.Layers.Select(layer => layer.ToTrudeLayer(props.Type)).ToArray();
+
+                            st_wall.levelNumber = int.Parse(wallMeshDataforLevel["storey"].ToString());
+
+                            IList<Curve> profile = TrudeWall.GetProfile(props.ProfilePoints);
+
+                            bool coreIsFound = false;
+                            //TODO remove this loop after wall core layer thickness is fixed after doing freemove
+                            for (int i = 0; i < st_wall.Layers.Length; i++)
+                            {
+                                if (st_wall.Layers[i].IsCore)
+                                {
+                                    coreIsFound = true;
+                                    //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
+                                    if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
+                                }
+                            }
+
+                            if (!coreIsFound)
+                            {
+                                int index = (int)(st_wall.Layers.Length / 2);
+
+                                st_wall.Layers[index].IsCore = true;
+                                if (thickness > 0) st_wall.Layers[index].ThicknessInMm = thickness;
+                            }
+
+                            ElementId levelIdForWall;
+                            levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
+                            Level level = (Level)GlobalVariables.Document.GetElement(levelIdForWall);
+
+                            if (existingWall == null)
+                            {
+                                string familyName = (string)wallData["dsProps"]["revitMetaData"]["family"];
+
+                                FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
+                                WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
+
+                                foreach (WallType wt in collector.ToElements())
+                                {
+                                    if (wt.Name == familyName)
+                                    {
+                                        wallType = wt;
+                                        break;
+                                    }
+                                }
+
+                                bool isWeworksMessedUpStackedWall = IsStackedWall(props) && IsParentStackedWall(props);
+
+                                if (wallType is null)
+                                {
+                                    wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
+                                }
+                                else if (!AreLayersSame(st_wall.Layers, wallType) && !isWeworksMessedUpStackedWall)
+                                {
+                                    wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
+                                }
+                                if (isWeworksMessedUpStackedWall)
+                                {
+                                    st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
+                                }
+                                else
+                                {
+                                    st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
+                                }
+                            }
+                            else
+                            {
+                                bool areLayersSame = AreLayersSame(st_wall.Layers, existingWallType);
+                                bool isWeworksMessedUpStackedWall = IsStackedWall(props) && IsParentStackedWall(props);
+
+                                if (areLayersSame || isWeworksMessedUpStackedWall)
+                                {
+                                    st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
+                                    if (isWeworksMessedUpStackedWall)
+                                    {
+                                        var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
+                                        var newHeightParam = st_wall.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
+                                        if (!newHeightParam.IsReadOnly) newHeightParam.SetValueString(existingHeightParam.AsValueString());
+                                    }
+                                }
+                                else
+                                {
+                                    WallType wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document, existingWallType);
+
+                                    st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
+                                }
+                            }
+                            ElementId wallId = st_wall.wall.Id;
+
+                            // Create holes
+                            GlobalVariables.Document.Regenerate();
+
+                            foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
+                            {
+                                try
+                                {
+                                    // Create cutting family
+                                    VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
+                                    string familyName = "snaptrudeVoidFamily" + RandomString(4);
+                                    Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
+
+                                    // Project points on to the plane to make sure all the points are co-planar.
+                                    // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
+                                    // this is especially true for walls that are rotated.
+                                    List<XYZ> projectedPoints = new List<XYZ>();
+                                    projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
+
+                                    voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
+                                    GlobalVariables.Document.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+
+                                    FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
+
+                                    if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
+
+                                    FamilyInstance cuttingFamilyInstance = GlobalVariables.Document.Create.NewFamilyInstance(
+                                        XYZ.Zero,
+                                        cuttingFamilySymbol,
+                                        Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                                    InstanceVoidCutUtils.AddInstanceVoidCut(GlobalVariables.Document, st_wall.wall, cuttingFamilyInstance);
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+
+                            GlobalVariables.Document.Regenerate();
+                            try
+                            {
+                                JArray subMeshes = null;
+                                //try
+                                //{
+                                //    if (wallData["meshes"][0]["subMeshes"].IsNullOrEmpty())
+                                //    {
+                                //        subMeshes = wallData["subMeshes"].Value<JArray>();
+                                //    }
+                                //    else
+                                //    {
+                                //        subMeshes = wallData["meshes"][0]["subMeshes"].Value<JArray>();
+                                //    }
+                                //}
+                                //catch { }
+                                if (subMeshes.Count == 1)
+                                {
+                                    int _materialIndex = (int)subMeshes[0]["materialIndex"];
+                                    String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
+                                        props.MaterialName,
+                                        subMeshes,
+                                        materials,
+                                        multiMaterials,
+                                        _materialIndex);
+
+                                    FilteredElementCollector materialCollector =
+                                        new FilteredElementCollector(GlobalVariables.Document)
+                                        .OfClass(typeof(Autodesk.Revit.DB.Material));
+
+                                    IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
+
+                                    Autodesk.Revit.DB.Material _materialElement = null;
+
+                                    foreach (var materialElement in materialsEnum)
+                                    {
+                                        String matName = materialElement.Name;
+                                        if (matName.Replace("_", " ") == snaptrudeMaterialName)
+                                        {
+                                            _materialElement = materialElement;
+                                            break;
+                                        }
+                                    }
+                                    if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                                    {
+                                        foreach (var materialElement in materialsEnum)
+                                        {
+                                            String matName = materialElement.Name;
+                                            if (matName.ToLower().Contains("glass"))
+                                            {
+                                                _materialElement = materialElement;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (_materialElement != null)
+                                    {
+                                        st_wall.ApplyMaterialByObject(GlobalVariables.Document, st_wall.wall, _materialElement);
+                                    }
+
+                                }
+                                else
+                                {
+                                    st_wall.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, subMeshes, materials, multiMaterials, st_wall.wall);
+                                }
+
+                            }
+                            catch
+                            {
+                                LogTrace("Failed to set wall material");
+                            }
+
+                            WallType _wallType = st_wall.wall.WallType;
+
+                            TransactionStatus transactionStatus = trans.Commit();
+
+                            // For some reason in a few rare cases, some transactions rolledback when walls are joined.
+                            // This handles those cases to create the wall without being joined.
+                            // This is not a perfect solution, ideally wall should be joined.
+                            if (transactionStatus == TransactionStatus.RolledBack)
+                            {
+                                trans.Start();
+                                st_wall.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
+                                wallId = st_wall.wall.Id;
+
+                                WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
+                                WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 1);
+
+                                transactionStatus = trans.Commit();
+                            }
+
+                            LogTrace("wall created");
+                            wallCount++;
+
+                            foreach (JToken childUID in wallData["meshes"][0]["childrenComp"])
+                            {
+                                childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            }
+
+                            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                            {
+                                t.Start();
+
+                                if (props.SourceElementId != null)
+                                {
+                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(sourceElementId)));
+                                }
+
+                                if (existingWall != null)
+                                {
+                                    try
+                                    {
+                                        var val = GlobalVariables.Document.Delete(existingWall.Id);
+                                    }
+                                    catch { }
+                                }
+
+                                var transstatus = t.Commit();
+
+                                LogTrace(transstatus.ToString());
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            LogTrace("Error in creating wall", e.ToString());
+                            failedWalls.Add(uniqueId, e);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogTrace(e.Message);
+                }
+            }
+            TrudeWall.TypeStore.Clear();
+            LogTrace("Walls Success");
         }
         private void ImportStories(List<StoreyProperties> propsList)
         {
@@ -392,20 +729,17 @@ namespace SnaptrudeManagerAddin
             }
         }
 
-        private void ImportSnaptrude(JObject jObject, Document newDoc)
+        private void ImportSnaptrude(JObject jObject)
         {
             JArray _materials = jObject["materials"].Value<JArray>();
             JArray _multiMaterials = jObject["multiMaterials"].Value<JArray>();
 
             int totalElements = countTotalElement(jObject);
             int processedElements = 0;
-
-            Dictionary<String, Element> idToElement = new Dictionary<String, Element>();
-            Dictionary<String, FamilySymbol> idToFamilySymbol = new Dictionary<String, FamilySymbol>();
-
+            
             try
             {
-                List<Element> existingElements = TrudeModel.GetAllElements(newDoc);
+                List<Element> existingElements = TrudeModel.GetAllElements(GlobalVariables.Document);
 
                 foreach (Element e in existingElements)
                 {
@@ -437,7 +771,7 @@ namespace SnaptrudeManagerAddin
                 JToken structureData = structure.First;
 
                 // STOREYS
-                Level baseLevel = new FilteredElementCollector(newDoc).OfClass(typeof(Level)).FirstElement() as Level;
+                Level baseLevel = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(Level)).FirstElement() as Level;
 
                 LevelIdByNumber.Clear();
                 //LevelIdByNumber.Add(1, baseLevelId);
@@ -458,10 +792,10 @@ namespace SnaptrudeManagerAddin
                         try
                         {
 
-                            using (SubTransaction t = new SubTransaction(newDoc))
+                            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                             {
                                 t.Start();
-                                newStorey.CreateLevel(newDoc);
+                                newStorey.CreateLevel(GlobalVariables.Document);
                                 LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
                                 t.Commit();
                             }
@@ -479,11 +813,11 @@ namespace SnaptrudeManagerAddin
                             try
                             {
 
-                                using (SubTransaction t = new SubTransaction(newDoc))
+                                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                                 {
                                     t.Start();
 
-                                    newStorey.CreateLevel(newDoc);
+                                    newStorey.CreateLevel(GlobalVariables.Document);
                                     LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
 
                                     t.Commit();
@@ -543,7 +877,7 @@ namespace SnaptrudeManagerAddin
                         WallType existingWallType = null;
                         if (revitId != null)
                         {
-                            using (SubTransaction t = new SubTransaction(newDoc))
+                            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                             {
                                 try
                                 {
@@ -558,7 +892,7 @@ namespace SnaptrudeManagerAddin
                                         existingWallType = existingWall.WallType;
 
                                         // delete original wall
-                                        //var val = newDoc.Delete(existingWall.Id);
+                                        //var val = GlobalVariables.Document.Delete(existingWall.Id);
                                         t.Commit();
                                     }
                                 }
@@ -572,7 +906,7 @@ namespace SnaptrudeManagerAddin
                         processedElements++;
                         LogProgress(processedElements, totalElements);
 
-                        using (SubTransaction trans = new SubTransaction(newDoc))
+                        using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                         {
                             TrudeWall st_wall = new TrudeWall();
                             trans.Start();
@@ -691,13 +1025,13 @@ namespace SnaptrudeManagerAddin
 
                                 ElementId levelIdForWall;
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
-                                Level level = (Level) newDoc.GetElement(levelIdForWall);
+                                Level level = (Level) GlobalVariables.Document.GetElement(levelIdForWall);
 
                                 if (existingWall == null)
                                 {
                                     string familyName = (string)wallData["dsProps"]["revitMetaData"]["family"];
 
-                                    FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
+                                    FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
                                     WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
 
                                     foreach (WallType wt in collector.ToElements())
@@ -713,19 +1047,19 @@ namespace SnaptrudeManagerAddin
 
                                     if (wallType is null)
                                     {
-                                        wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
+                                        wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
                                     }
                                     else if (!AreLayersSame(st_wall.Layers, wallType) && !isWeworksMessedUpStackedWall)
                                     {
-                                        wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
+                                        wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
                                     }
                                     if (isWeworksMessedUpStackedWall)
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level);
+                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
                                     }
                                     else
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level, height, baseHeight);
+                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
                                     }
                                 }
                                 else
@@ -735,7 +1069,7 @@ namespace SnaptrudeManagerAddin
 
                                     if (areLayersSame || isWeworksMessedUpStackedWall)
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, existingWallType.Id, level, height, baseHeight);
+                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
                                         if (isWeworksMessedUpStackedWall)
                                         {
                                             var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
@@ -745,15 +1079,15 @@ namespace SnaptrudeManagerAddin
                                     }
                                     else
                                     {
-                                        WallType wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, newDoc, existingWallType);
+                                        WallType wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document, existingWallType);
 
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level, height, baseHeight);
+                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
                                     }
                                 }
                                 ElementId wallId = st_wall.wall.Id;
 
                                 // Create holes
-                                newDoc.Regenerate();
+                                GlobalVariables.Document.Regenerate();
 
                                 foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
                                 {
@@ -771,18 +1105,18 @@ namespace SnaptrudeManagerAddin
                                         projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
 
                                         voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
-                                        newDoc.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+                                        GlobalVariables.Document.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
 
-                                        FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
+                                        FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
 
                                         if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
 
-                                        FamilyInstance cuttingFamilyInstance = newDoc.Create.NewFamilyInstance(
+                                        FamilyInstance cuttingFamilyInstance = GlobalVariables.Document.Create.NewFamilyInstance(
                                             XYZ.Zero,
                                             cuttingFamilySymbol,
                                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-                                        InstanceVoidCutUtils.AddInstanceVoidCut(newDoc, st_wall.wall, cuttingFamilyInstance);
+                                        InstanceVoidCutUtils.AddInstanceVoidCut(GlobalVariables.Document, st_wall.wall, cuttingFamilyInstance);
                                     }
                                     catch
                                     {
@@ -790,7 +1124,7 @@ namespace SnaptrudeManagerAddin
                                     }
                                 }
 
-                                newDoc.Regenerate();
+                                GlobalVariables.Document.Regenerate();
                                 try
                                 {
                                     if(subMeshes.Count == 1)
@@ -804,7 +1138,7 @@ namespace SnaptrudeManagerAddin
                                             _materialIndex);
 
                                         FilteredElementCollector materialCollector =
-                                            new FilteredElementCollector(newDoc)
+                                            new FilteredElementCollector(GlobalVariables.Document)
                                             .OfClass(typeof(Autodesk.Revit.DB.Material));
 
                                         IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
@@ -834,13 +1168,13 @@ namespace SnaptrudeManagerAddin
 
                                         if (_materialElement != null)
                                         {
-                                            st_wall.ApplyMaterialByObject(newDoc, st_wall.wall, _materialElement);
+                                            st_wall.ApplyMaterialByObject(GlobalVariables.Document, st_wall.wall, _materialElement);
                                         }
                                        
                                     }
                                     else
                                     {
-                                        st_wall.ApplyMaterialByFace(newDoc, _materialNameWithId, subMeshes, _materials, _multiMaterials, st_wall.wall);
+                                        st_wall.ApplyMaterialByFace(GlobalVariables.Document, _materialNameWithId, subMeshes, _materials, _multiMaterials, st_wall.wall);
                                     }
                                     
                                 }
@@ -858,7 +1192,7 @@ namespace SnaptrudeManagerAddin
                                 if (transactionStatus == TransactionStatus.RolledBack)
                                 {
                                     trans.Start();
-                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, level, height, baseHeight);
+                                    st_wall.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
                                     wallId = st_wall.wall.Id;
 
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
@@ -875,20 +1209,20 @@ namespace SnaptrudeManagerAddin
                                     childUniqueIdToWallElementId.Add((int)childUID, wallId);
                                 }
 
-                                using (SubTransaction t = new SubTransaction(newDoc))
+                                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                                 {
                                     t.Start();
 
                                     if (sourceElementId != null)
                                     {
-                                        newDoc.Delete(new ElementId(int.Parse(sourceElementId)));
+                                        GlobalVariables.Document.Delete(new ElementId(int.Parse(sourceElementId)));
                                     }
 
                                     if (existingWall != null)
                                     {
                                         try
                                         {
-                                            var val = newDoc.Delete(existingWall.Id);
+                                            var val = GlobalVariables.Document.Delete(existingWall.Id);
                                         }
                                         catch { }
                                     }
@@ -948,7 +1282,7 @@ namespace SnaptrudeManagerAddin
 
                     String _materialName = Utils.getMaterialNameFromMaterialId(_materialNameWithId, subMeshes, _materials, _multiMaterials, 0);
 
-                    FilteredElementCollector collector1 = new FilteredElementCollector(newDoc).OfClass(typeof(Autodesk.Revit.DB.Material));
+                    FilteredElementCollector collector1 = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(Autodesk.Revit.DB.Material));
 
                     IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
 
@@ -967,7 +1301,7 @@ namespace SnaptrudeManagerAddin
                     processedElements++;
                     LogProgress(processedElements, totalElements);
 
-                    using (SubTransaction transactionFloor = new SubTransaction(newDoc))
+                    using (SubTransaction transactionFloor = new SubTransaction(GlobalVariables.Document))
                     {
                         transactionFloor.Start();
 
@@ -984,7 +1318,7 @@ namespace SnaptrudeManagerAddin
                                 String _revitId = (String)floorData["dsProps"]["revitMetaData"]["elementId"];
                                 revitId = (int)floorData["dsProps"]["revitMetaData"]["elementId"];
                                 existingElementId = new ElementId(revitId);
-                                Floor existingFloor = newDoc.GetElement(existingElementId) as Floor;
+                                Floor existingFloor = GlobalVariables.Document.GetElement(existingElementId) as Floor;
                                 existingFloorType = existingFloor.FloorType;
                             }
                         }
@@ -1001,7 +1335,7 @@ namespace SnaptrudeManagerAddin
                             }
 
                             ElementId levelId = Command.LevelIdByNumber[TrudeRepository.GetLevelNumber(floorData)];
-                            TrudeFloor st_floor = new TrudeFloor(floorData, newDoc, levelId, existingFloorType);
+                            TrudeFloor st_floor = new TrudeFloor(floorData, GlobalVariables.Document, levelId, existingFloorType);
 
                             try
                             {
@@ -1015,14 +1349,14 @@ namespace SnaptrudeManagerAddin
                                     {
                                         curveArray1.Append(c);
                                     }
-                                    newDoc.Create.NewOpening(st_floor.floor, curveArray1, true);
+                                    GlobalVariables.Document.Create.NewOpening(st_floor.floor, curveArray1, true);
                                 }
                             }
                             catch { }
 
                             if (_materialElement != null)
                             {
-                                st_floor.ApplyPaintByMaterial(newDoc, st_floor.floor, _materialElement);
+                                st_floor.ApplyPaintByMaterial(GlobalVariables.Document, st_floor.floor, _materialElement);
                             }
 
                             count++;
@@ -1031,7 +1365,7 @@ namespace SnaptrudeManagerAddin
                             {
                                 try
                                 {
-                                    newDoc.Delete(existingElementId);
+                                    GlobalVariables.Document.Delete(existingElementId);
                                 }
                                 catch
                                 {
@@ -1060,7 +1394,7 @@ namespace SnaptrudeManagerAddin
                     processedElements++;
                     LogProgress(processedElements, totalElements);
 
-                    using (SubTransaction transactionRoofs = new SubTransaction(newDoc))
+                    using (SubTransaction transactionRoofs = new SubTransaction(GlobalVariables.Document))
                     {
                         transactionRoofs.Start();
 
@@ -1082,7 +1416,7 @@ namespace SnaptrudeManagerAddin
                                     String _revitId = (String)roofData["dsProps"]["revitMetaData"]["elementId"];
                                     revitId = (int)roofData["dsProps"]["revitMetaData"]["elementId"];
                                     existingElementId = new ElementId(revitId);
-                                    Floor existingFloor = newDoc.GetElement(existingElementId) as Floor;
+                                    Floor existingFloor = GlobalVariables.Document.GetElement(existingElementId) as Floor;
                                     existingFloorType = existingFloor.FloorType;
                                 }
                             }
@@ -1097,7 +1431,7 @@ namespace SnaptrudeManagerAddin
                             }
 
                             ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(roofData)];
-                            TrudeRoof st_roof = new TrudeRoof(roofData, newDoc, levelId, existingFloorType);
+                            TrudeRoof st_roof = new TrudeRoof(roofData, GlobalVariables.Document, levelId, existingFloorType);
 
                             try
                             {
@@ -1111,7 +1445,7 @@ namespace SnaptrudeManagerAddin
                                     {
                                         curveArray1.Append(c);
                                     }
-                                    newDoc.Create.NewOpening(st_roof.floor, curveArray1, true);
+                                    GlobalVariables.Document.Create.NewOpening(st_roof.floor, curveArray1, true);
                                 }
                             }
                             catch { }
@@ -1123,7 +1457,7 @@ namespace SnaptrudeManagerAddin
                             {
                                 try
                                 {
-                                    newDoc.Delete(existingElementId);
+                                    GlobalVariables.Document.Delete(existingElementId);
                                 }
                                 catch
                                 {
@@ -1165,21 +1499,21 @@ namespace SnaptrudeManagerAddin
 
                             ElementId ceilingId = new ElementId(int.Parse(revitId));
 
-                            Element ceilingElement = newDoc.GetElement(ceilingId);
+                            Element ceilingElement = GlobalVariables.Document.GetElement(ceilingId);
 
                             //get ceiling sketch
                             ElementClassFilter filter = new ElementClassFilter(typeof(Sketch));
 
                             ElementId sketchId = ceilingElement.GetDependentElements(filter).First();
 
-                            Sketch ceilingSketch = newDoc.GetElement(sketchId) as Sketch;
+                            Sketch ceilingSketch = GlobalVariables.Document.GetElement(sketchId) as Sketch;
 
                             CurveArrArray ceilingProfile = ceilingSketch.Profile;
 
                             filter = new ElementClassFilter(typeof(CurveElement));
 
                             IEnumerable<Element> curves = ceilingElement.GetDependentElements(filter)
-                                .Select(id => newDoc.GetElement(id));
+                                .Select(id => GlobalVariables.Document.GetElement(id));
 
                             IEnumerable<ModelLine> modelLines = curves.Where(e => e is ModelLine).Cast<ModelLine>();//target
 
@@ -1248,7 +1582,7 @@ namespace SnaptrudeManagerAddin
                                     }
                                 }
 
-                                using (SubTransaction transaction = new SubTransaction(newDoc))
+                                using (SubTransaction transaction = new SubTransaction(GlobalVariables.Document))
                                 {
                                     transaction.Start();
 
@@ -1278,7 +1612,7 @@ namespace SnaptrudeManagerAddin
                                     {
                                         curveArray1.Append(c);
                                     }
-                                    newDoc.Create.NewOpening(ceilingElement, curveArray1, true);
+                                    GlobalVariables.Document.Create.NewOpening(ceilingElement, curveArray1, true);
                                 }
                             }
                             catch { }
@@ -1299,10 +1633,10 @@ namespace SnaptrudeManagerAddin
                                     Element existingMass = e;
                                     ElementId existingLevelId = existingMass.LevelId;
 
-                                    using (SubTransaction t = new SubTransaction(newDoc))
+                                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                                     {
                                         t.Start();
-                                        var val = newDoc.Delete(existingMass.Id);
+                                        var val = GlobalVariables.Document.Delete(existingMass.Id);
                                         t.Commit();
                                     }
                                 }
@@ -1348,14 +1682,14 @@ namespace SnaptrudeManagerAddin
                             ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
                             TrudeColumn
                                 .FromMassData(massData)
-                                .CreateColumn(newDoc, levelId);
+                                .CreateColumn(GlobalVariables.Document, levelId);
                         }
                         else if (massType.Equals("Beam"))
                         {
                             ElementId levelId = LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
                             TrudeBeam
                                 .FromMassData(massData)
-                                .CreateBeam(newDoc, levelId);
+                                .CreateBeam(GlobalVariables.Document, levelId);
                         }
 
                         if (revitId != null)
@@ -1369,10 +1703,10 @@ namespace SnaptrudeManagerAddin
                                     Element existingMass = e;
                                     ElementId existingLevelId = existingMass.LevelId;
 
-                                    using (SubTransaction t = new SubTransaction(newDoc))
+                                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                                     {
                                         t.Start();
-                                        var val = newDoc.Delete(existingMass.Id);
+                                        var val = GlobalVariables.Document.Delete(existingMass.Id);
                                         t.Commit();
                                     }
                                 }
@@ -1415,7 +1749,7 @@ namespace SnaptrudeManagerAddin
                     FamilySymbol existingFamilySymbol = null;
                     if (revitId != null)
                     {
-                        using (SubTransaction t = new SubTransaction(newDoc))
+                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                         {
                             try
                             {
@@ -1430,7 +1764,7 @@ namespace SnaptrudeManagerAddin
                                     existingFamilySymbol = idToFamilySymbol[revitId];
 
                                     // delete original door
-                                    if (existingFamilyInstance.IsValidObject) newDoc.Delete(existingFamilyInstance.Id);
+                                    if (existingFamilyInstance.IsValidObject) GlobalVariables.Document.Delete(existingFamilyInstance.Id);
                                     t.Commit();
                                 }
                             }
@@ -1440,7 +1774,7 @@ namespace SnaptrudeManagerAddin
                             }
                         }
                     }
-                    using (SubTransaction transaction = new SubTransaction(newDoc))
+                    using (SubTransaction transaction = new SubTransaction(GlobalVariables.Document))
                     {
                         transaction.Start();
                         try
@@ -1479,7 +1813,7 @@ namespace SnaptrudeManagerAddin
                                 if (childUniqueIdToWallElementId.ContainsKey(uniqueId))
                                 {
                                     ElementId wallElementId = childUniqueIdToWallElementId[uniqueId];
-                                    wall = (Wall)newDoc.GetElement(wallElementId);
+                                    wall = (Wall)GlobalVariables.Document.GetElement(wallElementId);
                                 }
 
 
@@ -1491,7 +1825,7 @@ namespace SnaptrudeManagerAddin
                                     if (!defaultFamilySymbol.IsActive)
                                     {
                                         defaultFamilySymbol.Activate();
-                                        newDoc.Regenerate();
+                                        GlobalVariables.Document.Regenerate();
                                     }
                                 }
                                 else
@@ -1506,13 +1840,13 @@ namespace SnaptrudeManagerAddin
                                         }
                                     }
 
-                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
+                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, fsFamilyName, fsName);
                                 }
 
                                 if (!defaultFamilySymbol.IsActive)
                                 {
                                     defaultFamilySymbol.Activate();
-                                    newDoc.Regenerate();
+                                    GlobalVariables.Document.Regenerate();
                                 }
 
                                 // Check if familySymbol BuiltInParameter.DOOR_HEIGHT and  BuiltInParameter.DOOR_WIDTH
@@ -1532,7 +1866,7 @@ namespace SnaptrudeManagerAddin
                                     familySymbol = defaultFamilySymbol;
                                 }
 
-                                st_door.CreateDoor(newDoc, familySymbol, levelIdForWall, wall, direction);
+                                st_door.CreateDoor(GlobalVariables.Document, familySymbol, levelIdForWall, wall, direction);
 
                                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = st_door.instance.FindWidthAndHeightParameters();
                                 if (!setHeightAndWidthParamsInFamilySymbol)
@@ -1581,7 +1915,7 @@ namespace SnaptrudeManagerAddin
                     bool isExistingWindow = false;
                     FamilyInstance existingWindow = null;
                     FamilySymbol existingFamilySymbol = null;
-                    using (SubTransaction t = new SubTransaction(newDoc))
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
                         try
                         {
@@ -1597,7 +1931,7 @@ namespace SnaptrudeManagerAddin
                                 existingFamilySymbol = idToFamilySymbol[revitId];
 
                                 // delete original window
-                                if (existingWindow.IsValidObject) newDoc.Delete(existingWindow.Id);
+                                if (existingWindow.IsValidObject) GlobalVariables.Document.Delete(existingWindow.Id);
                                 t.Commit();
                             }
                         }
@@ -1607,7 +1941,7 @@ namespace SnaptrudeManagerAddin
                         }
                     }
 
-                    using (SubTransaction transaction = new SubTransaction(newDoc))
+                    using (SubTransaction transaction = new SubTransaction(GlobalVariables.Document))
                     {
                         transaction.Start();
                         try
@@ -1663,7 +1997,7 @@ namespace SnaptrudeManagerAddin
                                 if (childUniqueIdToWallElementId.ContainsKey(uniqueId))
                                 {
                                     ElementId wallElementId = childUniqueIdToWallElementId[uniqueId];
-                                    wall = (Wall)newDoc.GetElement(wallElementId);
+                                    wall = (Wall)GlobalVariables.Document.GetElement(wallElementId);
                                 }
 
                                 FamilySymbol familySymbol = null;
@@ -1674,7 +2008,7 @@ namespace SnaptrudeManagerAddin
                                     if (!defaultFamilySymbol.IsActive)
                                     {
                                         defaultFamilySymbol.Activate();
-                                        newDoc.Regenerate();
+                                        GlobalVariables.Document.Regenerate();
                                     }
 
                                     familySymbol = TrudeWindow.TypeStore.GetType(new double[] { heightScale, widthScale }, defaultFamilySymbol);
@@ -1686,7 +2020,7 @@ namespace SnaptrudeManagerAddin
                                         FamilyLoader.LoadCustomWindowFamily(fsFamilyName);
                                     }
 
-                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, fsFamilyName, fsName);
+                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, fsFamilyName, fsName);
 
                                     familySymbol = TrudeWindow.TypeStore.GetType(new double[] { height, width }, defaultFamilySymbol);
                                 }
@@ -1694,7 +2028,7 @@ namespace SnaptrudeManagerAddin
                                 if (!defaultFamilySymbol.IsActive)
                                 {
                                     defaultFamilySymbol.Activate();
-                                    newDoc.Regenerate();
+                                    GlobalVariables.Document.Regenerate();
                                 }
 
                                 // Check if familySymbol BuiltInParameter.DOOR_HEIGHT and  BuiltInParameter.DOOR_WIDTH
@@ -1714,7 +2048,7 @@ namespace SnaptrudeManagerAddin
                                     familySymbol = defaultFamilySymbol;
                                 }
 
-                                st_window.CreateWindow(newDoc, familySymbol, levelIdForWall, wall, direction);
+                                st_window.CreateWindow(GlobalVariables.Document, familySymbol, levelIdForWall, wall, direction);
 
                                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = st_window.instance.FindWidthAndHeightParameters();
                                 if (!setHeightAndWidthParamsInFamilySymbol)
@@ -1764,28 +2098,28 @@ namespace SnaptrudeManagerAddin
                         stairObj.Scaling = stairObj.Mesh["scaling"].Select(jv => (double)jv).ToArray();
                         stairObj.SnaptrudePosition = stairObj.Mesh["position"].Select(jv => UnitsAdapter.convertToRevit((double)jv)).ToArray();
                         stairObj.Type = stairObj.Props["staircaseType"].ToString();
-                        stairObj.levelBottom = (from lvl in new FilteredElementCollector(newDoc).
+                        stairObj.levelBottom = (from lvl in new FilteredElementCollector(GlobalVariables.Document).
                             OfClass(typeof(Level)).
                             Cast<Level>()
                                                 where (lvl.Id == LevelIdByNumber[int.Parse(stairObj.Props["storey"].ToString())])
                                                 select lvl).First();
-                        stairObj.levelTop = (from lvl in new FilteredElementCollector(newDoc).
+                        stairObj.levelTop = (from lvl in new FilteredElementCollector(GlobalVariables.Document).
                             OfClass(typeof(Level)).
                             Cast<Level>()
                                              where (lvl.Id == LevelIdByNumber[int.Parse(stairObj.Props["storey"].ToString()) + 1])
                                              select lvl).First();
 
-                        ElementId staircase = stairObj.CreateStairs(newDoc);
+                        ElementId staircase = stairObj.CreateStairs(GlobalVariables.Document);
                         Stairs currStair;
-                        using (StairsEditScope newStairsScope = new StairsEditScope(newDoc, "edit Stairs"))
+                        using (StairsEditScope newStairsScope = new StairsEditScope(GlobalVariables.Document, "edit Stairs"))
                         {
                             ElementId newStairsId = newStairsScope.Start(staircase);
-                            using (SubTransaction stairsTrans = new SubTransaction(newDoc))
+                            using (SubTransaction stairsTrans = new SubTransaction(GlobalVariables.Document))
                             {
                                 stairsTrans.Start();
-                                currStair = newDoc.GetElement(newStairsId) as Stairs;
+                                currStair = GlobalVariables.Document.GetElement(newStairsId) as Stairs;
                                 currStair.DesiredRisersNumber = int.Parse(stairObj.Props["steps"].ToString());
-                                StairsType stairsType = newDoc.GetElement(currStair.GetTypeId()) as StairsType;
+                                StairsType stairsType = GlobalVariables.Document.GetElement(currStair.GetTypeId()) as StairsType;
 
                                 StairsType newStairsType = stairsType.Duplicate("stairs_" + RandomString(5)) as StairsType;
 
@@ -1805,7 +2139,7 @@ namespace SnaptrudeManagerAddin
                         }
 
                         // DELETE EXISTING RAILINGS
-                        using(SubTransaction transactionDeleteRailings = new SubTransaction(newDoc))
+                        using(SubTransaction transactionDeleteRailings = new SubTransaction(GlobalVariables.Document))
                         {
                             transactionDeleteRailings.Start();
                             try
@@ -1814,7 +2148,7 @@ namespace SnaptrudeManagerAddin
                                 ICollection<ElementId> railingIds = currStair.GetAssociatedRailings();
                                 foreach (ElementId railingId in railingIds)
                                 {
-                                    newDoc.Delete(railingId);
+                                    GlobalVariables.Document.Delete(railingId);
                                 }
                                 transactionDeleteRailings.Commit();
 
@@ -1900,12 +2234,12 @@ namespace SnaptrudeManagerAddin
 
                         if (revitId != null)
                         {
-                            using (SubTransaction trans = new SubTransaction(newDoc))
+                            using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                             {
                                 trans.Start();
                                 try
                                 {
-                                    Element e = newDoc.GetElement(new ElementId(int.Parse(revitId)));
+                                    Element e = GlobalVariables.Document.GetElement(new ElementId(int.Parse(revitId)));
                                     isExistingFurniture = idToElement.TryGetValue(revitId, out Element _e);
 
                                     if (isExistingFurniture || e.IsValidObject)
@@ -1940,7 +2274,7 @@ namespace SnaptrudeManagerAddin
                                 }
                             }
                         }
-                        using (SubTransaction trans = new SubTransaction(newDoc))
+                        using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                         {
                             trans.Start();
 
@@ -1957,9 +2291,9 @@ namespace SnaptrudeManagerAddin
 
                                     XYZ existingInstanceCenter = (bbox.Max + bbox.Min).Divide(2);
 
-                                    ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingFamilyInstance.Id, existingInstanceCenter.Multiply(-1)).First();
+                                    ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingFamilyInstance.Id, existingInstanceCenter.Multiply(-1)).First();
 
-                                    st_interior.element = newDoc.GetElement(newId);
+                                    st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                                     BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                                     XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -1967,11 +2301,11 @@ namespace SnaptrudeManagerAddin
                                     double originalRotation = ((LocationPoint)existingFamilyInstance.Location).Rotation;
 
                                     LocationPoint pt = (LocationPoint)st_interior.element.Location;
-                                    ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                                    ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
 
-                                    ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
+                                    ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
 
-                                    ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                                    ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
 
                                     BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                                     XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
@@ -1982,7 +2316,7 @@ namespace SnaptrudeManagerAddin
                                         XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                                         XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                                         Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                                        var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                                        var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                                     }
 
                                     if (st_interior.Scaling.Z < 0)
@@ -1993,7 +2327,7 @@ namespace SnaptrudeManagerAddin
                                 else
                                 {
                                     ElementId levelId = LevelIdByNumber[st_interior.levelNumber];
-                                    Level level = (Level)newDoc.GetElement(levelId);
+                                    Level level = (Level)GlobalVariables.Document.GetElement(levelId);
                                     st_interior.CreateWithFamilySymbol(existingFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                                 }
                             }
@@ -2007,9 +2341,9 @@ namespace SnaptrudeManagerAddin
 
                                     XYZ center = (bbox.Max + bbox.Min).Divide(2);
 
-                                    ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingFamilyInstance.Id, center.Multiply(-1)).First();
+                                    ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingFamilyInstance.Id, center.Multiply(-1)).First();
 
-                                    st_interior.element = newDoc.GetElement(newId);
+                                    st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                                     BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                                     XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -2017,11 +2351,11 @@ namespace SnaptrudeManagerAddin
                                     double originalRotation = ((LocationPoint)existingFamilyInstance.Location).Rotation;
 
                                     LocationPoint pt = (LocationPoint)st_interior.element.Location;
-                                    ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                                    ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
 
-                                    ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
+                                    ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
 
-                                    ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                                    ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
 
                                     BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                                     XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
@@ -2032,7 +2366,7 @@ namespace SnaptrudeManagerAddin
                                         XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                                         XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                                         Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                                        var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                                        var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                                     }
 
                                     if (st_interior.Scaling.Z < 0)
@@ -2042,18 +2376,18 @@ namespace SnaptrudeManagerAddin
                                 }
                                 else
                                 {
-                                    FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, revitFamilyName, familyType);
+                                    FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, revitFamilyName, familyType);
                                     if (defaultFamilySymbol is null)
                                     {
-                                        defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, revitFamilyName);
+                                        defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, revitFamilyName);
                                     }
                                     if (!defaultFamilySymbol.IsActive)
                                     {
                                         defaultFamilySymbol.Activate();
-                                        newDoc.Regenerate();
+                                        GlobalVariables.Document.Regenerate();
                                     }
                                     ElementId levelId = LevelIdByNumber[st_interior.levelNumber];
-                                    Level level = (Level)newDoc.GetElement(levelId);
+                                    Level level = (Level)GlobalVariables.Document.GetElement(levelId);
 
                                     st_interior.CreateWithFamilySymbol(defaultFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                                 }
@@ -2067,9 +2401,9 @@ namespace SnaptrudeManagerAddin
                                 //XYZ center = (bbox.Max + bbox.Min).Divide(2);
                                 XYZ center = ((LocationPoint)existingAssemblyInstance.Location).Point;
 
-                                ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingAssemblyInstance.Id, center.Multiply(-1)).First();
+                                ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingAssemblyInstance.Id, center.Multiply(-1)).First();
 
-                                st_interior.element = newDoc.GetElement(newId);
+                                st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                                 BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                                 //XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -2078,11 +2412,11 @@ namespace SnaptrudeManagerAddin
 
                                 LocationPoint pt = (LocationPoint)st_interior.element.Location;
                                 XYZ centerNew = pt.Point;
-                                //ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                                //ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
 
-                                ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
+                                ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
 
-                                ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                                ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
 
                                 BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                                 //XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
@@ -2094,7 +2428,7 @@ namespace SnaptrudeManagerAddin
                                     XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                                     XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                                     Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                                    var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                                    var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                                 }
 
                                 if (st_interior.Scaling.Z < 0)
@@ -2111,9 +2445,9 @@ namespace SnaptrudeManagerAddin
                                 //XYZ center = (bbox.Max + bbox.Min).Divide(2);
                                 XYZ center = ((LocationPoint)existingGroup.Location).Point;
 
-                                ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingGroup.Id, center.Multiply(-1)).First();
+                                ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingGroup.Id, center.Multiply(-1)).First();
 
-                                st_interior.element = newDoc.GetElement(newId);
+                                st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                                 BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                                 //XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -2122,15 +2456,15 @@ namespace SnaptrudeManagerAddin
 
                                 LocationPoint pt = (LocationPoint)st_interior.element.Location;
                                 XYZ centerNew = pt.Point;
-                                //ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
-                                ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position - localOriginOffset);
+                                //ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                                ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position - localOriginOffset);
 
                                 XYZ centerAfterMove = ((LocationPoint)st_interior.element.Location).Point;
 
                                 if (st_interior.Scaling.Z < 0)
                                 {
                                     ElementTransformUtils.RotateElement(
-                                        newDoc,
+                                        GlobalVariables.Document,
                                         newId,
                                         Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
                                         st_interior.eulerAngles.heading);
@@ -2138,7 +2472,7 @@ namespace SnaptrudeManagerAddin
                                 else
                                 {
                                     ElementTransformUtils.RotateElement(
-                                        newDoc,
+                                        GlobalVariables.Document,
                                         newId,
                                         Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
                                         -st_interior.eulerAngles.heading);
@@ -2150,7 +2484,7 @@ namespace SnaptrudeManagerAddin
                                     XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                                     XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                                     Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                                    var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                                    var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                                 }
 
                                 if (st_interior.Scaling.Z < 0)
@@ -2164,35 +2498,35 @@ namespace SnaptrudeManagerAddin
                                 String familyName = st_interior.FamilyName;
                                 if (familyName is null) familyName = st_interior.FamilyTypeName;
 
-                                FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
-                                //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, "Casework Assembly", "Casework 044");
+                                FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
+                                //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(GlobalVariables.Document, "Casework Assembly", "Casework 044");
                                 if (defaultFamilySymbol is null)
                                 {
                                     Family family = FamilyLoader.LoadCustomFamily(familyName);
-                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
+                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
                                     if (defaultFamilySymbol == null)
                                     {
-                                        defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName.Replace("_", " "));
+                                        defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName.Replace("_", " "));
                                     }
                                 }
 
                                 if (!defaultFamilySymbol.IsActive)
                                 {
                                     defaultFamilySymbol.Activate();
-                                    newDoc.Regenerate();
+                                    GlobalVariables.Document.Regenerate();
                                 }
                                 ElementId levelId;
                                 if (LevelIdByNumber.ContainsKey(st_interior.levelNumber))
                                     levelId = LevelIdByNumber[st_interior.levelNumber];
                                 else
                                     levelId = LevelIdByNumber.First().Value;
-                                Level level = (Level)newDoc.GetElement(levelId);
+                                Level level = (Level)GlobalVariables.Document.GetElement(levelId);
 
                                 st_interior.CreateWithFamilySymbol(defaultFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                             }
                             if (st_interior.element is null)
                             {
-                                st_interior.CreateWithDirectShape(newDoc);
+                                st_interior.CreateWithDirectShape(GlobalVariables.Document);
                             }
 
                             try
@@ -2200,7 +2534,7 @@ namespace SnaptrudeManagerAddin
                                 if (isExistingFurniture)
                                 {
                                     // delete original furniture
-                                    //if (existingFamilyInstance.IsValidObject) newDoc.Delete(existingFamilyInstance.Id);
+                                    //if (existingFamilyInstance.IsValidObject) GlobalVariables.Document.Delete(existingFamilyInstance.Id);
                                     if (existingFamilyInstance != null) sourcesIdsToDelete.Add(existingFamilyInstance.Id);
                                     if (existingAssemblyInstance != null) sourcesIdsToDelete.Add(existingAssemblyInstance.Id);
                                     if (existingGroup != null) sourcesIdsToDelete.Add(existingGroup.Id);
@@ -2229,10 +2563,10 @@ namespace SnaptrudeManagerAddin
                 }
                 try
                 {
-                    using (SubTransaction t = new SubTransaction(newDoc))
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
                         t.Start();
-                        newDoc.Delete(sourcesIdsToDelete);
+                        GlobalVariables.Document.Delete(sourcesIdsToDelete);
                         t.Commit();
                     }
                 }
