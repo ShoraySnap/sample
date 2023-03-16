@@ -38,15 +38,13 @@ namespace TrudeImporter
             return profile;
         }
 
-        public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, Level level, double height = -1, double baseOffset = 0)
+        public Wall CreateWall(Document newDoc, IList<Curve> profile, ElementId wallTypeId, Level level, double height, double baseOffset)
         {
             wall = Wall.Create(newDoc, profile, wallTypeId, level.Id, false);
 
             if (height > 0)
             {
                 Parameter top_constraint_param = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-                top_constraint_param.Set("Unconnected");
-                top_constraint_param.SetValueString("Unconnected");
                 top_constraint_param.Set(ElementId.InvalidElementId);
 
                 Parameter heightParam = wall.LookupParameter("Unconnected Height");

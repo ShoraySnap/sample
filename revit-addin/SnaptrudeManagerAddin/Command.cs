@@ -661,7 +661,7 @@ namespace SnaptrudeManagerAddin
                                     }
                                     if (isWeworksMessedUpStackedWall)
                                     {
-                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level);
+                                        st_wall.wall = st_wall.CreateWall(newDoc, profile, wallType.Id, level, height, baseHeight);
                                     }
                                     else
                                     {
