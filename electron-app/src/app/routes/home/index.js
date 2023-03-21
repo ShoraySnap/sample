@@ -10,6 +10,8 @@ import RowButton from "../../components/RowButton";
 import {BUTTONS, ROUTES} from "../constants";
 import {useNavigate} from "react-router-dom";
 import urls from "../../services/urls";
+import snaptrudeService from "../../services/snaptrude.service";
+import LoadingScreen from "../../components/Loader";
 
 const openLoginPageInBrowser = () => {
   const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=true";
@@ -103,6 +105,13 @@ const Home = () => {
   
   const userData = sessionData.getUserData();
   // console.log(userData.fullname, "is logged in");
+
+  const isUserLoggedIn = async() => {
+    const response = await snaptrudeService.checkIfUserLoggedIn();
+    if(response === null){
+      flushUserData();
+    }
+  }
   
   const isLoggedIn = !!userData.accessToken;
   const initState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
@@ -110,11 +119,24 @@ const Home = () => {
   if (isLoggedIn) updateTemplatesWithUserData();
   
   const [buttons, setButtons] = useState(initState);
+
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
+    if(isLoggedIn){
+      setIsLoading(true);
+      isUserLoggedIn().then(()=>{
+        const userData = sessionData.getUserData()
+        const isLoggedIn = !!userData.accessToken;
+        const currentState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
+        setButtons(currentState);
+        if (isLoggedIn) updateTemplatesWithUserData();
+        setIsLoading(false);
+      })
+    }
+    
     window.electronAPI.handleSuccessfulLogin((event) => {
       updateTemplatesWithUserData();
-      
       setButtons(buttonsAfterLogin);
     });
     
@@ -123,6 +145,7 @@ const Home = () => {
   
   return (
     <Column>
+    {isLoading ? <LoadingScreen/> :
       <Rows>
         {buttons.map((button, i) => {
           
@@ -141,7 +164,7 @@ const Home = () => {
             />
           )
         })}
-      </Rows>
+      </Rows>}
     </Column>
   );
 }

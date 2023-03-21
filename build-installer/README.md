@@ -3,6 +3,7 @@
 - In the update script, be sure to check which lines are uncommented
 - Verify the installers being bundled
 - Place the installers on the drive
+- Set the dynamo script version to be used in the `dynamo_script_version.txt` file.
 
 ## On feature branches
 
