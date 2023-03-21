@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\XyzConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\LayerProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\StoreyProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SubMeshProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\TrudeProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\WallProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeBeam.cs" />

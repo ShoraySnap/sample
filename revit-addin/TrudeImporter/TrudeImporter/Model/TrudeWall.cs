@@ -121,7 +121,7 @@ namespace TrudeImporter
             return null;
         }
 
-        public void ApplyMaterialByFace( Document document, String materialNameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        public void ApplyMaterialByFace( Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall )
         {
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
@@ -150,17 +150,14 @@ namespace TrudeImporter
             //Dictionary that has Revit Face And The Material Index to Be Applied For It.
             IDictionary <Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
 
-            foreach (JToken subMesh in subMeshes)
+            foreach (SubMeshProperties subMesh in subMeshes)
             {
-                XYZ _normalInXYZFormat = TrudeRepository.ArrayToXYZ(subMesh["normal"], false).Round(3);
-                int _materialIndex = (int)subMesh["materialIndex"];
-
-                String key = _normalInXYZFormat.Stringify();
+                String key = subMesh.Normal.Stringify();
                 if (normalToRevitFace.ContainsKey(key))
                 {
                     Face revitFace = normalToRevitFace[key];
 
-                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
                 }
                 else
                 {
@@ -168,7 +165,7 @@ namespace TrudeImporter
                     double leastDistance = Double.MaxValue;
                     foreach (XYZ normal in revitFaceNormals)
                     {
-                        double distance = _normalInXYZFormat.MultiplyEach(Scaling).DistanceTo(normal);
+                        double distance = subMesh.Normal.MultiplyEach(Scaling).DistanceTo(normal);
                         if (distance < leastDistance)
                         {
                             leastDistance = distance;
@@ -178,7 +175,7 @@ namespace TrudeImporter
 
                     Face revitFace = normalToRevitFace[key];
 
-                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, _materialIndex);
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
                 }
             }
 
@@ -188,8 +185,7 @@ namespace TrudeImporter
             
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
-                String _materialName = null;
-                _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, subMeshes, materials, multiMaterials, face.Value);
+                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
 
                 Autodesk.Revit.DB.Material _materialElement = null;
 

@@ -7,11 +7,14 @@ namespace TrudeImporter
 {
     public class WallProperties
     {
+        [JsonProperty("storey")]
+        public int Storey { get; set; }
+
         [JsonProperty("profile")]
         public List<XYZ> ProfilePoints { get; set; }
 
         [JsonProperty("normal")]
-        int Normal { get; set; }
+        XYZ Normal { get; set; }
 
         [JsonProperty("holes")]
         public List<List<XYZ>> Holes { get; set; }
@@ -19,8 +22,8 @@ namespace TrudeImporter
         [JsonProperty("layers")]
         public List<LayerProperties> Layers { get; set; }
 
-        [JsonProperty("thickness")]
-        public double Thickness { get; set; }
+        [JsonProperty("thicknessInMm")]
+        public double ThicknessInMm { get; set; }
 
         [JsonProperty("baseHeight")]
         public int BaseHeight { get; set; }
@@ -47,5 +50,14 @@ namespace TrudeImporter
 
         [JsonProperty("sourceElementId")]
         public string SourceElementId { get; set; }
+
+        [JsonProperty("subMeshes")]
+        public List<SubMeshProperties> SubMeshes { get; set; }
+
+        [JsonProperty("revitFamily")]
+        public string RevitFamily { get; set; }
+
+        [JsonProperty("childrenUniqueIds")]
+        public List<int> ChildrenUniqueIds { get; set; }
     }
 }

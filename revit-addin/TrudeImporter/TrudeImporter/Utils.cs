@@ -8,15 +8,11 @@ namespace TrudeImporter
 {
     public class Utils
     {
-        public static String getMaterialNameFromMaterialId ( String materialnameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, int materialIndex )
+        public static String getMaterialNameFromMaterialId (String materialnameWithId, JArray materials, JArray multiMaterials, int materialIndex)
         {
             if(materialnameWithId == null)
             {
                 return null;
-            }
-            if(subMeshes == null)
-            {
-                subMeshes = new JArray();
             }
 
             if (materials is null)
@@ -31,8 +27,6 @@ namespace TrudeImporter
 
             String materialName = null;
             
-            //materialIndex = (int)subMeshes[0]["materialIndex"];
-
             foreach ( JToken eachMaterial in materials ){
 
                 if ( materialnameWithId == (String)eachMaterial["id"] )
