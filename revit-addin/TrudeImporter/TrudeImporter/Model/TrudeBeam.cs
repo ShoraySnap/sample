@@ -32,13 +32,18 @@ namespace TrudeImporter
         public static TrudeBeam FromMassData(JToken massData)
         {
             TrudeBeam st_beam = new TrudeBeam();
+            BeamProperties beamProperties = new BeamProperties();
 
+            beamProperties = massData["beams"].ToObject<BeamProperties>();
+
+            System.Diagnostics.Debug.WriteLine(beamProperties);
             st_beam.Name                = TrudeRepository.GetName(massData);
             st_beam.Position            = TrudeRepository.GetPosition(massData);
             st_beam.CenterPosition      = TrudeRepository.GetCenterPosition(massData);
             st_beam.levelNumber         = TrudeRepository.GetLevelNumber(massData);
             st_beam.vertices            = TrudeRepository.GetVertices(massData, 6);
             st_beam.height              = TrudeRepository.GetBeamHeight(massData);
+            st_beam.length              = TrudeRepository.GetBeamLenght(massData);
 
             // Get global face vertices
             foreach (var point in massData["faceVertices"])
@@ -90,7 +95,7 @@ namespace TrudeImporter
                     bottomFaceRotatedX = rotatedPoint.X;
                 }
             }
-            st_beam.CalculateLength(rotatedVertices);
+            //st_beam.CalculateLength(rotatedVertices);
 
             if (bottomFaceRotatedX > topFaceRotatedX) st_beam.inverseDirection = true;
 

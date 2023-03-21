@@ -84,6 +84,11 @@ namespace TrudeImporter
             return (double)data["height"];
         }
 
+        public static double GetBeamLenght(JToken data)
+        {
+            return (double)data["lenght"];
+        }
+
         public static List<XYZ> GetVertices(JToken data, int precision = 8, double[] scale = null)
         {
             JToken vertexData = data["geometries"]["vertexData"].First;

@@ -11,6 +11,9 @@ namespace TrudeImporter
         [JsonProperty("walls")]
         public List<WallProperties> Walls { get; set; }
 
+        [JsonProperty("beams")]
+        public List<BeamProperties> Beams { get; set; }
+
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
     }
