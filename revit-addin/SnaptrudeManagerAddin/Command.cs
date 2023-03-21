@@ -22,6 +22,7 @@ namespace SnaptrudeManagerAddin
     public class Command : IExternalCommand
     {
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
+        public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
 
         public static JArray materials;
         public static JArray multiMaterials;
@@ -97,12 +98,11 @@ namespace SnaptrudeManagerAddin
             JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
 
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
-            JToken walls = trudeData["walls"];
-            JToken profile = walls[0]["profile"];
             serializer.Converters.Add(new XyzConverter());
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             ImportStories(trudeProperties.Storeys);
+            ImportWalls(trudeProperties.Walls);
 
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
@@ -115,8 +115,6 @@ namespace SnaptrudeManagerAddin
         private void ImportWalls(List<WallProperties> propsList)
         {
             int wallCount = 0;
-
-            IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
 
             Dictionary<int, Exception> failedWalls = new Dictionary<int, Exception>();
 
@@ -170,7 +168,7 @@ namespace SnaptrudeManagerAddin
 
                             st_wall.Layers = props.Layers.Select(layer => layer.ToTrudeLayer(props.Type)).ToArray();
 
-                            st_wall.levelNumber = int.Parse(wallMeshDataforLevel["storey"].ToString());
+                            st_wall.levelNumber = props.Storey;
 
                             IList<Curve> profile = TrudeWall.GetProfile(props.ProfilePoints);
 
@@ -181,8 +179,7 @@ namespace SnaptrudeManagerAddin
                                 if (st_wall.Layers[i].IsCore)
                                 {
                                     coreIsFound = true;
-                                    //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                                    if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
+                                    st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(props.ThicknessInMm);
                                 }
                             }
 
@@ -191,7 +188,7 @@ namespace SnaptrudeManagerAddin
                                 int index = (int)(st_wall.Layers.Length / 2);
 
                                 st_wall.Layers[index].IsCore = true;
-                                if (thickness > 0) st_wall.Layers[index].ThicknessInMm = thickness;
+                                st_wall.Layers[index].ThicknessInMm = UnitsAdapter.FeetToMM(props.ThicknessInMm);
                             }
 
                             ElementId levelIdForWall;
@@ -200,7 +197,7 @@ namespace SnaptrudeManagerAddin
 
                             if (existingWall == null)
                             {
-                                string familyName = (string)wallData["dsProps"]["revitMetaData"]["family"];
+                                string familyName = props.RevitFamily;
 
                                 FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
                                 WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
@@ -214,17 +211,16 @@ namespace SnaptrudeManagerAddin
                                     }
                                 }
 
-                                bool isWeworksMessedUpStackedWall = IsStackedWall(props) && IsParentStackedWall(props);
-
                                 if (wallType is null)
                                 {
                                     wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
                                 }
-                                else if (!AreLayersSame(st_wall.Layers, wallType) && !isWeworksMessedUpStackedWall)
+                                else if (!AreLayersSame(st_wall.Layers, wallType) && !props.IsStackedWallParent)
                                 {
                                     wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
                                 }
-                                if (isWeworksMessedUpStackedWall)
+
+                                if (props.IsStackedWallParent)
                                 {
                                     st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
                                 }
@@ -236,12 +232,11 @@ namespace SnaptrudeManagerAddin
                             else
                             {
                                 bool areLayersSame = AreLayersSame(st_wall.Layers, existingWallType);
-                                bool isWeworksMessedUpStackedWall = IsStackedWall(props) && IsParentStackedWall(props);
 
-                                if (areLayersSame || isWeworksMessedUpStackedWall)
+                                if (areLayersSame || props.IsStackedWallParent)
                                 {
                                     st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
-                                    if (isWeworksMessedUpStackedWall)
+                                    if (props.IsStackedWallParent)
                                     {
                                         var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                                         var newHeightParam = st_wall.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
@@ -260,14 +255,14 @@ namespace SnaptrudeManagerAddin
                             // Create holes
                             GlobalVariables.Document.Regenerate();
 
-                            foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
+                            foreach (List<XYZ> hole in props.Holes)
                             {
                                 try
                                 {
                                     // Create cutting family
                                     VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
                                     string familyName = "snaptrudeVoidFamily" + RandomString(4);
-                                    Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
+                                    Plane plane = Plane.CreateByThreePoints(props.ProfilePoints[0], props.ProfilePoints[1], props.ProfilePoints[2]);
 
                                     // Project points on to the plane to make sure all the points are co-planar.
                                     // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
@@ -298,25 +293,11 @@ namespace SnaptrudeManagerAddin
                             GlobalVariables.Document.Regenerate();
                             try
                             {
-                                JArray subMeshes = null;
-                                //try
-                                //{
-                                //    if (wallData["meshes"][0]["subMeshes"].IsNullOrEmpty())
-                                //    {
-                                //        subMeshes = wallData["subMeshes"].Value<JArray>();
-                                //    }
-                                //    else
-                                //    {
-                                //        subMeshes = wallData["meshes"][0]["subMeshes"].Value<JArray>();
-                                //    }
-                                //}
-                                //catch { }
-                                if (subMeshes.Count == 1)
+                                if (props.SubMeshes.Count == 1)
                                 {
-                                    int _materialIndex = (int)subMeshes[0]["materialIndex"];
+                                    int _materialIndex = props.SubMeshes.First().MaterialIndex;
                                     String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
                                         props.MaterialName,
-                                        subMeshes,
                                         materials,
                                         multiMaterials,
                                         _materialIndex);
@@ -359,7 +340,7 @@ namespace SnaptrudeManagerAddin
                                 }
                                 else
                                 {
-                                    st_wall.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, subMeshes, materials, multiMaterials, st_wall.wall);
+                                    st_wall.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, materials, multiMaterials, st_wall.wall);
                                 }
 
                             }
@@ -390,7 +371,7 @@ namespace SnaptrudeManagerAddin
                             LogTrace("wall created");
                             wallCount++;
 
-                            foreach (JToken childUID in wallData["meshes"][0]["childrenComp"])
+                            foreach (JToken childUID in props.ChildrenUniqueIds)
                             {
                                 childUniqueIdToWallElementId.Add((int)childUID, wallId);
                             }
@@ -401,7 +382,7 @@ namespace SnaptrudeManagerAddin
 
                                 if (props.SourceElementId != null)
                                 {
-                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(sourceElementId)));
+                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
                                 }
 
                                 if (existingWall != null)
@@ -421,7 +402,6 @@ namespace SnaptrudeManagerAddin
                         catch (Exception e)
                         {
                             LogTrace("Error in creating wall", e.ToString());
-                            failedWalls.Add(uniqueId, e);
                         }
                     }
                 }
@@ -845,407 +825,7 @@ namespace SnaptrudeManagerAddin
                 JToken walls = geometryParent["walls"];
                 int wallCount = 0;
 
-                IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
-
                 Dictionary<int, Exception> failedWalls = new Dictionary<int, Exception>();
-
-
-                int wallsProcessed = 0;
-                foreach (JToken wall in walls)
-                {
-                    wallsProcessed++;
-                    if (!ShouldImport(wall)) continue;
-                    if (IsStackedWall(wall) && !IsParentStackedWall(wall)) continue;
-                    try
-                    {
-
-                        JToken wallData = wall.First;
-                        int uniqueId = (int)wallData["dsProps"]["uniqueID"];
-
-                        string revitId = (string)wallData["dsProps"]["revitMetaData"]["elementId"];
-
-                        string sourceElementId = null;
-                        try
-                        {
-                            if (!wallData["dsProps"]["revitMetaData"]["sourceElementId"].IsNullOrEmpty())
-                                sourceElementId = (string)wallData["dsProps"]["revitMetaData"]["sourceElementId"];
-                        }
-                        catch { }
-
-                        Wall existingWall = null;
-                        ElementId existingLevelId = null;
-                        WallType existingWallType = null;
-                        if (revitId != null)
-                        {
-                            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                            {
-                                try
-                                {
-                                    t.Start();
-
-                                    Element e;
-                                    bool isExistingWall = idToElement.TryGetValue(revitId, out e);
-                                    if (isExistingWall)
-                                    {
-                                        existingWall = (Wall)e;
-                                        existingLevelId = existingWall.LevelId;
-                                        existingWallType = existingWall.WallType;
-
-                                        // delete original wall
-                                        //var val = GlobalVariables.Document.Delete(existingWall.Id);
-                                        t.Commit();
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    LogTrace(e.Message);
-                                }
-                            }
-                        }
-
-                        processedElements++;
-                        LogProgress(processedElements, totalElements);
-
-                        using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
-                        {
-                            TrudeWall st_wall = new TrudeWall();
-                            trans.Start();
-                            try
-                            {
-                                if (IsThrowAway(wallData))
-                                {
-                                    continue;
-                                }
-
-                                String _materialNameWithId = (String)wallData["meshes"][0]["materialId"];
-
-                                if (_materialNameWithId == null || _materialNameWithId == String.Empty)
-                                {
-                                    _materialNameWithId = (String)wallData["materialName"];
-                                }
-
-                                JArray subMeshes = null;
-
-                                try
-                                {
-                                    if (wallData["meshes"][0]["subMeshes"].IsNullOrEmpty())
-                                    {
-                                        subMeshes = wallData["subMeshes"].Value<JArray>();
-                                    }
-                                    else
-                                    {
-                                        subMeshes = wallData["meshes"][0]["subMeshes"].Value<JArray>();
-                                    }
-                                } catch { }
-
-                                List<Point3D> profilePoints = new List<Point3D>();
-                                
-                                foreach(JToken pointArray in wallData["profile"])
-                                {
-                                    profilePoints.Add(TrudeRepository.ArrayToXYZ(pointArray).ToPoint3D());
-                                }
-
-                                double baseHeight = UnitsAdapter.convertToRevit(wallData["baseHeight"]);
-                                double height = UnitsAdapter.convertToRevit(wallData["height"]);
-
-                                bool hasChildComponents = wallData["meshes"][0]["childrenComp"].HasValues;
-                                bool useOriginalMesh = wallData["useOriginalMesh"] is null
-                                                     ? hasChildComponents
-                                                     : (bool)wallData["useOriginalMesh"];
-                                useOriginalMesh = false;
-
-                                JToken wallDsProps = wallData["dsProps"];
-
-                                JToken wallMeshDataforLevel = wallData["meshes"].First;
-
-                                JToken wallMeshData = useOriginalMesh
-                                                    ? wallDsProps["originalWallMesh"]["meshes"].First
-                                                    : wallData["meshes"].First;
-
-                                st_wall.Name = wallMeshData["name"].ToString();
-
-                                st_wall.Geom_ID = wallMeshData["geometryId"] is null
-                                                ? "WallInstance"
-                                                : wallMeshData["geometryId"].ToString();
-
-                                st_wall.Position = useOriginalMesh
-                                                 ? TrudeRepository.ArrayToXYZ(wallMeshDataforLevel["position"])
-                                                 : TrudeRepository.ArrayToXYZ(wallMeshData["position"]);
-
-                                float thickness = wallData["thickness"] is null ? -1 : (float) wallData["thickness"];
-
-                                if (thickness > 0)
-                                    st_wall.Layers = TrudeRepository.GetLayers(wallData, thickness);
-                                else
-                                    st_wall.Layers = TrudeRepository.GetLayers(wallData);
-
-                                st_wall.Scaling = TrudeRepository.GetScaling(wallData);
-
-                                if (wallMeshDataforLevel["storey"] == null)
-                                {
-                                    continue;
-                                }
-
-                                st_wall.levelNumber = int.Parse(wallMeshDataforLevel["storey"].ToString());
-
-                                List<XYZ> profilePointsXYZ = profilePoints.Select(p => p.ToXYZ()).ToList();
-                                IList<Curve> profile = TrudeWall.GetProfile(profilePointsXYZ);
-
-                                // Calculate and set thickness
-                                string wallDirection = wallData["dsProps"]["direction"].Value<string>();
-
-                                bool coreIsFound = false;
-                                //TODO remove this loop after wall core layer thickness is fixed after doing freemove
-                                for (int i = 0; i < st_wall.Layers.Length; i++)
-                                {
-                                    if (st_wall.Layers[i].IsCore)
-                                    {
-                                        coreIsFound = true;
-                                        //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                                        if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
-                                    }
-                                }
-
-                                if (!coreIsFound)
-                                {
-                                    int index = (int)(st_wall.Layers.Length / 2);
-
-                                    //double sumOfOtherThicknesses = 0;
-                                    //for (int i = 0; i < st_wall.Layers.Length; i++)
-                                    //{
-                                    //    if (i == index) continue;
-
-                                    //    sumOfOtherThicknesses += st_wall.Layers[i].ThicknessInMm;
-                                    //}
-
-                                    //st_wall.Layers[index].ThicknessInMm = UnitsAdapter.FeetToMM(thickness) - sumOfOtherThicknesses;
-                                    st_wall.Layers[index].IsCore = true;
-                                    if (thickness > 0) st_wall.Layers[index].ThicknessInMm = thickness;
-                                }
-
-                                ElementId levelIdForWall;
-                                levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
-                                Level level = (Level) GlobalVariables.Document.GetElement(levelIdForWall);
-
-                                if (existingWall == null)
-                                {
-                                    string familyName = (string)wallData["dsProps"]["revitMetaData"]["family"];
-
-                                    FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
-                                    WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
-
-                                    foreach (WallType wt in collector.ToElements())
-                                    {
-                                        if (wt.Name == familyName)
-                                        {
-                                            wallType = wt;
-                                            break;
-                                        }
-                                    }
-
-                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
-
-                                    if (wallType is null)
-                                    {
-                                        wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
-                                    }
-                                    else if (!AreLayersSame(st_wall.Layers, wallType) && !isWeworksMessedUpStackedWall)
-                                    {
-                                        wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document);
-                                    }
-                                    if (isWeworksMessedUpStackedWall)
-                                    {
-                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
-                                    }
-                                    else
-                                    {
-                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
-                                    }
-                                }
-                                else
-                                {
-                                    bool areLayersSame = AreLayersSame(st_wall.Layers, existingWallType);
-                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
-
-                                    if (areLayersSame || isWeworksMessedUpStackedWall)
-                                    {
-                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
-                                        if (isWeworksMessedUpStackedWall)
-                                        {
-                                            var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-                                            var newHeightParam = st_wall.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-                                            if (!newHeightParam.IsReadOnly) newHeightParam.SetValueString(existingHeightParam.AsValueString());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        WallType wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, GlobalVariables.Document, existingWallType);
-
-                                        st_wall.wall = st_wall.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
-                                    }
-                                }
-                                ElementId wallId = st_wall.wall.Id;
-
-                                // Create holes
-                                GlobalVariables.Document.Regenerate();
-
-                                foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
-                                {
-                                    try
-                                    {
-                                        // Create cutting family
-                                        VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
-                                        string familyName = "snaptrudeVoidFamily" + RandomString(4);
-                                        Plane plane = Plane.CreateByThreePoints(profilePointsXYZ[0], profilePointsXYZ[1], profilePointsXYZ[2]);
-
-                                        // Project points on to the plane to make sure all the points are co-planar.
-                                        // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
-                                        // this is especially true for walls that are rotated.
-                                        List<XYZ> projectedPoints = new List<XYZ>();
-                                        projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
-
-                                        voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, st_wall.wall.WallType.Width, plane);
-                                        GlobalVariables.Document.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
-
-                                        FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
-
-                                        if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
-
-                                        FamilyInstance cuttingFamilyInstance = GlobalVariables.Document.Create.NewFamilyInstance(
-                                            XYZ.Zero,
-                                            cuttingFamilySymbol,
-                                            Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-                                        InstanceVoidCutUtils.AddInstanceVoidCut(GlobalVariables.Document, st_wall.wall, cuttingFamilyInstance);
-                                    }
-                                    catch
-                                    {
-
-                                    }
-                                }
-
-                                GlobalVariables.Document.Regenerate();
-                                try
-                                {
-                                    if(subMeshes.Count == 1)
-                                    {
-                                        int _materialIndex = (int)subMeshes[0]["materialIndex"];
-                                        String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                                            _materialNameWithId,
-                                            subMeshes,
-                                            _materials,
-                                            _multiMaterials,
-                                            _materialIndex);
-
-                                        FilteredElementCollector materialCollector =
-                                            new FilteredElementCollector(GlobalVariables.Document)
-                                            .OfClass(typeof(Autodesk.Revit.DB.Material));
-
-                                        IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
-
-                                        Autodesk.Revit.DB.Material _materialElement = null;
-
-                                        foreach (var materialElement in materialsEnum)
-                                        {
-                                            String matName = materialElement.Name;
-                                            if (matName.Replace("_", " ") == snaptrudeMaterialName)
-                                            {
-                                                _materialElement = materialElement;
-                                                break;
-                                            }
-                                        }
-                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass")) {
-                                            foreach (var materialElement in materialsEnum)
-                                            {
-                                                String matName = materialElement.Name;
-                                                if (matName.ToLower().Contains("glass"))
-                                                {
-                                                    _materialElement = materialElement;
-                                                    break;
-                                                }
-                                            }
-                                        }
-
-                                        if (_materialElement != null)
-                                        {
-                                            st_wall.ApplyMaterialByObject(GlobalVariables.Document, st_wall.wall, _materialElement);
-                                        }
-                                       
-                                    }
-                                    else
-                                    {
-                                        st_wall.ApplyMaterialByFace(GlobalVariables.Document, _materialNameWithId, subMeshes, _materials, _multiMaterials, st_wall.wall);
-                                    }
-                                    
-                                }
-                                catch {
-                                    LogTrace("Failed to set wall material");
-                                }
-
-                                WallType _wallType = st_wall.wall.WallType;
-
-                                TransactionStatus transactionStatus = trans.Commit();
-
-                                // For some reason in a few rare cases, some transactions rolledback when walls are joined.
-                                // This handles those cases to create the wall without being joined.
-                                // This is not a perfect solution, ideally wall should be joined.
-                                if (transactionStatus == TransactionStatus.RolledBack)
-                                {
-                                    trans.Start();
-                                    st_wall.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
-                                    wallId = st_wall.wall.Id;
-
-                                    WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
-                                    WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 1);
-
-                                    transactionStatus = trans.Commit();
-                                }
-
-                                LogTrace("wall created");
-                                wallCount++;
-
-                                foreach (JToken childUID in wallData["meshes"][0]["childrenComp"])
-                                {
-                                    childUniqueIdToWallElementId.Add((int)childUID, wallId);
-                                }
-
-                                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                                {
-                                    t.Start();
-
-                                    if (sourceElementId != null)
-                                    {
-                                        GlobalVariables.Document.Delete(new ElementId(int.Parse(sourceElementId)));
-                                    }
-
-                                    if (existingWall != null)
-                                    {
-                                        try
-                                        {
-                                            var val = GlobalVariables.Document.Delete(existingWall.Id);
-                                        }
-                                        catch { }
-                                    }
-
-                                    var transstatus = t.Commit();
-
-                                    LogTrace(transstatus.ToString());
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                LogTrace("Error in creating wall", e.ToString());
-                                failedWalls.Add(uniqueId, e);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        LogTrace(e.Message);
-                    }
-                }
-                TrudeWall.TypeStore.Clear();
-                LogTrace("Walls Success");
 
                 //FLOORS
                 JToken floors = geometryParent["floors"];
@@ -1280,7 +860,7 @@ namespace SnaptrudeManagerAddin
                         subMeshes = floorData["meshes"][0]["subMeshes"].Value<JArray>();
                     }
 
-                    String _materialName = Utils.getMaterialNameFromMaterialId(_materialNameWithId, subMeshes, _materials, _multiMaterials, 0);
+                    String _materialName = Utils.getMaterialNameFromMaterialId(_materialNameWithId, _materials, _multiMaterials, 0);
 
                     FilteredElementCollector collector1 = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(Autodesk.Revit.DB.Material));
 

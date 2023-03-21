@@ -11,15 +11,15 @@ namespace TrudeImporter
         [JsonProperty("value")]
         public string Name { get; set; }
 
-        [JsonProperty("thickness")]
-        public double Thickness { get; set; }
+        [JsonProperty("thicknessInMm")]
+        public double ThicknessInMm { get; set; }
 
-        [JsonProperty("core")]
+        [JsonProperty("isCore")]
         public bool IsCore { get; set; }
 
         public TrudeLayer ToTrudeLayer(string type = "DefaultType")
         {
-            return new TrudeLayer(type, Name, Thickness, IsCore);
+            return new TrudeLayer(type, Name, ThicknessInMm, IsCore);
         }
     }
 }
