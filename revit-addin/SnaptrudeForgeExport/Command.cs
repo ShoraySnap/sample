@@ -431,7 +431,7 @@ namespace SnaptrudeForgeExport
                                 if (transactionStatus == TransactionStatus.RolledBack)
                                 {
                                     trans.Start();
-                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, level, height);
+                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, level, height, baseHeight);
                                     wallId = st_wall.wall.Id;
 
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
