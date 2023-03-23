@@ -179,7 +179,7 @@ namespace SnaptrudeManagerAddin
                                 if (st_wall.Layers[i].IsCore)
                                 {
                                     coreIsFound = true;
-                                    st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(props.ThicknessInMm);
+                                    st_wall.Layers[i].ThicknessInMm = props.ThicknessInMm;
                                 }
                             }
 
@@ -188,7 +188,7 @@ namespace SnaptrudeManagerAddin
                                 int index = (int)(st_wall.Layers.Length / 2);
 
                                 st_wall.Layers[index].IsCore = true;
-                                st_wall.Layers[index].ThicknessInMm = UnitsAdapter.FeetToMM(props.ThicknessInMm);
+                                st_wall.Layers[index].ThicknessInMm = props.ThicknessInMm;
                             }
 
                             ElementId levelIdForWall;
