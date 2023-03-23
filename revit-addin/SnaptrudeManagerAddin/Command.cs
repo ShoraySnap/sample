@@ -448,31 +448,31 @@ namespace SnaptrudeManagerAddin
             {
                 TrudeStorey newStorey = new TrudeStorey(props);
 
-                if (props.RevitElementId == 0)
+                if (props.LowerLevelElementId != 0)
                 {
-                    try
-                    {
-
-                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                        {
-                            t.Start();
-
-                            newStorey.CreateLevel(GlobalVariables.Document);
-                            LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
-
-                            t.Commit();
-                        }
-
-                    }
-                    catch (Exception e)
-                    {
-                        LogTrace(e.Message);
-                    }
-                }
-                else
-                {
-                    ElementId elementId = new ElementId(props.RevitElementId);
+                    ElementId elementId = new ElementId(props.LowerLevelElementId);
                     LevelIdByNumber.Add(newStorey.levelNumber, elementId);
+
+                    break;
+                }
+
+                try
+                {
+
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    {
+                        t.Start();
+
+                        newStorey.CreateLevel(GlobalVariables.Document);
+                        LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
+
+                        t.Commit();
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    LogTrace(e.Message);
                 }
             }
             LogTrace("storey created");
