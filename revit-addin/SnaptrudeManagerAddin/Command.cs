@@ -97,7 +97,10 @@ namespace SnaptrudeManagerAddin
             JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
             JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
 
-            Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
+            Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
+            {
+                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+            };
             serializer.Converters.Add(new XyzConverter());
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
@@ -176,6 +179,8 @@ namespace SnaptrudeManagerAddin
                             //TODO remove this loop after wall core layer thickness is fixed after doing freemove
                             for (int i = 0; i < st_wall.Layers.Length; i++)
                             {
+                                if (props.ThicknessInMm == null) break;
+
                                 if (st_wall.Layers[i].IsCore)
                                 {
                                     coreIsFound = true;
@@ -183,7 +188,7 @@ namespace SnaptrudeManagerAddin
                                 }
                             }
 
-                            if (!coreIsFound)
+                            if (!coreIsFound && props.ThicknessInMm != null)
                             {
                                 int index = (int)(st_wall.Layers.Length / 2);
 
