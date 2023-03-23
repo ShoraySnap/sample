@@ -417,24 +417,26 @@ namespace SnaptrudeManagerAddin
         {
             if (propsList.Count == 0)
             {
-
-                    try
+                try
+                {
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
-                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                        {
-                            TrudeStorey newStorey = new TrudeStorey(0, 0, Utils.RandomString(5));
+                        t.Start();
 
-                            t.Start();
-                            newStorey.CreateLevel(GlobalVariables.Document);
-                            LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
-                            t.Commit();
-                        }
+                        const int levelNumber = 0;
+                        const double elevation = 0;
+                        TrudeStorey newStorey = new TrudeStorey(levelNumber, elevation, Utils.RandomString());
+                        newStorey.CreateLevel(GlobalVariables.Document);
+                        LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
 
+                        t.Commit();
                     }
-                    catch (Exception e)
-                    {
-                        LogTrace(e.Message);
-                    }
+
+                }
+                catch (Exception e)
+                {
+                    LogTrace(e.Message);
+                }
             }
 
             foreach (StoreyProperties props in propsList)
