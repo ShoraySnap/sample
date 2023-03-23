@@ -100,6 +100,7 @@ namespace SnaptrudeManagerAddin
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
             {
                 NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                DefaultValueHandling= Newtonsoft.Json.DefaultValueHandling.Ignore,
             };
             serializer.Converters.Add(new XyzConverter());
 
@@ -175,25 +176,26 @@ namespace SnaptrudeManagerAddin
 
                             IList<Curve> profile = TrudeWall.GetProfile(props.ProfilePoints);
 
-                            bool coreIsFound = false;
                             //TODO remove this loop after wall core layer thickness is fixed after doing freemove
-                            for (int i = 0; i < st_wall.Layers.Length; i++)
+                            if (!props.ThicknessInMm.IsNull())
                             {
-                                if (props.ThicknessInMm == null) break;
-
-                                if (st_wall.Layers[i].IsCore)
+                                bool coreIsFound = false;
+                                for (int i = 0; i < st_wall.Layers.Length; i++)
                                 {
-                                    coreIsFound = true;
-                                    st_wall.Layers[i].ThicknessInMm = props.ThicknessInMm;
+                                    if (st_wall.Layers[i].IsCore)
+                                    {
+                                        coreIsFound = true;
+                                        st_wall.Layers[i].ThicknessInMm = (double)props.ThicknessInMm;
+                                    }
                                 }
-                            }
 
-                            if (!coreIsFound && props.ThicknessInMm != null)
-                            {
-                                int index = (int)(st_wall.Layers.Length / 2);
+                                if (!coreIsFound)
+                                {
+                                    int index = (int)(st_wall.Layers.Length / 2);
 
-                                st_wall.Layers[index].IsCore = true;
-                                st_wall.Layers[index].ThicknessInMm = props.ThicknessInMm;
+                                    st_wall.Layers[index].IsCore = true;
+                                    st_wall.Layers[index].ThicknessInMm = (double)props.ThicknessInMm;
+                                }
                             }
 
                             ElementId levelIdForWall;
@@ -448,9 +450,9 @@ namespace SnaptrudeManagerAddin
             {
                 TrudeStorey newStorey = new TrudeStorey(props);
 
-                if (props.LowerLevelElementId != 0)
+                if (!props.LowerLevelElementId.IsNull())
                 {
-                    ElementId elementId = new ElementId(props.LowerLevelElementId);
+                    ElementId elementId = new ElementId((BuiltInParameter)props.LowerLevelElementId);
                     LevelIdByNumber.Add(newStorey.levelNumber, elementId);
 
                     break;

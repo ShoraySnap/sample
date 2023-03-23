@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace TrudeImporter
@@ -17,6 +18,6 @@ namespace TrudeImporter
         public double Elevation { get; set; }
 
         [JsonProperty("lowerLevelElementId")]
-        public int LowerLevelElementId { get; set; }
+        public int? LowerLevelElementId { get; set; }
     }
 }

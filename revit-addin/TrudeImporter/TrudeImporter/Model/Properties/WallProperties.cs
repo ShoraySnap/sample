@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 
 namespace TrudeImporter
@@ -23,7 +24,7 @@ namespace TrudeImporter
         public List<LayerProperties> Layers { get; set; }
 
         [JsonProperty("thicknessInMm")]
-        public double ThicknessInMm { get; set; }
+        public double? ThicknessInMm { get; set; }
 
         [JsonProperty("baseHeight")]
         public int BaseHeight { get; set; }
