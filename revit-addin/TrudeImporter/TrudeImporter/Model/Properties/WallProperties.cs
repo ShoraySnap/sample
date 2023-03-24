@@ -9,7 +9,7 @@ namespace TrudeImporter
     public class WallProperties
     {
         [JsonProperty("storey")]
-        public int Storey { get; set; }
+        public int? Storey { get; set; }
 
         [JsonProperty("profile")]
         public List<XYZ> ProfilePoints { get; set; }
