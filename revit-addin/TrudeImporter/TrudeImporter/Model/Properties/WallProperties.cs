@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 
 namespace TrudeImporter
@@ -8,7 +9,7 @@ namespace TrudeImporter
     public class WallProperties
     {
         [JsonProperty("storey")]
-        public int Storey { get; set; }
+        public int? Storey { get; set; }
 
         [JsonProperty("profile")]
         public List<XYZ> ProfilePoints { get; set; }
@@ -23,13 +24,13 @@ namespace TrudeImporter
         public List<LayerProperties> Layers { get; set; }
 
         [JsonProperty("thicknessInMm")]
-        public double ThicknessInMm { get; set; }
+        public double? ThicknessInMm { get; set; }
 
         [JsonProperty("baseHeight")]
-        public int BaseHeight { get; set; }
+        public double BaseHeight { get; set; }
 
         [JsonProperty("height")]
-        public int Height { get; set; }
+        public double Height { get; set; }
 
         [JsonProperty("materialName")]
         public string MaterialName { get; set; }
