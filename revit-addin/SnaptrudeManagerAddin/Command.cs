@@ -103,6 +103,7 @@ namespace SnaptrudeManagerAddin
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls);
+            ImportBeams(trudeProperties.Beams);
 
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
@@ -110,6 +111,15 @@ namespace SnaptrudeManagerAddin
             LevelIdByNumber.Clear();
 
             return true;
+        }
+
+        private void ImportBeams(List<BeamProperties> propsList)
+        {
+            foreach (var beam in propsList)
+            {
+                TrudeBeamNew newBeam = new TrudeBeamNew(beam, LevelIdByNumber[beam.Storey]);
+                //GlobalVariables.Document.GetElement(new ElementId((int)beam.ExistingElementId));
+            }
         }
 
         private void ImportWalls(List<WallProperties> propsList)

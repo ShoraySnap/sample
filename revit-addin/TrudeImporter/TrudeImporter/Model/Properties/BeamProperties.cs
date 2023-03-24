@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 
 namespace TrudeImporter
@@ -10,12 +11,19 @@ namespace TrudeImporter
         [JsonProperty("height")]
         public float Height { get; set; }
 
-        //[JsonProperty("width")]
-        //public float Width { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("storey")]
+        public int Storey { get; set; }
 
         [JsonProperty("lenght")]
-        public float Lenght { get; set; } 
+        public float Lenght { get; set; }
 
+        [JsonProperty("existingElementId")]
+        public int? ExistingElementId { get; set; }
+
+        // these face vertices are the vertices of the face that was drawn first to extrude the beam from
         [JsonProperty("faceVertices")]
         public List<XYZ> FaceVertices { get; set; }
 
@@ -23,6 +31,6 @@ namespace TrudeImporter
         public string Type { get; set; }
 
         [JsonProperty("centerPosition")]
-        public string CenterPosition { get; set; }
+        public XYZ CenterPosition { get; set; }
     }
 }
