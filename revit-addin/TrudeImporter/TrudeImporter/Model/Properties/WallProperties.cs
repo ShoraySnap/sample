@@ -27,10 +27,10 @@ namespace TrudeImporter
         public double? ThicknessInMm { get; set; }
 
         [JsonProperty("baseHeight")]
-        public int BaseHeight { get; set; }
+        public double BaseHeight { get; set; }
 
         [JsonProperty("height")]
-        public int Height { get; set; }
+        public double Height { get; set; }
 
         [JsonProperty("materialName")]
         public string MaterialName { get; set; }
