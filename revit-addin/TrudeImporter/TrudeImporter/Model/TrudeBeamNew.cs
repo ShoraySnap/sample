@@ -1,13 +1,8 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Linq;
-using System.Windows.Documents;
 
 namespace TrudeImporter
 {
@@ -19,7 +14,6 @@ namespace TrudeImporter
         private XYZ topFaceCentroid;
         private XYZ bottomFaceCentroid;
         private List<XYZ> LocalTopFaceVertices = new List<XYZ>();
-        private float beamHeight;
         private string familyName;
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
@@ -27,7 +21,6 @@ namespace TrudeImporter
 
         public TrudeBeamNew (BeamProperties beam, ElementId levelId, bool forForge = false)
         {
-            this.beamHeight = beam.Height;
             this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beam.FaceVertices[0]), Extensions.Round(beam.FaceVertices[1]), Extensions.Round(beam.FaceVertices[2]));
 
             // Get rotation angle required to align face plane with the YZ plane. (The faces are parallel to the YZ plane in rfa file)
@@ -75,13 +68,13 @@ namespace TrudeImporter
             // Find centroid of face
             Transform undoRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, -rotationAngle, beam.CenterPosition);
 
-            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Lenght / 2,
+            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Length / 2,
                                               beam.CenterPosition.Y,
                                               beam.CenterPosition.Z);
 
             this.topFaceCentroid = undoRotationTransform.OfPoint(rotatedTopFaceCentroid);
 
-            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Lenght / 2,
+            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Length / 2,
                                               beam.CenterPosition.Y,
                                               beam.CenterPosition.Z);
 
@@ -115,10 +108,6 @@ namespace TrudeImporter
             CreateFamilyInstance(GlobalVariables.Document, familyName, levelId, shapeProperties);
 
             BeamRfaGenerator.DeleteAll();
-
-
-            /// need to handle if same old beam exists
-            //deleteOldIfExists
         }
 
         private List<XYZ> RotateCountoursParallelToMemberRightPlane()
@@ -220,9 +209,6 @@ namespace TrudeImporter
             FamilyInstance beam = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Beam);
             beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
             beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int)ZJustification.Center);
-            //doc.Regenerate();
-            //beam.GetParameters("Start Level Offset")[0].Set(level.Elevation);
-            //beam.GetParameters("End Level Offset")[0].Set(level.Elevation - this.beamHeight);
         }
 
         private Curve GetPositionCurve(ShapeProperties props)
@@ -237,34 +223,5 @@ namespace TrudeImporter
             }
 
         }
-
-
-        /// need to handle if same old beam exists
-
-        //public void deleteOldIfExists()
-        //{
-        //    try
-        //    {
-        //        Element e = 
-        //        bool isExistingMass = idToElement.TryGetValue(revitId, out e);
-        //        if (isExistingMass)
-        //        {
-        //            Element existingMass = e;
-        //            ElementId existingLevelId = existingMass.LevelId;
-
-        //            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-        //            {
-        //                t.Start();
-        //                var val = GlobalVariables.Document.Delete(existingMass.Id);
-        //                t.Commit();
-        //            }
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine(e.Message);
-        //    }
-        //    }
-        //}
     }
 }

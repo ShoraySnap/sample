@@ -6,19 +6,16 @@ using System.Collections.Generic;
 
 namespace TrudeImporter
 {
-    public class BeamProperties
+    public class ColumnProperties
     {
-        [JsonProperty("height")]
-        public float Height { get; set; }
-
         [JsonProperty("name")]
         public string Name { get; set; }
 
         [JsonProperty("storey")]
         public int Storey { get; set; }
 
-        [JsonProperty("length")]
-        public float Length { get; set; }
+        [JsonProperty("height")]
+        public float Height { get; set; }
 
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }

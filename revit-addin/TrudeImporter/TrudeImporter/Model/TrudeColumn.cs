@@ -156,7 +156,7 @@ namespace TrudeImporter
             {
                 if (shapeProperties is null)
                 {
-                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth, forForge);
+                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, /*width, depth,*/ forForge);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {

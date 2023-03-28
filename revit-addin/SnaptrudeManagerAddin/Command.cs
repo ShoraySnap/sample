@@ -104,6 +104,7 @@ namespace SnaptrudeManagerAddin
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls);
             ImportBeams(trudeProperties.Beams);
+            ImportColumns(trudeProperties.Columns);
 
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
@@ -117,8 +118,43 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var beam in propsList)
             {
-                TrudeBeamNew newBeam = new TrudeBeamNew(beam, LevelIdByNumber[beam.Storey]);
-                //GlobalVariables.Document.GetElement(new ElementId((int)beam.ExistingElementId));
+                new TrudeBeamNew(beam, LevelIdByNumber[beam.Storey]);
+                deleteOld(beam.ExistingElementId);
+            }
+        }
+
+        private void ImportColumns(List<ColumnProperties> propsList)
+        {
+            foreach (var column in propsList)
+            {
+                new TrudeColumnNew(column, LevelIdByNumber[column.Storey]);
+                deleteOld(column.ExistingElementId);
+            }
+        }
+
+        // Delete old elements if they already exists in the revit document
+        public void deleteOld(int? elementId)
+        {
+            if (elementId != null)
+            {
+                var element = GlobalVariables.Document.GetElement(new ElementId((int)elementId));
+                try
+                {
+                    {
+                        ElementId existingLevelId = element.LevelId;
+
+                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                        {
+                            t.Start();
+                            var val = GlobalVariables.Document.Delete(element.Id);
+                            t.Commit();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.Message);
+                }
             }
         }
 
