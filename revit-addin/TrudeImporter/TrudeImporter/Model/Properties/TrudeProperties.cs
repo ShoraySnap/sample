@@ -17,6 +17,12 @@ namespace TrudeImporter
         [JsonProperty("columns")]
         public List<ColumnProperties> Columns { get; set; }
 
+        [JsonProperty("floors")]
+        public List<FloorProperties> Floors { get; set; }
+
+        [JsonProperty("slabs")]
+        public List<SlabProperties> Slabs { get; set; }
+
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
     }

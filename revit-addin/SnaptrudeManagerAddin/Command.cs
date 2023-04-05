@@ -14,6 +14,12 @@ using System.Linq;
 using System.Net;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
+using Amazon.S3;
+using Amazon;
+using System.Threading.Tasks;
+using Amazon.S3.Model;
+using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using System.Threading;
 
 namespace SnaptrudeManagerAddin
 {
@@ -94,8 +100,8 @@ namespace SnaptrudeManagerAddin
             materials = trudeData["materials"] as JArray;
             multiMaterials = trudeData["multiMaterials"] as JArray;
 
-            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
-            JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
+            //JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
+            //JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
 
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
             serializer.Converters.Add(new XyzConverter());
@@ -105,6 +111,8 @@ namespace SnaptrudeManagerAddin
             ImportWalls(trudeProperties.Walls);
             ImportBeams(trudeProperties.Beams);
             ImportColumns(trudeProperties.Columns);
+            ImportFloors(trudeProperties.Floors);
+            ImportSlabs(trudeProperties.Slabs);
 
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
@@ -114,25 +122,11 @@ namespace SnaptrudeManagerAddin
             return true;
         }
 
-        private void ImportBeams(List<BeamProperties> propsList)
-        {
-            foreach (var beam in propsList)
-            {
-                new TrudeBeamNew(beam, LevelIdByNumber[beam.Storey]);
-                deleteOld(beam.ExistingElementId);
-            }
-        }
-
-        private void ImportColumns(List<ColumnProperties> propsList)
-        {
-            foreach (var column in propsList)
-            {
-                new TrudeColumnNew(column, LevelIdByNumber[column.Storey]);
-                deleteOld(column.ExistingElementId);
-            }
-        }
-
         // Delete old elements if they already exists in the revit document
+        /// <summary>
+        /// This function deletes existing elements within Revit if imported again from snaptrude based on Element Id.
+        /// </summary>
+        /// <param name="elementId">Element Id from revit to sanptrude.</param>
         public void deleteOld(int? elementId)
         {
             if (elementId != null)
@@ -155,6 +149,24 @@ namespace SnaptrudeManagerAddin
                 {
                     System.Diagnostics.Debug.WriteLine(e.Message);
                 }
+            }
+        }
+
+        private void ImportBeams(List<BeamProperties> propsList)
+        {
+            foreach (var beam in propsList)
+            {
+                new TrudeBeamNew(beam, LevelIdByNumber[beam.Storey]);
+                deleteOld(beam.ExistingElementId);
+            }
+        }
+
+        private void ImportColumns(List<ColumnProperties> propsList)
+        {
+            foreach (var column in propsList)
+            {
+                new TrudeColumnNew(column, LevelIdByNumber[column.Storey]);
+                deleteOld(column.ExistingElementId);
             }
         }
 
@@ -459,6 +471,7 @@ namespace SnaptrudeManagerAddin
             TrudeWall.TypeStore.Clear();
             LogTrace("Walls Success");
         }
+
         private void ImportStories(List<StoreyProperties> propsList)
         {
             if (propsList.Count == 0)
@@ -516,6 +529,94 @@ namespace SnaptrudeManagerAddin
             }
             LogTrace("storey created");
         }
+
+        private void ImportFloors(List<FloorProperties> propsList)
+        {
+            foreach (var floor in propsList)
+            {
+                ElementId levelId = Command.LevelIdByNumber[floor.Storey];
+                new TrudeFloorNew(floor, levelId);
+                deleteOld(floor.ExistingElementId);
+            }
+        }
+
+        /// <summary>
+        /// Slabs are basically outer shell floors and roofs
+        /// </summary>
+        /// <param name="propsList"></param>
+        /// <remarks>Keeping them seperate from Import Floors since data structures couble be changed at a later stage</remarks>
+        private void ImportSlabs(List<SlabProperties> propsList)
+        {
+            foreach (var slab in propsList)
+            {
+                ElementId levelId = Command.LevelIdByNumber[slab.Storey];
+                new TrudeSlab(slab, levelId);
+                deleteOld(slab.ExistingElementId);
+            }
+        }
+        
+        // ______________________ Import Furniture will be fixed later _____________________
+        //private void ImportFurniture()
+        //{
+        //    var path = $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/1.skp";
+        //    SKPImportOptions options = new SKPImportOptions();
+        //    options.Unit = ImportUnit.Foot;
+        //    options.Placement = ImportPlacement.Centered;
+        //    options.ReferencePoint = new XYZ(0, 0, 0);
+
+        //    //var url = "https://revitfurniture.s3.amazonaws.com/1.skp";
+        //    //var request = WebRequest.Create(url);
+        //    //request.Method = "GET";
+        //    //using var webResponse = request.GetResponse();
+        //    //using var webStream = webResponse.GetResponseStream();
+
+        //    //using var reader = new StreamReader(webStream);
+        //    //var data = reader.ReadToEnd();
+        //    //File.WriteAllText(@"C:\Users\ROG\Desktop\1.skp", data);
+        //    //ElementId elementId = GlobalVariables.Document.Import(path, options, GlobalVariables.Document.ActiveView);
+
+        //    //System.Diagnostics.Debug.WriteLine("SKP FILE: .............................................\n" + data);
+
+        //    //IAmazonS3 client = new AmazonS3Client(RegionEndpoint.USEast1);
+        //    //string bucketName = "revitfurniture";
+        //    //string objectName = "1.skp";
+        //    //string filePath = @"C:\Users\ROG\Desktop";
+
+        //    //ReadObjectDataAsync(client, bucketName, objectName, filePath).Wait();
+
+        //    ElementId elementId = GlobalVariables.Document.Import(path, options, GlobalVariables.Document.ActiveView);
+
+        //}
+
+        //public static async Task<bool> ReadObjectDataAsync(
+        //    IAmazonS3 client,
+        //    string bucketName,
+        //    string objectName,
+        //    string filePath)
+        //{
+        //    // Create a GetObject request
+        //    var request = new GetObjectRequest
+        //    {
+        //        BucketName = bucketName,
+        //        Key = objectName,
+        //    };
+
+        //    // Issue request and remember to dispose of the response
+        //    using GetObjectResponse response = await client.GetObjectAsync(request);
+
+        //    try
+        //    {
+        //        // Save object to local file
+        //        await response.WriteResponseStreamToFileAsync($"{filePath}\\{objectName}", true, CancellationToken.None);
+        //        return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
+        //    }
+        //    catch (AmazonS3Exception ex)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine($"Error saving {objectName}: {ex.Message}");
+        //        return false;
+        //    }
+        //}
+        //___________________________________________________________
 
         private static int countTotalElement(JObject jObject)
         {

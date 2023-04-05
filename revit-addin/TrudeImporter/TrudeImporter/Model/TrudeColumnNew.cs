@@ -161,8 +161,8 @@ namespace TrudeImporter
 
         private Curve GetPositionCurve(ShapeProperties props)
         {
-            XYZ columnBasePoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z - columnHeight / 2);
-            XYZ columnTopPoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z + columnHeight / 2);
+            XYZ columnBasePoint = new XYZ(0, 0, centerPosition.Z - columnHeight / 2);
+            XYZ columnTopPoint = new XYZ(0, 0, centerPosition.Z + columnHeight / 2);
             return Line.CreateBound(columnBasePoint, columnTopPoint) as Curve;
         }
     }
