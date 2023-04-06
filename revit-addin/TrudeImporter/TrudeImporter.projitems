@@ -9,23 +9,31 @@
     <Import_RootNamespace>TrudeImporter</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\AWS\GetObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Configs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\FamilyInstanceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\FamilyLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\GlobalVariables.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\EulerAngles.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\FloorProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\BeamProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\ColumnProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\JsonCreationConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\XyzConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\LayerProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SlabProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\StoreyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SubMeshProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\TrudeProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\WallProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeBeamNew.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeBeam.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeCeiling.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeColumnNew.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeColumn.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloorNew.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeInterior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeLayer.cs" />
@@ -39,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\ColumnRfaGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\VoidRfaGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ShapeIdentifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeSlab.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\DoorTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\FloorTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\TypeStore.cs" />
