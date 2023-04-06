@@ -14,12 +14,12 @@ using System.Linq;
 using System.Net;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
-using Amazon.S3;
-using Amazon;
-using System.Threading.Tasks;
-using Amazon.S3.Model;
-using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
-using System.Threading;
+//using Amazon.S3;
+//using Amazon;
+//using System.Threading.Tasks;
+//using Amazon.S3.Model;
+//using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+//using System.Threading;
 
 namespace SnaptrudeManagerAddin
 {
@@ -151,7 +151,7 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var beam in propsList)
             {
-                new TrudeBeamNew(beam, LevelIdByNumber[beam.Storey]);
+                new TrudeBeamNew(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
                 deleteOld(beam.ExistingElementId);
             }
         }
@@ -160,7 +160,7 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var column in propsList)
             {
-                new TrudeColumnNew(column, LevelIdByNumber[column.Storey]);
+                new TrudeColumnNew(column, GlobalVariables.LevelIdByNumber[column.Storey]);
                 deleteOld(column.ExistingElementId);
             }
         }
@@ -243,7 +243,7 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var floor in propsList)
             {
-                ElementId levelId = Command.LevelIdByNumber[floor.Storey];
+                ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
                 new TrudeFloorNew(floor, levelId);
                 deleteOld(floor.ExistingElementId);
             }
@@ -258,7 +258,7 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var slab in propsList)
             {
-                ElementId levelId = Command.LevelIdByNumber[slab.Storey];
+                ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
                 new TrudeSlab(slab, levelId);
                 deleteOld(slab.ExistingElementId);
             }
