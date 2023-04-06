@@ -108,11 +108,11 @@ namespace SnaptrudeManagerAddin
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls);
-            ImportBeams(trudeProperties.Beams);
-            ImportColumns(trudeProperties.Columns);
+            ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
-            ImportSlabs(trudeProperties.Slabs);
+            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
 
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
