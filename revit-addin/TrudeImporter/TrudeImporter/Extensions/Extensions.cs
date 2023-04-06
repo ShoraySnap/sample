@@ -14,6 +14,12 @@ namespace TrudeImporter
         public const int XY = 0;
         public const int YZ = 1;
 
+
+        public static bool IsNull(this object obj)
+        {
+            return obj is null;
+        }
+
         public static CompoundStructureLayer GetCoreLayer(this CompoundStructure compoundStructure)
         {
             CompoundStructureLayer coreLayer = null;
