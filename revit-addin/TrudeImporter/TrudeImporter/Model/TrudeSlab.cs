@@ -11,7 +11,7 @@ namespace TrudeImporter
         FloorType existingFloorType = null;
         private float thickness;
         private TrudeLayer[] Layers;
-        private FloorTypeStore TypeStore = new FloorTypeStore();
+        private static FloorTypeStore TypeStore = new FloorTypeStore();
         private Floor slab { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
@@ -27,7 +27,11 @@ namespace TrudeImporter
             thickness = slab.Thickness;
             baseType = slab.BaseType;
             centerPosition = slab.CenterPosition;
-            faceVertices = slab.FaceVertices;
+            // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
+            foreach (var v in slab.FaceVertices) 
+            {
+                faceVertices.Add(v + new XYZ(0, 0, thickness));
+            }
 
             // get existing slab id from revit meta data if already exists else set it to null
             if (slab.ExistingElementId != null)
@@ -101,11 +105,11 @@ namespace TrudeImporter
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
             try
             {
-                slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
+                slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
             }
             catch
             {
-                slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, false);
+                slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
             }
 
             // Rotate and move the slab
@@ -118,7 +122,8 @@ namespace TrudeImporter
             //this.setType(floorType);
 
             Level level = Doc.GetElement(levelId) as Level;
-            setHeight(level);
+            //setHeight(level);
+            
             Doc.Regenerate();
         }
 

@@ -11,7 +11,7 @@ namespace TrudeImporter
         FloorType existingFloorType = null;
         private float thickness;
         private TrudeLayer[] Layers;
-        private FloorTypeStore TypeStore = new FloorTypeStore();
+        private static FloorTypeStore TypeStore = new FloorTypeStore();
         private Floor floor { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
@@ -27,7 +27,11 @@ namespace TrudeImporter
             thickness = floor.Thickness;
             baseType = floor.BaseType;
             centerPosition = floor.CenterPosition;
-            faceVertices = floor.FaceVertices;
+            // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
+            foreach (var v in floor.FaceVertices)
+            {
+                faceVertices.Add(v + new XYZ(0, 0, thickness));
+            }
 
             // get existing floor id from revit meta data if already exists else set it to null
             if (floor.ExistingElementId != null)
@@ -118,7 +122,7 @@ namespace TrudeImporter
             //this.setType(floorType);
 
             Level level = Doc.GetElement(levelId) as Level;
-            setHeight(level);
+            //setHeight(level);
             Doc.Regenerate();
         }
 
