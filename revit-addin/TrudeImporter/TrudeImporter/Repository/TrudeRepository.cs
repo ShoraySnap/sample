@@ -37,7 +37,7 @@ namespace TrudeImporter
         public static XYZ GetPosition(JToken data)
         {
             double[] positionList = data["meshes"].First()["position"].Select(jv => UnitsAdapter.convertToRevit((double)jv)).ToArray();
-            
+
             return new XYZ(positionList[0], positionList[2], positionList[1]);
         }
 
@@ -58,25 +58,30 @@ namespace TrudeImporter
         public static XYZ GetCenterPosition(JToken data)
         {
             double[] positionList = data["meshes"].First()["centerPosition"].Select(jv => UnitsAdapter.convertToRevit((double)jv)).ToArray();
-            
+
             return new XYZ(positionList[0], positionList[2], positionList[1]);
         }
         public static XYZ GetScaling(JToken data)
         {
             double[] scalingList = data["meshes"].First()["scaling"].Select(jv => (double)jv).ToArray();
-            
+
             return new XYZ(scalingList[0], scalingList[2], scalingList[1]);
         }
         public static XYZ GetRotation(JToken data)
         {
             double[] rotationList = data["meshes"].First()["rotation"].Select(jv => (double)jv).ToArray();
-            
+
             return new XYZ(rotationList[0], rotationList[2], rotationList[1]);
         }
 
         public static int GetLevelNumber(JToken data)
         {
             return int.Parse(data["meshes"].First()["storey"].ToString());
+        }
+
+        public static double GetBeamHeight(JToken data)
+        {
+            return (double)data["height"];
         }
 
         public static List<XYZ> GetVertices(JToken data, int precision = 8, double[] scale = null)
