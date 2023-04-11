@@ -18,23 +18,31 @@ namespace TrudeImporter
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName, double height, List<XYZ> _countour, bool forForge = false)
+        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, bool forForge = false)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
             Document fdoc = app.NewFamilyDocument(forForge ? "resourceFile/Metric Structural Framing - Beams and Braces.rft" : TEMPLATE_FILE_NAME);
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
+            try
+            {
+                SaveAsOptions opt = new SaveAsOptions();
+                using (Transaction trans = new Transaction(fdoc))
+                {
+                    trans.Start("Creatin RFA");
+                    Extrusion extrusion = CreateExtrusion(fdoc, _countour);
 
-            Extrusion extrusion = CreateExtrusion(fdoc, _countour);
+                    AddAlignments(fdoc, extrusion);
 
-            AddAlignments(fdoc, extrusion);
-
-            SaveAsOptions opt = new SaveAsOptions();
-            opt.OverwriteExistingFile = true;
-
-            fdoc.SaveAs(fileName(familyName), opt);
-            fdoc.Close(true);
+                    opt.OverwriteExistingFile = true;
+                }
+                fdoc.SaveAs(fileName(familyName), opt);
+                fdoc.Close(true);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public string fileName(string familyName)
