@@ -1,231 +1,218 @@
-﻿using Autodesk.Revit.DB;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Media.Media3D;
+﻿//using Autodesk.Revit.DB;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
 
-namespace TrudeImporter
-{
-    public class TrudeCeiling : TrudeModel
-    {
-        public TrudeLayer[] Layers;
+//namespace TrudeImporter
+//{
+//    public class TrudeCeilingNew : TrudeModel
+//    {
+//        private List<XYZ> faceVertices = new List<XYZ>();
+//        FloorType existingFloorType = null;
+//        private float thickness;
+//        private TrudeLayer[] Layers;
+//        private static FloorTypeStore TypeStore = new FloorTypeStore();
+//        private Ceiling ceiling { get; set; }
+//        private XYZ centerPosition;
+//        private string baseType = null;
 
-        public Ceiling ceiling { get; set; }
+//        /// <summary>
+//        /// Imports floors into revit from snaptrude json data
+//        /// </summary>
+//        /// <param name="ceiling"></param>
+//        /// <param name="levelId"></param>
+//        /// <param name="forForge"></param>
+//        public TrudeCeilingNew(CeilingProperties ceiling, ElementId levelId, bool forForge = false)
+//        {
+//            // add backward compatibility for ceiling, use create floor for 2021 or older instead of ceiling.create
+//            thickness = ceiling.Thickness;
+//            baseType = ceiling.BaseType;
+//            centerPosition = ceiling.CenterPosition;
+//            // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
+//            foreach (var v in ceiling.FaceVertices)
+//            {
+//                faceVertices.Add(v + new XYZ(0, 0, thickness));
+//            }
 
-        public TrudeCeiling(JToken roofData, Document newDoc, ElementId levelId, CeilingType ceilingType)
-        {
-            this.Name = roofData["meshes"].First["name"].ToString();
-            this.Position = TrudeRepository.GetPosition(roofData);
-            this.Scaling = TrudeRepository.GetScaling(roofData);
-            this.levelNumber = TrudeRepository.GetLevelNumber(roofData);
-            this.Layers = TrudeRepository.GetLayers(roofData);
+//            // get existing ceiling id from revit meta data if already exists else set it to null
+//            if (ceiling.ExistingElementId != null)
+//            {
+//                Ceiling existingCeiling = GlobalVariables.Document.GetElement(new ElementId((int)ceiling.ExistingElementId)) as Ceiling;
+//                existingFloorType = existingCeiling.FloorType;
+//            }
+//            var _layers = new List<TrudeLayer>();
+//            //you can improve this section 
+//            // --------------------------------------------
+//            if (ceiling.Layers != null)
+//            {
+//                foreach (var layer in ceiling.Layers)
+//                {
+//                    _layers.Add(new TrudeLayer(ceiling.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
+//                }
+//            }
+//            Layers = _layers.ToArray();
+//            setCoreLayerIfNotExist(Math.Abs(thickness));
+//            // --------------------------------------------
+//            CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
+//            CreateHoles(ceiling.Holes);
+//        }
 
-            double thickness = UnitsAdapter.convertToRevit((double)roofData["thickness"]);
-            this.setThickness(Math.Abs(thickness));
+//        private void setCoreLayerIfNotExist(double fallbackThickness)
+//        {
+//            if (Layers.Length == 0)
+//            {
+//                Layers = new TrudeLayer[] { new TrudeLayer("Ceiling", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(fallbackThickness), true) };
 
-            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023)
-            //{
-            //    Create(newDoc, roofData, thickness);
-            //}
-            Create(newDoc, roofData, levelId, thickness, ceilingType);
-        }
+//                return;
+//            }
 
+//            TrudeLayer coreLayer = Layers.FirstOrDefault(layer => layer.IsCore);
 
+//            if (coreLayer != null)
+//            {
+//                if (fallbackThickness != 0)
+//                {
+//                    coreLayer.ThicknessInMm = UnitsAdapter.FeetToMM(fallbackThickness, 1);
+//                }
 
-        private void setThickness(double thickness)
-        {
-            // TODO: Remove after thickness of layers is fixed on snaptrude
-            bool foundCore = false;
-            for (int i = 0; i < this.Layers.Length; i++)
-            {
-                if (this.Layers[i].IsCore)
-                {
-                    if (thickness != 0) this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                    else thickness = UnitsAdapter.MMToFeet(this.Layers[i].ThicknessInMm);
-                    foundCore = true;
-                }
-            }
-            if (this.Layers.Length == 0)
-            {
-                this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(thickness), true) };
-            }
-            if (!foundCore)
-            {
-                int i = this.Layers.Length / 2;
-                this.Layers[i].IsCore = true;
-                this.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-            }
-        }
+//                return;
+//            }
 
-        private List<Point3D> jtokenListToPoint3d(JToken vertices)
-        {
-            List<Point3D> verticesList = new List<Point3D>();
-            for (int i = 0; i < vertices.Count(); i++)
-            {
-                var point = vertices[i].Select(jv => UnitsAdapter.convertToRevit((double)jv)).ToArray();
-                Point3D vector = new Point3D(point[0], point[2], point[1]);
-                verticesList.Add(vector);
-            }
+//            foreach (TrudeLayer layer in Layers)
+//            {
+//                if (layer.Name.ToLower() == "screed")
+//                {
+//                    layer.IsCore = true;
+//                    return;
+//                }
+//            }
 
-            return verticesList;
-        }
+//            int coreIndex = Layers.Count() / 2;
+//            Layers[coreIndex].IsCore = true;
+//        }
 
-        private List<CurveLoop> getProfile(List<Point3D> vertices)
-        {
-            CurveLoop curveLoop = new CurveLoop();
+//        private void CreateFloor(ElementId levelId, bool depricated = false)
+//        {
+//            CurveArray profile = getProfile(faceVertices);
+//            FloorType floorType = existingFloorType;
 
-            for (int i = 0; i < vertices.Count(); i++)
-            {
-                int currentIndex = i.Mod(vertices.Count());
-                int nextIndex = (i + 1).Mod(vertices.Count());
+//            var Doc = GlobalVariables.Document;
+//            if (floorType is null)
+//            {
+//                FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
+//                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Ceiling").First() as FloorType;
+//                floorType = defaultFloorType;
+//            }
+//            var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+//            try
+//            {
+//                ceiling = Doc.Create.NewCeiling(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
+//            }
+//            catch
+//            {
+//                ceiling = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, false);
+//            }
 
-                XYZ pt1 = vertices[currentIndex].ToXYZ();
-                XYZ pt2 = vertices[nextIndex].ToXYZ();
+//            // Rotate and move the slab
+//            //rotate();
 
-                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
-                {
-                    i++;
-                    if (i > vertices.Count() + 3) break;
-                    nextIndex = (i + 1).Mod(vertices.Count());
-                    pt2 = vertices[nextIndex].ToXYZ();
-                }
+//            //bool result = ceiling.Location.Move(centerPosition);
 
-                curveLoop.Append(Line.CreateBound(pt1, pt2));
-            }
+//            //if (!result) throw new Exception("Move ceiling location failed.");
 
-            return new List<CurveLoop>() { curveLoop };
-        }
-        private CurveArray getDepricatedProfile(List<Point3D> vertices)
-        {
-            CurveArray curves = new CurveArray();
+//            //this.setType(floorType);
 
-            for (int i = 0; i < vertices.Count(); i++)
-            {
-                int currentIndex = i.Mod(vertices.Count());
-                int nextIndex = (i + 1).Mod(vertices.Count());
+//            Level level = Doc.GetElement(levelId) as Level;
+//            //setHeight(level);
+//            Doc.Regenerate();
+//        }
 
-                XYZ pt1 = vertices[currentIndex].ToXYZ();
-                XYZ pt2 = vertices[nextIndex].ToXYZ();
+//        private void CreateHoles(List<List<XYZ>> holes)
+//        {
+//            foreach (var hole in holes)
+//            {
+//                var holeProfile = getProfile(hole);
+//                try
+//                {
+//                    GlobalVariables.Document.Create.NewOpening(ceiling, holeProfile, true);
+//                }
+//                catch (Exception e)
+//                {
+//                    System.Diagnostics.Debug.WriteLine("Could not create hole with error: ", e);
+//                }
+//            }
+//        }
 
-                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
-                {
-                    i++;
-                    if (i > vertices.Count() + 3) break;
-                    nextIndex = (i + 1).Mod(vertices.Count());
-                    pt2 = vertices[nextIndex].ToXYZ();
-                }
+//        private CurveArray getProfile(List<XYZ> vertices)
+//        {
+//            CurveArray curves = new CurveArray();
 
-                curves.Append(Line.CreateBound(pt1, pt2));
-            }
+//            for (int i = 0; i < vertices.Count(); i++)
+//            {
+//                int currentIndex = i.Mod(vertices.Count());
+//                int nextIndex = (i + 1).Mod(vertices.Count());
 
-            return curves;
-        }
+//                XYZ pt1 = vertices[currentIndex];
+//                XYZ pt2 = vertices[nextIndex];
 
-        private void rotate(JToken roofData)
-        {
-            Location position = this.ceiling.Location;
-            if (roofData["meshes"][0] != null)
-            {
-                if (!TrudeRepository.HasRotationQuaternion(roofData))
-                {
-                    XYZ origin = new XYZ(0, 0, 0);
-                    XYZ xinf = new XYZ(10, 0, 0);
-                    XYZ yinf = new XYZ(0, 10, 0);
-                    XYZ zinf = new XYZ(0, 0, 10);
-                    Line xaxis = Line.CreateBound(origin, xinf);
-                    Line yaxis = Line.CreateBound(origin, yinf);
-                    Line zaxis = Line.CreateBound(origin, zinf);
+//                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
+//                {
+//                    i++;
+//                    if (i > vertices.Count() + 3) break;
+//                    nextIndex = (i + 1).Mod(vertices.Count());
+//                    pt2 = vertices[nextIndex];
+//                }
+//                curves.Append(Line.CreateBound(pt1, pt2));
+//            }
+//            return curves;
+//        }
 
-                    position.Rotate(zaxis, -double.Parse(roofData["meshes"][0]["rotation"][1].ToString()));
-                    position.Rotate(yaxis, -double.Parse(roofData["meshes"][0]["rotation"][2].ToString()));
-                    position.Rotate(xaxis, -double.Parse(roofData["meshes"][0]["rotation"][0].ToString()));
-                }
-                else
-                {
-                    EulerAngles rotation = TrudeRepository.GetEulerAnglesFromRotationQuaternion(roofData);
+//        //private void rotate()
+//        //{
+//        //    Location position = this.ceiling.Location;
+//        //    if (roofData["meshes"][0] != null)
+//        //    {
+//        //        Line localXAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisX);
+//        //        Line localYAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisY);
+//        //        Line localZAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisZ);
 
-                    Line localXAxis = Line.CreateBound(new XYZ(0, 0, 0), new XYZ(1, 0, 0));
-                    Line localYAxis = Line.CreateBound(new XYZ(0, 0, 0), new XYZ(0, 1, 0));
-                    Line localZAxis = Line.CreateBound(new XYZ(0, 0, 0), new XYZ(0, 0, 1));
+//        //        // Why am i rotating them in this particular order? I wish i knew.
+//        //        if (!TrudeRepository.HasRotationQuaternion(roofData))
+//        //        {
+//        //            position.Rotate(localZAxis, -double.Parse(roofData["meshes"][0]["rotation"][1].ToString()));
+//        //            position.Rotate(localYAxis, -double.Parse(roofData["meshes"][0]["rotation"][2].ToString()));
+//        //            position.Rotate(localXAxis, -double.Parse(roofData["meshes"][0]["rotation"][0].ToString()));
+//        //        }
+//        //        else
+//        //        {
+//        //            EulerAngles rotation = TrudeRepository.GetEulerAnglesFromRotationQuaternion(roofData);
 
-                    // Y and Z axis are swapped moving from snaptrude to revit.
-                    position.Rotate(localXAxis, -rotation.bank);
-                    position.Rotate(localZAxis, -rotation.heading);
-                    position.Rotate(localYAxis, -rotation.attitude);
-                }
-            }
+//        //            // Y and Z axis are swapped moving from snaptrude to revit.
+//        //            position.Rotate(localXAxis, -rotation.bank);
+//        //            position.Rotate(localZAxis, -rotation.heading);
+//        //            position.Rotate(localYAxis, -rotation.attitude);
+//        //        }
+//        //    }
+//        //}
 
-        }
+//        private void setHeight(Level level)
+//        {
+//            double bottomZ = faceVertices[0].Z/* * Scaling.Z*/;
+//            double slabHeightAboveLevel = centerPosition.Z + bottomZ - level.Elevation + thickness;
 
-        private void setHeight(double thickness, double bottomZ, Level level)
-        {
-            double slabHeightAboveLevel = this.Position.Z + bottomZ - level.Elevation + thickness;
+//            ceiling
+//                .get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
+//                .Set(slabHeightAboveLevel);
+//        }
 
-            this.ceiling
-                .get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
-                .Set(slabHeightAboveLevel);
-        }
+//        private List<TrudeLayer> createLayers(double fallbackThickness = 25)
+//        {
 
-        private double getLeastZ(List<Point3D> vertices)
-        {
-            double zLeast = vertices[0].Z;
+//            // TODO: handle existing revit data
 
-            foreach (Point3D v in vertices)
-            {
-                zLeast = v.X < zLeast ? v.X : zLeast;
-            }
+//            List<TrudeLayer> stLayers = new List<TrudeLayer>();
 
-            return zLeast;
-        }
-
-        private void Create(Document newDoc, JToken ceilingData, ElementId levelId, double thickness, CeilingType ceilingType)
-        {
-            JToken topVerticesNormal = ceilingData["topVerticesNormal"];
-            JToken topVerticesUntitNormal = ceilingData["topVerticesUnitNormal"];
-
-            List<Point3D> topVertices = jtokenListToPoint3d(ceilingData["topVertices"])
-                .Distinct()
-                .ToList();
-
-            Point3D topLowestPoint = topVertices.Aggregate(topVertices[0], (least, next) => least.Z < next.Z ? least : next);
-
-            List<Point3D> bottomVertices = jtokenListToPoint3d(ceilingData["bottomVertices"])
-                .Distinct()
-                .ToList();
-            Point3D bottomLowestPoint = bottomVertices.Aggregate(bottomVertices[0], (least, next) => least.Z < next.Z ? least : next);
-
-            for (int i = 0; i < bottomVertices.Count; i++)
-            {
-                Point3D newVertex = bottomVertices[i];
-                newVertex.Z = bottomLowestPoint.Z;
-                bottomVertices[i] = newVertex;
-            }
-
-            List<CurveLoop> profile = getProfile(bottomVertices);
-            //this.floor = newDoc.Create.NewFloor(profile, false);
-
-            //this.ceiling = Ceiling.Create(newDoc, profile, ST_Ceiling.TypeStore.GetType(this.Layers, newDoc).Id, levelIdForfloor);
-            //this.ceiling = Ceiling.Create(newDoc, profile, ceilingType.Id, levelIdForfloor);
-
-            this.ceiling.get_Parameter(BuiltInParameter.LEVEL_PARAM).Set(levelId);
-
-            // Rotate and move the slab
-
-            //this.rotate(ceilingData);
-
-            //bool result = this.ceiling.Location.Move(this.Position);
-
-            //if (!result) throw new Exception("Move floor location failed.");
-
-            //Level level = newDoc.GetElement(levelIdForfloor) as Level;
-            //double bottomZ = bottomVertices[0].Z * Scaling.Z;
-            //this.setHeight(thickness, bottomZ, level);
-        }
-
-        //private void setType()
-        //{
-        //    this.ceiling.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
-        //}
-    }
-}
+//            return null;
+//        }
+//    }
+//}

@@ -211,17 +211,24 @@ namespace TrudeImporter
                                         break;
                                     }
                                 }
-                                if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                                try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
                                 {
-                                    foreach (var materialElement in materialsEnum)
+                                    if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
                                     {
-                                        String matName = materialElement.Name;
-                                        if (matName.ToLower().Contains("glass"))
+                                        foreach (var materialElement in materialsEnum)
                                         {
-                                            _materialElement = materialElement;
-                                            break;
+                                            String matName = materialElement.Name;
+                                            if (matName.ToLower().Contains("glass"))
+                                            {
+                                                _materialElement = materialElement;
+                                                break;
+                                            }
                                         }
                                     }
+                                }
+                                catch
+                                {
+
                                 }
 
                                 if (_materialElement != null)

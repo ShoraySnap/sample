@@ -1,30 +1,71 @@
 ﻿using Autodesk.Revit.DB;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Media.Media3D;
 
 namespace TrudeImporter
 {
     public class TrudeFloor : TrudeModel
     {
-        public TrudeLayer[] Layers;
+        private List<XYZ> faceVertices = new List<XYZ>();
+        FloorType existingFloorType = null;
+        private float thickness;
+        private TrudeLayer[] Layers;
+        private static FloorTypeStore TypeStore = new FloorTypeStore();
+        private Floor floor { get; set; }
+        private XYZ centerPosition;
+        private string baseType = null;
 
-        public static FloorTypeStore TypeStore = new FloorTypeStore();
+        /// <summary>
+        /// Imports floors into revit from snaptrude json data
+        /// </summary>
+        /// <param name="floor"></param>
+        /// <param name="levelId"></param>
+        /// <param name="forForge"></param>
+        public TrudeFloor(FloorProperties floor, ElementId levelId, bool forForge = false)
+        {
+            thickness = floor.Thickness;
+            baseType = floor.BaseType;
+            centerPosition = floor.CenterPosition;
+            // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
+            foreach (var v in floor.FaceVertices)
+            {
+                faceVertices.Add(v + new XYZ(0, 0, thickness));
+            }
 
-        public Floor floor { get; set; }
+            // get existing floor id from revit meta data if already exists else set it to null
+            if (floor.ExistingElementId != null)
+            {
+                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)floor.ExistingElementId)) as Floor;
+                existingFloorType = existingFloor.FloorType;
+            }
+            var _layers = new List<TrudeLayer>();
+            //you can improve this section 
+            // --------------------------------------------
+            if (floor.Layers != null)
+            {
+                foreach (var layer in floor.Layers)
+                {
+                    _layers.Add(new TrudeLayer(floor.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
+                }
+            }
+            Layers = _layers.ToArray();
+            setCoreLayerIfNotExist(Math.Abs(thickness));
+            // --------------------------------------------
+            CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
+            CreateHoles(floor.Holes);
+        }
 
         private void setCoreLayerIfNotExist(double fallbackThickness)
         {
-            if (this.Layers.Length == 0)
+            if (Layers.Length == 0)
             {
-                this.Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(fallbackThickness), true) };
+                Layers = new TrudeLayer[] { new TrudeLayer("Floor", "screed" + Utils.RandomString(4), UnitsAdapter.FeetToMM(fallbackThickness), true) };
 
                 return;
             }
 
-            TrudeLayer coreLayer = this.Layers.FirstOrDefault(layer => layer.IsCore);
+            TrudeLayer coreLayer = Layers.FirstOrDefault(layer => layer.IsCore);
 
             if (coreLayer != null)
             {
@@ -36,7 +77,7 @@ namespace TrudeImporter
                 return;
             }
 
-            foreach (TrudeLayer layer in this.Layers)
+            foreach (TrudeLayer layer in Layers)
             {
                 if (layer.Name.ToLower() == "screed")
                 {
@@ -45,36 +86,63 @@ namespace TrudeImporter
                 }
             }
 
-            int coreIndex = this.Layers.Count() / 2;
+            int coreIndex = Layers.Count() / 2;
             Layers[coreIndex].IsCore = true;
         }
 
-        private List<CurveLoop> getProfile(List<Point3D> vertices)
+        private void CreateFloor(ElementId levelId, bool depricated = false)
         {
-            CurveLoop curveLoop = new CurveLoop();
-
-            for (int i = 0; i < vertices.Count(); i++)
+            CurveArray profile = getProfile(faceVertices);
+            FloorType floorType = existingFloorType;
+            
+            var Doc = GlobalVariables.Document;
+            if (floorType is null)
             {
-                int currentIndex = i.Mod(vertices.Count());
-                int nextIndex = (i + 1).Mod(vertices.Count());
-
-                XYZ pt1 = vertices[currentIndex].ToXYZ();
-                XYZ pt2 = vertices[nextIndex].ToXYZ();
-
-                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
-                {
-                    i++;
-                    if (i > vertices.Count() + 3) break;
-                    nextIndex = (i + 1).Mod(vertices.Count());
-                    pt2 = vertices[nextIndex].ToXYZ();
-                }
-
-                curveLoop.Append(Line.CreateBound(pt1, pt2));
+                FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
+                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+                floorType = defaultFloorType;
+            }
+            var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+            try
+            {
+                floor = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
+            }
+            catch
+            {
+                floor = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, false);
             }
 
-            return new List<CurveLoop>() { curveLoop };
+            // Rotate and move the slab
+            //rotate();
+
+            //bool result = floor.Location.Move(centerPosition);
+
+            //if (!result) throw new Exception("Move floor location failed.");
+
+            //this.setType(floorType);
+
+            Level level = Doc.GetElement(levelId) as Level;
+            //setHeight(level);
+            Doc.Regenerate();
         }
-        private CurveArray getDepricatedProfile(List<Point3D> vertices)
+
+        private void CreateHoles(List<List<XYZ>> holes)
+        {
+            foreach (var hole in holes)
+            {
+                var holeProfile = getProfile(hole);
+                try
+                {
+                    GlobalVariables.Document.Create.NewOpening(floor, holeProfile, true);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Could not create hole with error: ", e);
+                }
+            }
+        }
+
+        private CurveArray getProfile(List<XYZ> vertices)
         {
             CurveArray curves = new CurveArray();
 
@@ -83,241 +151,67 @@ namespace TrudeImporter
                 int currentIndex = i.Mod(vertices.Count());
                 int nextIndex = (i + 1).Mod(vertices.Count());
 
-                XYZ pt1 = vertices[currentIndex].ToXYZ();
-                XYZ pt2 = vertices[nextIndex].ToXYZ();
+                XYZ pt1 = vertices[currentIndex];
+                XYZ pt2 = vertices[nextIndex];
 
                 while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
                 {
                     i++;
                     if (i > vertices.Count() + 3) break;
                     nextIndex = (i + 1).Mod(vertices.Count());
-                    pt2 = vertices[nextIndex].ToXYZ();
+                    pt2 = vertices[nextIndex];
                 }
-
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
-
             return curves;
         }
 
-        private void rotate(JToken roofData)
+        //private void rotate()
+        //{
+        //    Location position = this.floor.Location;
+        //    if (roofData["meshes"][0] != null)
+        //    {
+        //        Line localXAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisX);
+        //        Line localYAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisY);
+        //        Line localZAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisZ);
+
+        //        // Why am i rotating them in this particular order? I wish i knew.
+        //        if (!TrudeRepository.HasRotationQuaternion(roofData))
+        //        {
+        //            position.Rotate(localZAxis, -double.Parse(roofData["meshes"][0]["rotation"][1].ToString()));
+        //            position.Rotate(localYAxis, -double.Parse(roofData["meshes"][0]["rotation"][2].ToString()));
+        //            position.Rotate(localXAxis, -double.Parse(roofData["meshes"][0]["rotation"][0].ToString()));
+        //        }
+        //        else
+        //        {
+        //            EulerAngles rotation = TrudeRepository.GetEulerAnglesFromRotationQuaternion(roofData);
+
+        //            // Y and Z axis are swapped moving from snaptrude to revit.
+        //            position.Rotate(localXAxis, -rotation.bank);
+        //            position.Rotate(localZAxis, -rotation.heading);
+        //            position.Rotate(localYAxis, -rotation.attitude);
+        //        }
+        //    }
+        //}
+
+        private void setHeight(Level level)
         {
-            Location position = this.floor.Location;
-            if (roofData["meshes"][0] != null)
-            {
-                Line localXAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisX);
-                Line localYAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisY);
-                Line localZAxis = Line.CreateBound(new XYZ(0, 0, 0), XYZ.BasisZ);
+            double bottomZ = faceVertices[0].Z/* * Scaling.Z*/;
+            double slabHeightAboveLevel = centerPosition.Z + bottomZ - level.Elevation + thickness;
 
-                // Why am i rotating them in this particular order? I wish i knew.
-                if (!TrudeRepository.HasRotationQuaternion(roofData))
-                {
-                    position.Rotate(localZAxis, -double.Parse(roofData["meshes"][0]["rotation"][1].ToString()));
-                    position.Rotate(localYAxis, -double.Parse(roofData["meshes"][0]["rotation"][2].ToString()));
-                    position.Rotate(localXAxis, -double.Parse(roofData["meshes"][0]["rotation"][0].ToString()));
-                }
-                else
-                {
-                    EulerAngles rotation = TrudeRepository.GetEulerAnglesFromRotationQuaternion(roofData);
-
-                    // Y and Z axis are swapped moving from snaptrude to revit.
-                    position.Rotate(localXAxis, -rotation.bank);
-                    position.Rotate(localZAxis, -rotation.heading);
-                    position.Rotate(localYAxis, -rotation.attitude);
-                }
-            }
-
-        }
-
-        private void setHeight(double thickness, double bottomZ, Level level)
-        {
-            double slabHeightAboveLevel = this.Position.Z + bottomZ - level.Elevation + thickness;
-
-            this.floor
+            floor
                 .get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
                 .Set(slabHeightAboveLevel);
         }
 
-        private double getLeastZ(List<Point3D> vertices)
+        private List<TrudeLayer> createLayers(double fallbackThickness = 25)
         {
-            double zLeast = vertices[0].Z;
 
-            foreach (Point3D v in vertices)
-            {
-                zLeast = v.X < zLeast ? v.X : zLeast;
-            }
+            // TODO: handle existing revit data
 
-            return zLeast;
-        }
-
-        public TrudeFloor(JToken floorData, Document newDoc, ElementId levelId, FloorType floorType = null)
-        {
-            this.Name = floorData["meshes"].First["name"].ToString();
-            this.Position = TrudeRepository.GetPosition(floorData);
-            this.Scaling = TrudeRepository.GetScaling(floorData);
-            this.levelNumber = TrudeRepository.GetLevelNumber(floorData);
-            this.Layers = TrudeRepository.GetLayers(floorData);
-
-            double thickness = UnitsAdapter.convertToRevit((double)floorData["thickness"]);
-            this.setCoreLayerIfNotExist(Math.Abs(thickness));
-
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023)
-            {
-                //Create(newDoc, roofData, thickness);
-            }
-            else
-            {
-                CreateDepricated(newDoc, floorData, thickness, levelId, floorType);
-            }
-        }
-
-        private void CreateDepricated(Document newDoc, JToken roofData, double thickness, ElementId levelId, FloorType floorType = null)
-        {
-            JToken topVerticesNormal = roofData["topVerticesNormal"];
-            JToken topVerticesUntitNormal = roofData["topVerticesUnitNormal"];
-
-            List<Point3D> topVertices = TrudeRepository.ListToPoint3d(roofData["topVertices"])
-                .Distinct()
-                .ToList();
-
-            Point3D topLowestPoint = topVertices.Aggregate(topVertices[0], (least, next) => least.Z < next.Z ? least : next);
-
-            List<Point3D> bottomVertices = TrudeRepository.ListToPoint3d(roofData["bottomVertices"])
-                .Distinct()
-                .ToList();
-            Point3D bottomLowestPoint = bottomVertices.Aggregate(bottomVertices[0], (least, next) => least.Z < next.Z ? least : next);
-
-            for (int i = 0; i < bottomVertices.Count; i++)
-            {
-                Point3D newVertex = bottomVertices[i];
-                newVertex.Z = bottomLowestPoint.Z;
-                bottomVertices[i] = newVertex;
-            }
-
-            CurveArray profile = getDepricatedProfile(bottomVertices);
-            //this.floor = newDoc.Create.NewFloor(profile, false);
-
-            if (floorType is null)
-            {
-                FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(FloorType));
-                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
-                floorType = defaultFloorType;
-            }
-            var newFloorType = TypeStore.GetType(this.Layers, GlobalVariables.Document, floorType);
-            try
-            {
-                this.floor = newDoc.Create.NewFloor(profile, newFloorType, newDoc.GetElement(levelId) as Level, false);
-            }
-            catch
-            {
-                this.floor = newDoc.Create.NewFloor(profile, floorType, newDoc.GetElement(levelId) as Level, false);
-            }
-
-            // Rotate and move the slab
-
-            this.rotate(roofData);
-
-            bool result = this.floor.Location.Move(this.Position);
-
-            if (!result) throw new Exception("Move floor location failed.");
-
-            //this.setType(floorType);
-
-            Level level = newDoc.GetElement(levelId) as Level;
-            double bottomZ = bottomVertices[0].Z * Scaling.Z;
-            this.setHeight(thickness, bottomZ, level);
-        }
-
-        public void ApplyPaintByMaterial(Document document, Floor floor, Autodesk.Revit.DB.Material material)
-        {
-            // Before acquiring the geometry, make sure the detail level is set to 'Fine'
-            Options geoOptions = new Options();
-            geoOptions.DetailLevel = ViewDetailLevel.Fine;
-
-            // Obtain geometry for the given Wall element
-            GeometryElement geoElem = floor.get_Geometry(geoOptions);
-
-            // Find a face on the wall
-            //Face wallFace = null;
-            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
-            List<Face> floorFaces = new List<Face>();
-
-            while (geoObjectItor.MoveNext())
-            {
-                // need to find a solid first
-                Solid theSolid = geoObjectItor.Current as Solid;
-                if (null != theSolid)
-                {
-                    // Examine faces of the solid to find one with at least
-                    // one region. Then take the geometric face of that region.
-                    foreach (Face face in theSolid.Faces)
-                    {
-                        floorFaces.Add(face);
-                    }
-                }
-            }
-
-            foreach (Face face in floorFaces)
-            {
-                document.Paint(floor.Id, face, material.Id);
-            }
-        }
-
-        //private void Create(Document newDoc, JToken roofData, double thickness)
-        //{
-        //    JToken topVerticesNormal = roofData["topVerticesNormal"];
-        //    JToken topVerticesUntitNormal = roofData["topVerticesUnitNormal"];
-
-        //    List<Point3D> topVertices = jtokenListToPoint3d(roofData["topVertices"])
-        //        .Distinct()
-        //        .ToList();
-
-        //    Point3D topLowestPoint = topVertices.Aggregate(topVertices[0], (least, next) => least.Z < next.Z ? least : next);
-
-        //    List<Point3D> bottomVertices = jtokenListToPoint3d(roofData["bottomVertices"])
-        //        .Distinct()
-        //        .ToList();
-        //    Point3D bottomLowestPoint = bottomVertices.Aggregate(bottomVertices[0], (least, next) => least.Z < next.Z ? least : next);
-
-        //    for (int i = 0; i < bottomVertices.Count; i++)
-        //    {
-        //        Point3D newVertex = bottomVertices[i];
-        //        newVertex.Z = bottomLowestPoint.Z;
-        //        bottomVertices[i] = newVertex;
-        //    }
-
-        //    List<CurveLoop> profile = getProfile(bottomVertices);
-
-        //    var levelIdForfloor = Entry.LevelIdByNumber[this.levelNumber];
-        //    this.floor = Floor.Create(newDoc, profile, ST_Floor.TypeStore.GetType(this.Layers, newDoc).Id, levelIdForfloor);
-
-        //    this.floor.get_Parameter(BuiltInParameter.LEVEL_PARAM).Set(levelIdForfloor);
-
-        //    // Rotate and move the slab
-
-        //    this.rotate(roofData);
-
-        //    bool result = this.floor.Location.Move(this.Position);
-
-        //    if (!result) throw new Exception("Move floor location failed.");
-
-        //    //this.setType();
-
-        //    Level level = newDoc.GetElement(levelIdForfloor) as Level;
-        //    double bottomZ = bottomVertices[0].Z * Scaling.Z;
-        //    this.setHeight(thickness, bottomZ, level);
-        //}
-
-        private void setType(FloorType floorType = null)
-        {
-            try
-            {
-                this.floor.FloorType = TypeStore.GetType(Layers, GlobalVariables.Document);
-            }
-            catch (Exception e)
-            {
-                this.floor.FloorType = floorType;
-            }
+            List<TrudeLayer> stLayers = new List<TrudeLayer>();
+            
+            return null;
         }
     }
 }

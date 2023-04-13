@@ -1,92 +1,57 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TrudeImporter
 {
     public class TrudeBeam : TrudeModel
     {
-        private XYZ CenterPosition;
         private Plane countoursPlane;
-        private ElementId levelId;
-        private double length;
-        private double height;
-        private List<XYZ> vertices;
-        private Transform rotationTransform;
-        private List<XYZ> GlobalTopFaceVertices = new List<XYZ>();
-        private List<XYZ> LocalTopFaceVertices = new List<XYZ>();
-        XYZ topFaceCentroid;
-        XYZ bottomFaceCentroid;
         private bool inverseDirection = false;
-
+        private Transform rotationTransform;
+        private XYZ topFaceCentroid;
+        private XYZ bottomFaceCentroid;
+        private List<XYZ> LocalTopFaceVertices = new List<XYZ>();
         private string familyName;
-
+        public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
 
-        public static Dictionary<double, Level> NewLevelsByElevation = new Dictionary<double, Level>();
-        public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
-        public static TrudeBeam FromMassData(JToken massData)
+
+        public TrudeBeam (BeamProperties beam, ElementId levelId, bool forForge = false)
         {
-            TrudeBeam st_beam = new TrudeBeam();
-            BeamProperties beamProperties = new BeamProperties();
-
-            beamProperties = massData["beams"].ToObject<BeamProperties>();
-
-            System.Diagnostics.Debug.WriteLine(beamProperties);
-            st_beam.Name                = TrudeRepository.GetName(massData);
-            st_beam.Position            = TrudeRepository.GetPosition(massData);
-            st_beam.CenterPosition      = TrudeRepository.GetCenterPosition(massData);
-            st_beam.levelNumber         = TrudeRepository.GetLevelNumber(massData);
-            st_beam.vertices            = TrudeRepository.GetVertices(massData, 6);
-            st_beam.height              = TrudeRepository.GetBeamHeight(massData);
-            st_beam.length              = TrudeRepository.GetBeamLenght(massData);
-
-            // Get global face vertices
-            foreach (var point in massData["faceVertices"])
-            {
-                st_beam.GlobalTopFaceVertices.Add( new XYZ(UnitsAdapter.convertToRevit(Double.Parse(point["_x"].ToString())),
-                                                        UnitsAdapter.convertToRevit(Double.Parse(point["_z"].ToString())),
-                                                        UnitsAdapter.convertToRevit(Double.Parse(point["_y"].ToString()))) );
-            }
-
-            st_beam.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(st_beam.GlobalTopFaceVertices[0]),
-                                                               Extensions.Round(st_beam.GlobalTopFaceVertices[1]),
-                                                               Extensions.Round(st_beam.GlobalTopFaceVertices[2]));
+            this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beam.FaceVertices[0]), Extensions.Round(beam.FaceVertices[1]), Extensions.Round(beam.FaceVertices[2]));
 
             // Get rotation angle required to align face plane with the YZ plane. (The faces are parallel to the YZ plane in rfa file)
             XYZ YZPlaneNormal = new XYZ(-1, 0, 0);
 
             XYZ axisOfRotation = XYZ.BasisZ;
-            double rotationAngle = st_beam.countoursPlane.Normal.AngleTo(YZPlaneNormal);
+            double rotationAngle = this.countoursPlane.Normal.AngleTo(YZPlaneNormal);
 
-            if (st_beam.countoursPlane.Normal.Z == 1 || st_beam.countoursPlane.Normal.Z == -1)
+            if (this.countoursPlane.Normal.Z == 1 || this.countoursPlane.Normal.Z == -1)
             {
                 axisOfRotation = XYZ.BasisY;
-                rotationAngle = st_beam.countoursPlane.Normal.AngleTo(YZPlaneNormal);
+                rotationAngle = this.countoursPlane.Normal.AngleTo(YZPlaneNormal);
             }
 
-            var globalRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, rotationAngle, st_beam.Position);
+            var globalRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, rotationAngle, beam.CenterPosition);
             List<XYZ> rotatedTopFaceVertices = new List<XYZ>();
             double topFaceRotatedX = -1;
-            foreach(XYZ v in st_beam.GlobalTopFaceVertices)
+            foreach (XYZ v in beam.FaceVertices)
             {
                 XYZ rotatedPoint = globalRotationTransform.OfPoint(v);
                 rotatedTopFaceVertices.Add(rotatedPoint);
                 topFaceRotatedX = rotatedPoint.X;
             }
 
-            // Find length
             List<XYZ> rotatedVertices = new List<XYZ>();
             double bottomFaceRotatedX = -1;
-            foreach (XYZ v in st_beam.vertices)
+            foreach (XYZ v in beam.FaceVertices)
             {
-                XYZ globalVertix = new XYZ(v.X + st_beam.Position.X,
-                                           v.Y + st_beam.Position.Y,
-                                           v.Z + st_beam.Position.Z);
+                XYZ globalVertix = new XYZ(v.X + beam.CenterPosition.X,
+                                           v.Y + beam.CenterPosition.Y,
+                                           v.Z + beam.CenterPosition.Z);
                 XYZ rotatedPoint = globalRotationTransform.OfPoint(globalVertix);
                 rotatedVertices.Add(rotatedPoint);
 
@@ -95,40 +60,38 @@ namespace TrudeImporter
                     bottomFaceRotatedX = rotatedPoint.X;
                 }
             }
-            //st_beam.CalculateLength(rotatedVertices);
 
-            if (bottomFaceRotatedX > topFaceRotatedX) st_beam.inverseDirection = true;
+            if (bottomFaceRotatedX > topFaceRotatedX) this.inverseDirection = true;
 
-
-            st_beam.rotationTransform = Transform.CreateRotation(axisOfRotation, rotationAngle);
+            this.rotationTransform = Transform.CreateRotation(axisOfRotation, rotationAngle);
 
             // Find centroid of face
-            Transform undoRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, -rotationAngle, st_beam.CenterPosition);
+            Transform undoRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, -rotationAngle, beam.CenterPosition);
 
-            XYZ rotatedTopFaceCentroid = new XYZ(st_beam.CenterPosition.X - st_beam.length / 2,
-                                              st_beam.CenterPosition.Y,
-                                              st_beam.CenterPosition.Z);
+            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Length / 2,
+                                              beam.CenterPosition.Y,
+                                              beam.CenterPosition.Z);
 
-            st_beam.topFaceCentroid = undoRotationTransform.OfPoint(rotatedTopFaceCentroid);
+            this.topFaceCentroid = undoRotationTransform.OfPoint(rotatedTopFaceCentroid);
 
-            XYZ rotatedBottomFaceCentroid = new XYZ(st_beam.CenterPosition.X + st_beam.length / 2,
-                                              st_beam.CenterPosition.Y,
-                                              st_beam.CenterPosition.Z);
+            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Length / 2,
+                                              beam.CenterPosition.Y,
+                                              beam.CenterPosition.Z);
 
-            st_beam.bottomFaceCentroid = undoRotationTransform.OfPoint(rotatedBottomFaceCentroid);
+            this.bottomFaceCentroid = undoRotationTransform.OfPoint(rotatedBottomFaceCentroid);
 
             // Find local face vertices
-            foreach (var point in st_beam.GlobalTopFaceVertices)
+            foreach (var point in beam.FaceVertices)
             {
-                st_beam.LocalTopFaceVertices.Add( new XYZ(point.X - st_beam.topFaceCentroid.X,
-                                                          point.Y - st_beam.topFaceCentroid.Y,
-                                                          point.Z - st_beam.topFaceCentroid.Z) );
+                this.LocalTopFaceVertices.Add(new XYZ(point.X - this.topFaceCentroid.X,
+                                                          point.Y - this.topFaceCentroid.Y,
+                                                          point.Z - this.topFaceCentroid.Z));
             }
 
-            return st_beam;
+            CreateBeam(levelId);
         }
 
-        public void CreateBeam(Document doc, ElementId levelId, bool forForge = false)
+        private void CreateBeam(ElementId levelId, bool forForge = false)
         {
             List<XYZ> rotatedFaceVertices = RotateCountoursParallelToMemberRightPlane();
 
@@ -141,8 +104,8 @@ namespace TrudeImporter
                 ? "."
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
-            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties, rotatedFaceVertices, baseDir, forForge);
-            CreateFamilyInstance(doc, familyName, levelId, shapeProperties);
+            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, GlobalVariables.Document, familyName, shapeProperties, rotatedFaceVertices, baseDir, forForge);
+            CreateFamilyInstance(GlobalVariables.Document, familyName, levelId, shapeProperties);
 
             BeamRfaGenerator.DeleteAll();
         }
@@ -161,41 +124,91 @@ namespace TrudeImporter
             return rotatedCountours;
         }
 
-        private void CalculateLength(List<XYZ> vertices) 
+        private void CreateFamilyTypeIfNotExist(Application app, Document doc, string familyName, ShapeProperties shapeProperties,
+            List<XYZ> rotatedCountours, string baseDir, bool forForge)
         {
-            double x0 = vertices[0].X;
-            double xLeast = x0; 
-            double xHighest = x0; 
-            foreach(XYZ v in vertices)
+            if (!types.ContainsKey(familyName))
             {
-                if (v.X < xLeast) xLeast = v.X;
-                if (v.X > xHighest) xHighest = v.X;
-            }
 
-            length = Math.Abs(xHighest - xLeast);
+                if (shapeProperties is null)
+                {
+                    beamRfaGenerator.CreateRFAFile(app, familyName, rotatedCountours, forForge);
+                }
+                else if (shapeProperties.GetType() == typeof(RectangularProperties))
+                {
+                    string defaultRfaPath = $"{baseDir}/resourceFile/beams/rectangular_beam.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_beam");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+
+                    newFamilyType.GetParameters("b")[0].Set((shapeProperties as RectangularProperties).width);
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as RectangularProperties).depth);
+
+                    types.Add(familyName, newFamilyType);
+                }
+                else if (shapeProperties.GetType() == typeof(LShapeProperties))
+                {
+                    string defaultRfaPath = $"{baseDir}resourceFile/beams/l_shaped_beam.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_beam");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as LShapeProperties).depth);
+                    newFamilyType.GetParameters("b")[0].Set((shapeProperties as LShapeProperties).breadth);
+                    newFamilyType.GetParameters("t")[0].Set((shapeProperties as LShapeProperties).thickness);
+
+                    types.Add(familyName, newFamilyType);
+                }
+                else if (shapeProperties.GetType() == typeof(HShapeProperties))
+                {
+
+                    string defaultRfaPath = $"{baseDir}resourceFile/beams/i_shaped_beam.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "i_shaped_beam");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as HShapeProperties).depth);
+                    newFamilyType.GetParameters("bf")[0].Set((shapeProperties as HShapeProperties).flangeBreadth);
+                    newFamilyType.GetParameters("tf")[0].Set((shapeProperties as HShapeProperties).flangeThickness);
+                    newFamilyType.GetParameters("tw")[0].Set((shapeProperties as HShapeProperties).webThickness);
+
+                    types.Add(familyName, newFamilyType);
+                }
+                else if (shapeProperties.GetType() == typeof(CShapeProperties))
+                {
+                    string defaultRfaPath = $"{baseDir}resourceFile/beams/c_shaped_beam.rfa";
+                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_beam");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+
+                    newFamilyType.GetParameters("d")[0].Set((shapeProperties as CShapeProperties).depth);
+                    newFamilyType.GetParameters("bf")[0].Set((shapeProperties as CShapeProperties).flangeBreadth);
+                    newFamilyType.GetParameters("tf")[0].Set((shapeProperties as CShapeProperties).flangeThickness);
+                    newFamilyType.GetParameters("tw")[0].Set((shapeProperties as CShapeProperties).webThickness);
+
+                    types.Add(familyName, newFamilyType);
+                }
+            }
         }
 
         private void CreateFamilyInstance(Document doc, string familyName, ElementId levelId, ShapeProperties props)
         {
-                FamilySymbol familySymbol;
-                if (types.ContainsKey(familyName)) { familySymbol = types[familyName]; }
-                else
-                {
-                    doc.LoadFamily(beamRfaGenerator.fileName(familyName), out Family beamFamily);
-                    familySymbol = TrudeModel.GetFamilySymbolByName(doc, familyName);
-                    types.Add(familyName, familySymbol);
-                }
+            FamilySymbol familySymbol;
+            if (types.ContainsKey(familyName)) { familySymbol = types[familyName]; }
+            else
+            {
+                doc.LoadFamily(beamRfaGenerator.fileName(familyName), out Family beamFamily);
+                familySymbol = TrudeModel.GetFamilySymbolByName(doc, familyName);
+                types.Add(familyName, familySymbol);
+            }
 
-                Curve curve = GetPositionCurve(props);
+            Curve curve = GetPositionCurve(props);
 
-                Level level = doc.GetElement(levelId) as Level;
+            Level level = doc.GetElement(levelId) as Level;
 
-                FamilyInstance beam = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Beam);
-                beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
-                beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int) ZJustification.Center);
-                doc.Regenerate();
-                beam.GetParameters("Start Level Offset")[0].Set(level.Elevation);
-                beam.GetParameters("End Level Offset")[0].Set(level.Elevation - UnitsAdapter.MMToFeet(this.height));
+            FamilyInstance beam = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Beam);
+            beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
+            beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int)ZJustification.Center);
         }
 
         private Curve GetPositionCurve(ShapeProperties props)
@@ -209,73 +222,6 @@ namespace TrudeImporter
                 return Line.CreateBound(bottomFaceCentroid, topFaceCentroid);
             }
 
-        }
-
-        private void CreateFamilyTypeIfNotExist(Application app, Document doc, string familyName, ShapeProperties shapeProperties,
-            List<XYZ> rotatedCountours, string baseDir, bool forForge)
-        {
-            if (!types.ContainsKey(familyName))
-            {
-
-                if (shapeProperties is null)
-                {
-                    beamRfaGenerator.CreateRFAFile(app, familyName, rotatedCountours, forForge);
-                }
-                else if (shapeProperties.GetType() == typeof(RectangularProperties))
-                {
-                        string defaultRfaPath = $"{baseDir}/resourceFile/beams/rectangular_beam.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_beam");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
-
-                        newFamilyType.GetParameters("b")[0].Set((shapeProperties as RectangularProperties).width);
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as RectangularProperties).depth);
-                        
-                        types.Add(familyName, newFamilyType);
-                }
-                else if (shapeProperties.GetType() == typeof(LShapeProperties))
-                {
-                        string defaultRfaPath = $"{baseDir}resourceFile/beams/l_shaped_beam.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_beam");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
-
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as LShapeProperties).depth);
-                        newFamilyType.GetParameters("b")[0].Set((shapeProperties as LShapeProperties).breadth);
-                        newFamilyType.GetParameters("t")[0].Set((shapeProperties as LShapeProperties).thickness);
-
-                        types.Add(familyName, newFamilyType);
-                }
-                else if (shapeProperties.GetType() == typeof(HShapeProperties))
-                {
-
-                        string defaultRfaPath = $"{baseDir}resourceFile/beams/i_shaped_beam.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "i_shaped_beam");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
-
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as HShapeProperties).depth);
-                        newFamilyType.GetParameters("bf")[0].Set((shapeProperties as HShapeProperties).flangeBreadth);
-                        newFamilyType.GetParameters("tf")[0].Set((shapeProperties as HShapeProperties).flangeThickness);
-                        newFamilyType.GetParameters("tw")[0].Set((shapeProperties as HShapeProperties).webThickness);
-
-                        types.Add(familyName, newFamilyType);
-                }
-                else if (shapeProperties.GetType() == typeof(CShapeProperties))
-                {
-                        string defaultRfaPath = $"{baseDir}resourceFile/beams/c_shaped_beam.rfa";
-                        doc.LoadFamily(defaultRfaPath, out Family family);
-                        FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_beam");
-                        FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
-
-                        newFamilyType.GetParameters("d")[0].Set((shapeProperties as CShapeProperties).depth);
-                        newFamilyType.GetParameters("bf")[0].Set((shapeProperties as CShapeProperties).flangeBreadth);
-                        newFamilyType.GetParameters("tf")[0].Set((shapeProperties as CShapeProperties).flangeThickness);
-                        newFamilyType.GetParameters("tw")[0].Set((shapeProperties as CShapeProperties).webThickness);
-
-                        types.Add(familyName, newFamilyType);
-                }
-            }
         }
     }
 }

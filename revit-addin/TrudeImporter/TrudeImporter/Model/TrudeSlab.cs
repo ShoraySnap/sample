@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TrudeImporter
@@ -105,12 +106,16 @@ namespace TrudeImporter
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
             try
             {
-                slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
+                try
+                {
+                    slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
+                }
+                catch
+                {
+                    slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
+                }
             }
-            catch
-            {
-                slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
-            }
+            catch(Exception e) { }
 
             // Rotate and move the slab
             //rotate();
@@ -124,7 +129,7 @@ namespace TrudeImporter
             Level level = Doc.GetElement(levelId) as Level;
             //setHeight(level);
             
-            Doc.Regenerate();
+            //Doc.Regenerate();
         }
 
         private void CreateHoles(List<List<XYZ>> holes)

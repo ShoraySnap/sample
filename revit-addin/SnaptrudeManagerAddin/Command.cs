@@ -155,7 +155,7 @@ namespace SnaptrudeManagerAddin
             foreach (var beam in propsList)
             {
                 deleteOld(beam.ExistingElementId);
-                new TrudeBeamNew(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
             }
         }
 
@@ -164,7 +164,7 @@ namespace SnaptrudeManagerAddin
             foreach (var column in propsList)
             {
                 deleteOld(column.ExistingElementId);
-                new TrudeColumnNew(column, GlobalVariables.LevelIdByNumber[column.Storey]);
+                new TrudeColumn(column, GlobalVariables.LevelIdByNumber[column.Storey]);
             }
         }
 
@@ -248,7 +248,7 @@ namespace SnaptrudeManagerAddin
             {
                 deleteOld(floor.ExistingElementId);
                 ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
-                new TrudeFloorNew(floor, levelId);
+                new TrudeFloor(floor, levelId);
             }
         }
 
@@ -261,9 +261,16 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var slab in propsList)
             {
-                ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
-                deleteOld(slab.ExistingElementId);
-                new TrudeSlab(slab, levelId);
+                try
+                {
+                    ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
+                    new TrudeSlab(slab, levelId);
+                    deleteOld(slab.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Maybe vertices were not planar!\nError is: ", e);
+                }
             }
         }
 
@@ -274,7 +281,7 @@ namespace SnaptrudeManagerAddin
                 // Also check if door needs to be imported, it should not be a throwaway
                 ElementId levelId = GlobalVariables.LevelIdByNumber[door.Storey]; // you can add this within constructor no need to pass levelid seperately
                 deleteOld(door.ExistingElementId);
-                new TrudeDoorNew(door, levelId);
+                new TrudeDoor(door, levelId);
             }
         }
 
@@ -755,7 +762,7 @@ namespace SnaptrudeManagerAddin
                             }
 
                             ElementId levelId = GlobalVariables.LevelIdByNumber[TrudeRepository.GetLevelNumber(floorData)];
-                            TrudeFloor st_floor = new TrudeFloor(floorData, GlobalVariables.Document, levelId, existingFloorType);
+                            TrudeFloorOld st_floor = new TrudeFloorOld(floorData, GlobalVariables.Document, levelId, existingFloorType);
 
                             try
                             {
@@ -893,7 +900,7 @@ namespace SnaptrudeManagerAddin
                         }
                     }
                 }
-                TrudeFloor.TypeStore.Types.Clear();
+                TrudeFloorOld.TypeStore.Types.Clear();
                 LogTrace("Roofs created");
 
                 JToken ceilings = geometryParent["ceilings"];
@@ -1100,14 +1107,14 @@ namespace SnaptrudeManagerAddin
                         {
 
                             ElementId levelId = GlobalVariables.LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
-                            TrudeColumn
+                            TrudeColumnOld
                                 .FromMassData(massData)
                                 .CreateColumn(GlobalVariables.Document, levelId);
                         }
                         else if (massType.Equals("Beam"))
                         {
                             ElementId levelId = GlobalVariables.LevelIdByNumber[TrudeRepository.GetLevelNumber(massData)];
-                            TrudeBeam
+                            TrudeBeamOld
                                 .FromMassData(massData)
                                 .CreateBeam(GlobalVariables.Document, levelId);
                         }
@@ -1142,9 +1149,9 @@ namespace SnaptrudeManagerAddin
                         LogTrace("Error Creating beam/column");
                     }
                 }
-                TrudeColumn.NewLevelsByElevation.Clear();
-                TrudeColumn.types.Clear();
-                TrudeBeam.types.Clear();
+                TrudeColumnOld.NewLevelsByElevation.Clear();
+                TrudeColumnOld.types.Clear();
+                TrudeBeamOld.types.Clear();
 
                 LogTrace("beams and columns created");
 
@@ -1199,7 +1206,7 @@ namespace SnaptrudeManagerAddin
                         transaction.Start();
                         try
                         {
-                            TrudeDoor st_door = new TrudeDoor();
+                            TrudeDoorold st_door = new TrudeDoorold();
 
                             JToken doorMeshData = doorData["meshes"].First;
 
@@ -1279,7 +1286,7 @@ namespace SnaptrudeManagerAddin
                                 bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
                                 if (setHeightAndWidthParamsInFamilySymbol)
                                 {
-                                    familySymbol = TrudeDoor.TypeStore.GetType(new double[] { height, width }, defaultFamilySymbol);
+                                    familySymbol = TrudeDoorold.TypeStore.GetType(new double[] { height, width }, defaultFamilySymbol);
                                 }
                                 else
                                 {
@@ -1313,7 +1320,7 @@ namespace SnaptrudeManagerAddin
                 }
                 //transactionDoors.Commit();
                 LogTrace("doors created");
-                TrudeDoor.TypeStore.Clear();
+                TrudeDoorold.TypeStore.Clear();
 
                 //WINDOWS
 
