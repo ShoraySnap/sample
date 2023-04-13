@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Windows;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 //using Amazon.S3;
@@ -107,8 +108,10 @@ namespace SnaptrudeManagerAddin
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
+            //ImportCeilings(trudeProperties.Ceilings);
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-
+            ImportDoors(trudeProperties.Doors);
+            ImportWindows(trudeProperties.Windows);
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
@@ -151,8 +154,8 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var beam in propsList)
             {
-                new TrudeBeamNew(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
                 deleteOld(beam.ExistingElementId);
+                new TrudeBeamNew(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
             }
         }
 
@@ -160,8 +163,8 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var column in propsList)
             {
-                new TrudeColumnNew(column, GlobalVariables.LevelIdByNumber[column.Storey]);
                 deleteOld(column.ExistingElementId);
+                new TrudeColumnNew(column, GlobalVariables.LevelIdByNumber[column.Storey]);
             }
         }
 
@@ -243,9 +246,9 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var floor in propsList)
             {
+                deleteOld(floor.ExistingElementId);
                 ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
                 new TrudeFloorNew(floor, levelId);
-                deleteOld(floor.ExistingElementId);
             }
         }
 
@@ -259,11 +262,42 @@ namespace SnaptrudeManagerAddin
             foreach (var slab in propsList)
             {
                 ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
-                new TrudeSlab(slab, levelId);
                 deleteOld(slab.ExistingElementId);
+                new TrudeSlab(slab, levelId);
             }
         }
-        
+
+        private void ImportDoors(List<DoorProperties> propsList)
+        {
+            foreach (var door in propsList)
+            {
+                // Also check if door needs to be imported, it should not be a throwaway
+                ElementId levelId = GlobalVariables.LevelIdByNumber[door.Storey]; // you can add this within constructor no need to pass levelid seperately
+                deleteOld(door.ExistingElementId);
+                new TrudeDoorNew(door, levelId);
+            }
+        }
+
+        private void ImportWindows(List<WindowProperties> propsList)
+        {
+            foreach (var window in propsList)
+            {
+                ElementId levelId = GlobalVariables.LevelIdByNumber[window.Storey]; // you can add this within constructor no need to pass levelid seperately
+                deleteOld(window.ExistingElementId);
+                new TrudeWindowNew(window, levelId);
+            }
+        }
+
+        //private void ImportCeilings(List<CeilingProperties> propsList)
+        //{
+        //    foreach (var ceiling in propsList)
+        //    {
+        //        ElementId levelId = GlobalVariables.LevelIdByNumber[ceiling.Storey]; // you can add this within constructor no need to pass levelid seperately
+        //        deleteOld(ceiling.ExistingElementId);
+        //        new TrudeCeilingNew(ceiling, levelId);
+        //    }
+        //}
+
         // ______________________ Import Furniture will be fixed later _____________________
         //private void ImportFurniture()
         //{
