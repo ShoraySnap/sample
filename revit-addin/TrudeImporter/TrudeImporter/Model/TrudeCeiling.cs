@@ -104,9 +104,21 @@
 //                floorType = defaultFloorType;
 //            }
 //            var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+
+//            if(int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2022)
+//            {
+//                try
+//                {
+//                    ceiling = Ceiling.Create(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
+//                }
+//                catch
+//                {
+//                    ceiling = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, false);
+//                }
+//            }
 //            try
 //            {
-//                ceiling = Doc.Create.NewCeiling(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
+//                ceiling = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
 //            }
 //            catch
 //            {
