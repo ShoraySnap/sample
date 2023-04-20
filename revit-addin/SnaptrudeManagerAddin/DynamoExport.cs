@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
@@ -179,6 +179,15 @@ namespace SnaptrudeManagerAddin
 
             // the above config should work, but not working
 
+            DynamoRevit.RevitDynamoModelState modelState = DynamoRevit.ModelState;
+            if (modelState.Equals(DynamoRevit.RevitDynamoModelState.StartedUI))
+            {
+                bool changes = DynamoRevit.RevitDynamoModel.CurrentWorkspace.HasUnsavedChanges;
+                if (changes)
+                {
+                    DynamoRevit.RevitDynamoModel.CurrentWorkspace.HasUnsavedChanges = false;
+                }
+            }
             IDictionary<string, string> journalData = new Dictionary<string, string>
             {
                 { Dynamo.Applications.JournalKeys.ShowUiKey, true.ToString() }, // don't show DynamoUI at runtime
