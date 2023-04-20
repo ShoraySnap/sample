@@ -105,14 +105,14 @@ namespace TrudeImporter
 
             //double zBase = Position.Z - (height / 2d);
             double zBase = Position.Z + zLeast;
-            column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.Elevation);
+            column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.ProjectElevation);
             ElementId baseLevelId = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM).AsElementId();
             ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
             if (baseLevelId == topLevelId)
             {
                 try
                 {
-                    double topElevation = level.Elevation + height;
+                    double topElevation = level.ProjectElevation + height;
                     if (!NewLevelsByElevation.ContainsKey(topElevation))
                     {
                         TrudeStorey storey = new TrudeStorey()

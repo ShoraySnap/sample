@@ -104,7 +104,29 @@ namespace SnaptrudeManagerAddin
                         try
                         {
                             ElementId id = new ElementId((int)elementId);
-                            GlobalVariables.Document.Delete(id);
+                            Element element = GlobalVariables.Document.GetElement(id);
+                            if(!element.GroupId.Equals(ElementId.InvalidElementId))
+                            {
+                                Group group = GlobalVariables.Document.GetElement(element.GroupId) as Group;
+                                string groupName = group.Name;
+                                GroupType groupType = group.GroupType;
+                                IList<ElementId> groupMemberdIds = group.GetMemberIds();
+                                foreach (ElementId item in groupMemberdIds)
+                                {
+                                    if (item == id)
+                                    {
+                                        group.UngroupMembers();
+                                        GlobalVariables.Document.Delete(id);
+                                        groupMemberdIds.Remove(id);
+                                        var newGroup = GlobalVariables.Document.Create.NewGroup(groupMemberdIds);
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                    GlobalVariables.Document.Delete(id);
+                            }
                         }
                         catch (Exception e)
                         {
