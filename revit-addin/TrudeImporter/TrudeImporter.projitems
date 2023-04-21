@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeInterior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeLayer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMass.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
