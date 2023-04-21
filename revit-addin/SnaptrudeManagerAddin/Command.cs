@@ -1280,13 +1280,11 @@ namespace SnaptrudeManagerAddin
                     {
                         JToken massData = mass.First;
                         JToken massMeshData = massData["meshes"].First;
-                        JToken massGeometry = massData["geometries"];
 
                         string revitId = (string)massData["dsProps"]["revitMetaData"]["elementId"];
 
                         if (IsThrowAway(massData)) continue;
-                        if (massGeometry is null) continue;
-                        if (massData["dsProps"]["storey"].Value<String>() is null) continue;
+                        //if (massData["dsProps"]["storey"].Value<String>() is null) continue;
 
                         string massType = massData["dsProps"]["massType"].Value<String>();
                         if (massType.Equals("Column"))
@@ -1303,6 +1301,52 @@ namespace SnaptrudeManagerAddin
                             TrudeBeam
                                 .FromMassData(massData)
                                 .CreateBeam(newDoc, levelId);
+                        } else
+                        {
+                            if (revitId != null)
+                            {
+
+                                double familyRotation = 0;
+                                double instanceRotation = 0;
+                                bool isFacingFlip = false;
+                                string familyType = null;
+                                string sourceElementId = null;
+
+                                XYZ localOriginOffset = XYZ.Zero;
+
+                                string revitFamilyName = (string)massData["dsProps"]["revitMetaData"]["family"];
+
+                                localOriginOffset = TrudeRepository.ArrayToXYZ(massData["dsProps"]["revitMetaData"]["offset"]);
+                                familyRotation = (double)massData["dsProps"]["revitMetaData"]["familyRotation"];
+                                instanceRotation = (double)massData["dsProps"]["revitMetaData"]["rotation"];
+                                isFacingFlip = (bool)massData["dsProps"]["revitMetaData"]["facingFlipped"];
+                                familyType = (string)massData["dsProps"]["revitMetaData"]["type"];
+
+                                if (!massData["dsProps"]["revitMetaData"]["sourceElementId"].IsNullOrEmpty())
+                                    sourceElementId = (string)massData["dsProps"]["revitMetaData"]["sourceElementId"];
+
+                                FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(
+                                    newDoc,
+                                    revitFamilyName,
+                                    familyType);
+
+                                if (defaultFamilySymbol is null)
+                                {
+                                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, revitFamilyName);
+                                }
+                                if (!defaultFamilySymbol.IsActive)
+                                {
+                                    defaultFamilySymbol.Activate();
+                                    newDoc.Regenerate();
+                                }
+                                var trudeMass = new TrudeMass(massData);
+
+                                //trudeMass.CreateWithFamilySymbol(defaultFamilySymbol, familyRotation, isFacingFlip, localOriginOffset);
+                                trudeMass.CreateWithFamilySymbol(defaultFamilySymbol, familyRotation, instanceRotation, isFacingFlip, localOriginOffset);
+
+                                //idToElement.TryGetValue(revitId, out Element existingMass);
+                                //trudeMass.CreateCopyFromInstance(existingMass as FamilyInstance, localOriginOffset, isFacingFlip);
+                            }
                         }
 
                         if (revitId != null)
@@ -1311,7 +1355,7 @@ namespace SnaptrudeManagerAddin
                             {
                                 Element e;
                                 bool isExistingMass = idToElement.TryGetValue(revitId, out e);
-                                if (isExistingMass)
+                                if (isExistingMass && e.IsValidObject)
                                 {
                                     Element existingMass = e;
                                     ElementId existingLevelId = existingMass.LevelId;
