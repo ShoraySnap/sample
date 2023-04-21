@@ -106,69 +106,6 @@ namespace TrudeImporter
             element = instance;
         }
 
-        public FamilyInstance CreateCopyFromInstance(FamilyInstance existingGroup, XYZ localOriginOffset, Boolean isFacingFlip)
-        {
-            XYZ originalPoint = ((LocationPoint)existingGroup.Location).Point;
-
-            BoundingBoxXYZ bbox = existingGroup.get_BoundingBox(null);
-
-            //XYZ center = (bbox.Max + bbox.Min).Divide(2);
-            XYZ center = ((LocationPoint)existingGroup.Location).Point;
-
-            ElementId newId = ElementTransformUtils.CopyElement(
-                GlobalVariables.Document,
-                existingGroup.Id,
-                center.Multiply(-1))
-                .First();
-
-            this.element = GlobalVariables.Document.GetElement(newId);
-
-            BoundingBoxXYZ bboxNew = this.element.get_BoundingBox(null);
-            //XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
-
-            //double originalRotation = ((LocationPoint)existingAssemblyInstance.Location).Rotation;
-
-            LocationPoint pt = (LocationPoint)this.element.Location;
-            XYZ centerNew = pt.Point;
-            //ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
-            ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, this.Position - localOriginOffset);
-
-            XYZ centerAfterMove = ((LocationPoint)this.element.Location).Point;
-
-            if (this.Scaling.Z < 0)
-            {
-                ElementTransformUtils.RotateElement(
-                    GlobalVariables.Document,
-                    newId,
-                    Line.CreateBound(this.Position, this.Position + XYZ.BasisZ),
-                    this.eulerAngles.heading);
-            }
-            else
-            {
-                ElementTransformUtils.RotateElement(
-                    GlobalVariables.Document,
-                    newId,
-                    Line.CreateBound(this.Position, this.Position + XYZ.BasisZ),
-                    -this.eulerAngles.heading);
-            }
-
-
-            if (isFacingFlip)
-            {
-                XYZ normal = (this.element as FamilyInstance).FacingOrientation;
-                XYZ origin = (this.element.Location as LocationPoint).Point;
-                Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
-            }
-
-            if (this.Scaling.Z < 0)
-            {
-                this.SnaptrudeFlip(this.element, this.Position);
-            }
-
-            return element as FamilyInstance;
-        }
-
         public void Rotate(Location position)
         {
             if (HasRotationQuaternion)
