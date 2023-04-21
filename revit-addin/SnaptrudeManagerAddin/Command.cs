@@ -1341,11 +1341,7 @@ namespace SnaptrudeManagerAddin
                                 }
                                 var trudeMass = new TrudeMass(massData);
 
-                                //trudeMass.CreateWithFamilySymbol(defaultFamilySymbol, familyRotation, isFacingFlip, localOriginOffset);
                                 trudeMass.CreateWithFamilySymbol(defaultFamilySymbol, familyRotation, instanceRotation, isFacingFlip, localOriginOffset);
-
-                                //idToElement.TryGetValue(revitId, out Element existingMass);
-                                //trudeMass.CreateCopyFromInstance(existingMass as FamilyInstance, localOriginOffset, isFacingFlip);
                             }
                         }
 
