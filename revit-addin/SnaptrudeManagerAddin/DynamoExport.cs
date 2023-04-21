@@ -1,4 +1,4 @@
-using Autodesk.Revit.Attributes;
+﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
@@ -131,6 +131,18 @@ namespace SnaptrudeManagerAddin
             }
         }
 
+        private void ShowFailedDialogue()
+        {
+            TaskDialog mainDialog = new TaskDialog("Snaptrude Export Status");
+            mainDialog.MainInstruction = "Snaptrude Export Status";
+            mainDialog.MainContent = "Failed to export the model to Snaptrude.";
+
+            mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
+            mainDialog.DefaultButton = TaskDialogResult.Close;
+
+            TaskDialogResult tResult = mainDialog.Show();
+        }
+
         public Result OpenDynamo(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             //Get application and documnet objects and start transaction
@@ -186,6 +198,12 @@ namespace SnaptrudeManagerAddin
                 if (changes)
                 {
                     DynamoRevit.RevitDynamoModel.CurrentWorkspace.HasUnsavedChanges = false;
+                    bool isInMatchingDocumentContext = DynamoRevit.RevitDynamoModel.IsInMatchingDocumentContext;
+                    if (!isInMatchingDocumentContext)
+                    {
+                        ShowCloseDynamoDialogue();
+                    }
+
                 }
             }
             IDictionary<string, string> journalData = new Dictionary<string, string>
@@ -205,6 +223,16 @@ namespace SnaptrudeManagerAddin
             Result externalCommandResult = dynamoRevit.ExecuteCommand(dynamoRevitCommandData);
             return externalCommandResult;
             // return Result.Succeeded;
+        }
+
+        private void ShowCloseDynamoDialogue()
+        {
+            TaskDialog mainDialog = new TaskDialog("Close dynamo");
+            mainDialog.MainInstruction = "Please close the current open dynamo window first and then close this window.";
+            mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
+            mainDialog.DefaultButton = TaskDialogResult.Close;
+
+            TaskDialogResult tResult = mainDialog.Show();
         }
 
         private string getAppDataPath(string fileName)
