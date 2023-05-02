@@ -103,6 +103,7 @@ namespace SnaptrudeManagerAddin
             serializer.Converters.Add(new XyzConverter());
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
+            deleteRemovedElements(trudeProperties.DeletedElements);
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
@@ -129,23 +130,46 @@ namespace SnaptrudeManagerAddin
         {
             if (elementId != null)
             {
-                var element = GlobalVariables.Document.GetElement(new ElementId((int)elementId));
-                try
+                ElementId id = new ElementId((int)elementId);
+                Element element = GlobalVariables.Document.GetElement(id);
+                if (element != null)
                 {
-                    {
-                        ElementId existingLevelId = element.LevelId;
-
-                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                        {
-                            t.Start();
-                            var val = GlobalVariables.Document.Delete(element.Id);
-                            t.Commit();
-                        }
-                    }
+                    if (!element.GroupId.Equals(ElementId.InvalidElementId))
+                        deleteIfInGroup(element);
+                    else
+                        GlobalVariables.Document.Delete(element.Id);
                 }
-                catch (Exception e)
+            }
+        }
+
+        private void deleteRemovedElements(List<int> elementIds)
+        {
+            foreach (int elementId in elementIds)
+            {
+                ElementId id = new ElementId((int)elementId);
+                Element element = GlobalVariables.Document.GetElement(id);
+                if (!element.GroupId.Equals(ElementId.InvalidElementId))
+                    deleteIfInGroup(element);
+                else
+                    GlobalVariables.Document.Delete(id);
+            }
+        }
+
+        public void deleteIfInGroup(Element element)
+        {
+            Group group = GlobalVariables.Document.GetElement(element.GroupId) as Group;
+            //string groupName = group.Name;
+            //GroupType groupType = group.GroupType;
+            IList<ElementId> groupMemberdIds = group.GetMemberIds();
+            foreach (ElementId item in groupMemberdIds)
+            {
+                if (item == element.Id)
                 {
-                    System.Diagnostics.Debug.WriteLine(e.Message);
+                    group.UngroupMembers();
+                    GlobalVariables.Document.Delete(element.Id);
+                    groupMemberdIds.Remove(element.Id);
+                    var newGroup = GlobalVariables.Document.Create.NewGroup(groupMemberdIds);
+                    break;
                 }
             }
         }
