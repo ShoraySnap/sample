@@ -150,7 +150,7 @@ namespace TrudeImporter
             XYZ positionRelativeToLevel = new XYZ(
                 Position.X - originOffset.X,
                 Position.Y - originOffset.Y,
-                Position.Z - level.Elevation + localBaseZ);
+                Position.Z - level.ProjectElevation + localBaseZ);
 
             instance.Location.Move(positionRelativeToLevel);
 
