@@ -189,8 +189,8 @@ namespace TrudeImporter
                 beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
                 beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int) ZJustification.Center);
                 doc.Regenerate();
-                beam.GetParameters("Start Level Offset")[0].Set(level.Elevation);
-                beam.GetParameters("End Level Offset")[0].Set(level.Elevation - UnitsAdapter.MMToFeet(this.height));
+                beam.GetParameters("Start Level Offset")[0].Set(level.ProjectElevation);
+                beam.GetParameters("End Level Offset")[0].Set(level.ProjectElevation - UnitsAdapter.MMToFeet(this.height));
         }
 
         private Curve GetPositionCurve(ShapeProperties props)

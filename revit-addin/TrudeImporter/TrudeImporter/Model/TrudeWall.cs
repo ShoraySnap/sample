@@ -51,7 +51,7 @@ namespace TrudeImporter
                 heightParam.Set(height);
 
                 Parameter baseOffsetParam = wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET);
-                baseOffsetParam.Set(baseOffset - level.Elevation);
+                baseOffsetParam.Set(baseOffset - level.ProjectElevation);
             }
             else
             {
