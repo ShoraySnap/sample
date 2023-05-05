@@ -213,15 +213,18 @@ namespace TrudeImporter
                                 }
                                 try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
                                 {
-                                    if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                                    if (snaptrudeMaterialName != null)
                                     {
-                                        foreach (var materialElement in materialsEnum)
+                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
                                         {
-                                            String matName = materialElement.Name;
-                                            if (matName.ToLower().Contains("glass"))
+                                            foreach (var materialElement in materialsEnum)
                                             {
-                                                _materialElement = materialElement;
-                                                break;
+                                                String matName = materialElement.Name;
+                                                if (matName.ToLower().Contains("glass"))
+                                                {
+                                                    _materialElement = materialElement;
+                                                    break;
+                                                }
                                             }
                                         }
                                     }
@@ -343,7 +346,7 @@ namespace TrudeImporter
                 heightParam.Set(height);
 
                 Parameter baseOffsetParam = wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET);
-                baseOffsetParam.Set(baseOffset - level.Elevation);
+                baseOffsetParam.Set(baseOffset - level.ProjectElevation);
             }
             else
             {

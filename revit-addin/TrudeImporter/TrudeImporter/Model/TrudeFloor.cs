@@ -197,7 +197,7 @@ namespace TrudeImporter
         private void setHeight(Level level)
         {
             double bottomZ = faceVertices[0].Z/* * Scaling.Z*/;
-            double slabHeightAboveLevel = centerPosition.Z + bottomZ - level.Elevation + thickness;
+            double slabHeightAboveLevel = centerPosition.Z + bottomZ - level.ProjectElevation + thickness;
 
             floor
                 .get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)

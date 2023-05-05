@@ -130,17 +130,18 @@ namespace TrudeImporter
 
             FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
             column.Location.Rotate(curve as Line, props?.rotation ?? 0);
+            column.Location.Move(centerPosition);
 
             double zBase = centerPosition.Z - (columnHeight / 2d);
             //double zBase = 0;
-            column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.Elevation);
+            column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.ProjectElevation);
             ElementId baseLevelId = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM).AsElementId();
             ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
             if (baseLevelId == topLevelId)
             {
                 try
                 {
-                    double topElevation = level.Elevation + columnHeight;
+                    double topElevation = level.ProjectElevation + columnHeight;
                     if (!NewLevelsByElevation.ContainsKey(topElevation))
                     {
                         TrudeStorey storey = new TrudeStorey()
