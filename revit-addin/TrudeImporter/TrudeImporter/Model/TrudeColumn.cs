@@ -1,7 +1,5 @@
-﻿using Autodesk.Revit.ApplicationServices;
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -12,18 +10,17 @@ namespace TrudeImporter
         private List<XYZ> faceVertices = new List<XYZ>();
         private XYZ centerPosition = new XYZ();
         private float columnHeight;
-        //private float columnWidth;
-        //private float columnDepth;
         public static Dictionary<double, Level> NewLevelsByElevation = new Dictionary<double, Level>();
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private ColumnRfaGenerator columnRfaGenerator= new ColumnRfaGenerator();
         public TrudeColumn(ColumnProperties column, ElementId levelId, bool forForge = false)
         {
-            faceVertices = column.FaceVertices;
             centerPosition = column.CenterPosition;
+            foreach (var vert in column.FaceVertices)
+            {
+                faceVertices.Add(new XYZ(vert.X - centerPosition.X, vert.Y - centerPosition.Y, vert.Z - centerPosition.Z));
+            }
             columnHeight = column.Height;
-            //columnWidth = column.Width;
-            //columnDepth = column.Depth;
             CreateColumn(levelId);
         }
 
@@ -53,7 +50,7 @@ namespace TrudeImporter
             {
                 if (shapeProperties is null)
                 {
-                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, /*columnWidth, columnDepth, */forForge);
+                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, forForge);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
@@ -130,40 +127,43 @@ namespace TrudeImporter
 
             FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
             column.Location.Rotate(curve as Line, props?.rotation ?? 0);
-            column.Location.Move(centerPosition);
 
-            double zBase = centerPosition.Z - (columnHeight / 2d);
-            //double zBase = 0;
-            column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.ProjectElevation);
-            ElementId baseLevelId = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM).AsElementId();
-            ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
-            if (baseLevelId == topLevelId)
-            {
-                try
-                {
-                    double topElevation = level.ProjectElevation + columnHeight;
-                    if (!NewLevelsByElevation.ContainsKey(topElevation))
-                    {
-                        TrudeStorey storey = new TrudeStorey()
-                        {
-                            Elevation = topElevation
-                        };
+            var columnPos = column.Location as LocationCurve;
+            //column.Location.Move(new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z - level.ProjectElevation));
 
-                        Level newLevel = storey.CreateLevel(doc);
+            //double zBase = centerPosition.Z - (columnHeight / 2d);
+            ////double zBase = 0;
+            //column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(zBase - level.ProjectElevation);
 
-                        NewLevelsByElevation.Add(topElevation, newLevel);
-                    }
+            //ElementId baseLevelId = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM).AsElementId();
+            //ElementId topLevelId = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).AsElementId();
+            //if (baseLevelId == topLevelId)
+            //{
+            //    try
+            //    {
+            //        double topElevation = level.ProjectElevation + columnHeight;
+            //        if (!NewLevelsByElevation.ContainsKey(topElevation))
+            //        {
+            //            TrudeStorey storey = new TrudeStorey()
+            //            {
+            //                Elevation = topElevation
+            //            };
 
-                    column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(NewLevelsByElevation[topElevation].Id);
-                }
-                catch { }
-            }
+            //            Level newLevel = storey.CreateLevel(doc);
+
+            //            NewLevelsByElevation.Add(topElevation, newLevel);
+            //        }
+
+            //        column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(NewLevelsByElevation[topElevation].Id);
+            //    }
+            //    catch { }
+            //}
         }
 
         private Curve GetPositionCurve(ShapeProperties props)
         {
-            XYZ columnBasePoint = new XYZ(0, 0, centerPosition.Z - columnHeight / 2);
-            XYZ columnTopPoint = new XYZ(0, 0, centerPosition.Z + columnHeight / 2);
+            XYZ columnBasePoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z - columnHeight / 2);
+            XYZ columnTopPoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z + columnHeight / 2);
             return Line.CreateBound(columnBasePoint, columnTopPoint) as Curve;
         }
     }
