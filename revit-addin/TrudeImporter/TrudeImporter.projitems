@@ -46,14 +46,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWindowOld.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Repository\TrudeRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\BeamRfaGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\ColumnRfaGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\VoidRfaGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ShapeIdentifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeSlab.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TrudeWindowNew.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\DoorTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\FloorTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\TypeStore.cs" />

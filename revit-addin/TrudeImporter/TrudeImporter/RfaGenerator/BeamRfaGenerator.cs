@@ -26,9 +26,14 @@ namespace TrudeImporter
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 
-            Extrusion extrusion = CreateExtrusion(fdoc, _countour);
-
-            AddAlignments(fdoc, extrusion);
+            Extrusion extrusion = null;
+            using (Transaction t = new Transaction(fdoc))
+            {
+                t.Start("creating extrusion!");
+                extrusion = CreateExtrusion(fdoc, _countour);
+                AddAlignments(fdoc, extrusion);
+                t.Commit(); 
+            }
 
             SaveAsOptions opt = new SaveAsOptions();
             opt.OverwriteExistingFile = true;
