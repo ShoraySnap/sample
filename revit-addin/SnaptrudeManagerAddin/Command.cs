@@ -109,7 +109,10 @@ namespace SnaptrudeManagerAddin
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
-            //ImportCeilings(trudeProperties.Ceilings);
+            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+                ImportFloors(trudeProperties.Ceilings);
+            else
+                ImportCeilings(trudeProperties.Ceilings);
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
@@ -319,15 +322,15 @@ namespace SnaptrudeManagerAddin
             }
         }
 
-        //private void ImportCeilings(List<CeilingProperties> propsList)
-        //{
-        //    foreach (var ceiling in propsList)
-        //    {
-        //        ElementId levelId = GlobalVariables.LevelIdByNumber[ceiling.Storey]; // you can add this within constructor no need to pass levelid seperately
-        //        deleteOld(ceiling.ExistingElementId);
-        //        new TrudeCeilingNew(ceiling, levelId);
-        //    }
-        //}
+        private void ImportCeilings(List<FloorProperties> propsList)
+        {
+            foreach (var ceiling in propsList)
+            {
+                ElementId levelId = GlobalVariables.LevelIdByNumber[ceiling.Storey]; // you can add this within constructor no need to pass levelid seperately
+                deleteOld(ceiling.ExistingElementId);
+                new TrudeCeiling(ceiling, levelId);
+            }
+        }
 
         // ______________________ Import Furniture will be fixed later _____________________
         //private void ImportFurniture()

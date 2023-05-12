@@ -13,8 +13,14 @@ namespace TrudeImporter
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("height")]
+        public float Height { get; set; }
+
         [JsonProperty("storey")]
         public int Storey { get; set; }
+
+        [JsonProperty("uniqueId")]
+        public int UniqueId { get; set; }
 
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }

@@ -17,6 +17,9 @@ namespace TrudeImporter
         [JsonProperty("height")]
         public float Height { get; set; }
 
+        [JsonProperty("uniqueId")]
+        public int UniqueId { get; set; }
+
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }
 

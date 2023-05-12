@@ -21,7 +21,7 @@ namespace TrudeImporter
         public List<FloorProperties> Floors { get; set; }
 
         [JsonProperty("ceilings")]
-        public List<CeilingProperties> Ceilings { get; set; }
+        public List<FloorProperties> Ceilings { get; set; }
 
         [JsonProperty("slabs")]
         public List<SlabProperties> Slabs { get; set; }

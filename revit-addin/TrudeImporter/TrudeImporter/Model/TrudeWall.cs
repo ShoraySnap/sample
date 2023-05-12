@@ -253,6 +253,10 @@ namespace TrudeImporter
 
                         WallType _wallType = this.wall.WallType;
 
+                        // Uncomment if you dont want to join walls
+                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+
                         TransactionStatus transactionStatus = trans.Commit();
 
                         // For some reason in a few rare cases, some transactions rolledback when walls are joined.

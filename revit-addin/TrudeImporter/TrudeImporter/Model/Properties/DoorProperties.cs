@@ -17,6 +17,9 @@ namespace TrudeImporter
         [JsonProperty("storey")]
         public int Storey { get; set; }
 
+        [JsonProperty("uniqueId")]
+        public int UniqueId { get; set; }
+
         [JsonProperty("width")]
         public float Width { get; set; }
 
@@ -31,8 +34,5 @@ namespace TrudeImporter
 
         [JsonProperty("revitFamilyName")]
         public string RevitFamilyName { get; set; }
-
-        [JsonProperty("uniqueId")]
-        public int UniqueId { get; set; }
     }
 }

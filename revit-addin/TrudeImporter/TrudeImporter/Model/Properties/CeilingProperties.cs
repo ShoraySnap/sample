@@ -10,6 +10,9 @@ namespace TrudeImporter
         [JsonProperty("thickness")]
         public float Thickness { get; set; }
 
+        [JsonProperty("height")]
+        public float Height { get; set; }
+
         [JsonProperty("name")]
         public string Name { get; set; }
 

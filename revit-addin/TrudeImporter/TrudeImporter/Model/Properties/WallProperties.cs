@@ -11,6 +11,9 @@ namespace TrudeImporter
         [JsonProperty("storey")]
         public int? Storey { get; set; }
 
+        [JsonProperty("uniqueId")]
+        public int? UniqueId { get; set; }
+
         [JsonProperty("profile")]
         public List<XYZ> ProfilePoints { get; set; }
 
