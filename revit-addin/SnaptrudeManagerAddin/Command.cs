@@ -475,7 +475,7 @@ namespace SnaptrudeManagerAddin
                 {
                     wallsProcessed++;
                     if (!ShouldImport(wall)) continue;
-                    if (IsStackedWall(wall) && !IsParentStackedWall(wall)) continue;
+                    if (!IsParentStackedWall(wall) && !IsNewStackedWall(wall)) continue;
                     try
                     {
 
@@ -671,8 +671,35 @@ namespace SnaptrudeManagerAddin
                                 {
                                     WallType wallType = existingWallType;
 
-                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
+                                    bool isWeworksMessedUpStackedWall =/* (IsStackedWall(wall) && IsParentStackedWall(wall)) || */IsNewStackedWall(wall);
+                                    if (isWeworksMessedUpStackedWall)
+                                    {
+                                        foreach (JToken w in walls)
+                                        {
+                                            try
+                                            {
+                                                JToken wD = w.First;
+                                                int uId = (int)wD["dsProps"]["stackedWallData"]["parentId"];
+                                                if (uniqueId == uId)
+                                                {
+                                                    string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
 
+                                                    FilteredElementCollector c = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
+                                                    if (fN != null)
+                                                    {
+                                                        var wT = collector.Where(wt => ((WallType)wt).Name == fN).FirstOrDefault() as WallType;
+                                                        if (wT != null)
+                                                        {
+                                                            existingWallType = wT;
+                                                            wallType = existingWallType;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            } catch { }
+                                        }
+
+                                    }
                                     if (wallType is null)
                                     {
                                         wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
@@ -3520,6 +3547,16 @@ namespace SnaptrudeManagerAddin
 
             return false;
         }
+
+        private static bool IsNewStackedWall(JToken data)
+        {
+            if ((bool)data.First["dsProps"]["stackedWallData"]["isStackedWall"] == true)
+            {
+                return data.First["dsProps"]["stackedWallData"]["parentId"].IsNullOrEmpty();
+            }
+            return false;
+        }
+
 
         private void ShowSuccessDialogue()
         {
