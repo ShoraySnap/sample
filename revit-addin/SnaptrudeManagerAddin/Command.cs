@@ -546,6 +546,8 @@ namespace SnaptrudeManagerAddin
 
                                 JArray subMeshes = null;
 
+                                bool isWeworksMessedUpStackedWall = false;
+
                                 try
                                 {
                                     if (wallData["meshes"][0]["subMeshes"].IsNullOrEmpty())
@@ -671,7 +673,7 @@ namespace SnaptrudeManagerAddin
                                 {
                                     WallType wallType = existingWallType;
 
-                                    bool isWeworksMessedUpStackedWall =/* (IsStackedWall(wall) && IsParentStackedWall(wall)) || */IsNewStackedWall(wall);
+                                    isWeworksMessedUpStackedWall = (IsStackedWall(wall) && IsParentStackedWall(wall)) || IsNewStackedWall(wall);
                                     if (isWeworksMessedUpStackedWall)
                                     {
                                         foreach (JToken w in walls)
@@ -692,6 +694,7 @@ namespace SnaptrudeManagerAddin
                                                         {
                                                             existingWallType = wT;
                                                             wallType = existingWallType;
+                                                            height += (float)wD["height"];
                                                             break;
                                                         }
                                                     }
@@ -720,7 +723,7 @@ namespace SnaptrudeManagerAddin
                                 else
                                 {
                                     bool areLayersSame = AreLayersSame(st_wall.Layers, existingWallType);
-                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
+                                    isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
 
                                     if (areLayersSame || isWeworksMessedUpStackedWall)
                                     {
@@ -809,7 +812,8 @@ namespace SnaptrudeManagerAddin
                                                 break;
                                             }
                                         }
-                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass")) {
+                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass") && !isWeworksMessedUpStackedWall)
+                                        {
                                             foreach (var materialElement in materialsEnum)
                                             {
                                                 String matName = materialElement.Name;
