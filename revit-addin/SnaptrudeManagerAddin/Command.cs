@@ -668,41 +668,41 @@ namespace SnaptrudeManagerAddin
                                         existingWallType = wallType;
                                     }
                                 }
+                                isWeworksMessedUpStackedWall = (IsStackedWall(wall) && IsParentStackedWall(wall)) || IsNewStackedWall(wall);
+                                if (isWeworksMessedUpStackedWall)
+                                {
+                                    foreach (JToken w in walls)
+                                    {
+                                        try
+                                        {
+                                            JToken wD = w.First;
+                                            int uId = (int)wD["dsProps"]["stackedWallData"]["parentId"];
+                                            if (uniqueId == uId)
+                                            {
+                                                string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
+
+                                                FilteredElementCollector c = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
+                                                if (fN != null)
+                                                {
+                                                    var wT = collector.Where(wt => ((WallType)wt).Name == fN).FirstOrDefault() as WallType;
+                                                    if (wT != null)
+                                                    {
+                                                        existingWallType = wT;
+                                                        height += (float)wD["height"];
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch { }
+                                    }
+
+                                }
 
                                 if (existingWall == null)
                                 {
                                     WallType wallType = existingWallType;
-
-                                    isWeworksMessedUpStackedWall = (IsStackedWall(wall) && IsParentStackedWall(wall)) || IsNewStackedWall(wall);
-                                    if (isWeworksMessedUpStackedWall)
-                                    {
-                                        foreach (JToken w in walls)
-                                        {
-                                            try
-                                            {
-                                                JToken wD = w.First;
-                                                int uId = (int)wD["dsProps"]["stackedWallData"]["parentId"];
-                                                if (uniqueId == uId)
-                                                {
-                                                    string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
-
-                                                    FilteredElementCollector c = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
-                                                    if (fN != null)
-                                                    {
-                                                        var wT = collector.Where(wt => ((WallType)wt).Name == fN).FirstOrDefault() as WallType;
-                                                        if (wT != null)
-                                                        {
-                                                            existingWallType = wT;
-                                                            wallType = existingWallType;
-                                                            height += (float)wD["height"];
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                            } catch { }
-                                        }
-
-                                    }
+                                    
                                     if (wallType is null)
                                     {
                                         wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
@@ -3521,14 +3521,21 @@ namespace SnaptrudeManagerAddin
         {
             if (data.First["dsProps"]["revitMetaData"].IsNullOrEmpty()) return true;
 
+            if (data.First["dsProps"]["revitMetaData"]["isModified"] != null)
+            {
+                return (bool)data.First["dsProps"]["revitMetaData"]["isModified"];
+
+            }
+
             if (data.First["dsProps"]["revitMetaData"]["elementId"].IsNullOrEmpty())
             {
                 if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return true;
             }
 
-            if (data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty()) return false;
+            return false;
+            //if (data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty()) return false;
 
-            return (bool) data.First["dsProps"]["revitMetaData"]["isModified"];
+            //return (bool) data.First["dsProps"]["revitMetaData"]["isModified"];
         }
         
         private static bool IsStackedWall(JToken data)
@@ -3554,9 +3561,13 @@ namespace SnaptrudeManagerAddin
 
         private static bool IsNewStackedWall(JToken data)
         {
-            if ((bool)data.First["dsProps"]["stackedWallData"]["isStackedWall"] == true)
+            var val = data.First["dsProps"]["stackedWallData"]["isStackedWall"];
+            if (val != null)
             {
-                return data.First["dsProps"]["stackedWallData"]["parentId"].IsNullOrEmpty();
+                if ((bool)val)
+                {
+                    return data.First["dsProps"]["stackedWallData"]["parentId"].IsNullOrEmpty();
+                }
             }
             return false;
         }
