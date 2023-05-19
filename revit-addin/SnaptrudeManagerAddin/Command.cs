@@ -48,17 +48,19 @@ namespace SnaptrudeManagerAddin
                 }
 
                 if (status) ShowSuccessDialogue();
-
+                GlobalVariables.cleanGlobalVariables();
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
                 TaskDialog.Show("catch", ex.ToString());
+                GlobalVariables.cleanGlobalVariables();
                 return Result.Failed;
             }
             finally
             {
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
+                GlobalVariables.cleanGlobalVariables();
             }
         }
 
