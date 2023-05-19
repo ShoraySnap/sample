@@ -473,15 +473,22 @@ namespace SnaptrudeManagerAddin
                 int wallsProcessed = 0;
                 foreach (JToken wall in walls)
                 {
+                    JToken wallData = wall.First;
+                    int uniqueId = (int)wallData["dsProps"]["uniqueID"];
+                    if (uniqueId == 5668)
+                    {
+                        var t = true;
+                    }
                     wallsProcessed++;
                     if (!ShouldImport(wall)) continue;
-                    if (!IsParentStackedWall(wall) && !IsNewStackedWall(wall)) continue;
+                    if (!wallData["dsProps"]["stackedWallData"].IsNullOrEmpty())
+                    {
+                        if(!wallData["dsProps"]["stackedWallData"]["parentId"].IsNullOrEmpty())
+                            continue;
+                    }
+                    //if (!IsParentStackedWall(wall) && !IsNewStackedWall(wall)) continue;
                     try
                     {
-
-                        JToken wallData = wall.First;
-                        int uniqueId = (int)wallData["dsProps"]["uniqueID"];
-
                         string revitId = (string)wallData["dsProps"]["revitMetaData"]["elementId"];
 
                         string sourceElementId = null;
@@ -676,20 +683,27 @@ namespace SnaptrudeManagerAddin
                                         try
                                         {
                                             JToken wD = w.First;
-                                            int uId = (int)wD["dsProps"]["stackedWallData"]["parentId"];
-                                            if (uniqueId == uId)
+                                            var uId = wD["dsProps"]["stackedWallData"]["parentId"];
+                                            if (uId != null)
                                             {
-                                                string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
-
-                                                FilteredElementCollector c = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
-                                                if (fN != null)
+                                                if((int)uId == 9280)
                                                 {
-                                                    var wT = collector.Where(wt => ((WallType)wt).Name == fN).FirstOrDefault() as WallType;
-                                                    if (wT != null)
+                                                    var t = true;
+                                                }
+                                                if (uniqueId == (int)uId)
+                                                {
+                                                    string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
+
+                                                    FilteredElementCollector c = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
+                                                    if (fN != null)
                                                     {
-                                                        existingWallType = wT;
-                                                        height += (float)wD["height"];
-                                                        break;
+                                                        var wT = collector.Where(wt => ((WallType)wt).Name == fN).FirstOrDefault() as WallType;
+                                                        if (wT != null)
+                                                        {
+                                                            existingWallType = wT;
+                                                            height += (float)wD["height"];
+                                                            break;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -3529,7 +3543,8 @@ namespace SnaptrudeManagerAddin
 
             if (data.First["dsProps"]["revitMetaData"]["elementId"].IsNullOrEmpty())
             {
-                if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return true;
+                return true;
+                //if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return true;
             }
 
             return false;
