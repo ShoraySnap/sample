@@ -686,10 +686,6 @@ namespace SnaptrudeManagerAddin
                                             var uId = wD["dsProps"]["stackedWallData"]["parentId"];
                                             if (uId != null)
                                             {
-                                                if((int)uId == 9280)
-                                                {
-                                                    var t = true;
-                                                }
                                                 if (uniqueId == (int)uId)
                                                 {
                                                     string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
@@ -701,7 +697,7 @@ namespace SnaptrudeManagerAddin
                                                         if (wT != null)
                                                         {
                                                             existingWallType = wT;
-                                                            height += (float)wD["height"];
+                                                            height += UnitsAdapter.convertToRevit((float)wD["height"]);
                                                             break;
                                                         }
                                                     }
@@ -747,6 +743,7 @@ namespace SnaptrudeManagerAddin
                                             var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                                             var newHeightParam = st_wall.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                                             if (!newHeightParam.IsReadOnly) newHeightParam.SetValueString(existingHeightParam.AsValueString());
+                                            newHeightParam.Set(height);
                                         }
                                     }
                                     else
