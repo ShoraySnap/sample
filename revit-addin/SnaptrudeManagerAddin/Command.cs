@@ -3532,7 +3532,7 @@ namespace SnaptrudeManagerAddin
         {
             if (data.First["dsProps"]["revitMetaData"].IsNullOrEmpty()) return true;
 
-            if (data.First["dsProps"]["revitMetaData"]["isModified"] != null)
+            if (!data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty())
             {
                 return (bool)data.First["dsProps"]["revitMetaData"]["isModified"];
 
