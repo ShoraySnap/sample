@@ -242,7 +242,7 @@ namespace TrudeImporter
                             }
                             else
                             {
-                                this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                                //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
                             }
 
                         }

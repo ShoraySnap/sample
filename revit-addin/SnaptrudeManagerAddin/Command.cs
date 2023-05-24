@@ -40,7 +40,7 @@ namespace SnaptrudeManagerAddin
             try
             {
                 bool status = false;
-                using(Transaction t = new Transaction(doc, "Parse Trude"))
+                using (Transaction t = new Transaction(doc, "Parse Trude"))
                 {
                     t.Start();
                     status = ParseTrude();
@@ -87,6 +87,13 @@ namespace SnaptrudeManagerAddin
                 return false;
             }
 
+            if (GlobalVariables.Document.IsReadOnly)
+            {
+                ShowReadOnlyDialogue();
+
+                return false;
+            }
+
             String path = ModelPathUtils.ConvertModelPathToUserVisiblePath(trudeFileOpenDialog.GetSelectedModelPath());
 
             JObject trudeData = JObject.Parse(File.ReadAllText(path));
@@ -107,17 +114,17 @@ namespace SnaptrudeManagerAddin
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             deleteRemovedElements(trudeProperties.DeletedElements);
             ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            //ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
-                ImportFloors(trudeProperties.Ceilings);
-            else
-                ImportCeilings(trudeProperties.Ceilings);
+            //ImportFloors(trudeProperties.Floors);
+            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+            //    ImportFloors(trudeProperties.Ceilings);
+            //else
+            //    ImportCeilings(trudeProperties.Ceilings);
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-            ImportDoors(trudeProperties.Doors);
-            ImportWindows(trudeProperties.Windows);
+            //ImportDoors(trudeProperties.Doors);
+            //ImportWindows(trudeProperties.Windows);
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
@@ -151,12 +158,20 @@ namespace SnaptrudeManagerAddin
         {
             foreach (int elementId in elementIds)
             {
-                ElementId id = new ElementId((int)elementId);
-                Element element = GlobalVariables.Document.GetElement(id);
-                if (!element.GroupId.Equals(ElementId.InvalidElementId))
-                    deleteIfInGroup(element);
-                else
-                    GlobalVariables.Document.Delete(id);
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    ElementId id = new ElementId((int)elementId);
+                    Element element = GlobalVariables.Document.GetElement(id);
+                    if (!element.GroupId.Equals(ElementId.InvalidElementId))
+                        deleteIfInGroup(element);
+                    else
+                        GlobalVariables.Document.Delete(id);
+                    if (t.Commit() != TransactionStatus.Committed)
+                    {
+                        t.RollBack();
+                    }
+                }
             }
         }
 
@@ -257,8 +272,16 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var beam in propsList)
             {
-                deleteOld(beam.ExistingElementId);
-                new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    deleteOld(beam.ExistingElementId);
+                    new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                    if(t.Commit() != TransactionStatus.Committed)
+                    {
+                        t.RollBack();
+                    }
+                }
             }
         }
 
@@ -275,9 +298,17 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var floor in propsList)
             {
-                deleteOld(floor.ExistingElementId);
-                ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
-                new TrudeFloor(floor, levelId);
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    deleteOld(floor.ExistingElementId);
+                    ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
+                    new TrudeFloor(floor, levelId);
+                    if(t.Commit() != TransactionStatus.Committed)
+                    {
+                        t.RollBack();
+                    }
+                }
             }
         }
 
@@ -292,9 +323,17 @@ namespace SnaptrudeManagerAddin
             {
                 try
                 {
-                    ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
-                    new TrudeSlab(slab, levelId);
-                    deleteOld(slab.ExistingElementId);
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    {
+                        t.Start();
+                        ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
+                        new TrudeSlab(slab, levelId);
+                        deleteOld(slab.ExistingElementId);
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
@@ -328,9 +367,16 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var ceiling in propsList)
             {
-                ElementId levelId = GlobalVariables.LevelIdByNumber[ceiling.Storey]; // you can add this within constructor no need to pass levelid seperately
-                deleteOld(ceiling.ExistingElementId);
-                new TrudeCeiling(ceiling, levelId);
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    ElementId levelId = GlobalVariables.LevelIdByNumber[ceiling.Storey]; // you can add this within constructor no need to pass levelid seperately
+                    deleteOld(ceiling.ExistingElementId);
+                    new TrudeCeiling(ceiling, levelId);
+                    if (t.Commit() != TransactionStatus.Committed)
+                    {
+                        t.RollBack();
+                    }
+                }
             }
         }
 
@@ -3322,6 +3368,18 @@ namespace SnaptrudeManagerAddin
             TaskDialog mainDialog = new TaskDialog("Snaptrude Import Status");
             mainDialog.MainInstruction = "Snaptrude Import Status";
             mainDialog.MainContent = "File not selected, import cancelled.";
+
+            mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
+            mainDialog.DefaultButton = TaskDialogResult.Close;
+
+            TaskDialogResult tResult = mainDialog.Show();
+        }
+
+        private void ShowReadOnlyDialogue()
+        {
+            TaskDialog mainDialog = new TaskDialog("Snaptrude Import Status");
+            mainDialog.MainInstruction = "Snaptrude Import Status";
+            mainDialog.MainContent = "Revit file is in read-only mode.";
 
             mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
             mainDialog.DefaultButton = TaskDialogResult.Close;

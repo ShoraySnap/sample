@@ -112,7 +112,11 @@ namespace TrudeImporter
                 }
                 catch
                 {
-                    slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
+                    try
+                    {
+                        slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
+                    }
+                    catch { }
                 }
             }
             catch(Exception e) { }
