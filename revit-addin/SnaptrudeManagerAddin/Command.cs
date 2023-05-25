@@ -663,7 +663,7 @@ namespace SnaptrudeManagerAddin
                                 ElementId levelIdForWall;
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
                                 Level level = (Level) newDoc.GetElement(levelIdForWall);
-
+                                List<List<XYZ>> stackedChildHoles = new List<List<XYZ>>();
                                 string familyName = (string)wallData["wallType"];
 
                                 FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
@@ -698,6 +698,12 @@ namespace SnaptrudeManagerAddin
                                                         {
                                                             existingWallType = wT;
                                                             height += UnitsAdapter.convertToRevit((float)wD["height"]);
+                                                            if (wD["holes"].IsNullOrEmpty()) break;
+                                                            foreach (JToken holeJtoken in wD["holes"])
+                                                            {
+                                                                List<XYZ> holePoints = holeJtoken.Select(point => TrudeRepository.ArrayToXYZ(point)).ToList();
+                                                                stackedChildHoles.Add(holePoints);
+                                                            }
                                                             break;
                                                         }
                                                     }
@@ -706,7 +712,6 @@ namespace SnaptrudeManagerAddin
                                         }
                                         catch { }
                                     }
-
                                 }
 
                                 if (existingWall == null)
@@ -758,7 +763,9 @@ namespace SnaptrudeManagerAddin
                                 // Create holes
                                 newDoc.Regenerate();
 
-                                foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
+                                // adding all holes together (even child stacked wall if any)
+                                stackedChildHoles.AddRange(TrudeRepository.GetHoles(wallData));
+                                foreach (List<XYZ> hole in stackedChildHoles)
                                 {
                                     try
                                     {
