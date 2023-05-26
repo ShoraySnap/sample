@@ -114,9 +114,9 @@ namespace SnaptrudeManagerAddin
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             deleteRemovedElements(trudeProperties.DeletedElements);
             ImportStories(trudeProperties.Storeys);
-            //ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            //ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            //ImportColumns(trudeProperties.Columns); // these are structural components of the building
             //ImportFloors(trudeProperties.Floors);
             //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
             //    ImportFloors(trudeProperties.Ceilings);
@@ -326,14 +326,13 @@ namespace SnaptrudeManagerAddin
                     using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
                         t.Start();
-                        ElementId levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
-                        new TrudeSlab(slab, levelId);
-                        deleteOld(slab.ExistingElementId);
+                        new TrudeSlab(slab);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
                         }
                     }
+                    
                 }
                 catch (Exception e)
                 {
@@ -346,7 +345,6 @@ namespace SnaptrudeManagerAddin
         {
             foreach (var door in propsList)
             {
-                // Also check if door needs to be imported, it should not be a throwaway
                 ElementId levelId = GlobalVariables.LevelIdByNumber[door.Storey]; // you can add this within constructor no need to pass levelid seperately
                 deleteOld(door.ExistingElementId);
                 new TrudeDoor(door, levelId);

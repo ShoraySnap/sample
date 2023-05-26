@@ -16,6 +16,7 @@ namespace TrudeImporter
         private Floor slab { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
+        ElementId levelId = null;
 
         /// <summary>
         /// Imports floors into revit from snaptrude json data
@@ -23,10 +24,11 @@ namespace TrudeImporter
         /// <param name="slab"></param>
         /// <param name="levelId"></param>
         /// <param name="forForge"></param>
-        public TrudeSlab(SlabProperties slab, ElementId levelId, bool forForge = false)
+        public TrudeSlab(SlabProperties slab, bool forForge = false)
         {
             thickness = slab.Thickness;
             baseType = slab.BaseType;
+            levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
             centerPosition = slab.CenterPosition;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
             foreach (var v in slab.FaceVertices) 
@@ -53,7 +55,8 @@ namespace TrudeImporter
             Layers = _layers.ToArray();
             setCoreLayerIfNotExist(Math.Abs(thickness));
             // --------------------------------------------
-            CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
+            CreateSlab(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
+            GlobalVariables.Document.Regenerate();
             CreateHoles(slab.Holes);
         }
 
@@ -91,7 +94,7 @@ namespace TrudeImporter
             Layers[coreIndex].IsCore = true;
         }
 
-        private void CreateFloor(ElementId levelId, bool depricated = false)
+        private void CreateSlab(ElementId levelId, bool depricated = false)
         {
             CurveArray profile = getProfile(faceVertices);
             FloorType floorType = existingFloorType;
@@ -116,10 +119,16 @@ namespace TrudeImporter
                     {
                         slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
                     }
-                    catch { }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Maybe vertices were not planar!\nError is: ", e);
+                    }
                 }
             }
-            catch(Exception e) { }
+            catch(Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Maybe vertices were not planar!\nError is: ", e);
+            }
 
             // Rotate and move the slab
             //rotate();
@@ -132,7 +141,7 @@ namespace TrudeImporter
 
             Level level = Doc.GetElement(levelId) as Level;
             //setHeight(level);
-            
+
             //Doc.Regenerate();
         }
 
