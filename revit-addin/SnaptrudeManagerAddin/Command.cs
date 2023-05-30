@@ -301,52 +301,63 @@ namespace SnaptrudeManagerAddin
 
         public bool AreLayersSame(TrudeLayer[] stLayers, WallType wallType)
         {
-            try
+            CompoundStructure compoundStructure = wallType.GetCompoundStructure();
+            var existingWallLayers = compoundStructure.GetLayers();
+            if (stLayers.Length != existingWallLayers.Count)
+                return false;
+            for(int i = 0; i< stLayers.Length; i++)
             {
-                CompoundStructure compoundStructure = wallType.GetCompoundStructure();
-                if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
-
-                CompoundStructureLayer coreLayer = compoundStructure.GetCoreLayer();
-
-                if (coreLayer is null)
-                {
-                    int coreLayerIndex = compoundStructure.GetFirstCoreLayerIndex();
-                    coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
-                }
-                if (coreLayer is null)
-                {
-                    int coreLayerIndex = compoundStructure.GetLastCoreLayerIndex();
-                    coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
-                }
-                if (coreLayer is null)
-                {
+                var m = GlobalVariables.Document.GetElement(existingWallLayers[i].MaterialId);
+                if (/*stLayers[i].Name != m.Name || */!stLayers[i].ThicknessInMm.AlmostEquals(UnitsAdapter.FeetToMM(existingWallLayers[i].Width, 6), 0.5))
                     return false;
-                }
-
-                TrudeLayer stCoreLayer = null;
-                for (int i = 0; i < stLayers.Length; i++)
-                {
-                    TrudeLayer stLayer = stLayers[i];
-
-                    if (stLayer.IsCore)
-                    {
-                        stCoreLayer = stLayer;
-                        break;
-                    }
-
-                }
-
-                if (stCoreLayer is null) return false;
-
-                double coreLayerThicknessInMm = UnitsAdapter.FeetToMM(coreLayer.Width);
-                if (stCoreLayer.ThicknessInMm.AlmostEquals(coreLayerThicknessInMm, 0.5)) return true;
-
-                return false;
             }
-            catch (Exception e)
-            {
-                return false;
-            }
+
+            //try
+            //{
+            //    CompoundStructure compoundStructure = wallType.GetCompoundStructure();
+            //    if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
+
+            //    CompoundStructureLayer coreLayer = compoundStructure.GetCoreLayer();
+
+            //    if (coreLayer is null)
+            //    {
+            //        int coreLayerIndex = compoundStructure.GetFirstCoreLayerIndex();
+            //        coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
+            //    }
+            //    if (coreLayer is null)
+            //    {
+            //        int coreLayerIndex = compoundStructure.GetLastCoreLayerIndex();
+            //        coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
+            //    }
+            //    if (coreLayer is null)
+            //    {
+            //        return false;
+            //    }
+
+            //    TrudeLayer stCoreLayer = null;
+            //    for (int i = 0; i < stLayers.Length; i++)
+            //    {
+            //        TrudeLayer stLayer = stLayers[i];
+
+            //        if (stLayer.IsCore)
+            //        {
+            //            stCoreLayer = stLayer;
+            //            break;
+            //        }
+
+            //    }
+
+            //    if (stCoreLayer is null) return false;
+
+            //    double coreLayerThicknessInMm = UnitsAdapter.FeetToMM(coreLayer.Width);
+            //    if (stCoreLayer.ThicknessInMm.AlmostEquals(coreLayerThicknessInMm, 0.5)) return true;
+
+                return true;
+            //}
+            //catch (Exception e)
+            //{
+            //    return false;
+            //}
         }
 
         private void ImportSnaptrude(JObject jObject, Document newDoc)
@@ -629,8 +640,9 @@ namespace SnaptrudeManagerAddin
                                     if (st_wall.Layers[i].IsCore)
                                     {
                                         coreIsFound = true;
+                                        break;
                                         //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                                        if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
+                                        //if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
                                     }
                                 }
 
