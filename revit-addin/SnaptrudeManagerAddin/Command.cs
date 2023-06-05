@@ -301,52 +301,63 @@ namespace SnaptrudeManagerAddin
 
         public bool AreLayersSame(TrudeLayer[] stLayers, WallType wallType)
         {
-            try
+            CompoundStructure compoundStructure = wallType.GetCompoundStructure();
+            var existingWallLayers = compoundStructure.GetLayers();
+            if (stLayers.Length != existingWallLayers.Count)
+                return false;
+            for(int i = 0; i< stLayers.Length; i++)
             {
-                CompoundStructure compoundStructure = wallType.GetCompoundStructure();
-                if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
-
-                CompoundStructureLayer coreLayer = compoundStructure.GetCoreLayer();
-
-                if (coreLayer is null)
-                {
-                    int coreLayerIndex = compoundStructure.GetFirstCoreLayerIndex();
-                    coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
-                }
-                if (coreLayer is null)
-                {
-                    int coreLayerIndex = compoundStructure.GetLastCoreLayerIndex();
-                    coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
-                }
-                if (coreLayer is null)
-                {
+                var m = GlobalVariables.Document.GetElement(existingWallLayers[i].MaterialId);
+                if (/*stLayers[i].Name != m.Name || */!stLayers[i].ThicknessInMm.AlmostEquals(UnitsAdapter.FeetToMM(existingWallLayers[i].Width, 6), 0.5))
                     return false;
-                }
-
-                TrudeLayer stCoreLayer = null;
-                for (int i = 0; i < stLayers.Length; i++)
-                {
-                    TrudeLayer stLayer = stLayers[i];
-
-                    if (stLayer.IsCore)
-                    {
-                        stCoreLayer = stLayer;
-                        break;
-                    }
-
-                }
-
-                if (stCoreLayer is null) return false;
-
-                double coreLayerThicknessInMm = UnitsAdapter.FeetToMM(coreLayer.Width);
-                if (stCoreLayer.ThicknessInMm.AlmostEquals(coreLayerThicknessInMm, 0.5)) return true;
-
-                return false;
             }
-            catch (Exception e)
-            {
-                return false;
-            }
+
+            //try
+            //{
+            //    CompoundStructure compoundStructure = wallType.GetCompoundStructure();
+            //    if (compoundStructure == null) return true; // TODO: find a way to handle walls without compoundStructure
+
+            //    CompoundStructureLayer coreLayer = compoundStructure.GetCoreLayer();
+
+            //    if (coreLayer is null)
+            //    {
+            //        int coreLayerIndex = compoundStructure.GetFirstCoreLayerIndex();
+            //        coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
+            //    }
+            //    if (coreLayer is null)
+            //    {
+            //        int coreLayerIndex = compoundStructure.GetLastCoreLayerIndex();
+            //        coreLayer = compoundStructure.GetLayers()[coreLayerIndex];
+            //    }
+            //    if (coreLayer is null)
+            //    {
+            //        return false;
+            //    }
+
+            //    TrudeLayer stCoreLayer = null;
+            //    for (int i = 0; i < stLayers.Length; i++)
+            //    {
+            //        TrudeLayer stLayer = stLayers[i];
+
+            //        if (stLayer.IsCore)
+            //        {
+            //            stCoreLayer = stLayer;
+            //            break;
+            //        }
+
+            //    }
+
+            //    if (stCoreLayer is null) return false;
+
+            //    double coreLayerThicknessInMm = UnitsAdapter.FeetToMM(coreLayer.Width);
+            //    if (stCoreLayer.ThicknessInMm.AlmostEquals(coreLayerThicknessInMm, 0.5)) return true;
+
+                return true;
+            //}
+            //catch (Exception e)
+            //{
+            //    return false;
+            //}
         }
 
         private void ImportSnaptrude(JObject jObject, Document newDoc)
@@ -473,15 +484,22 @@ namespace SnaptrudeManagerAddin
                 int wallsProcessed = 0;
                 foreach (JToken wall in walls)
                 {
+                    JToken wallData = wall.First;
+                    int uniqueId = (int)wallData["dsProps"]["uniqueID"];
+                    if (uniqueId == 5668)
+                    {
+                        var t = true;
+                    }
                     wallsProcessed++;
                     if (!ShouldImport(wall)) continue;
-                    if (IsStackedWall(wall) && !IsParentStackedWall(wall)) continue;
+                    if (!wallData["dsProps"]["stackedWallData"].IsNullOrEmpty())
+                    {
+                        if(!wallData["dsProps"]["stackedWallData"]["parentId"].IsNullOrEmpty())
+                            continue;
+                    }
+                    //if (!IsParentStackedWall(wall) && !IsNewStackedWall(wall)) continue;
                     try
                     {
-
-                        JToken wallData = wall.First;
-                        int uniqueId = (int)wallData["dsProps"]["uniqueID"];
-
                         string revitId = (string)wallData["dsProps"]["revitMetaData"]["elementId"];
 
                         string sourceElementId = null;
@@ -545,6 +563,8 @@ namespace SnaptrudeManagerAddin
                                 }
 
                                 JArray subMeshes = null;
+
+                                bool isWeworksMessedUpStackedWall = false;
 
                                 try
                                 {
@@ -629,8 +649,9 @@ namespace SnaptrudeManagerAddin
                                     if (st_wall.Layers[i].IsCore)
                                     {
                                         coreIsFound = true;
+                                        break;
                                         //st_wall.Layers[i].ThicknessInMm = UnitsAdapter.FeetToMM(thickness);
-                                        if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
+                                        //if (thickness > 0) st_wall.Layers[i].ThicknessInMm = thickness;
                                     }
                                 }
 
@@ -654,7 +675,7 @@ namespace SnaptrudeManagerAddin
                                 ElementId levelIdForWall;
                                 levelIdForWall = LevelIdByNumber[st_wall.levelNumber];
                                 Level level = (Level) newDoc.GetElement(levelIdForWall);
-
+                                List<List<XYZ>> stackedChildHoles = new List<List<XYZ>>();
                                 string familyName = (string)wallData["wallType"];
 
                                 FilteredElementCollector collector = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
@@ -666,13 +687,49 @@ namespace SnaptrudeManagerAddin
                                         existingWallType = wallType;
                                     }
                                 }
+                                isWeworksMessedUpStackedWall = (IsStackedWall(wall) && IsParentStackedWall(wall)) || IsNewStackedWall(wall);
+                                if (isWeworksMessedUpStackedWall)
+                                {
+                                    foreach (JToken w in walls)
+                                    {
+                                        try
+                                        {
+                                            JToken wD = w.First;
+                                            var uId = wD["dsProps"]["stackedWallData"]["parentId"];
+                                            if (uId != null)
+                                            {
+                                                if (uniqueId == (int)uId)
+                                                {
+                                                    string fN = (string)w.First["dsProps"]["properties"]["wallMaterialType"];
+
+                                                    FilteredElementCollector c = new FilteredElementCollector(newDoc).OfClass(typeof(WallType));
+                                                    if (fN != null)
+                                                    {
+                                                        var wT = collector.Where(wt => ((WallType)wt).Name == fN).FirstOrDefault() as WallType;
+                                                        if (wT != null)
+                                                        {
+                                                            existingWallType = wT;
+                                                            height += UnitsAdapter.convertToRevit((float)wD["height"]);
+                                                            if (wD["holes"].IsNullOrEmpty()) break;
+                                                            foreach (JToken holeJtoken in wD["holes"])
+                                                            {
+                                                                List<XYZ> holePoints = holeJtoken.Select(point => TrudeRepository.ArrayToXYZ(point)).ToList();
+                                                                stackedChildHoles.Add(holePoints);
+                                                            }
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                }
 
                                 if (existingWall == null)
                                 {
                                     WallType wallType = existingWallType;
-
-                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
-
+                                    
                                     if (wallType is null)
                                     {
                                         wallType = TrudeWall.GetWallTypeByWallLayers(st_wall.Layers, newDoc);
@@ -693,7 +750,7 @@ namespace SnaptrudeManagerAddin
                                 else
                                 {
                                     bool areLayersSame = AreLayersSame(st_wall.Layers, existingWallType);
-                                    bool isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
+                                    isWeworksMessedUpStackedWall = IsStackedWall(wall) && IsParentStackedWall(wall);
 
                                     if (areLayersSame || isWeworksMessedUpStackedWall)
                                     {
@@ -703,6 +760,7 @@ namespace SnaptrudeManagerAddin
                                             var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                                             var newHeightParam = st_wall.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                                             if (!newHeightParam.IsReadOnly) newHeightParam.SetValueString(existingHeightParam.AsValueString());
+                                            newHeightParam.Set(height);
                                         }
                                     }
                                     else
@@ -717,7 +775,9 @@ namespace SnaptrudeManagerAddin
                                 // Create holes
                                 newDoc.Regenerate();
 
-                                foreach (List<XYZ> hole in TrudeRepository.GetHoles(wallData))
+                                // adding all holes together (even child stacked wall if any)
+                                stackedChildHoles.AddRange(TrudeRepository.GetHoles(wallData));
+                                foreach (List<XYZ> hole in stackedChildHoles)
                                 {
                                     try
                                     {
@@ -782,7 +842,8 @@ namespace SnaptrudeManagerAddin
                                                 break;
                                             }
                                         }
-                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass")) {
+                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass") && !isWeworksMessedUpStackedWall)
+                                        {
                                             foreach (var materialElement in materialsEnum)
                                             {
                                                 String matName = materialElement.Name;
@@ -3490,14 +3551,22 @@ namespace SnaptrudeManagerAddin
         {
             if (data.First["dsProps"]["revitMetaData"].IsNullOrEmpty()) return true;
 
-            if (data.First["dsProps"]["revitMetaData"]["elementId"].IsNullOrEmpty())
+            if (!data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty())
             {
-                if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return true;
+                return (bool)data.First["dsProps"]["revitMetaData"]["isModified"];
+
             }
 
-            if (data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty()) return false;
+            if (data.First["dsProps"]["revitMetaData"]["elementId"].IsNullOrEmpty())
+            {
+                return true;
+                //if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return true;
+            }
 
-            return (bool) data.First["dsProps"]["revitMetaData"]["isModified"];
+            return false;
+            //if (data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty()) return false;
+
+            //return (bool) data.First["dsProps"]["revitMetaData"]["isModified"];
         }
         
         private static bool IsStackedWall(JToken data)
@@ -3520,6 +3589,20 @@ namespace SnaptrudeManagerAddin
 
             return false;
         }
+
+        private static bool IsNewStackedWall(JToken data)
+        {
+            var val = data.First["dsProps"]["stackedWallData"]["isStackedWall"];
+            if (val != null)
+            {
+                if ((bool)val)
+                {
+                    return data.First["dsProps"]["stackedWallData"]["parentId"].IsNullOrEmpty();
+                }
+            }
+            return false;
+        }
+
 
         private void ShowSuccessDialogue()
         {
