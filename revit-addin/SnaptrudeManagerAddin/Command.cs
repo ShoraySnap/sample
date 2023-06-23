@@ -22,7 +22,6 @@ namespace SnaptrudeManagerAddin
     public class Command : IExternalCommand
     {
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
-        public static Dictionary<string, int> furnitureLog = new Dictionary<string, int>();
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
@@ -40,11 +39,7 @@ namespace SnaptrudeManagerAddin
                 }
 
                 if (status)
-                {
                     ShowSuccessDialogue();
-                    if(furnitureLog.Count > 0)
-                        ShowFurnitureLog();
-                }
 
                 return Result.Succeeded;
             }
@@ -1921,12 +1916,8 @@ namespace SnaptrudeManagerAddin
                     LogProgress(processedElements, totalElements);
 
                     var furnitureData = furniture.First;
-                    if ((int)furnitureData["dsProps"]["uniqueID"] == 5917)
-                    {
-                        var t = true;
-                    }
 
-                        double familyRotation = 0;
+                    double familyRotation = 0;
                     bool isFacingFlip = false;
                     string familyType = null;
                     string sourceElementId = null;
@@ -2303,10 +2294,6 @@ namespace SnaptrudeManagerAddin
                     }
                     catch(Exception e)
                     {
-                        if (furnitureLog.ContainsKey(!String.IsNullOrEmpty(revitFamilyName) ? revitFamilyName : familyType))
-                            furnitureLog[!String.IsNullOrEmpty(revitFamilyName) ? revitFamilyName : familyType] += 1;
-                        else
-                            furnitureLog.Add(!String.IsNullOrEmpty(revitFamilyName) ? revitFamilyName : familyType, 1);
                         LogTrace("furniture creation ERROR", e.ToString());
                     }
 
@@ -3630,24 +3617,6 @@ namespace SnaptrudeManagerAddin
             TaskDialogResult tResult = mainDialog.Show();
         }
 
-        private void ShowFurnitureLog()
-        {
-            string log = "";
-            TaskDialog mainDialog = new TaskDialog("Snaptrude Import Status");
-            mainDialog.MainInstruction = "Snaptrude Import Status";
-            mainDialog.MainContent = "Could not import the few funiture(s)";
-            foreach (var key in furnitureLog)
-            {
-                log += $"Furniture = {key.Key}, Occurance = {key.Value}\n";
-            }
-            mainDialog.ExpandedContent = log;
-            furnitureLog.Clear();
-
-            mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
-            mainDialog.DefaultButton = TaskDialogResult.Close;
-
-            TaskDialogResult tResult = mainDialog.Show();
-        }
         private void ShowTrudeFileNotSelectedDialogue()
         {
             TaskDialog mainDialog = new TaskDialog("Snaptrude Import Status");
