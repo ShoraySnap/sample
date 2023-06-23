@@ -3,6 +3,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.ExtensibleStorage;
+using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.DB.Visual;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
@@ -21,7 +22,6 @@ namespace SnaptrudeManagerAddin
     public class Command : IExternalCommand
     {
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
@@ -38,7 +38,8 @@ namespace SnaptrudeManagerAddin
                     t.Commit();
                 }
 
-                if (status) ShowSuccessDialogue();
+                if (status)
+                    ShowSuccessDialogue();
 
                 return Result.Succeeded;
             }
@@ -3615,6 +3616,7 @@ namespace SnaptrudeManagerAddin
 
             TaskDialogResult tResult = mainDialog.Show();
         }
+
         private void ShowTrudeFileNotSelectedDialogue()
         {
             TaskDialog mainDialog = new TaskDialog("Snaptrude Import Status");
