@@ -46,6 +46,14 @@ namespace TrudeImporter
                            .FirstOrDefault();
                 }
 
+                if (familySymbol == null)
+                {
+                    familySymbol = (from fs in familySymbols
+                                    where (fs.Family.Name == fsFamilyName)
+                                    select fs)
+                            .FirstOrDefault();
+                }
+
                 if (familySymbol == null) return null;
 
                 if (!familySymbol.IsActive)
