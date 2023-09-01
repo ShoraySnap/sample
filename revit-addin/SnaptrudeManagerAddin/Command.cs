@@ -344,10 +344,9 @@ namespace SnaptrudeManagerAddin
                 {
                     t.Start();
                     deleteOld(floor.ExistingElementId);
-                    ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
                     try
                     {
-                        new TrudeFloor(floor, levelId);
+                        new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -398,11 +397,10 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    ElementId levelId = GlobalVariables.LevelIdByNumber[door.Storey]; // you can add this within constructor no need to pass levelid seperately
                     deleteOld(door.ExistingElementId);
                     try
                     {
-                        new TrudeDoor(door, levelId);
+                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey]);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -424,11 +422,10 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    ElementId levelId = GlobalVariables.LevelIdByNumber[window.Storey]; // you can add this within constructor no need to pass levelid seperately
                     deleteOld(window.ExistingElementId);
                     try
                     {
-                        new TrudeWindow(window, levelId);
+                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey]);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -450,11 +447,10 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    ElementId levelId = GlobalVariables.LevelIdByNumber[ceiling.Storey]; // you can add this within constructor no need to pass levelid seperately
                     deleteOld(ceiling.ExistingElementId);
                     try
                     {
-                        new TrudeCeiling(ceiling, levelId);
+                        new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
