@@ -20,6 +20,14 @@ namespace TrudeImporter
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             var familySymbols = collector.OfClass(typeof(FamilySymbol)).Cast<FamilySymbol>();
 
+            /* FOR HELP IN DEBUGGING FAMILY SYBMOBLS */
+
+            //foreach (FamilySymbol symbq in familySymbols)
+            //{
+            //    System.Diagnostics.Debug.WriteLine(symbq.Name, );
+            //    System.Diagnostics.Debug.WriteLine(symbq.FamilyName);
+            //}
+            
             FamilySymbol familySymbol = null;
             try
             {
@@ -42,6 +50,14 @@ namespace TrudeImporter
                 {
                     familySymbol = (from fs in familySymbols
                                     where (fs.Name == fsFamilyName)
+                                    select fs)
+                           .FirstOrDefault();
+                }
+
+                if (familySymbol == null)
+                {
+                    familySymbol = (from fs in familySymbols
+                                    where (fs.Family.Name == fsFamilyName)
                                     select fs)
                            .FirstOrDefault();
                 }
