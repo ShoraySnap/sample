@@ -130,6 +130,9 @@ namespace SnaptrudeManagerAddin
             FamilyLoader.LoadedFamilies.Clear();
             GlobalVariables.LevelIdByNumber.Clear();
 
+            TrudeColumn.types.Clear();
+            TrudeColumn.NewLevelsByElevation.Clear();
+
             return true;
         }
 
@@ -318,10 +321,14 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    deleteOld(column.ExistingElementId);
+                    foreach(var instance in column.Instances)
+                    {
+                        deleteOld(instance.ExistingElementId);
+                    }
+
                     try
                     {
-                        new TrudeColumn(column, GlobalVariables.LevelIdByNumber[column.Storey]);
+                        new TrudeColumn(column);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -329,7 +336,7 @@ namespace SnaptrudeManagerAddin
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + column.UniqueId + "\nError is: " + e.Message + "\n");
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + column.Instances[0].UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }

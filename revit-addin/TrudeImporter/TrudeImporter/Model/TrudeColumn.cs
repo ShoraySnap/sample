@@ -8,23 +8,20 @@ namespace TrudeImporter
     public class TrudeColumn : TrudeModel
     {
         private List<XYZ> faceVertices = new List<XYZ>();
-        private XYZ centerPosition = new XYZ();
         private float columnHeight;
+        private List<ColumnInstanceProperties> instances;
         public static Dictionary<double, Level> NewLevelsByElevation = new Dictionary<double, Level>();
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private ColumnRfaGenerator columnRfaGenerator= new ColumnRfaGenerator();
-        public TrudeColumn(ColumnProperties column, ElementId levelId, bool forForge = false)
+        public TrudeColumn(ColumnProperties column, bool forForge = false)
         {
-            centerPosition = column.CenterPosition;
-            foreach (var vert in column.FaceVertices)
-            {
-                faceVertices.Add(new XYZ(vert.X - centerPosition.X, vert.Y - centerPosition.Y, vert.Z - centerPosition.Z));
-            }
+            faceVertices = column.FaceVertices;
             columnHeight = column.Height;
-            CreateColumn(levelId);
+            instances = column.Instances;
+            CreateColumn();
         }
 
-        public void CreateColumn(ElementId levelId, bool forForge = false)
+        public void CreateColumn(bool forForge = false)
         {
             ShapeProperties shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
 
@@ -37,7 +34,7 @@ namespace TrudeImporter
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
             CreateFamilyTypeIfNotExist(familyName, shapeProperties, baseDir, forForge);
-            CreateFamilyInstance(familyName, levelId, shapeProperties);
+            CreateFamilyInstances(familyName, shapeProperties);
 
             ColumnRfaGenerator.DeleteAll();
         }
@@ -109,7 +106,7 @@ namespace TrudeImporter
 
         }
 
-        private void CreateFamilyInstance(string familyName, ElementId levelId, ShapeProperties props)
+        private void CreateFamilyInstances(string familyName, ShapeProperties props)
         {
             var doc = GlobalVariables.Document;
             FamilySymbol familySymbol;
@@ -121,14 +118,17 @@ namespace TrudeImporter
                 types.Add(familyName, familySymbol);
             }
 
-            Curve curve = GetPositionCurve(props);
+            foreach(var instance in instances)
+            {
+                Curve curve = GetPositionCurve(instance.CenterPosition);
+                Level level = doc.GetElement(GlobalVariables.LevelIdByNumber[instance.Storey]) as Level;
+                FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
 
-            Level level = doc.GetElement(levelId) as Level;
+                // TODO: CHECK THIS
+                column.Location.Rotate(curve as Line, props?.rotation ?? 0);
+            }
+            // -----
 
-            FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
-            column.Location.Rotate(curve as Line, props?.rotation ?? 0);
-
-            var columnPos = column.Location as LocationCurve;
             //column.Location.Move(new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z - level.ProjectElevation));
 
             //double zBase = centerPosition.Z - (columnHeight / 2d);
@@ -160,7 +160,7 @@ namespace TrudeImporter
             //}
         }
 
-        private Curve GetPositionCurve(ShapeProperties props)
+        private Curve GetPositionCurve(XYZ centerPosition)
         {
             XYZ columnBasePoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z - columnHeight / 2);
             XYZ columnTopPoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z + columnHeight / 2);
