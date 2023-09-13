@@ -124,8 +124,22 @@ namespace TrudeImporter
                 Level level = doc.GetElement(GlobalVariables.LevelIdByNumber[instance.Storey]) as Level;
                 FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
 
-                // TODO: CHECK THIS
+                // This is required for correct rotation of Beams of identified Shapes
                 column.Location.Rotate(curve as Line, props?.rotation ?? 0);
+
+                if (instance.Rotation != null)
+                {
+                    // Only rotating around one Axis (i.e Z Axis on Revit Side and Y Axis on Snaptrude Side)
+                    // Because the getBottomFaceVertices() function on Snaptrude React side gives wrong face's local vertices -
+                    // - if column is rotated around X or Z Axis because internally to identify bottom face it uses global vertices -
+                    // - which it convertes to local vertices before returning
+                    LocationCurve curveForRotation = column.Location as LocationCurve;
+                    Curve line = curveForRotation.Curve;
+                    XYZ rotationAxisEndpoint1 = line.GetEndPoint(0);
+                    XYZ rotationAxisEndpoint2 = new XYZ(rotationAxisEndpoint1.X, rotationAxisEndpoint1.Y, rotationAxisEndpoint1.Z + 10);
+                    Line axis = Line.CreateBound(rotationAxisEndpoint1, rotationAxisEndpoint2);
+                    column.Location.Rotate(axis, -instance.Rotation.Z);
+                }
             }
             // -----
 

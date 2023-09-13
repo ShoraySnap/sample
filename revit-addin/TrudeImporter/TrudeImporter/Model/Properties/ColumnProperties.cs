@@ -37,6 +37,9 @@ namespace TrudeImporter
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
 
+        [JsonProperty("rotation")]
+        public XYZ Rotation { get; set; }
+
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }
     }
