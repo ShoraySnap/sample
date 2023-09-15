@@ -12,7 +12,7 @@ namespace TrudeImporter
         FloorType existingFloorType = null;
         private float thickness;
         private TrudeLayer[] Layers;
-        private static FloorTypeStore TypeStore = new FloorTypeStore();
+        public static FloorTypeStore TypeStore = new FloorTypeStore();
         private Floor slab { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
@@ -109,25 +109,11 @@ namespace TrudeImporter
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
             try
             {
-                try
-                {
-                    slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
-                }
-                catch
-                {
-                    try
-                    {
-                        slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Maybe vertices were not planar!\nError is: ", e);
-                    }
-                }
+                slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
             }
-            catch(Exception e)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine("Maybe vertices were not planar!\nError is: ", e);
+                slab = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, true);
             }
 
             // Rotate and move the slab
