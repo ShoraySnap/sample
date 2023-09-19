@@ -28,7 +28,7 @@ namespace TrudeImporter
                             t.Start();
 
                             Element e;
-                            bool isExistingWall = GlobalVariables.idToElement.TryGetValue(props.ExistingElementId, out e);
+                            bool isExistingWall = GlobalVariables.idToElement.TryGetValue(props.ExistingElementId.ToString(), out e);
                             if (isExistingWall)
                             {
                                 existingWall = (Wall)e;

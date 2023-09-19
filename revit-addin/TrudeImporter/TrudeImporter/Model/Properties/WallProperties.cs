@@ -50,7 +50,7 @@ namespace TrudeImporter
         public bool IsStackedWallParent { get; set; }
 
         [JsonProperty("existingElementId")]
-        public string ExistingElementId { get; set; }
+        public int? ExistingElementId { get; set; }
 
         [JsonProperty("sourceElementId")]
         public string SourceElementId { get; set; }

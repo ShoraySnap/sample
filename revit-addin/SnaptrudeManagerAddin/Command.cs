@@ -161,23 +161,20 @@ namespace SnaptrudeManagerAddin
 
         private void deleteRemovedElements(List<int> elementIds)
         {
-            // TODO : remove this
-            return;
             foreach (int elementId in elementIds)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                {
-                    t.Start();
+                try
+                { 
                     ElementId id = new ElementId((int)elementId);
                     Element element = GlobalVariables.Document.GetElement(id);
                     if (!element.GroupId.Equals(ElementId.InvalidElementId))
                         deleteIfInGroup(element);
                     else
                         GlobalVariables.Document.Delete(id);
-                    if (t.Commit() != TransactionStatus.Committed)
-                    {
-                        t.RollBack();
-                    }
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in removing deleted elements:" + e.Message);
                 }
             }
         }
@@ -236,7 +233,7 @@ namespace SnaptrudeManagerAddin
                     ElementId elementId = new ElementId((BuiltInParameter)props.LowerLevelElementId);
                     GlobalVariables.LevelIdByNumber.Add(newStorey.levelNumber, elementId);
 
-                    break;
+                    continue;
                 }
 
                 try
@@ -266,7 +263,7 @@ namespace SnaptrudeManagerAddin
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
-                if (props.Storey is null) continue;
+                // if (props.Storey is null) continue;
 
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -274,6 +271,7 @@ namespace SnaptrudeManagerAddin
                     try
                     {
                         TrudeWall trudeWall = new TrudeWall(props);
+                        deleteOld(props.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
