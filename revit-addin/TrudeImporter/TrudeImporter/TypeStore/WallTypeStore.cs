@@ -7,15 +7,15 @@ namespace TrudeImporter
     {
         public override string KeyAdapter(TrudeLayer[] wallLayers, WallType _defaultType)
         {
-            string layers = wallLayers[0].BaseTypeName;
+            //string layers = wallLayers[0].BaseTypeName;
+            double th = 0.00;
             foreach(TrudeLayer w in wallLayers)
             {
-                layers += "_" + w.ToString();
-
-                if (w.IsCore) layers += "-core";
+                //layers += "_" + w.ToString();
+                th += w.ThicknessInMm;
+                //if (w.IsCore) layers += "-core";
             }
-
-            return layers;
+            return wallLayers[0].BaseTypeName + "_" + th.ToString();
         }
 
         public override void TypeModifier(TrudeLayer[] wallLayers, WallType wallType)

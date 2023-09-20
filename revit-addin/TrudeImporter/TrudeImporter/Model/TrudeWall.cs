@@ -342,8 +342,6 @@ namespace TrudeImporter
             if (height > 0)
             {
                 Parameter top_constraint_param = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-                top_constraint_param.Set("Unconnected");
-                top_constraint_param.SetValueString("Unconnected");
                 top_constraint_param.Set(ElementId.InvalidElementId);
 
                 Parameter heightParam = wall.LookupParameter("Unconnected Height");

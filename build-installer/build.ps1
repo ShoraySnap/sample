@@ -8,6 +8,7 @@ if ($branch -eq "master")
     $version= Get-Content -Path .\version.txt -TotalCount 1
     C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-prod.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
     C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-wework.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-preset.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
     C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
 }
 elseif ($branch -eq "dev")

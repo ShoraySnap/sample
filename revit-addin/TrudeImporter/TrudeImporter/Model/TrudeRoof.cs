@@ -142,7 +142,7 @@ namespace TrudeImporter
 
         private void setHeight(double thickness, double bottomZ, Level level)
         {
-            double slabHeightAboveLevel = this.Position.Z + bottomZ - level.Elevation + thickness;
+            double slabHeightAboveLevel = this.Position.Z + bottomZ - level.ProjectElevation + thickness;
 
             this.floor
                 .get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)

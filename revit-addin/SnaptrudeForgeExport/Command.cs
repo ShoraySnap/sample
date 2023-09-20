@@ -127,29 +127,29 @@ namespace SnaptrudeForgeExport
 
             List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
 
-            //using (Transaction t = new Transaction(newDoc, "Export to PDF"))
-            //{
-            //    t.Start();
+            using (Transaction t = new Transaction(newDoc, "Export to PDF"))
+            {
+                t.Start();
 
-            //    PDFExportOptions options = new PDFExportOptions
-            //    {
-            //        ColorDepth = ColorDepthType.Color,
-            //        Combine = false,
-            //        ExportQuality = PDFExportQualityType.DPI4000,
-            //        //HideCropBoundaries = true,
-            //        PaperFormat = ExportPaperFormat.Default,
-            //        //HideReferencePlane = true,
-            //        //HideScopeBoxes = true,
-            //        //HideUnreferencedViewTags = true,
-            //        //MaskCoincidentLines = true,
-            //        //StopOnError = true,
-            //        //ViewLinksInBlue = false,
-            //        ZoomType = ZoomType.Zoom,
-            //        ZoomPercentage = 100
-            //    };
-            //    newDoc.Export(Configs.PDF_EXPORT_DIRECTORY, allViewIds, options);
-            //    t.Commit();
-            //}
+                PDFExportOptions options = new PDFExportOptions
+                {
+                    ColorDepth = ColorDepthType.Color,
+                    Combine = false,
+                    ExportQuality = PDFExportQualityType.DPI4000,
+                    //HideCropBoundaries = true,
+                    PaperFormat = ExportPaperFormat.Default,
+                    //HideReferencePlane = true,
+                    //HideScopeBoxes = true,
+                    //HideUnreferencedViewTags = true,
+                    //MaskCoincidentLines = true,
+                    //StopOnError = true,
+                    //ViewLinksInBlue = false,
+                    ZoomType = ZoomType.Zoom,
+                    ZoomPercentage = 100
+                };
+                newDoc.Export(Configs.PDF_EXPORT_DIRECTORY, allViewIds, options);
+                t.Commit();
+            }
 
             if (File.Exists(Configs.OUTPUT_FILE)) File.Delete(Configs.OUTPUT_FILE);
             ZipFile.CreateFromDirectory(Configs.PDF_EXPORT_DIRECTORY, Configs.OUTPUT_FILE);
@@ -403,7 +403,7 @@ namespace SnaptrudeForgeExport
                                 if (transactionStatus == TransactionStatus.RolledBack)
                                 {
                                     trans.Start();
-                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, level, height);
+                                    st_wall.CreateWall(newDoc, profile, _wallType.Id, level, height, baseHeight);
                                     wallId = st_wall.wall.Id;
 
                                     WallUtils.DisallowWallJoinAtEnd(st_wall.wall, 0);
