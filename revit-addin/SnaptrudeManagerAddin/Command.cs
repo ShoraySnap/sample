@@ -113,6 +113,7 @@ namespace SnaptrudeManagerAddin
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
             deleteRemovedElements(trudeProperties.DeletedElements);
+
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building

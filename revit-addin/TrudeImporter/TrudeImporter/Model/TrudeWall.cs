@@ -1,8 +1,13 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Visual;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Net;
 
 namespace TrudeImporter
 {
@@ -194,6 +199,8 @@ namespace TrudeImporter
                                     GlobalVariables.multiMaterials,
                                     _materialIndex);
 
+                                System.Diagnostics.Debug.WriteLine(snaptrudeMaterialName);
+
                                 FilteredElementCollector materialCollector =
                                     new FilteredElementCollector(GlobalVariables.Document)
                                     .OfClass(typeof(Autodesk.Revit.DB.Material));
@@ -205,6 +212,7 @@ namespace TrudeImporter
                                 foreach (var materialElement in materialsEnum)
                                 {
                                     String matName = materialElement.Name;
+                                    //System.Diagnostics.Debug.WriteLine(matName.Replace("_", " ") );
                                     if (matName.Replace("_", " ") == snaptrudeMaterialName)
                                     {
                                         _materialElement = materialElement;
@@ -238,13 +246,32 @@ namespace TrudeImporter
                                 {
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
                                 }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine("Material not found");
+                                    Document document = GlobalVariables.Document;
 
+                                    // fetch texture from URL 
+                                    //string textureUrl = "https://api.snaptru.de/media/media/materials/wood01_9MVpBDu.jpg";
+                                    //WebClient client = new WebClient();
+                                    //string localFilePath = @"C:\temp\texture.jpg";
+                                    //client.DownloadFile(textureUrl, localFilePath);
+
+                                    // create material
+                                    ElementId materialId = Material.Create(document, "newmat");
+                                    Material newMaterial = document.GetElement(materialId) as Material;
+                                    Autodesk.Revit.DB.Color color = new Autodesk.Revit.DB.Color(255, 0, 0);
+                                    newMaterial.Color = color;
+
+                                    // apply material
+                                    this.ApplyMaterialByObject(document, this.wall, newMaterial);
+                                }
                             }
                             else
                             {
+                                System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
                                 //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
                             }
-
                         }
                         catch
                         {
