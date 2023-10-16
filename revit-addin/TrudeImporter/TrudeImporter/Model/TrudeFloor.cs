@@ -11,7 +11,7 @@ namespace TrudeImporter
         FloorType existingFloorType = null;
         private float thickness;
         private TrudeLayer[] Layers;
-        private static FloorTypeStore TypeStore = new FloorTypeStore();
+        public static FloorTypeStore TypeStore = new FloorTypeStore();
         private Floor floor { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
@@ -46,11 +46,31 @@ namespace TrudeImporter
             {
                 foreach (var layer in floor.Layers)
                 {
-                    _layers.Add(new TrudeLayer(floor.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
+                    _layers.Add(
+                      new TrudeLayer(
+                        floor.BaseType, 
+                        layer.Name, 
+                        layer.ThicknessInMm, 
+                        layer.IsCore
+                      )
+                    );
                 }
             }
             Layers = _layers.ToArray();
             setCoreLayerIfNotExist(Math.Abs(thickness));
+
+
+            // TODO : Fix on Snaptrude end, when floor thickness is changed, its layers's thickness should be adjusted
+            // It is not being done now, so here the core layer's thickness is increased by appropriate length
+            double sumOfLayersThickness = 0;
+            Array.ForEach(Layers, (l) => sumOfLayersThickness += l.ThicknessInMm);
+
+            if(UnitsAdapter.FeetToMM(thickness) != sumOfLayersThickness)
+            {
+                TrudeLayer coreLayer = Layers.FirstOrDefault(layer => layer.IsCore);
+                coreLayer.ThicknessInMm += UnitsAdapter.FeetToMM(thickness) - sumOfLayersThickness;
+            }
+
             // --------------------------------------------
             CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             CreateHoles(floor.Holes);
@@ -69,11 +89,6 @@ namespace TrudeImporter
 
             if (coreLayer != null)
             {
-                if (fallbackThickness != 0)
-                {
-                    coreLayer.ThicknessInMm = UnitsAdapter.FeetToMM(fallbackThickness, 1);
-                }
-
                 return;
             }
 
@@ -102,9 +117,10 @@ namespace TrudeImporter
                 FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
                 floorType = defaultFloorType;
             }
-            var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+            
             try
             {
+                var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
                 floor = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
             }
             catch
