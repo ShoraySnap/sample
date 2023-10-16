@@ -130,10 +130,14 @@ namespace SnaptrudeManagerAddin
             FamilyLoader.LoadedFamilies.Clear();
             GlobalVariables.LevelIdByNumber.Clear();
 
+            TrudeWall.TypeStore.Clear();
+            TrudeFloor.TypeStore.Clear();
             TrudeBeam.types.Clear();
             TrudeColumn.types.Clear();
             TrudeColumn.NewLevelsByElevation.Clear();
             TrudeSlab.TypeStore.Clear();
+            TrudeDoorold.TypeStore.Clear();
+            TrudeWindowOld.TypeStore.Clear();
 
             return true;
         }
