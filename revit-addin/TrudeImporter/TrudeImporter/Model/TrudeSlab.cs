@@ -103,13 +103,13 @@ namespace TrudeImporter
             if (floorType is null)
             {
                 FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
-                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Foundation Slab").First() as FloorType;
                 floorType = defaultFloorType;
             }
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
             try
             {
-                slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
+                slab = Doc.Create.NewFoundationSlab(profile, newFloorType, Doc.GetElement(levelId) as Level, true, new XYZ(0, 0, -1));
             }
             catch
             {
