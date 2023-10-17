@@ -8,6 +8,10 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
+using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
 {
@@ -199,8 +203,6 @@ namespace TrudeImporter
                                     GlobalVariables.multiMaterials,
                                     _materialIndex);
 
-                                System.Diagnostics.Debug.WriteLine(snaptrudeMaterialName);
-
                                 FilteredElementCollector materialCollector =
                                     new FilteredElementCollector(GlobalVariables.Document)
                                     .OfClass(typeof(Autodesk.Revit.DB.Material));
@@ -212,7 +214,6 @@ namespace TrudeImporter
                                 foreach (var materialElement in materialsEnum)
                                 {
                                     String matName = materialElement.Name;
-                                    //System.Diagnostics.Debug.WriteLine(matName.Replace("_", " ") );
                                     if (matName.Replace("_", " ") == snaptrudeMaterialName)
                                     {
                                         _materialElement = materialElement;
@@ -251,17 +252,92 @@ namespace TrudeImporter
                                     System.Diagnostics.Debug.WriteLine("Material not found");
                                     Document document = GlobalVariables.Document;
 
-                                    // fetch texture from URL 
                                     //string textureUrl = "https://api.snaptru.de/media/media/materials/wood01_9MVpBDu.jpg";
                                     //WebClient client = new WebClient();
+
                                     //string localFilePath = @"C:\temp\texture.jpg";
                                     //client.DownloadFile(textureUrl, localFilePath);
+                                    AppearanceAssetElement appearanceAssetElement = new FilteredElementCollector(document)
+        .OfClass(typeof(AppearanceAssetElement))
+        .Cast<AppearanceAssetElement>()
+        .FirstOrDefault();
 
-                                    // create material
+                                    if (appearanceAssetElement != null)
+                                    {
+                                        // Duplicate the AppearanceAssetElement
+                                        Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset")  ;
+
+                                        // Create a new material and set its AppearanceAssetId
+                                        ElementId material = Material.Create(document, "New Material");
+                                        var newmat= document.GetElement(material) as Material;
+                                        newmat.AppearanceAssetId = newAppearanceAsset.Id;
+                                        System.Diagnostics.Debug.WriteLine(newmat.AppearanceAssetId);
+                                    }
+
+
                                     ElementId materialId = Material.Create(document, "newmat");
                                     Material newMaterial = document.GetElement(materialId) as Material;
                                     Autodesk.Revit.DB.Color color = new Autodesk.Revit.DB.Color(255, 0, 0);
                                     newMaterial.Color = color;
+                                    //StructuralAsset strucAsset = new StructuralAsset("My Property Set", StructuralAssetClass.Generic);
+                                    //PropertySetElement pse = PropertySetElement.Create(document, strucAsset);
+                                    //newMaterial.SetMaterialAspectByPropertySet(MaterialAspect.Structural, pse.Id);
+
+                                    //AppearanceAssetElement appearanceAsset = (AppearanceAssetElement) document.GetElement(newMaterial.AppearanceAssetId);
+                                    //System.Diagnostics.Debug.WriteLine(appearanceAsset.Name);
+
+                                    //int i = 0;
+                                    //foreach (var materialElement in materialsEnum)
+                                    //{
+                                    //    if (i == 16)
+                                    //    {
+                                    //        _materialElement = materialElement;
+                                    //        break;
+                                    //    }
+                                    //    i++;
+                                    //}
+
+                                    //AppearanceAssetElement appearanceAsset = (AppearanceAssetElement) document.GetElement(_materialElement.AppearanceAssetId);
+                                    //Asset renderingAsset = appearanceAsset.GetRenderingAsset();
+
+                                    //int size = renderingAsset.Size;
+                                    //for (int assetIdx = 0; assetIdx < size; assetIdx++)
+                                    //{
+                                    //    AssetProperty aProperty = renderingAsset[assetIdx];
+                                    //    if (aProperty.NumberOfConnectedProperties < 1)
+                                    //    { 
+                                    //        System.Diagnostics.Debug.WriteLine("No connected properties");
+                                    //        continue;
+                                    //    }
+                                    //    Asset connectedAsset = aProperty.GetConnectedProperty(0) as Asset;
+                                    //    if (connectedAsset.Name == "UnifiedBitmapSchema")
+                                    //    {
+                                    //        AssetPropertyString path = connectedAsset.FindByName(UnifiedBitmap.UnifiedbitmapBitmap) as AssetPropertyString;
+                                    //        using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
+                                    //        {
+                                    //            Asset editableAsset = editScope.Start(_materialElement.AppearanceAssetId);
+                                    //            // Exception thrown, asset is read only, 
+                                    //            // need to use editScope
+                                    //            path.Value = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
+                                    //            editScope.Commit(true);
+                                    //        }
+                                    //    }
+                                    //}
+
+
+                                    //using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
+                                    //{
+                                    //    Asset editableAsset = editScope.Start(_materialElement.AppearanceAssetId);
+                                    //    AssetProperty assetProperty = editableAsset.FindByName("generic_diffuse");
+                                    //    Asset connectedAsset = assetProperty.GetConnectedProperty(0) as Asset;
+                                    //    if (connectedAsset.Name == "UnifiedBitmapSchema")
+                                    //    {
+                                    //        AssetPropertyString path = connectedAsset.FindByName(UnifiedBitmap.UnifiedbitmapBitmap) as AssetPropertyString;
+                                    //        path.Value = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
+                                    //    }
+                                    //    editScope.Commit(true);
+                                    //}
+
 
                                     // apply material
                                     this.ApplyMaterialByObject(document, this.wall, newMaterial);
