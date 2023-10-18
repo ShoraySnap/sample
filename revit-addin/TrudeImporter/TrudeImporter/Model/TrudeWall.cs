@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
+using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -252,67 +253,76 @@ namespace TrudeImporter
                                     System.Diagnostics.Debug.WriteLine("Material not found");
                                     Document document = GlobalVariables.Document;
 
-                                    //string textureUrl = "https://api.snaptru.de/media/media/materials/wood01_9MVpBDu.jpg";
-                                    //WebClient client = new WebClient();
-
-                                    //string localFilePath = @"C:\temp\texture.jpg";
-                                    //client.DownloadFile(textureUrl, localFilePath);
-                                    AppearanceAssetElement appearanceAssetElement = new FilteredElementCollector(document).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>().FirstOrDefault();
+                                    IEnumerable<Autodesk.Revit.DB.AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(document).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
+                                    AppearanceAssetElement appearanceAssetElement = null;
+                                    var i = 0;
+                                    foreach (var tempappearanceAssetElement in appearanceAssetElementEnum)
+                                    {
+                                        if (i == 1)
+                                        {
+                                            appearanceAssetElement = tempappearanceAssetElement;
+                                            System.Diagnostics.Debug.WriteLine(i + " " + appearanceAssetElement.Name + " " + appearanceAssetElement.Id);
+                                            break;
+                                        }
+                                        i++;
+                                    }
 
                                     if (appearanceAssetElement != null)
                                     {
                                         // Duplicate the AppearanceAssetElement
-                                        Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset")  ;
+                                        Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset");
 
                                         // Create a new material and set its AppearanceAssetId
                                         ElementId material = Material.Create(document, "Shoray's Mat");
-                                        var newmat= document.GetElement(material) as Material;
+                                        var newmat = document.GetElement(material) as Material;
                                         newmat.AppearanceAssetId = newAppearanceAsset.Id;
-                                        //System.Diagnostics.Debug.WriteLine(newmat.AppearanceAssetId);
 
-                                       // newmat.Color = new Autodesk.Revit.DB.Color(255, 0, 0);
+                                        // newmat.Color = new Autodesk.Revit.DB.Color(255, 0, 0);
 
-                                        AppearanceAssetElement appearanceAsset = (AppearanceAssetElement)document.GetElement(newmat.AppearanceAssetId);
-
-                                        Asset renderingAsset = appearanceAsset
-                                          .GetRenderingAsset();
-
-                                        int size = renderingAsset.Size;
-                                        for (int assetIdx = 0; assetIdx < size; assetIdx++)
+                                        using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
                                         {
-                                            AssetProperty aProperty = renderingAsset[assetIdx];
+                                            System.Diagnostics.Debug.WriteLine("After editscope");
 
-                                            if (aProperty.NumberOfConnectedProperties < 1)
-                                            { 
-                                                System.Diagnostics.Debug.WriteLine("No connected properties");
-                                                continue;
-                                            }
+                                            Asset editableAsset = editScope.Start(
+                                              newAppearanceAsset.Id);
 
-                                            Asset connectedAsset = aProperty.GetConnectedProperty(
-                                              0) as Asset;
+                                            AssetProperty assetProperty = editableAsset
+                                              .FindByName("generic_diffuse");
 
-                                            if (connectedAsset.Name == "UnifiedBitmapSchema")
+                                            if (assetProperty.GetConnectedProperty(0) != null)
                                             {
-                                                System.Diagnostics.Debug.WriteLine("UnifiedBitmapSchema found");
-                                                AssetPropertyString path = connectedAsset.FindByName(
-                                                  UnifiedBitmap.UnifiedbitmapBitmap)
-                                                    as AssetPropertyString;
 
-                                                using (AppearanceAssetEditScope editScope
-                                                  = new AppearanceAssetEditScope(document))
+                                                Asset connectedAsset = assetProperty
+                                                  .GetConnectedProperty(0) as Asset;
+
+                                                // Edit bitmap
+
+                                                if (connectedAsset.Name == "UnifiedBitmapSchema")
                                                 {
-                                                    Asset editableAsset = editScope.Start(
-                                                      newmat.AppearanceAssetId);
+                                                    AssetPropertyString path = connectedAsset
+                                                      .FindByName(UnifiedBitmap.UnifiedbitmapBitmap)
+                                                        as AssetPropertyString;
 
-                                                    // Exception thrown, asset is read only, 
-                                                    // need to use editScope
+                                                    var imagePath = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
 
-                                                    path.Value = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
-                                                    editScope.Commit(true);
+                                                    if (path.IsValidValue(imagePath))
+                                                    {
+                                                        System.Diagnostics.Debug.WriteLine("path is valid");
+                                                        path.Value = imagePath;
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Diagnostics.Debug.WriteLine("path is invalid");
+                                                    }
                                                 }
+                                                editScope.Commit(true);
+                                            }
+                                            else
+                                            {
+                                                System.Diagnostics.Debug.WriteLine("no connected property");
                                             }
                                         }
-                                        this.ApplyMaterialByObject(document, this.wall, newmat);
+                                        ApplyMaterialByObject(document, this.wall, newmat);
                                     }
                                 }
                             }
@@ -399,7 +409,7 @@ namespace TrudeImporter
             for (int i = 0; i < points.Count(); i++)
             {
                 XYZ point0 = points[i];
-                XYZ point1 = points[(i+1).Mod(points.Count())];
+                XYZ point1 = points[(i + 1).Mod(points.Count())];
 
                 if (point1.IsAlmostEqualTo(point0))
                 {
@@ -495,7 +505,7 @@ namespace TrudeImporter
             return null;
         }
 
-        public void ApplyMaterialByFace( Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall)
         {
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
@@ -522,7 +532,7 @@ namespace TrudeImporter
             }
 
             //Dictionary that has Revit Face And The Material Index to Be Applied For It.
-            IDictionary <Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
 
             foreach (SubMeshProperties subMesh in subMeshes)
             {
@@ -555,8 +565,8 @@ namespace TrudeImporter
 
             FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
             IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
-            
-            
+
+
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
                 String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
@@ -574,7 +584,7 @@ namespace TrudeImporter
                 }
 
 
-                if ( _materialElement != null )
+                if (_materialElement != null)
                 {
                     document.Paint(wall.Id, face.Key, _materialElement.Id);
                 }
@@ -621,14 +631,14 @@ namespace TrudeImporter
 
         public static WallTypeStore TypeStore = new WallTypeStore();
 
-        public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType=null)
+        public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType = null)
         {
             WallType defaultType = null;
             if (!(existingWallType is null)) defaultType = existingWallType;
 
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(WallType));
-            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType) wallType).Kind == WallKind.Basic) as WallType;
-            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType) wallType).Kind == WallKind.Stacked) as WallType;
+            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType)wallType).Kind == WallKind.Basic) as WallType;
+            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType)wallType).Kind == WallKind.Stacked) as WallType;
             if (defaultType is null)
                 foreach (WallType wt in collector.ToElements())
                 {
@@ -643,7 +653,8 @@ namespace TrudeImporter
             try
             {
                 return TypeStore.GetType(layers, defaultType);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return defaultType;
             }
