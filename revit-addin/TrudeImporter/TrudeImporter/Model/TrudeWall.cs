@@ -257,10 +257,7 @@ namespace TrudeImporter
 
                                     //string localFilePath = @"C:\temp\texture.jpg";
                                     //client.DownloadFile(textureUrl, localFilePath);
-                                    AppearanceAssetElement appearanceAssetElement = new FilteredElementCollector(document)
-        .OfClass(typeof(AppearanceAssetElement))
-        .Cast<AppearanceAssetElement>()
-        .FirstOrDefault();
+                                    AppearanceAssetElement appearanceAssetElement = new FilteredElementCollector(document).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>().FirstOrDefault();
 
                                     if (appearanceAssetElement != null)
                                     {
@@ -268,79 +265,55 @@ namespace TrudeImporter
                                         Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset")  ;
 
                                         // Create a new material and set its AppearanceAssetId
-                                        ElementId material = Material.Create(document, "New Material");
+                                        ElementId material = Material.Create(document, "Shoray's Mat");
                                         var newmat= document.GetElement(material) as Material;
                                         newmat.AppearanceAssetId = newAppearanceAsset.Id;
-                                        System.Diagnostics.Debug.WriteLine(newmat.AppearanceAssetId);
+                                        //System.Diagnostics.Debug.WriteLine(newmat.AppearanceAssetId);
+
+                                       // newmat.Color = new Autodesk.Revit.DB.Color(255, 0, 0);
+
+                                        AppearanceAssetElement appearanceAsset = (AppearanceAssetElement)document.GetElement(newmat.AppearanceAssetId);
+
+                                        Asset renderingAsset = appearanceAsset
+                                          .GetRenderingAsset();
+
+                                        int size = renderingAsset.Size;
+                                        for (int assetIdx = 0; assetIdx < size; assetIdx++)
+                                        {
+                                            AssetProperty aProperty = renderingAsset[assetIdx];
+
+                                            if (aProperty.NumberOfConnectedProperties < 1)
+                                            { 
+                                                System.Diagnostics.Debug.WriteLine("No connected properties");
+                                                continue;
+                                            }
+
+                                            Asset connectedAsset = aProperty.GetConnectedProperty(
+                                              0) as Asset;
+
+                                            if (connectedAsset.Name == "UnifiedBitmapSchema")
+                                            {
+                                                System.Diagnostics.Debug.WriteLine("UnifiedBitmapSchema found");
+                                                AssetPropertyString path = connectedAsset.FindByName(
+                                                  UnifiedBitmap.UnifiedbitmapBitmap)
+                                                    as AssetPropertyString;
+
+                                                using (AppearanceAssetEditScope editScope
+                                                  = new AppearanceAssetEditScope(document))
+                                                {
+                                                    Asset editableAsset = editScope.Start(
+                                                      newmat.AppearanceAssetId);
+
+                                                    // Exception thrown, asset is read only, 
+                                                    // need to use editScope
+
+                                                    path.Value = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
+                                                    editScope.Commit(true);
+                                                }
+                                            }
+                                        }
+                                        this.ApplyMaterialByObject(document, this.wall, newmat);
                                     }
-
-
-                                    ElementId materialId = Material.Create(document, "newmat");
-                                    Material newMaterial = document.GetElement(materialId) as Material;
-                                    Autodesk.Revit.DB.Color color = new Autodesk.Revit.DB.Color(255, 0, 0);
-                                    newMaterial.Color = color;
-                                    //StructuralAsset strucAsset = new StructuralAsset("My Property Set", StructuralAssetClass.Generic);
-                                    //PropertySetElement pse = PropertySetElement.Create(document, strucAsset);
-                                    //newMaterial.SetMaterialAspectByPropertySet(MaterialAspect.Structural, pse.Id);
-
-                                    //AppearanceAssetElement appearanceAsset = (AppearanceAssetElement) document.GetElement(newMaterial.AppearanceAssetId);
-                                    //System.Diagnostics.Debug.WriteLine(appearanceAsset.Name);
-
-                                    //int i = 0;
-                                    //foreach (var materialElement in materialsEnum)
-                                    //{
-                                    //    if (i == 16)
-                                    //    {
-                                    //        _materialElement = materialElement;
-                                    //        break;
-                                    //    }
-                                    //    i++;
-                                    //}
-
-                                    //AppearanceAssetElement appearanceAsset = (AppearanceAssetElement) document.GetElement(_materialElement.AppearanceAssetId);
-                                    //Asset renderingAsset = appearanceAsset.GetRenderingAsset();
-
-                                    //int size = renderingAsset.Size;
-                                    //for (int assetIdx = 0; assetIdx < size; assetIdx++)
-                                    //{
-                                    //    AssetProperty aProperty = renderingAsset[assetIdx];
-                                    //    if (aProperty.NumberOfConnectedProperties < 1)
-                                    //    { 
-                                    //        System.Diagnostics.Debug.WriteLine("No connected properties");
-                                    //        continue;
-                                    //    }
-                                    //    Asset connectedAsset = aProperty.GetConnectedProperty(0) as Asset;
-                                    //    if (connectedAsset.Name == "UnifiedBitmapSchema")
-                                    //    {
-                                    //        AssetPropertyString path = connectedAsset.FindByName(UnifiedBitmap.UnifiedbitmapBitmap) as AssetPropertyString;
-                                    //        using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
-                                    //        {
-                                    //            Asset editableAsset = editScope.Start(_materialElement.AppearanceAssetId);
-                                    //            // Exception thrown, asset is read only, 
-                                    //            // need to use editScope
-                                    //            path.Value = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
-                                    //            editScope.Commit(true);
-                                    //        }
-                                    //    }
-                                    //}
-
-
-                                    //using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
-                                    //{
-                                    //    Asset editableAsset = editScope.Start(_materialElement.AppearanceAssetId);
-                                    //    AssetProperty assetProperty = editableAsset.FindByName("generic_diffuse");
-                                    //    Asset connectedAsset = assetProperty.GetConnectedProperty(0) as Asset;
-                                    //    if (connectedAsset.Name == "UnifiedBitmapSchema")
-                                    //    {
-                                    //        AssetPropertyString path = connectedAsset.FindByName(UnifiedBitmap.UnifiedbitmapBitmap) as AssetPropertyString;
-                                    //        path.Value = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
-                                    //    }
-                                    //    editScope.Commit(true);
-                                    //}
-
-
-                                    // apply material
-                                    this.ApplyMaterialByObject(document, this.wall, newMaterial);
                                 }
                             }
                             else
