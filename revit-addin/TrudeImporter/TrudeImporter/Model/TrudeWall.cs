@@ -261,7 +261,7 @@ namespace TrudeImporter
                                         if (i == 1)
                                         {
                                             appearanceAssetElement = tempappearanceAssetElement;
-                                            System.Diagnostics.Debug.WriteLine(i + " " + appearanceAssetElement.Name + " " + appearanceAssetElement.Id);
+                                            // System.Diagnostics.Debug.WriteLine(i + " " + appearanceAssetElement.Name + " " + appearanceAssetElement.Id);
                                             break;
                                         }
                                         i++;
@@ -273,7 +273,7 @@ namespace TrudeImporter
                                         Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset");
 
                                         // Create a new material and set its AppearanceAssetId
-                                        ElementId material = Material.Create(document, "Shoray's Mat");
+                                        ElementId material = Material.Create(document, "new metal Mat");
                                         var newmat = document.GetElement(material) as Material;
                                         newmat.AppearanceAssetId = newAppearanceAsset.Id;
 
@@ -281,29 +281,35 @@ namespace TrudeImporter
 
                                         using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
                                         {
-                                            System.Diagnostics.Debug.WriteLine("After editscope");
-
                                             Asset editableAsset = editScope.Start(
                                               newAppearanceAsset.Id);
 
                                             AssetProperty assetProperty = editableAsset
                                               .FindByName("generic_diffuse");
 
-                                            if (assetProperty.GetConnectedProperty(0) != null)
-                                            {
+                                            Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
 
-                                                Asset connectedAsset = assetProperty
-                                                  .GetConnectedProperty(0) as Asset;
+                                            if (connectedAsset == null)
+                                            {
+                                                // Add a new default connected asset
+                                                assetProperty.AddConnectedAsset("UnifiedBitmap");
+                                                connectedAsset = assetProperty.GetSingleConnectedAsset();
+                                            }
+
+                                            if (connectedAsset != null)
+                                            {
+                                                System.Diagnostics.Debug.WriteLine("connectedAsset found");
+                                                System.Diagnostics.Debug.WriteLine("connectedAsset.Name: "+ connectedAsset.Name);
 
                                                 // Edit bitmap
 
-                                                if (connectedAsset.Name == "UnifiedBitmapSchema")
+                                                if (connectedAsset.Name == "UnifiedBitmap")
                                                 {
                                                     AssetPropertyString path = connectedAsset
                                                       .FindByName(UnifiedBitmap.UnifiedbitmapBitmap)
                                                         as AssetPropertyString;
 
-                                                    var imagePath = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\wood.jpg";
+                                                    var imagePath = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
 
                                                     if (path.IsValidValue(imagePath))
                                                     {
