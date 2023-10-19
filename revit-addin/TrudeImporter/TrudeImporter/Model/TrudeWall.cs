@@ -12,6 +12,7 @@ using System.Net;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using Color = Autodesk.Revit.DB.Color;
 using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
@@ -250,7 +251,7 @@ namespace TrudeImporter
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.WriteLine("Material not found");
+                                    System.Diagnostics.Debug.WriteLine("Material not found, creating new");
                                     Document document = GlobalVariables.Document;
 
                                     IEnumerable<Autodesk.Revit.DB.AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(document).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
@@ -261,7 +262,6 @@ namespace TrudeImporter
                                         if (i == 1)
                                         {
                                             appearanceAssetElement = tempappearanceAssetElement;
-                                            // System.Diagnostics.Debug.WriteLine(i + " " + appearanceAssetElement.Name + " " + appearanceAssetElement.Id);
                                             break;
                                         }
                                         i++;
@@ -273,11 +273,10 @@ namespace TrudeImporter
                                         Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset");
 
                                         // Create a new material and set its AppearanceAssetId
-                                        ElementId material = Material.Create(document, "new metal Mat");
+                                        ElementId material = Material.Create(document, "newMat");
                                         var newmat = document.GetElement(material) as Material;
                                         newmat.AppearanceAssetId = newAppearanceAsset.Id;
-
-                                        // newmat.Color = new Autodesk.Revit.DB.Color(255, 0, 0);
+                                       newmat.Color = new Color(255, 255, 0);
 
                                         using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
                                         {
@@ -286,23 +285,15 @@ namespace TrudeImporter
 
                                             AssetProperty assetProperty = editableAsset
                                               .FindByName("generic_diffuse");
-
                                             Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
-
                                             if (connectedAsset == null)
                                             {
                                                 // Add a new default connected asset
                                                 assetProperty.AddConnectedAsset("UnifiedBitmap");
                                                 connectedAsset = assetProperty.GetSingleConnectedAsset();
                                             }
-
                                             if (connectedAsset != null)
                                             {
-                                                System.Diagnostics.Debug.WriteLine("connectedAsset found");
-                                                System.Diagnostics.Debug.WriteLine("connectedAsset.Name: "+ connectedAsset.Name);
-
-                                                // Edit bitmap
-
                                                 if (connectedAsset.Name == "UnifiedBitmap")
                                                 {
                                                     AssetPropertyString path = connectedAsset
@@ -313,22 +304,13 @@ namespace TrudeImporter
 
                                                     if (path.IsValidValue(imagePath))
                                                     {
-                                                        System.Diagnostics.Debug.WriteLine("path is valid");
                                                         path.Value = imagePath;
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Diagnostics.Debug.WriteLine("path is invalid");
                                                     }
                                                 }
                                                 editScope.Commit(true);
                                             }
-                                            else
-                                            {
-                                                System.Diagnostics.Debug.WriteLine("no connected property");
-                                            }
                                         }
-                                        ApplyMaterialByObject(document, this.wall, newmat);
+                                        this.ApplyMaterialByObject(document, this.wall, newmat);
                                     }
                                 }
                             }
@@ -598,11 +580,13 @@ namespace TrudeImporter
 
         }
 
-        public void ApplyMaterialByObject(Document document, Wall wall, Autodesk.Revit.DB.Material material)
+        public void ApplyMaterialByObject(Document document, Wall wall, Material material)
         {
             // Before acquiring the geometry, make sure the detail level is set to 'Fine'
-            Options geoOptions = new Options();
-            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
 
             // Obtain geometry for the given Wall element
             GeometryElement geoElem = wall.get_Geometry(geoOptions);
@@ -628,6 +612,9 @@ namespace TrudeImporter
                     }
                 }
             }
+
+            //loop through all the faces and paint them
+
 
             foreach (Face face in wallFaces)
             {
