@@ -354,7 +354,6 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    deleteOld(floor.ExistingElementId);
                     try
                     {
                         new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
@@ -458,7 +457,6 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    deleteOld(ceiling.ExistingElementId);
                     try
                     {
                         new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
