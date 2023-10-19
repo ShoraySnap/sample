@@ -68,13 +68,13 @@ namespace TrudeImporter
             // Find centroid of face
             Transform undoRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, -rotationAngle, beam.CenterPosition);
 
-            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Length / 2,
+            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Height / 2,
                                               beam.CenterPosition.Y,
                                               beam.CenterPosition.Z);
 
             this.topFaceCentroid = undoRotationTransform.OfPoint(rotatedTopFaceCentroid);
 
-            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Length / 2,
+            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Height / 2,
                                               beam.CenterPosition.Y,
                                               beam.CenterPosition.Z);
 
