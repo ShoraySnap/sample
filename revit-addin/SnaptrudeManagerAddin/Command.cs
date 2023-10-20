@@ -357,6 +357,7 @@ namespace SnaptrudeManagerAddin
                     try
                     {
                         new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
+                        deleteOld(floor.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -460,6 +461,7 @@ namespace SnaptrudeManagerAddin
                     try
                     {
                         new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
+                        deleteOld(ceiling.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
