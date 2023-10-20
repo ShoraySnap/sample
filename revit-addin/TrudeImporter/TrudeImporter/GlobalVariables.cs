@@ -1,18 +1,24 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Visual;
+using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Net;
 using System.IO;
+using Autodesk.Revit.Creation;
+using Autodesk.Revit.DB.Visual;
+using Document = Autodesk.Revit.DB.Document;
+using System.Linq;
 
 namespace TrudeImporter
 {
     public static class GlobalVariables
     {
         public static Document Document;
-        public static Application RvtApp;
+        public static Autodesk.Revit.ApplicationServices.Application RvtApp;
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
@@ -67,5 +73,60 @@ namespace TrudeImporter
             }
         }
 
+        public static Material CreateMaterial(Document doc, string matname, string texturepath) {
+            IEnumerable<AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(doc).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
+            AppearanceAssetElement appearanceAssetElement = null;
+            var i = 0;
+            foreach (var tempappearanceAssetElement in appearanceAssetElementEnum)
+            {
+                if (i == 1)
+                {
+                    appearanceAssetElement = tempappearanceAssetElement;
+                    break;
+                }
+                i++;
+            }
+            if (appearanceAssetElement != null)
+            {
+                Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname+"AppearanceAsset");
+                ElementId material = Material.Create(doc, matname);
+                var newmat = doc.GetElement(material) as Material;
+                newmat.AppearanceAssetId = newAppearanceAsset.Id;
+                using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(doc))
+                {
+                    Asset editableAsset = editScope.Start(
+                      newAppearanceAsset.Id);
+
+                    AssetProperty assetProperty = editableAsset
+                      .FindByName("generic_diffuse");
+                    Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
+                    if (connectedAsset == null)
+                    {
+                        assetProperty.AddConnectedAsset("UnifiedBitmap");
+                        connectedAsset = assetProperty.GetSingleConnectedAsset();
+                    }
+                    if (connectedAsset != null)
+                    {
+                        if (connectedAsset.Name == "UnifiedBitmap")
+                        {
+                            AssetPropertyString path = connectedAsset
+                              .FindByName(UnifiedBitmap.UnifiedbitmapBitmap)
+                                as AssetPropertyString;
+                            if (path.IsValidValue(texturepath))
+                            {
+                                path.Value = texturepath;
+                            }
+                        }
+                        editScope.Commit(true);
+                    }
+                }
+                newmat.UseRenderAppearanceForShading = true;
+                return newmat;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

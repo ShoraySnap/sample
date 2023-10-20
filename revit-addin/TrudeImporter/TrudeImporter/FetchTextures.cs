@@ -1,6 +1,3 @@
-using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Visual;
-using Autodesk.Revit.UI;
 using TrudeImporter;
 using Newtonsoft.Json.Linq;
 using System.IO;

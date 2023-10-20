@@ -252,65 +252,16 @@ namespace TrudeImporter
                                 else
                                 {
                                     System.Diagnostics.Debug.WriteLine("Material not found, creating new");
-                                    Document document = GlobalVariables.Document;
-
-                                    IEnumerable<Autodesk.Revit.DB.AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(document).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
-                                    AppearanceAssetElement appearanceAssetElement = null;
-                                    var i = 0;
-                                    foreach (var tempappearanceAssetElement in appearanceAssetElementEnum)
+                                    string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
+                                    Material newmat= GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
+                                    this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
+                                    materialCollector =
+                                    new FilteredElementCollector(GlobalVariables.Document)
+                                    .OfClass(typeof(Autodesk.Revit.DB.Material));
+                                    materialsEnum = materialCollector.ToElements().Cast<Material>();
+                                    foreach (var materialElement in materialsEnum)
                                     {
-                                        if (i == 1)
-                                        {
-                                            appearanceAssetElement = tempappearanceAssetElement;
-                                            break;
-                                        }
-                                        i++;
-                                    }
-
-                                    if (appearanceAssetElement != null)
-                                    {
-                                        // Duplicate the AppearanceAssetElement
-                                        Element newAppearanceAsset = appearanceAssetElement.Duplicate("New Appearance Asset");
-
-                                        // Create a new material and set its AppearanceAssetId
-                                        ElementId material = Material.Create(document, "newMat");
-                                        var newmat = document.GetElement(material) as Material;
-                                        newmat.AppearanceAssetId = newAppearanceAsset.Id;
-                                       newmat.Color = new Color(255, 255, 0);
-
-                                        using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(document))
-                                        {
-                                            Asset editableAsset = editScope.Start(
-                                              newAppearanceAsset.Id);
-
-                                            AssetProperty assetProperty = editableAsset
-                                              .FindByName("generic_diffuse");
-                                            Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
-                                            if (connectedAsset == null)
-                                            {
-                                                // Add a new default connected asset
-                                                assetProperty.AddConnectedAsset("UnifiedBitmap");
-                                                connectedAsset = assetProperty.GetSingleConnectedAsset();
-                                            }
-                                            if (connectedAsset != null)
-                                            {
-                                                if (connectedAsset.Name == "UnifiedBitmap")
-                                                {
-                                                    AssetPropertyString path = connectedAsset
-                                                      .FindByName(UnifiedBitmap.UnifiedbitmapBitmap)
-                                                        as AssetPropertyString;
-
-                                                    var imagePath = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
-
-                                                    if (path.IsValidValue(imagePath))
-                                                    {
-                                                        path.Value = imagePath;
-                                                    }
-                                                }
-                                                editScope.Commit(true);
-                                            }
-                                        }
-                                        this.ApplyMaterialByObject(document, this.wall, newmat);
+                                        System.Diagnostics.Debug.WriteLine(materialElement.Name);
                                     }
                                 }
                             }

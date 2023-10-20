@@ -9,6 +9,7 @@
     <Import_RootNamespace>TrudeImporter</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\ApplyMaterials.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\AWS\GetObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Configs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Extensions\Extensions.cs" />
