@@ -42,7 +42,7 @@ namespace TrudeImporter
             idToElement = new Dictionary<String, Element>();
             idToFamilySymbol = new Dictionary<String, FamilySymbol>();
         }
-        public static void DownloadTexture(string url, string filename, string path, bool overwrite = false)
+        public static string DownloadTexture(string url, string filename, string path, bool overwrite = false)
         {
             using (WebClient client = new WebClient())
             {
@@ -59,21 +59,23 @@ namespace TrudeImporter
                     {
                         Console.WriteLine("Texture already exists at: " + fullPath);
                         System.Diagnostics.Debug.WriteLine("Texture already exists at: " + fullPath);
-                        return;
+                        return fullPath;
                     }
                     client.DownloadFile(new Uri(url), fullPath);
                     Console.WriteLine("Texture downloaded successfully at: " + fullPath);
                     System.Diagnostics.Debug.WriteLine("Texture downloaded successfully at: " + fullPath);
+                    return fullPath;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("An error occurred while downloading the texture: " + ex.Message);
                     System.Diagnostics.Debug.WriteLine("An error occurred while downloading the texture: " + ex.Message);
+                    return "";
                 }
             }
         }
 
-        public static Material CreateMaterial(Document doc, string matname, string texturepath) {
+        public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha=100) {
             IEnumerable<AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(doc).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
             AppearanceAssetElement appearanceAssetElement = null;
             var i = 0;
@@ -121,6 +123,7 @@ namespace TrudeImporter
                     }
                 }
                 newmat.UseRenderAppearanceForShading = true;
+                newmat.Transparency = (int)alpha;
                 return newmat;
             }
             else

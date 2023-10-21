@@ -259,10 +259,10 @@ namespace TrudeImporter
                                     new FilteredElementCollector(GlobalVariables.Document)
                                     .OfClass(typeof(Autodesk.Revit.DB.Material));
                                     materialsEnum = materialCollector.ToElements().Cast<Material>();
-                                    foreach (var materialElement in materialsEnum)
-                                    {
-                                        System.Diagnostics.Debug.WriteLine(materialElement.Name);
-                                    }
+                                    //foreach (var materialElement in materialsEnum)
+                                    //{
+                                    //    System.Diagnostics.Debug.WriteLine(materialElement.Name);
+                                    //}
                                 }
                             }
                             else
