@@ -24,7 +24,7 @@ namespace TrudeImporter
         /// <param name="slab"></param>
         /// <param name="levelId"></param>
         /// <param name="forForge"></param>
-        public TrudeSlab(SlabProperties slab, bool forForge = false)
+        public TrudeSlab(SlabProperties slab)
         {
             thickness = slab.Thickness;
             baseType = slab.BaseType;
@@ -37,7 +37,7 @@ namespace TrudeImporter
             }
 
             // get existing slab id from revit meta data if already exists else set it to null
-            if (slab.ExistingElementId != null)
+            if (!GlobalVariables.ForForge && slab.ExistingElementId != null)
             {
                 Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)slab.ExistingElementId)) as Floor;
                 existingFloorType = existingFloor.FloorType;

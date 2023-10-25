@@ -13,7 +13,7 @@ namespace TrudeImporter
         public static Dictionary<double, Level> NewLevelsByElevation = new Dictionary<double, Level>();
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private ColumnRfaGenerator columnRfaGenerator= new ColumnRfaGenerator();
-        public TrudeColumn(ColumnProperties column, bool forForge = false)
+        public TrudeColumn(ColumnProperties column)
         {
             faceVertices = column.FaceVertices;
             columnHeight = column.Height;

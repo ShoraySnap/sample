@@ -23,7 +23,7 @@ namespace TrudeImporter
         /// <param name="ceiling"></param>
         /// <param name="levelId"></param>
         /// <param name="forForge"></param>
-        public TrudeCeiling(FloorProperties ceiling, ElementId levelId, bool forForge = false)
+        public TrudeCeiling(FloorProperties ceiling, ElementId levelId)
         {
             // add backward compatibility for ceiling, use create floor for 2021 or older instead of ceiling.create
             thickness = ceiling.Thickness;
@@ -37,7 +37,7 @@ namespace TrudeImporter
             }
 
             // get existing ceiling id from revit meta data if already exists else set it to null
-            if (ceiling.ExistingElementId != null)
+            if (!GlobalVariables.ForForge && ceiling.ExistingElementId != null)
             {
                 Ceiling existingCeiling = GlobalVariables.Document.GetElement(new ElementId((int)ceiling.ExistingElementId)) as Ceiling;
                 existingCeilingType = existingCeiling.Id;

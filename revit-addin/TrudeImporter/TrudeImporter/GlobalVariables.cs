@@ -12,6 +12,8 @@ namespace TrudeImporter
         public static Document Document;
         public static Application RvtApp;
 
+        public static bool ForForge = false;
+
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
 
