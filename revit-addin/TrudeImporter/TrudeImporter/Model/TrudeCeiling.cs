@@ -186,14 +186,22 @@ namespace TrudeImporter
 
                 XYZ pt1 = vertices[currentIndex];
                 XYZ pt2 = vertices[nextIndex];
+                bool samePoint = false;
 
                 while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
                 {
                     i++;
                     if (i > vertices.Count() + 3) break;
+                    else if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
+                    {
+                        samePoint = true;
+                        break;
+                    }
+
                     nextIndex = (i + 1).Mod(vertices.Count());
                     pt2 = vertices[nextIndex];
                 }
+                if (samePoint) break;
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;
