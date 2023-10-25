@@ -19,14 +19,10 @@ namespace FetchTextures
                         JObject diffuseTexture = (JObject)material["diffuseTexture"];
                         string name = (string)material["name"];
                         float alpha = (float)material["alpha"]*100;
-                        name = name.Replace(" ", "_");
                         string url = (string)diffuseTexture["url"];
-                        string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile","fetchedTextures");
+                        string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "fetchedTextures");
                         string savedPath = GlobalVariables.DownloadTexture(url, name, baseDir);
-                        if (savedPath != "")
-                        {
-                            GlobalVariables.CreateMaterial(GlobalVariables.Document, name, savedPath, alpha);
-                        }
+                        if (savedPath != "") GlobalVariables.CreateMaterial(GlobalVariables.Document, name, savedPath, alpha);
                     }
                 }
             }

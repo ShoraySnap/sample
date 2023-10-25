@@ -98,7 +98,6 @@ namespace TrudeImporter
                 {
                     Asset editableAsset = editScope.Start(
                       newAppearanceAsset.Id);
-
                     AssetProperty assetProperty = editableAsset
                       .FindByName("generic_diffuse");
                     Asset connectedAsset = assetProperty.GetSingleConnectedAsset();

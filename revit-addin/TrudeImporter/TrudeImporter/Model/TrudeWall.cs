@@ -204,20 +204,23 @@ namespace TrudeImporter
                                     GlobalVariables.materials,
                                     GlobalVariables.multiMaterials,
                                     _materialIndex);
+                                snaptrudeMaterialName = snaptrudeMaterialName.Replace(" ", "");
+                                snaptrudeMaterialName = snaptrudeMaterialName.Replace("_", "");
 
                                 FilteredElementCollector materialCollector =
                                     new FilteredElementCollector(GlobalVariables.Document)
-                                    .OfClass(typeof(Autodesk.Revit.DB.Material));
+                                    .OfClass(typeof(Material));
 
-                                IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
+                                IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
 
-                                Autodesk.Revit.DB.Material _materialElement = null;
+                                Material _materialElement = null;
 
                                 foreach (var materialElement in materialsEnum)
                                 {
-                                    String matName = materialElement.Name;
-                                    if (matName.Replace("_", " ") == snaptrudeMaterialName)
+                                    String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                                    if (matName == snaptrudeMaterialName)
                                     {
+                                        System.Diagnostics.Debug.WriteLine(matName);
                                         _materialElement = materialElement;
                                         break;
                                     }
@@ -254,15 +257,8 @@ namespace TrudeImporter
                                     System.Diagnostics.Debug.WriteLine("Material not found, creating new");
                                     string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
                                     Material newmat= GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
+                                    newmat.Transparency = 30;
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
-                                    materialCollector =
-                                    new FilteredElementCollector(GlobalVariables.Document)
-                                    .OfClass(typeof(Autodesk.Revit.DB.Material));
-                                    materialsEnum = materialCollector.ToElements().Cast<Material>();
-                                    //foreach (var materialElement in materialsEnum)
-                                    //{
-                                    //    System.Diagnostics.Debug.WriteLine(materialElement.Name);
-                                    //}
                                 }
                             }
                             else
