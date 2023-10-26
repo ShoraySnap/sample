@@ -202,7 +202,7 @@ namespace TrudeImporter
                     nextIndex = (i + 1).Mod(vertices.Count());
                     pt2 = vertices[nextIndex];
                 }
-                if (samePoint) break;
+                if (samePoint) continue;
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;
