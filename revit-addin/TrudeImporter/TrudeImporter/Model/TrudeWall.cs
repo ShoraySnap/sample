@@ -288,7 +288,11 @@ namespace TrudeImporter
 
                             if (props.SourceElementId != null)
                             {
-                                GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
+                                Element element = GlobalVariables.Document.GetElement(props.SourceElementId);
+                                if(element != null) 
+                                {
+                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
+                                }
                             }
 
                             if (existingWall != null)
