@@ -47,13 +47,10 @@ namespace TrudeImporter
 
             List<XYZ> rotatedVertices = new List<XYZ>();
             double bottomFaceRotatedX = -1;
-            foreach (XYZ v in beam.FaceVertices)
+            foreach (XYZ v in beam.BottomFaceVertices)
             {
-                XYZ globalVertix = new XYZ(v.X + beam.CenterPosition.X,
-                                           v.Y + beam.CenterPosition.Y,
-                                           v.Z + beam.CenterPosition.Z);
-                XYZ rotatedPoint = globalRotationTransform.OfPoint(globalVertix);
-                rotatedVertices.Add(rotatedPoint);
+                XYZ rotatedPoint = globalRotationTransform.OfPoint(v);
+                rotatedTopFaceVertices.Add(rotatedPoint);
 
                 if (!rotatedPoint.X.RoundedEquals(topFaceRotatedX))
                 {
