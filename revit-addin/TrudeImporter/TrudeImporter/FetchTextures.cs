@@ -25,10 +25,6 @@ namespace FetchTextures
 
                         if (savedPath != "") GlobalVariables.CreateMaterial(GlobalVariables.Document, name, savedPath, alpha);
                     }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("No texture to add");
-                    }
                 }
             }
             catch

@@ -114,18 +114,17 @@ namespace SnaptrudeManagerAddin
             deleteRemovedElements(trudeProperties.DeletedElements);
 
             ImportStories(trudeProperties.Storeys);
-            //ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            ImportWalls(trudeProperties.Walls); // these are structural components of the building
             //ImportBeams(trudeProperties.Beams); // these are structural components of the building
             //ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            //ImportFloors(trudeProperties.Floors);
+            ImportFloors(trudeProperties.Floors);
             if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
             {
-                System.Diagnostics.Debug.WriteLine("using <2022 version");
                 ImportFloors(trudeProperties.Ceilings);
             }
             else
                 ImportCeilings(trudeProperties.Ceilings);
-            //ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
+            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             //ImportDoors(trudeProperties.Doors);
             //ImportWindows(trudeProperties.Windows);
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
