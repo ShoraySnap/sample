@@ -1,18 +1,8 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Visual;
-using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using Color = Autodesk.Revit.DB.Color;
 using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
@@ -256,7 +246,7 @@ namespace TrudeImporter
                                 {
                                     System.Diagnostics.Debug.WriteLine("Material not found, creating new");
                                     string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
-                                    Material newmat= GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
+                                    Material newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
                                     newmat.Transparency = 30;
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
                                 }
