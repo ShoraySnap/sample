@@ -1,17 +1,12 @@
-﻿using Autodesk.Revit.ApplicationServices;
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
-using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Net;
 using System.IO;
-using Autodesk.Revit.Creation;
-using Autodesk.Revit.DB.Visual;
-using Document = Autodesk.Revit.DB.Document;
 using System.Linq;
+using System.Net;
+using Document = Autodesk.Revit.DB.Document;
 
 namespace TrudeImporter
 {
@@ -75,7 +70,8 @@ namespace TrudeImporter
             }
         }
 
-        public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha=100) {
+        public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha = 100)
+        {
             IEnumerable<AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(doc).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
             AppearanceAssetElement appearanceAssetElement = null;
             var i = 0;
@@ -90,7 +86,7 @@ namespace TrudeImporter
             }
             if (appearanceAssetElement != null)
             {
-                Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname+"AppearanceAsset");
+                Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
                 ElementId material = Material.Create(doc, matname);
                 var newmat = doc.GetElement(material) as Material;
                 newmat.AppearanceAssetId = newAppearanceAsset.Id;
@@ -130,5 +126,8 @@ namespace TrudeImporter
                 return null;
             }
         }
+
+
+
     }
 }

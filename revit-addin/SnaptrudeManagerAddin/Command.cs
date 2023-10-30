@@ -6,13 +6,11 @@ using Autodesk.Revit.DB.ExtensibleStorage;
 using Autodesk.Revit.DB.Visual;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Windows;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 //using Amazon.S3;
@@ -107,7 +105,7 @@ namespace SnaptrudeManagerAddin
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
             {
                 NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                DefaultValueHandling= Newtonsoft.Json.DefaultValueHandling.Ignore,
+                DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
             };
             serializer.Converters.Add(new XyzConverter());
 
@@ -116,17 +114,17 @@ namespace SnaptrudeManagerAddin
             deleteRemovedElements(trudeProperties.DeletedElements);
 
             ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
-                ImportFloors(trudeProperties.Ceilings);
-            else
-                ImportCeilings(trudeProperties.Ceilings);
-            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-            ImportDoors(trudeProperties.Doors);
-            ImportWindows(trudeProperties.Windows);
+            //ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            //ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            //ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            //ImportFloors(trudeProperties.Floors);
+            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+            //    ImportFloors(trudeProperties.Ceilings);
+            //else
+            //    ImportCeilings(trudeProperties.Ceilings);
+            //ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
+            //ImportDoors(trudeProperties.Doors);
+            //ImportWindows(trudeProperties.Windows);
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
@@ -166,7 +164,7 @@ namespace SnaptrudeManagerAddin
             foreach (int elementId in elementIds)
             {
                 try
-                { 
+                {
                     ElementId id = new ElementId((int)elementId);
                     Element element = GlobalVariables.Document.GetElement(id);
                     if (!element.GroupId.Equals(ElementId.InvalidElementId))
@@ -323,7 +321,7 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    foreach(var instance in column.Instances)
+                    foreach (var instance in column.Instances)
                     {
                         deleteOld(instance.ExistingElementId);
                     }
@@ -732,7 +730,7 @@ namespace SnaptrudeManagerAddin
 
         //    int totalElements = countTotalElement(jObject);
         //    int processedElements = 0;
-            
+
         //    try
         //    {
         //        List<Element> existingElements = TrudeModel.GetAllElements(GlobalVariables.Document);
@@ -3427,9 +3425,9 @@ namespace SnaptrudeManagerAddin
 
             if (data.First["dsProps"]["revitMetaData"]["isModified"].IsNullOrEmpty()) return false;
 
-            return (bool) data.First["dsProps"]["revitMetaData"]["isModified"];
+            return (bool)data.First["dsProps"]["revitMetaData"]["isModified"];
         }
-        
+
         private static bool IsStackedWall(JToken data)
         {
             if (data.First["dsProps"]["revitMetaData"]["isStackedWall"].IsNullOrEmpty()) return false;

@@ -30,7 +30,6 @@ namespace TrudeImporter
             thickness = slabprops.Thickness;
             baseType = slabprops.BaseType;
             materialName = slabprops.MaterialName;
-            System.Diagnostics.Debug.WriteLine(materialName);
             levelId = GlobalVariables.LevelIdByNumber[slabprops.Storey];
             centerPosition = slabprops.CenterPosition;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
@@ -343,5 +342,7 @@ namespace TrudeImporter
                 document.Paint(slab.Id, face, material.Id);
             }
         }
+    
+    
     }
 }
