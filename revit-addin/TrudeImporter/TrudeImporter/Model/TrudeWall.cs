@@ -210,7 +210,6 @@ namespace TrudeImporter
                                     String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
                                     if (matName == snaptrudeMaterialName)
                                     {
-                                        System.Diagnostics.Debug.WriteLine(matName);
                                         _materialElement = materialElement;
                                         break;
                                     }
@@ -253,8 +252,7 @@ namespace TrudeImporter
                             }
                             else
                             {
-                                System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
-                                //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                                this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
                             }
                         }
                         catch
@@ -474,7 +472,7 @@ namespace TrudeImporter
                     double leastDistance = Double.MaxValue;
                     foreach (XYZ normal in revitFaceNormals)
                     {
-                        double distance = subMesh.Normal.MultiplyEach(Scaling).DistanceTo(normal);
+                        double distance = normal.DistanceTo(subMesh.Normal);
                         if (distance < leastDistance)
                         {
                             leastDistance = distance;
@@ -495,20 +493,15 @@ namespace TrudeImporter
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
                 String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
-
                 Autodesk.Revit.DB.Material _materialElement = null;
-
                 foreach (var materialElement in materialsEnum)
                 {
                     String matName = materialElement.Name;
-
-                    if (matName.Replace("_", " ") == _materialName)
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
                     {
                         _materialElement = materialElement;
                     }
                 }
-
-
                 if (_materialElement != null)
                 {
                     document.Paint(wall.Id, face.Key, _materialElement.Id);

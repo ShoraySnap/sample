@@ -84,7 +84,6 @@ namespace TrudeImporter
                         String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
                         if (matName == snaptrudeMaterialName)
                         {
-                            System.Diagnostics.Debug.WriteLine(matName);
                             _materialElement = materialElement;
                             break;
                         }
