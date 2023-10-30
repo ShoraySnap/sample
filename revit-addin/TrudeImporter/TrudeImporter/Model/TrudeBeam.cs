@@ -36,24 +36,21 @@ namespace TrudeImporter
             }
 
             var globalRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, rotationAngle, beam.CenterPosition);
-            List<XYZ> rotatedTopFaceVertices = new List<XYZ>();
             double topFaceRotatedX = -1;
             foreach (XYZ v in beam.FaceVertices)
             {
                 XYZ rotatedPoint = globalRotationTransform.OfPoint(v);
-                rotatedTopFaceVertices.Add(rotatedPoint);
                 topFaceRotatedX = rotatedPoint.X;
             }
 
-            List<XYZ> rotatedVertices = new List<XYZ>();
             double bottomFaceRotatedX = -1;
             foreach (XYZ v in beam.FaceVertices)
             {
-                XYZ globalVertix = new XYZ(v.X + beam.CenterPosition.X,
-                                           v.Y + beam.CenterPosition.Y,
-                                           v.Z + beam.CenterPosition.Z);
+                //Vertices of beam bottom face is just below the top face, so X and Y co-ordinates will be same and Z will change by the value of "Height"
+                XYZ globalVertix = new XYZ(v.X,
+                                           v.Y,
+                                           v.Z - beam.Height);
                 XYZ rotatedPoint = globalRotationTransform.OfPoint(globalVertix);
-                rotatedVertices.Add(rotatedPoint);
 
                 if (!rotatedPoint.X.RoundedEquals(topFaceRotatedX))
                 {

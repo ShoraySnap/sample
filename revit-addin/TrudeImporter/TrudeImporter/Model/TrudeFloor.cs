@@ -36,8 +36,14 @@ namespace TrudeImporter
             // get existing floor id from revit meta data if already exists else set it to null
             if (floor.ExistingElementId != null)
             {
-                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)floor.ExistingElementId)) as Floor;
-                existingFloorType = existingFloor.FloorType;
+                Element e;
+                bool isExistingFloor = GlobalVariables.idToElement.TryGetValue(floor.ExistingElementId.ToString(), out e);
+                if (isExistingFloor)
+                {
+                    Floor existingFloor = (Floor)e;
+                    existingFloorType = existingFloor.FloorType;
+                }
+                
             }
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
