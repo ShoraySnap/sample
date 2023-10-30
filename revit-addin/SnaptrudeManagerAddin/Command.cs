@@ -118,10 +118,13 @@ namespace SnaptrudeManagerAddin
             //ImportBeams(trudeProperties.Beams); // these are structural components of the building
             //ImportColumns(trudeProperties.Columns); // these are structural components of the building
             //ImportFloors(trudeProperties.Floors);
-            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
-            //    ImportFloors(trudeProperties.Ceilings);
-            //else
-            //    ImportCeilings(trudeProperties.Ceilings);
+            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+            {
+                System.Diagnostics.Debug.WriteLine("using <2022 version");
+                ImportFloors(trudeProperties.Ceilings);
+            }
+            else
+                ImportCeilings(trudeProperties.Ceilings);
             //ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             //ImportDoors(trudeProperties.Doors);
             //ImportWindows(trudeProperties.Windows);

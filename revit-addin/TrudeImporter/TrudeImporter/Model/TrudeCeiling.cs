@@ -16,7 +16,7 @@ namespace TrudeImporter
         private Ceiling ceiling { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
-
+        private string materialName = null;
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
@@ -30,6 +30,7 @@ namespace TrudeImporter
             baseType = ceiling.BaseType;
             height = ceiling.Height;
             centerPosition = ceiling.CenterPosition;
+            materialName = ceiling.MaterialName;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
             foreach (var v in ceiling.FaceVertices)
             {
@@ -54,13 +55,93 @@ namespace TrudeImporter
             }
             else
             {
-                _layers.Add(new TrudeLayer("Default Base Type", "Default Snaptrude Ceiling" , ceiling.Thickness, true));
+                _layers.Add(new TrudeLayer("Default Base Type", "Default Snaptrude Ceiling", ceiling.Thickness, true));
             }
             Layers = _layers.ToArray();
             //setCoreLayerIfNotExist(Math.Abs(thickness));
             // --------------------------------------------
             CreateCeiling(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022);
             CreateHoles(ceiling.Holes);
+
+
+
+            try
+            {
+                if (ceiling.SubMeshes.Count == 1)
+                {
+                    int _materialIndex = ceiling.SubMeshes.First().MaterialIndex;
+                    String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
+                        ceiling.MaterialName,
+                        GlobalVariables.materials,
+                        GlobalVariables.multiMaterials,
+                        _materialIndex);
+                    snaptrudeMaterialName = snaptrudeMaterialName.Replace(" ", "");
+                    snaptrudeMaterialName = snaptrudeMaterialName.Replace("_", "");
+
+                    FilteredElementCollector materialCollector =
+                        new FilteredElementCollector(GlobalVariables.Document)
+                        .OfClass(typeof(Material));
+
+                    IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
+
+                    Material _materialElement = null;
+
+                    foreach (var materialElement in materialsEnum)
+                    {
+                        String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                        if (matName == snaptrudeMaterialName)
+                        {
+                            System.Diagnostics.Debug.WriteLine(matName);
+                            _materialElement = materialElement;
+                            break;
+                        }
+                    }
+                    try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
+                    {
+                        if (snaptrudeMaterialName != null)
+                        {
+                            if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                            {
+                                foreach (var materialElement in materialsEnum)
+                                {
+                                    String matName = materialElement.Name;
+                                    if (matName.ToLower().Contains("glass"))
+                                    {
+                                        _materialElement = materialElement;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+
+                    if (_materialElement != null)
+                    {
+                        this.ApplyMaterialByObject(GlobalVariables.Document, this.ceiling, _materialElement);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Material not found, creating new floor mat");
+                        string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
+                        Material newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
+                        newmat.Transparency = 30;
+                        this.ApplyMaterialByObject(GlobalVariables.Document, this.ceiling, newmat);
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
+                    //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                }
+            }
+            catch
+            {
+                Utils.LogTrace("Failed to set Slab material");
+            }
         }
 
         //private void setCoreLayerIfNotExist(double fallbackThickness)
@@ -112,7 +193,7 @@ namespace TrudeImporter
             //var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
             try
             {
-                ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, existingCeilingType == null? ElementId.InvalidElementId: existingCeilingType , levelId);
+                ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, existingCeilingType == null ? ElementId.InvalidElementId : existingCeilingType, levelId);
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(height);
             }
             catch
@@ -199,6 +280,48 @@ namespace TrudeImporter
             return curves;
         }
 
+        public void ApplyMaterialByObject(Document document, Ceiling slab, Material material)
+        {
+            // Before acquiring the geometry, make sure the detail level is set to 'Fine'
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
+
+            // Obtain geometry for the given slab element
+            GeometryElement geoElem = slab.get_Geometry(geoOptions);
+
+            // Find a face on the slab
+            //Face slabFace = null;
+            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
+            List<Face> slabFaces = new List<Face>();
+
+            while (geoObjectItor.MoveNext())
+            {
+                // need to find a solid first
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    // Examine faces of the solid to find one with at least
+                    // one region. Then take the geometric face of that region.
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        slabFaces.Add(face);
+                    }
+                }
+            }
+
+            //loop through all the faces and paint them
+
+
+            foreach (Face face in slabFaces)
+            {
+                document.Paint(slab.Id, face, material.Id);
+            }
+        }
+
         //private void rotate()
         //{
         //    Location position = this.ceiling.Location;
@@ -247,4 +370,6 @@ namespace TrudeImporter
         //    return null;
         //}
     }
+
+
 }
