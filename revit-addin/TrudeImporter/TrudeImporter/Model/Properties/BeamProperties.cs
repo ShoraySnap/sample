@@ -35,8 +35,5 @@ namespace TrudeImporter
 
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
-
-        [JsonProperty("bottomFaceVertices")]
-        public List<XYZ> BottomFaceVertices { get; set; }
     }
 }
