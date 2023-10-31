@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,8 +134,8 @@ namespace TrudeImporter
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
-                    //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected.");
+                    this.ApplyMaterialByFace(GlobalVariables.Document, ceiling.MaterialName, ceiling.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.ceiling);
                 }
             }
             catch
@@ -279,7 +280,98 @@ namespace TrudeImporter
             return curves;
         }
 
-        public void ApplyMaterialByObject(Document document, Ceiling slab, Material material)
+        public GeometryElement GetGeometryElement()
+        {
+            Options geoOptions = new Options();
+            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
+
+            return ceiling.get_Geometry(geoOptions);
+        }
+
+
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Ceiling ceiling)
+        {
+            //Dictionary that stores Revit Face And Its Normal
+            IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
+
+            List<XYZ> revitFaceNormals = new List<XYZ>();
+
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        revitFaceNormals.Add(normal.Round(3));
+                        if (!normalToRevitFace.ContainsKey(normal.Round(3).Stringify()))
+                        {
+                            normalToRevitFace.Add(normal.Round(3).Stringify(), face);
+                        }
+                    }
+                }
+            }
+
+            //Dictionary that has Revit Face And The Material Index to Be Applied For It.
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+
+            foreach (SubMeshProperties subMesh in subMeshes)
+            {
+                String key = subMesh.Normal.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
+                {
+                    Face revitFace = normalToRevitFace[key];
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+                else
+                {
+                    // find the closest key
+                    double leastDistance = Double.MaxValue;
+                    foreach (XYZ normal in revitFaceNormals)
+                    {
+                        double distance = normal.DistanceTo(subMesh.Normal);
+                        if (distance < leastDistance)
+                        {
+                            leastDistance = distance;
+                            key = normal.Stringify();
+                        }
+                    }
+
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+            }
+
+            FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
+            IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+
+
+            foreach (var face in revitFaceAndItsSubMeshIndex)
+            {
+                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
+                Autodesk.Revit.DB.Material _materialElement = null;
+                foreach (var materialElement in materialsEnum)
+                {
+                    String matName = materialElement.Name;
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
+                    {
+                        _materialElement = materialElement;
+                    }
+                }
+                if (_materialElement != null)
+                {
+                    document.Paint(ceiling.Id, face.Key, _materialElement.Id);
+                }
+            }
+
+        }
+
+        public void ApplyMaterialByObject(Document document, Ceiling ceiling, Material material)
         {
             // Before acquiring the geometry, make sure the detail level is set to 'Fine'
             Options geoOptions = new Options
@@ -287,13 +379,13 @@ namespace TrudeImporter
                 DetailLevel = ViewDetailLevel.Fine
             };
 
-            // Obtain geometry for the given slab element
-            GeometryElement geoElem = slab.get_Geometry(geoOptions);
+            // Obtain geometry for the given ceiling element
+            GeometryElement geoElem = ceiling.get_Geometry(geoOptions);
 
-            // Find a face on the slab
-            //Face slabFace = null;
+            // Find a face on the ceiling
+            //Face ceilingFace = null;
             IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
-            List<Face> slabFaces = new List<Face>();
+            List<Face> ceilingFaces = new List<Face>();
 
             while (geoObjectItor.MoveNext())
             {
@@ -307,7 +399,7 @@ namespace TrudeImporter
                     {
                         PlanarFace p = (PlanarFace)face;
                         var normal = p.FaceNormal;
-                        slabFaces.Add(face);
+                        ceilingFaces.Add(face);
                     }
                 }
             }
@@ -315,9 +407,9 @@ namespace TrudeImporter
             //loop through all the faces and paint them
 
 
-            foreach (Face face in slabFaces)
+            foreach (Face face in ceilingFaces)
             {
-                document.Paint(slab.Id, face, material.Id);
+                document.Paint(ceiling.Id, face, material.Id);
             }
         }
 
