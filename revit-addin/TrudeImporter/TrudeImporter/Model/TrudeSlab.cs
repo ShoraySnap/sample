@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -131,7 +132,7 @@ namespace TrudeImporter
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
-                    //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                    this.ApplyMaterialByFace(GlobalVariables.Document, slabprops.MaterialName, slabprops.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.slab);
                 }
             }
             catch
@@ -299,6 +300,86 @@ namespace TrudeImporter
             return null;
         }
 
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Floor slab)
+        {
+            //Dictionary that stores Revit Face And Its Normal
+            IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
+
+            List<XYZ> revitFaceNormals = new List<XYZ>();
+
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        revitFaceNormals.Add(normal.Round(3));
+                        if (!normalToRevitFace.ContainsKey(normal.Round(3).Stringify()))
+                        {
+                            normalToRevitFace.Add(normal.Round(3).Stringify(), face);
+                        }
+                    }
+                }
+            }
+
+            //Dictionary that has Revit Face And The Material Index to Be Applied For It.
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+
+            foreach (SubMeshProperties subMesh in subMeshes)
+            {
+                String key = subMesh.Normal.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
+                {
+                    Face revitFace = normalToRevitFace[key];
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+                else
+                {
+                    // find the closest key
+                    double leastDistance = Double.MaxValue;
+                    foreach (XYZ normal in revitFaceNormals)
+                    {
+                        double distance = normal.DistanceTo(subMesh.Normal);
+                        if (distance < leastDistance)
+                        {
+                            leastDistance = distance;
+                            key = normal.Stringify();
+                        }
+                    }
+
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+            }
+
+            FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
+            IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+
+
+            foreach (var face in revitFaceAndItsSubMeshIndex)
+            {
+                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
+                Autodesk.Revit.DB.Material _materialElement = null;
+                foreach (var materialElement in materialsEnum)
+                {
+                    String matName = materialElement.Name;
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
+                    {
+                        _materialElement = materialElement;
+                    }
+                }
+                if (_materialElement != null)
+                {
+                    document.Paint(slab.Id, face.Key, _materialElement.Id);
+                }
+            }
+
+        }
 
         public void ApplyMaterialByObject(Document document, Floor slab, Material material)
         {
@@ -341,7 +422,16 @@ namespace TrudeImporter
                 document.Paint(slab.Id, face, material.Id);
             }
         }
-    
-    
+
+
+        public GeometryElement GetGeometryElement()
+        {
+            Options geoOptions = new Options();
+            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
+
+            return slab.get_Geometry(geoOptions);
+        }
+
     }
 }
