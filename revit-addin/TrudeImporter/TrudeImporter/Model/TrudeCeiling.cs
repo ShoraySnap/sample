@@ -190,6 +190,7 @@ namespace TrudeImporter
 
                 while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
                 {
+                    //This can be potentially handled on snaptrude side by sending correct vertices. Currently, some points are duplicate.
                     if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
                     {
                         samePoint = true;
@@ -198,7 +199,6 @@ namespace TrudeImporter
 
                     i++;
                     if (i > vertices.Count() + 3) break;
-                    //This can be potentially handled on snaptrude side by sending correct vertices. Currently, some points are duplicate.
                     
                     nextIndex = (i + 1).Mod(vertices.Count());
                     pt2 = vertices[nextIndex];
