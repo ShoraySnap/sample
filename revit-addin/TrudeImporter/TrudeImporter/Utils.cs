@@ -8,15 +8,11 @@ namespace TrudeImporter
 {
     public class Utils
     {
-        public static String getMaterialNameFromMaterialId ( String materialnameWithId, JArray subMeshes, JArray materials, JArray multiMaterials, int materialIndex )
+        public static String getMaterialNameFromMaterialId (String materialnameWithId, JArray materials, JArray multiMaterials, int materialIndex)
         {
             if(materialnameWithId == null)
             {
                 return null;
-            }
-            if(subMeshes == null)
-            {
-                subMeshes = new JArray();
             }
 
             if (materials is null)
@@ -31,8 +27,6 @@ namespace TrudeImporter
 
             String materialName = null;
             
-            //materialIndex = (int)subMeshes[0]["materialIndex"];
-
             foreach ( JToken eachMaterial in materials ){
 
                 if ( materialnameWithId == (String)eachMaterial["id"] )
@@ -61,7 +55,7 @@ namespace TrudeImporter
 
         }
         private static Random random = new Random();
-        public static string RandomString(int length)
+        public static string RandomString(int length=5)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
