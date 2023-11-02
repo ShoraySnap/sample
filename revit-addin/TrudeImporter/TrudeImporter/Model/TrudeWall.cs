@@ -207,7 +207,8 @@ namespace TrudeImporter
 
                                 foreach (var materialElement in materialsEnum)
                                 {
-                                    String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                                    string matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+
                                     if (matName == snaptrudeMaterialName)
                                     {
                                         _materialElement = materialElement;
@@ -243,7 +244,7 @@ namespace TrudeImporter
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.WriteLine("Material not found, creating new");
+                                    System.Diagnostics.Debug.WriteLine("Material not found, creating new in wall");
                                     string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
                                     Material newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
                                     newmat.Transparency = 30;
