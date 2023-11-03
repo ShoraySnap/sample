@@ -90,9 +90,8 @@ namespace TrudeImporter
             IDictionary<int, CompoundStructureError> errMap = new Dictionary<int, CompoundStructureError>();
             IDictionary<int, int> twoLayerErrorsMap = new Dictionary<int, int>();
 
-            compoundStructure.IsValid(GlobalVariables.Document, out errMap, out twoLayerErrorsMap);
-
-            wallType.SetCompoundStructure(compoundStructure);
+            if (compoundStructure.IsValid(GlobalVariables.Document, out errMap, out twoLayerErrorsMap))
+                wallType.SetCompoundStructure(compoundStructure);
         }
 
         private void SetFillPattern(string layerName, Material material)

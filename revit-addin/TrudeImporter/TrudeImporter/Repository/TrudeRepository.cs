@@ -84,6 +84,11 @@ namespace TrudeImporter
             return (double)data["height"];
         }
 
+        public static double GetBeamLenght(JToken data)
+        {
+            return (double)data["lenght"];
+        }
+
         public static List<XYZ> GetVertices(JToken data, int precision = 8, double[] scale = null)
         {
             JToken vertexData = data["geometries"]["vertexData"].First;
@@ -141,19 +146,12 @@ namespace TrudeImporter
 
         public static TrudeLayer[] GetLayers(JToken data, double fallbackThickness = 25)
         {
+            if (!data["dsProps"]["properties"]["_components"].HasValues) return null;
+
             JToken revitMetaData  = data["dsProps"]["revitMetaData"];
 
-            string baseType = null;
-            JArray layers = null;
-
-            if (data["baseType"].IsNullOrEmpty())
-            {
-                baseType = (string)data["dsProps"]["properties"]["_components"]["_name"];
-            }
-            else
-            {
-                baseType = (string) data["baseType"];
-            }
+            string baseType = (string) data["dsProps"]["properties"]["_components"]["_name"];
+            JArray layers = (JArray) data["dsProps"]["properties"]["_components"]["_layers"];
 
             if (data["layers"].IsNullOrEmpty())
             {
