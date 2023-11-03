@@ -8,12 +8,12 @@
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".trude"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
-#define Base "C:\Users\nisch\snaptrudemanager\build-installer"
+#define Base "..\build-installer"
 #define BaseDynamoScripts Base + "\dynamo-scripts"
 #define BaseInstallers Base + "\installers"
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
-#define RevitAddinDllPath "C:\Users\nisch\snaptrudemanager\revit-addin\SnaptrudeManagerAddin\bin\Debug\SnaptrudeManagerAddin.dll"
+#define RevitAddinDllPath "..\revit-addin\SnaptrudeManagerAddin\bin\Debug\SnaptrudeManagerAddin.dll"
 #define BaseOut Base + "\out"
 
 [Setup]
