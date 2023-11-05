@@ -88,6 +88,7 @@ namespace TrudeImporter
             {
                 Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
                 ElementId material = Material.Create(doc, matname);
+                System.Diagnostics.Debug.WriteLine("Material created: " + matname);
                 var newmat = doc.GetElement(material) as Material;
                 newmat.AppearanceAssetId = newAppearanceAsset.Id;
                 using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(doc))
