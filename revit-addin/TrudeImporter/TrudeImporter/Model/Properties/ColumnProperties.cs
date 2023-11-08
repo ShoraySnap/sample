@@ -18,6 +18,9 @@ namespace TrudeImporter
         [JsonProperty("instances")]
         public List<ColumnInstanceProperties> Instances { get; set; }
 
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
+
         //[JsonProperty("type")]
         //public string Type { get; set; }
     }
@@ -42,5 +45,8 @@ namespace TrudeImporter
 
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }
+
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
     }
 }

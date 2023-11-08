@@ -300,10 +300,19 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    deleteOld(beam.ExistingElementId);
+                    
                     try
                     {
-                        new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                        if (beam.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(beam.AllFaceVertices, BuiltInCategory.OST_StructuralFraming);
+                        }
+                        else
+                        {
+                            new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                        }
+                        
+                        deleteOld(beam.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -325,14 +334,23 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    foreach(var instance in column.Instances)
-                    {
-                        deleteOld(instance.ExistingElementId);
-                    }
 
                     try
                     {
-                        new TrudeColumn(column);
+                        if (column.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(column.AllFaceVertices, BuiltInCategory.OST_Ceilings);
+                        }
+                        else
+                        {
+                            new TrudeColumn(column);
+                        }
+
+                        foreach (var instance in column.Instances)
+                        {
+                            deleteOld(instance.ExistingElementId);
+                        }
+
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -356,7 +374,15 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
+                        if (floor.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(floor.AllFaceVertices, BuiltInCategory.OST_Floors);
+                        }
+                        else
+                        {
+                            new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
+                        }
+                        
                         deleteOld(floor.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -386,7 +412,15 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        new TrudeSlab(slab);
+                        if (slab.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(slab.AllFaceVertices, BuiltInCategory.OST_Floors);
+                        }
+                        else
+                        {
+                            new TrudeSlab(slab);
+                        }
+
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -460,7 +494,15 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
+                        if (ceiling.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(ceiling.AllFaceVertices, BuiltInCategory.OST_GenericModel);
+                        }
+                        else
+                        {
+                            new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
+                        }
+                        
                         deleteOld(ceiling.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {

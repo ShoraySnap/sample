@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\JsonCreationConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\XyzConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\LayerProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\MassProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SlabProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\StoreyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SubMeshProperties.cs" />
@@ -36,6 +37,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeCeiling.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeColumn.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeColumnOld.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\TrudeDirectShape.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeDoorOld.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
