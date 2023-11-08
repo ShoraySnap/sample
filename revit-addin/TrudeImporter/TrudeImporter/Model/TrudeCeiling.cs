@@ -123,14 +123,6 @@ namespace TrudeImporter
                     {
                         this.ApplyMaterialByObject(GlobalVariables.Document, this.ceiling, _materialElement);
                     }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("Material not found, creating new floor mat");
-                        string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
-                        Material newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
-                        newmat.Transparency = 30;
-                        this.ApplyMaterialByObject(GlobalVariables.Document, this.ceiling, newmat);
-                    }
                 }
                 else
                 {

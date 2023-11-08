@@ -208,7 +208,7 @@ namespace TrudeImporter
                                 foreach (var materialElement in materialsEnum)
                                 {
                                     string matName = materialElement.Name.Replace(" ", "").Replace("_", "");
-
+                                    //System.Diagnostics.Debug.WriteLine(matName);
                                     if (matName == snaptrudeMaterialName)
                                     {
                                         _materialElement = materialElement;
@@ -242,14 +242,29 @@ namespace TrudeImporter
                                 {
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
                                 }
-                                else
-                                {
-                                    System.Diagnostics.Debug.WriteLine("Material not found, creating new in wall");
-                                    string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
-                                    Material newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
-                                    newmat.Transparency = 30;
-                                    this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
-                                }
+                                //else
+                                //{
+                                //    Material newmat = null;
+
+                                //    // Searching for the material named "newMetal" in the document
+                                //    foreach (var materialElement in materialsEnum)
+                                //    {
+                                //        if (materialElement.Name == "newMetal")
+                                //        {
+                                //            newmat = materialElement;
+                                //            break;
+                                //        }
+                                //    }
+                                //    if (newmat == null)
+                                //    {
+                                //        System.Diagnostics.Debug.WriteLine("Material not found, creating new in wall");
+                                //        string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
+                                //        newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
+                                //        materialsEnum.Append(newmat);
+                                //    }
+
+                                //    this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
+                                //}
                             }
                             else
                             {

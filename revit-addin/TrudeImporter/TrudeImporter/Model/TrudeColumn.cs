@@ -196,17 +196,10 @@ namespace TrudeImporter
                         {
 
                         }
-
-                        if (_materialElement == null)
+                        if (_materialElement != null)
                         {
-                            System.Diagnostics.Debug.WriteLine("Material not found, creating new column mat");
-                            string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
-                            Material newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
-                            newmat.Transparency = 30;
-                            _materialElement = newmat;
+                            this.ApplyMaterialByObject(GlobalVariables.Document, column, _materialElement);
                         }
-
-                        this.ApplyMaterialByObject(GlobalVariables.Document, column, _materialElement);
                     }
                     else
                     {
