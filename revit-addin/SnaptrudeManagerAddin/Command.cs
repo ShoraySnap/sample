@@ -125,6 +125,7 @@ namespace SnaptrudeManagerAddin
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
+            ImportMasses(trudeProperties.Masses);
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
@@ -512,6 +513,34 @@ namespace SnaptrudeManagerAddin
                     catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            }
+        }
+
+        private void ImportMasses(List<MassProperties> propsList)
+        {
+            foreach (var mass in propsList)
+            {
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    try
+                    {
+                        if (mass.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(mass.AllFaceVertices, BuiltInCategory.OST_GenericModel);
+                        }
+                        deleteOld(mass.ExistingElementId);
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }
