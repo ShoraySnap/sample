@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\FetchTextures.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\GlobalVariables.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\EulerAngles.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\BaseProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\CeilingProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\DoorProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\FloorProperties.cs" />
@@ -26,7 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\ColumnProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\JsonCreationConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\Converters\XyzConverter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\IHasSubMeshes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\LayerProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SlabProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\StoreyProperties.cs" />
