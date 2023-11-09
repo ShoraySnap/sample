@@ -89,7 +89,7 @@ namespace TrudeImporter
                             break;
                         }
                     }
-                    try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
+                    try
                     {
                         if (snaptrudeMaterialName != null)
                         {

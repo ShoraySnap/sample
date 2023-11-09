@@ -10,6 +10,16 @@ namespace MaterialOperations
     {
         public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha = 100)
         {
+            Dictionary<string, Material> materialsDict = new FilteredElementCollector(doc)
+                .OfClass(typeof(Material))
+                .Cast<Material>()
+                .ToDictionary(mat => mat.Name, mat => mat);
+
+            if (materialsDict.TryGetValue(matname, out Material existingMaterial))
+            {
+                System.Diagnostics.Debug.WriteLine("Material already exists: " + matname);
+                return existingMaterial;
+            }
             IEnumerable<AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(doc).OfClass(typeof(AppearanceAssetElement)).Cast<AppearanceAssetElement>();
             AppearanceAssetElement appearanceAssetElement = null;
             var i = 0;
