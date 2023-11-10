@@ -340,7 +340,7 @@ namespace SnaptrudeManagerAddin
                     {
                         if (column.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(column.AllFaceVertices, BuiltInCategory.OST_Ceilings);
+                            TrudeDirectShape.GenerateObjectFromFaces(column.AllFaceVertices, BuiltInCategory.OST_Columns);
                         }
                         else
                         {
@@ -497,7 +497,7 @@ namespace SnaptrudeManagerAddin
                     {
                         if (ceiling.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(ceiling.AllFaceVertices, BuiltInCategory.OST_GenericModel);
+                            TrudeDirectShape.GenerateObjectFromFaces(ceiling.AllFaceVertices, BuiltInCategory.OST_Ceilings);
                         }
                         else
                         {
