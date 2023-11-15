@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
 {
@@ -194,19 +195,22 @@ namespace TrudeImporter
                                     GlobalVariables.materials,
                                     GlobalVariables.multiMaterials,
                                     _materialIndex);
+                                snaptrudeMaterialName = snaptrudeMaterialName.Replace(" ", "");
+                                snaptrudeMaterialName = snaptrudeMaterialName.Replace("_", "");
 
                                 FilteredElementCollector materialCollector =
                                     new FilteredElementCollector(GlobalVariables.Document)
-                                    .OfClass(typeof(Autodesk.Revit.DB.Material));
+                                    .OfClass(typeof(Material));
 
-                                IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
+                                IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
 
-                                Autodesk.Revit.DB.Material _materialElement = null;
+                                Material _materialElement = null;
 
                                 foreach (var materialElement in materialsEnum)
                                 {
-                                    String matName = materialElement.Name;
-                                    if (matName.Replace("_", " ") == snaptrudeMaterialName)
+                                    string matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                                    //System.Diagnostics.Debug.WriteLine(matName);
+                                    if (matName == snaptrudeMaterialName)
                                     {
                                         _materialElement = materialElement;
                                         break;
@@ -239,13 +243,34 @@ namespace TrudeImporter
                                 {
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
                                 }
+                                //else
+                                //{
+                                //    Material newmat = null;
 
+                                //    // Searching for the material named "newMetal" in the document
+                                //    foreach (var materialElement in materialsEnum)
+                                //    {
+                                //        if (materialElement.Name == "newMetal")
+                                //        {
+                                //            newmat = materialElement;
+                                //            break;
+                                //        }
+                                //    }
+                                //    if (newmat == null)
+                                //    {
+                                //        System.Diagnostics.Debug.WriteLine("Material not found, creating new in wall");
+                                //        string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
+                                //        newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
+                                //        materialsEnum.Append(newmat);
+                                //    }
+
+                                //    this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
+                                //}
                             }
                             else
                             {
-                                //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                                this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
                             }
-
                         }
                         catch
                         {
@@ -289,7 +314,7 @@ namespace TrudeImporter
                             if (props.SourceElementId != null)
                             {
                                 Element element = GlobalVariables.Document.GetElement(props.SourceElementId);
-                                if(element != null) 
+                                if (element != null)
                                 {
                                     GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
                                 }
@@ -320,6 +345,7 @@ namespace TrudeImporter
             {
                 Utils.LogTrace(e.Message);
                 throw e;
+
             }
         }
 
@@ -330,7 +356,7 @@ namespace TrudeImporter
             for (int i = 0; i < points.Count(); i++)
             {
                 XYZ point0 = points[i];
-                XYZ point1 = points[(i+1).Mod(points.Count())];
+                XYZ point1 = points[(i + 1).Mod(points.Count())];
 
                 if (point1.IsAlmostEqualTo(point0))
                 {
@@ -426,7 +452,7 @@ namespace TrudeImporter
             return null;
         }
 
-        public void ApplyMaterialByFace( Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall)
         {
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
@@ -453,7 +479,7 @@ namespace TrudeImporter
             }
 
             //Dictionary that has Revit Face And The Material Index to Be Applied For It.
-            IDictionary <Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
 
             foreach (SubMeshProperties subMesh in subMeshes)
             {
@@ -470,7 +496,7 @@ namespace TrudeImporter
                     double leastDistance = Double.MaxValue;
                     foreach (XYZ normal in revitFaceNormals)
                     {
-                        double distance = subMesh.Normal.MultiplyEach(Scaling).DistanceTo(normal);
+                        double distance = normal.DistanceTo(subMesh.Normal);
                         if (distance < leastDistance)
                         {
                             leastDistance = distance;
@@ -486,26 +512,21 @@ namespace TrudeImporter
 
             FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
             IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
-            
-            
+
+
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
                 String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
-
                 Autodesk.Revit.DB.Material _materialElement = null;
-
                 foreach (var materialElement in materialsEnum)
                 {
                     String matName = materialElement.Name;
-
-                    if (matName.Replace("_", " ") == _materialName)
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
                     {
                         _materialElement = materialElement;
                     }
                 }
-
-
-                if ( _materialElement != null )
+                if (_materialElement != null)
                 {
                     document.Paint(wall.Id, face.Key, _materialElement.Id);
                 }
@@ -513,11 +534,13 @@ namespace TrudeImporter
 
         }
 
-        public void ApplyMaterialByObject(Document document, Wall wall, Autodesk.Revit.DB.Material material)
+        public void ApplyMaterialByObject(Document document, Wall wall, Material material)
         {
             // Before acquiring the geometry, make sure the detail level is set to 'Fine'
-            Options geoOptions = new Options();
-            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
 
             // Obtain geometry for the given Wall element
             GeometryElement geoElem = wall.get_Geometry(geoOptions);
@@ -544,20 +567,23 @@ namespace TrudeImporter
                 }
             }
 
+            //loop through all the faces and paint them
+
+
             foreach (Face face in wallFaces)
             {
                 document.Paint(wall.Id, face, material.Id);
             }
         }
 
-        public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType=null)
+        public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType = null)
         {
             WallType defaultType = null;
             if (!(existingWallType is null)) defaultType = existingWallType;
 
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(WallType));
-            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType) wallType).Kind == WallKind.Basic) as WallType;
-            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType) wallType).Kind == WallKind.Stacked) as WallType;
+            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType)wallType).Kind == WallKind.Basic) as WallType;
+            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType)wallType).Kind == WallKind.Stacked) as WallType;
             if (defaultType is null)
                 foreach (WallType wt in collector.ToElements())
                 {
@@ -572,7 +598,8 @@ namespace TrudeImporter
             try
             {
                 return TypeStore.GetType(layers, defaultType);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return defaultType;
             }

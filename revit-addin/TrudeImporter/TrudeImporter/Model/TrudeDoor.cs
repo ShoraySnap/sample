@@ -66,7 +66,7 @@ namespace TrudeImporter
                 bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
                 if (setHeightAndWidthParamsInFamilySymbol)
                 {
-                    familySymbol = TrudeDoorold.TypeStore.GetType(new double[] { door.Height, door.Width}, defaultFamilySymbol);
+                    familySymbol = TrudeDoorold.TypeStore.GetType(new double[] { door.Height, door.Width }, defaultFamilySymbol);
                 }
                 else
                 {

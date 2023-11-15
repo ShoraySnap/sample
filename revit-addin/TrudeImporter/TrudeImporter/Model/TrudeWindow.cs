@@ -109,7 +109,7 @@ namespace TrudeImporter
             }
 
             BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
-            XYZ loc = new XYZ(CenterPosition.X, CenterPosition.Y, CenterPosition.Z - height/2);
+            XYZ loc = new XYZ(CenterPosition.X, CenterPosition.Y, CenterPosition.Z - height / 2);
 
             instance = doc.Create.NewFamilyInstance(loc, familySymbol, wall, (Level)doc.GetElement(wall.LevelId), StructuralType.NonStructural);
 
