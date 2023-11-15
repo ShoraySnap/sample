@@ -33,20 +33,6 @@ namespace TrudeImporter
                     return defaultType;
                 }
             }
-            else if (!Types[key].IsValidObject)
-            {
-                Types.Remove(key);
-                try
-                {
-                    T_Type newType = defaultType.Duplicate(key) as T_Type;
-                    TypeModifier(rawKey, newType);
-                    Types.Add(key, newType);
-                }
-                catch
-                {
-                    return defaultType;
-                }
-            }
 
             return Types[key];
         }

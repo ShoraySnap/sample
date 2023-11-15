@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 using System.Collections.Generic;
 
 namespace TrudeImporter
@@ -23,6 +22,12 @@ namespace TrudeImporter
         [JsonProperty("length")]
         public float Length { get; set; }
 
+        [JsonProperty("subMeshes")]
+        public List<SubMeshProperties> SubMeshes { get; set; }
+
+        [JsonProperty("materialName")]
+        public string MaterialName { get; set; }
+
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }
 
@@ -35,5 +40,28 @@ namespace TrudeImporter
 
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
+
+        [JsonProperty("instances")]
+        public List<BeamInstanceProperties> Instances { get; set; }
+    }
+    public class BeamInstanceProperties
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("storey")]
+        public int Storey { get; set; }
+
+        [JsonProperty("uniqueId")]
+        public int UniqueId { get; set; }
+
+        [JsonProperty("centerPosition")]
+        public XYZ CenterPosition { get; set; }
+
+        [JsonProperty("rotation")]
+        public XYZ Rotation { get; set; }
+
+        [JsonProperty("existingElementId")]
+        public int? ExistingElementId { get; set; }
     }
 }

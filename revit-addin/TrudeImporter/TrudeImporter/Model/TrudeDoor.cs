@@ -8,6 +8,7 @@ namespace TrudeImporter
     {
         string doorFamilyName = null;
         string fsName = null;
+        FamilySymbol existingFamilySymbol = null;
         XYZ CenterPosition = null;
         public TrudeDoor(DoorProperties door, ElementId levelId)
         {
@@ -20,6 +21,7 @@ namespace TrudeImporter
                 if (door.RevitFamilyName != null)
                 {
                     doorFamilyName = door.RevitFamilyName;
+                    existingFamilySymbol = GlobalVariables.idToFamilySymbol[door.ExistingElementId.ToString()];
                 }
                 else
                 {
@@ -37,9 +39,18 @@ namespace TrudeImporter
 
                 FamilySymbol familySymbol = null;
                 FamilySymbol defaultFamilySymbol = null;
-                if (door.ExistingElementId == null)
+                if (door.ExistingElementId != null)
                 {
-                    if (door.RevitFamilyName == null)
+                    defaultFamilySymbol = existingFamilySymbol;
+                    if (!defaultFamilySymbol.IsActive)
+                    {
+                        defaultFamilySymbol.Activate();
+                        GlobalVariables.Document.Regenerate();
+                    }
+                }
+                else
+                {
+                    if (door.RevitFamilyName is null)
                     {
                         var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
                         if (family is null)
@@ -48,9 +59,9 @@ namespace TrudeImporter
                             return;
                         }
                     }
+                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, doorFamilyName, fsName);
                 }
 
-                defaultFamilySymbol = GetFamilySymbolByName(GlobalVariables.Document, doorFamilyName, fsName);
                 if (!defaultFamilySymbol.IsActive)
                 {
                     defaultFamilySymbol.Activate();

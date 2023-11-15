@@ -1,23 +1,30 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TrudeImporter
 {
     public class TrudeColumn : TrudeModel
     {
         private List<XYZ> faceVertices = new List<XYZ>();
-        private float columnHeight;
+        private float columnHeight, submeshCount;
+        private List<SubMeshProperties> submeshes;
         private List<ColumnInstanceProperties> instances;
         public static Dictionary<double, Level> NewLevelsByElevation = new Dictionary<double, Level>();
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
-        private ColumnRfaGenerator columnRfaGenerator= new ColumnRfaGenerator();
+        private ColumnRfaGenerator columnRfaGenerator = new ColumnRfaGenerator();
+        private string materialName = null;
         public TrudeColumn(ColumnProperties column, bool forForge = false)
         {
             faceVertices = column.FaceVertices;
             columnHeight = column.Height;
             instances = column.Instances;
+            materialName = column.MaterialName;
+            submeshCount = column.SubMeshes.Count;
+            submeshes = column.SubMeshes;
             CreateColumn();
         }
 
@@ -118,12 +125,11 @@ namespace TrudeImporter
                 types.Add(familyName, familySymbol);
             }
 
-            foreach(var instance in instances)
+            foreach (var instance in instances)
             {
                 Curve curve = GetPositionCurve(instance.CenterPosition);
                 Level level = doc.GetElement(GlobalVariables.LevelIdByNumber[instance.Storey]) as Level;
                 FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
-
                 // This is required for correct rotation of Beams of identified Shapes
                 column.Location.Rotate(curve as Line, props?.rotation ?? 0);
 
@@ -140,7 +146,75 @@ namespace TrudeImporter
                     Line axis = Line.CreateBound(rotationAxisEndpoint1, rotationAxisEndpoint2);
                     column.Location.Rotate(axis, -instance.Rotation.Z);
                 }
+
+                // Assuming the material name is available in the instance object
+                try
+                {
+                    if (submeshCount == 1 && !string.IsNullOrEmpty(materialName))
+                    {
+                        int _materialIndex = submeshes.First().MaterialIndex;
+                        String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
+                            materialName,
+                            GlobalVariables.materials,
+                            GlobalVariables.multiMaterials,
+                            _materialIndex).Replace(" ", "").Replace("_", "");
+                        FilteredElementCollector materialCollector =
+                            new FilteredElementCollector(GlobalVariables.Document)
+                            .OfClass(typeof(Material));
+
+                        IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
+                        Material _materialElement = null;
+
+                        foreach (var materialElement in materialsEnum)
+                        {
+                            String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                            if (matName == snaptrudeMaterialName)
+                            {
+                                _materialElement = materialElement;
+                                break;
+                            }
+                        }
+                        try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
+                        {
+                            if (snaptrudeMaterialName != null)
+                            {
+                                if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                                {
+                                    foreach (var materialElement in materialsEnum)
+                                    {
+                                        String matName = materialElement.Name;
+                                        if (matName.ToLower().Contains("glass"))
+                                        {
+                                            _materialElement = materialElement;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                        if (_materialElement != null)
+                        {
+                            this.ApplyMaterialByObject(GlobalVariables.Document, column, _materialElement);
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. ");
+                        this.ApplyMaterialByFace(GlobalVariables.Document, materialName, submeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, column);
+                    }
+
+                }
+                catch
+                {
+                    Utils.LogTrace("Failed to set Slab material");
+                }
+
             }
+
             // -----
 
             //column.Location.Move(new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z - level.ProjectElevation));
@@ -180,5 +254,137 @@ namespace TrudeImporter
             XYZ columnTopPoint = new XYZ(centerPosition.X, centerPosition.Y, centerPosition.Z + columnHeight / 2);
             return Line.CreateBound(columnBasePoint, columnTopPoint) as Curve;
         }
+
+
+        public void ApplyMaterialByObject(Document document, FamilyInstance column, Material material)
+        {
+            // Before acquiring the geometry, make sure the detail level is set to 'Fine'
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
+
+            // Obtain geometry for the given column element
+            GeometryElement geoElem = column.get_Geometry(geoOptions);
+
+            // Find a face on the column
+            //Face slabFace = null;
+            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
+            List<Face> slabFaces = new List<Face>();
+
+            while (geoObjectItor.MoveNext())
+            {
+                // need to find a solid first
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    // Examine faces of the solid to find one with at least
+                    // one region. Then take the geometric face of that region.
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        slabFaces.Add(face);
+                    }
+                }
+            }
+
+            //loop through all the faces and paint them
+
+
+            foreach (Face face in slabFaces)
+            {
+                document.Paint(column.Id, face, material.Id);
+            }
+        }
+
+
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, FamilyInstance column)
+        {
+            //Dictionary that stores Revit Face And Its Normal
+            IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
+
+            List<XYZ> revitFaceNormals = new List<XYZ>();
+
+            Options geoOptions = new Options();
+            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
+
+            IEnumerator<GeometryObject> geoObjectItor = column.get_Geometry(geoOptions).GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        revitFaceNormals.Add(normal.Round(3));
+                        if (!normalToRevitFace.ContainsKey(normal.Round(3).Stringify()))
+                        {
+                            normalToRevitFace.Add(normal.Round(3).Stringify(), face);
+                        }
+                    }
+                }
+            }
+
+            //Dictionary that has Revit Face And The Material Index to Be Applied For It.
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+
+            foreach (SubMeshProperties subMesh in subMeshes)
+            {
+                String key = subMesh.Normal.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
+                {
+                    Face revitFace = normalToRevitFace[key];
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+                else
+                {
+                    // find the closest key
+                    double leastDistance = Double.MaxValue;
+                    foreach (XYZ normal in revitFaceNormals)
+                    {
+                        double distance = normal.DistanceTo(subMesh.Normal);
+                        if (distance < leastDistance)
+                        {
+                            leastDistance = distance;
+                            key = normal.Stringify();
+                        }
+                    }
+
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+            }
+
+            FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
+            IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+
+
+            foreach (var face in revitFaceAndItsSubMeshIndex)
+            {
+                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
+                Autodesk.Revit.DB.Material _materialElement = null;
+                foreach (var materialElement in materialsEnum)
+                {
+                    String matName = materialElement.Name;
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
+                    {
+                        _materialElement = materialElement;
+                    }
+                }
+                if (_materialElement != null)
+                {
+                    document.Paint(column.Id, face.Key, _materialElement.Id);
+                }
+            }
+
+        }
+
     }
 }
+
+
