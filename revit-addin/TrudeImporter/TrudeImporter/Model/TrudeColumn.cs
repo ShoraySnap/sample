@@ -10,7 +10,8 @@ namespace TrudeImporter
     public class TrudeColumn : TrudeModel
     {
         private List<XYZ> faceVertices = new List<XYZ>();
-        private float columnHeight, submeshCount;
+        private float columnHeight;
+        private int submeshCount;
         private List<SubMeshProperties> submeshes;
         private List<ColumnInstanceProperties> instances;
         public static Dictionary<double, Level> NewLevelsByElevation = new Dictionary<double, Level>();
@@ -278,8 +279,6 @@ namespace TrudeImporter
                 Solid theSolid = geoObjectItor.Current as Solid;
                 if (null != theSolid)
                 {
-                    // Examine faces of the solid to find one with at least
-                    // one region. Then take the geometric face of that region.
                     foreach (Face face in theSolid.Faces)
                     {
                         PlanarFace p = (PlanarFace)face;
@@ -288,8 +287,6 @@ namespace TrudeImporter
                     }
                 }
             }
-
-            //loop through all the faces and paint them
 
 
             foreach (Face face in slabFaces)
