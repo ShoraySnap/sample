@@ -3,7 +3,6 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TrudeImporter
 {
@@ -16,9 +15,6 @@ namespace TrudeImporter
         private XYZ bottomFaceCentroid;
         private List<XYZ> LocalTopFaceVertices = new List<XYZ>();
         private string familyName;
-        private int submeshCount;
-        private string materialName = null;
-        private List<SubMeshProperties> submeshes;
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
 
@@ -91,9 +87,6 @@ namespace TrudeImporter
                                                           point.Y - this.topFaceCentroid.Y,
                                                           point.Z - this.topFaceCentroid.Z));
             }
-            this.submeshes = beam.SubMeshes;
-            this.submeshCount = beam.SubMeshes.Count;
-            this.materialName = beam.MaterialName;
 
             CreateBeam(levelId);
         }
@@ -216,75 +209,6 @@ namespace TrudeImporter
             FamilyInstance beam = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Beam);
             beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
             beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int)ZJustification.Center);
-
-
-            // Assuming the material name is available in the instance object
-            try
-            {
-                if (submeshCount == 1 && !string.IsNullOrEmpty(materialName))
-                {
-                    int _materialIndex = submeshes.First().MaterialIndex;
-                    String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                        materialName,
-                        GlobalVariables.materials,
-                        GlobalVariables.multiMaterials,
-                        _materialIndex).Replace(" ", "").Replace("_", "");
-                    FilteredElementCollector materialCollector =
-                        new FilteredElementCollector(GlobalVariables.Document)
-                        .OfClass(typeof(Material));
-
-                    IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
-                    Material _materialElement = null;
-
-                    foreach (var materialElement in materialsEnum)
-                    {
-                        String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
-                        if (matName == snaptrudeMaterialName)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Material found " + snaptrudeMaterialName);
-                            _materialElement = materialElement;
-                            break;
-                        }
-                    }
-                    try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
-                    {
-                        if (snaptrudeMaterialName != null)
-                        {
-                            if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
-                            {
-                                foreach (var materialElement in materialsEnum)
-                                {
-                                    String matName = materialElement.Name;
-                                    if (matName.ToLower().Contains("glass"))
-                                    {
-                                        _materialElement = materialElement;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                    if (_materialElement != null)
-                    {
-                        this.ApplyMaterialByObject(GlobalVariables.Document, beam, _materialElement);
-                    }
-                }
-                //else
-                //{
-                //    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. ");
-                //    this.ApplyMaterialByFace(GlobalVariables.Document, materialName, submeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, column);
-                //}
-
-            }
-            catch
-            {
-                Utils.LogTrace("Failed to set Slab material");
-            }
-
         }
 
         private Curve GetPositionCurve(ShapeProperties props)
@@ -299,75 +223,5 @@ namespace TrudeImporter
             }
 
         }
-
-        public void ApplyMaterialByObject(Document document, FamilyInstance beam, Material material)
-        {
-            // Before acquiring the geometry, make sure the detail level is set to 'Fine'
-            Options geoOptions = new Options
-            {
-                DetailLevel = ViewDetailLevel.Fine
-            };
-            document.Regenerate();
-            // Obtain geometry for the given beam element
-            GeometryElement geoElem = beam.get_Geometry(geoOptions);
-
-            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
-            List<Face> slabFaces = new List<Face>();
-
-            while (geoObjectItor.MoveNext())
-            {
-                List<Solid> solids = GetSolids(geoObjectItor.Current);
-
-                foreach (Solid solid in solids)
-                {
-                    System.Diagnostics.Debug.WriteLine("Number of faces " + solid.Faces.Size);
-                    foreach (Face face in solid.Faces)
-                    {
-                        slabFaces.Add(face);
-                    }
-                }
-
-            }
-
-            foreach (Face face in slabFaces)
-            {
-                System.Diagnostics.Debug.WriteLine(face.Area);
-                System.Diagnostics.Debug.WriteLine(beam.Id);
-                System.Diagnostics.Debug.WriteLine(material.Id + "\n");
-                // Paint the face with the material
-                document.Paint(beam.Id, face, material.Id);
-            }
-        }
-
-        static public List<Solid> GetSolids(GeometryObject gObj)
-        {
-            List<Solid> solids = new List<Solid>();
-            if (gObj is Solid) // already solid
-            {
-                Solid solid = gObj as Solid;
-                if (solid.Faces.Size > 0 && Math.Abs(solid.Volume) > 0) // skip invalid solid
-                    solids.Add(gObj as Solid);
-            }
-            else if (gObj is GeometryInstance) // find solids from GeometryInstance
-            {
-                IEnumerator<GeometryObject> gIter2 = (gObj as GeometryInstance).GetInstanceGeometry().GetEnumerator();
-                gIter2.Reset();
-                while (gIter2.MoveNext())
-                {
-                    solids.AddRange(GetSolids(gIter2.Current));
-                }
-            }
-            else if (gObj is GeometryElement) // find solids from GeometryElement
-            {
-                IEnumerator<GeometryObject> gIter2 = (gObj as GeometryElement).GetEnumerator();
-                gIter2.Reset();
-                while (gIter2.MoveNext())
-                {
-                    solids.AddRange(GetSolids(gIter2.Current));
-                }
-            }
-            return solids;
-        }
-
     }
 }
