@@ -182,7 +182,7 @@ namespace TrudeImporter
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
             try
             {
-                slab = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, true);
+                slab = Doc.Create.NewFoundationSlab(profile, newFloorType, Doc.GetElement(levelId) as Level, true, new XYZ(0, 0, -1));
             }
             catch
             {
@@ -231,14 +231,26 @@ namespace TrudeImporter
 
                 XYZ pt1 = vertices[currentIndex];
                 XYZ pt2 = vertices[nextIndex];
+                bool samePoint = false;
+
 
                 while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
                 {
+                    // This can be potentially handled on snaptrude side by sending correct vertices.Currently, some points are duplicate.
+                    if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
+                    {
+                        samePoint = true;
+                        break;
+                    }
+
+
                     i++;
                     if (i > vertices.Count() + 3) break;
+
                     nextIndex = (i + 1).Mod(vertices.Count());
                     pt2 = vertices[nextIndex];
                 }
+                if (samePoint) continue;
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;

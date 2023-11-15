@@ -39,8 +39,14 @@ namespace TrudeImporter
             // get existing floor id from revit meta data if already exists else set it to null
             if (floorProps.ExistingElementId != null)
             {
-                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)floorProps.ExistingElementId)) as Floor;
-                existingFloorType = existingFloor.FloorType;
+                Element e;
+                bool isExistingFloor = GlobalVariables.idToElement.TryGetValue(floorProps.ExistingElementId.ToString(), out e);
+                if (isExistingFloor)
+                {
+                    Floor existingFloor = (Floor)e;
+                    existingFloorType = existingFloor.FloorType;
+                }
+
             }
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
@@ -49,11 +55,30 @@ namespace TrudeImporter
             {
                 foreach (var layer in floorProps.Layers)
                 {
-                    _layers.Add(new TrudeLayer(floorProps.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
+                    _layers.Add(
+                      new TrudeLayer(
+                        floorProps.BaseType,
+                        layer.Name,
+                        layer.ThicknessInMm,
+                        layer.IsCore
+                      )
+                    );
                 }
             }
             Layers = _layers.ToArray();
             setCoreLayerIfNotExist(Math.Abs(thickness));
+
+
+            // TODO : Fix on Snaptrude end, when floor thickness is changed, its layers's thickness should be adjusted
+            // It is not being done now, so here the core layer's thickness is increased by appropriate length
+            double sumOfLayersThickness = 0;
+            Array.ForEach(Layers, (l) => sumOfLayersThickness += l.ThicknessInMm);
+            if (UnitsAdapter.FeetToMM(thickness) != sumOfLayersThickness)
+            {
+                TrudeLayer coreLayer = Layers.FirstOrDefault(layer => layer.IsCore);
+                coreLayer.ThicknessInMm += UnitsAdapter.FeetToMM(thickness) - sumOfLayersThickness;
+            }
+
             // --------------------------------------------
             CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             CreateHoles(floorProps.Holes);
@@ -176,10 +201,11 @@ namespace TrudeImporter
                 FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
                 floorType = defaultFloorType;
             }
-            var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+
             try
             {
                 //throws exception 
+                var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
                 floor = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
             }
             catch
@@ -212,7 +238,7 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine("Could not create hole with error: ", e);
+                    System.Diagnostics.Debug.WriteLine("Could not create hole with error: " + e.Message);
                 }
             }
         }
@@ -228,14 +254,24 @@ namespace TrudeImporter
 
                 XYZ pt1 = vertices[currentIndex];
                 XYZ pt2 = vertices[nextIndex];
+                bool samePoint = false;
 
                 while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
                 {
+                    //This can be potentially handled on snaptrude side by sending correct vertices. Currently, some points are duplicate.
+                    if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
+                    {
+                        samePoint = true;
+                        break;
+                    }
+
                     i++;
                     if (i > vertices.Count() + 3) break;
+
                     nextIndex = (i + 1).Mod(vertices.Count());
                     pt2 = vertices[nextIndex];
                 }
+                if (samePoint) continue;
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;

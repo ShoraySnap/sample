@@ -12,6 +12,7 @@ namespace TrudeImporter
         public TrudeLayer[] Layers;
 
         public Wall wall { get; set; }
+        public static WallTypeStore TypeStore = new WallTypeStore();
 
         public TrudeWall(WallProperties props)
         {
@@ -312,7 +313,11 @@ namespace TrudeImporter
 
                             if (props.SourceElementId != null)
                             {
-                                GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
+                                Element element = GlobalVariables.Document.GetElement(props.SourceElementId);
+                                if (element != null)
+                                {
+                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
+                                }
                             }
 
                             if (existingWall != null)
@@ -332,12 +337,15 @@ namespace TrudeImporter
                     catch (Exception e)
                     {
                         Utils.LogTrace("Error in creating wall", e.ToString());
+                        throw e;
                     }
                 }
             }
             catch (Exception e)
             {
                 Utils.LogTrace(e.Message);
+                throw e;
+
             }
         }
 
@@ -567,8 +575,6 @@ namespace TrudeImporter
                 document.Paint(wall.Id, face, material.Id);
             }
         }
-
-        public static WallTypeStore TypeStore = new WallTypeStore();
 
         public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType = null)
         {

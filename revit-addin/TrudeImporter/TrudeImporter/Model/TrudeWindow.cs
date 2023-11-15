@@ -25,7 +25,6 @@ namespace TrudeImporter
                 if (window.RevitFamilyName != null)
                 {
                     doorFamilyName = window.RevitFamilyName;
-                    existingFamilySymbol = GlobalVariables.idToFamilySymbol[window.ExistingElementId.ToString()];
                 }
                 else
                 {
@@ -43,16 +42,7 @@ namespace TrudeImporter
 
                 FamilySymbol familySymbol = null;
                 FamilySymbol defaultFamilySymbol = null;
-                if (window.ExistingElementId != null)
-                {
-                    defaultFamilySymbol = existingFamilySymbol;
-                    if (!defaultFamilySymbol.IsActive)
-                    {
-                        defaultFamilySymbol.Activate();
-                        GlobalVariables.Document.Regenerate();
-                    }
-                }
-                else
+                if (window.ExistingElementId == null)
                 {
                     if (window.RevitFamilyName is null)
                     {
@@ -63,9 +53,9 @@ namespace TrudeImporter
                             return;
                         }
                     }
-                    defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, doorFamilyName, fsName);
                 }
 
+                defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, doorFamilyName, fsName);
                 if (!defaultFamilySymbol.IsActive)
                 {
                     defaultFamilySymbol.Activate();
@@ -119,7 +109,7 @@ namespace TrudeImporter
             }
 
             BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
-            XYZ loc = new XYZ(CenterPosition.X, CenterPosition.Y, CenterPosition.Z - height/2);
+            XYZ loc = new XYZ(CenterPosition.X, CenterPosition.Y, CenterPosition.Z - height / 2);
 
             instance = doc.Create.NewFamilyInstance(loc, familySymbol, wall, (Level)doc.GetElement(wall.LevelId), StructuralType.NonStructural);
 
