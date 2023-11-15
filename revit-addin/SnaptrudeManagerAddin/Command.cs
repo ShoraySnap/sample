@@ -275,7 +275,14 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        TrudeWall trudeWall = new TrudeWall(props);
+                        if (props.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(props.AllFaceVertices, BuiltInCategory.OST_Walls);
+                        }
+                        else
+                        {
+                            TrudeWall trudeWall = new TrudeWall(props);
+                        }
                         deleteOld(props.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
