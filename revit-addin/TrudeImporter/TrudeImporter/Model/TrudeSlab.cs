@@ -176,7 +176,7 @@ namespace TrudeImporter
             if (floorType is null)
             {
                 FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
-                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
+                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Foundation Slab").First() as FloorType;
                 floorType = defaultFloorType;
             }
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
