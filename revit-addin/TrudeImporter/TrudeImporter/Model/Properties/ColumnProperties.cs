@@ -51,8 +51,5 @@ namespace TrudeImporter
 
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }
-
-        [JsonProperty("allFaceVertices")]
-        public List<List<XYZ>> AllFaceVertices { get; set; }
     }
 }
