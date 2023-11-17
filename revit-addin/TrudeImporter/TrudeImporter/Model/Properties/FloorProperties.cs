@@ -44,6 +44,12 @@ namespace TrudeImporter
         [JsonProperty("holes")]
         public List<List<XYZ>> Holes { get; set; }
 
+        [JsonProperty("subMeshes")]
+        public List<SubMeshProperties> SubMeshes { get; set; }
+
+        [JsonProperty("materialName")]
+        public string MaterialName { get; set; }
+
         [JsonProperty("allFaceVertices")]
         public List<List<XYZ>> AllFaceVertices { get; set; }
     }

@@ -19,7 +19,7 @@ namespace TrudeImporter
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
 
 
-        public TrudeBeam (BeamProperties beam, ElementId levelId, bool forForge = false)
+        public TrudeBeam(BeamProperties beam, ElementId levelId, bool forForge = false)
         {
             this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beam.FaceVertices[0]), Extensions.Round(beam.FaceVertices[1]), Extensions.Round(beam.FaceVertices[2]));
 

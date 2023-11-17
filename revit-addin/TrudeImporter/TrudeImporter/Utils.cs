@@ -52,8 +52,10 @@ namespace TrudeImporter
             }
 
             return materialName;
-
         }
+        
+        
+        
         private static Random random = new Random();
         public static string RandomString(int length=5)
         {

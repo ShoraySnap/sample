@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.DB;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace TrudeImporter
@@ -16,40 +16,43 @@ namespace TrudeImporter
         private Floor slab { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
+        private string materialName = null;
+
         ElementId levelId = null;
 
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
-        /// <param name="slab"></param>
+        /// <param name="slabprops"></param>
         /// <param name="levelId"></param>
         /// <param name="forForge"></param>
-        public TrudeSlab(SlabProperties slab, bool forForge = false)
+        public TrudeSlab(SlabProperties slabprops, bool forForge = false)
         {
-            thickness = slab.Thickness;
-            baseType = slab.BaseType;
-            levelId = GlobalVariables.LevelIdByNumber[slab.Storey];
-            centerPosition = slab.CenterPosition;
+            thickness = slabprops.Thickness;
+            baseType = slabprops.BaseType;
+            materialName = slabprops.MaterialName;
+            levelId = GlobalVariables.LevelIdByNumber[slabprops.Storey];
+            centerPosition = slabprops.CenterPosition;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
-            foreach (var v in slab.FaceVertices) 
+            foreach (var v in slabprops.FaceVertices)
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
 
             // get existing slab id from revit meta data if already exists else set it to null
-            if (slab.ExistingElementId != null)
+            if (slabprops.ExistingElementId != null)
             {
-                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)slab.ExistingElementId)) as Floor;
+                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)slabprops.ExistingElementId)) as Floor;
                 existingFloorType = existingFloor.FloorType;
             }
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
             // --------------------------------------------
-            if (slab.Layers != null)
+            if (slabprops.Layers != null)
             {
-                foreach (var layer in slab.Layers)
+                foreach (var layer in slabprops.Layers)
                 {
-                    _layers.Add(new TrudeLayer(slab.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
+                    _layers.Add(new TrudeLayer(slabprops.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
                 }
             }
             Layers = _layers.ToArray();
@@ -57,7 +60,77 @@ namespace TrudeImporter
             // --------------------------------------------
             CreateSlab(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             GlobalVariables.Document.Regenerate();
-            CreateHoles(slab.Holes);
+            CreateHoles(slabprops.Holes);
+            GlobalVariables.Document.Regenerate();
+
+            try
+            {
+                if (slabprops.SubMeshes.Count == 1)
+                {
+                    int _materialIndex = slabprops.SubMeshes.First().MaterialIndex;
+                    String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
+                        slabprops.MaterialName,
+                        GlobalVariables.materials,
+                        GlobalVariables.multiMaterials,
+                        _materialIndex);
+                    snaptrudeMaterialName = snaptrudeMaterialName.Replace(" ", "");
+                    snaptrudeMaterialName = snaptrudeMaterialName.Replace("_", "");
+
+                    FilteredElementCollector materialCollector =
+                        new FilteredElementCollector(GlobalVariables.Document)
+                        .OfClass(typeof(Material));
+
+                    IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
+
+                    Material _materialElement = null;
+
+                    foreach (var materialElement in materialsEnum)
+                    {
+                        String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                        if (matName == snaptrudeMaterialName)
+                        {
+                            _materialElement = materialElement;
+                            break;
+                        }
+                    }
+                    try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
+                    {
+                        if (snaptrudeMaterialName != null)
+                        {
+                            if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                            {
+                                foreach (var materialElement in materialsEnum)
+                                {
+                                    String matName = materialElement.Name;
+                                    if (matName.ToLower().Contains("glass"))
+                                    {
+                                        _materialElement = materialElement;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+
+                    if (_materialElement != null)
+                    {
+                        this.ApplyMaterialByObject(GlobalVariables.Document, this.slab, _materialElement);
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
+                    this.ApplyMaterialByFace(GlobalVariables.Document, slabprops.MaterialName, slabprops.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.slab);
+                }
+            }
+            catch
+            {
+                Utils.LogTrace("Failed to set Slab material");
+            }
         }
 
         private void setCoreLayerIfNotExist(double fallbackThickness)
@@ -160,14 +233,16 @@ namespace TrudeImporter
                 XYZ pt2 = vertices[nextIndex];
                 bool samePoint = false;
 
+
                 while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
                 {
-                    //This can be potentially handled on snaptrude side by sending correct vertices. Currently, some points are duplicate.
+                    // This can be potentially handled on snaptrude side by sending correct vertices.Currently, some points are duplicate.
                     if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
                     {
                         samePoint = true;
                         break;
                     }
+
 
                     i++;
                     if (i > vertices.Count() + 3) break;
@@ -228,5 +303,139 @@ namespace TrudeImporter
 
             return null;
         }
+
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Floor slab)
+        {
+            //Dictionary that stores Revit Face And Its Normal
+            IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
+
+            List<XYZ> revitFaceNormals = new List<XYZ>();
+
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        revitFaceNormals.Add(normal.Round(3));
+                        if (!normalToRevitFace.ContainsKey(normal.Round(3).Stringify()))
+                        {
+                            normalToRevitFace.Add(normal.Round(3).Stringify(), face);
+                        }
+                    }
+                }
+            }
+
+            //Dictionary that has Revit Face And The Material Index to Be Applied For It.
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+
+            foreach (SubMeshProperties subMesh in subMeshes)
+            {
+                String key = subMesh.Normal.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
+                {
+                    Face revitFace = normalToRevitFace[key];
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+                else
+                {
+                    // find the closest key
+                    double leastDistance = Double.MaxValue;
+                    foreach (XYZ normal in revitFaceNormals)
+                    {
+                        double distance = normal.DistanceTo(subMesh.Normal);
+                        if (distance < leastDistance)
+                        {
+                            leastDistance = distance;
+                            key = normal.Stringify();
+                        }
+                    }
+
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+            }
+
+            FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
+            IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+
+
+            foreach (var face in revitFaceAndItsSubMeshIndex)
+            {
+                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
+                Autodesk.Revit.DB.Material _materialElement = null;
+                foreach (var materialElement in materialsEnum)
+                {
+                    String matName = materialElement.Name;
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
+                    {
+                        _materialElement = materialElement;
+                    }
+                }
+                if (_materialElement != null)
+                {
+                    document.Paint(slab.Id, face.Key, _materialElement.Id);
+                }
+            }
+
+        }
+
+        public void ApplyMaterialByObject(Document document, Floor slab, Material material)
+        {
+            // Before acquiring the geometry, make sure the detail level is set to 'Fine'
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
+
+            // Obtain geometry for the given slab element
+            GeometryElement geoElem = slab.get_Geometry(geoOptions);
+
+            // Find a face on the slab
+            //Face slabFace = null;
+            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
+            List<Face> slabFaces = new List<Face>();
+
+            while (geoObjectItor.MoveNext())
+            {
+                // need to find a solid first
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    // Examine faces of the solid to find one with at least
+                    // one region. Then take the geometric face of that region.
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        slabFaces.Add(face);
+                    }
+                }
+            }
+
+            //loop through all the faces and paint them
+
+
+            foreach (Face face in slabFaces)
+            {
+                document.Paint(slab.Id, face, material.Id);
+            }
+        }
+
+
+        public GeometryElement GetGeometryElement()
+        {
+            Options geoOptions = new Options();
+            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
+
+            return slab.get_Geometry(geoOptions);
+        }
+
     }
 }
