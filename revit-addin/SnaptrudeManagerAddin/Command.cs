@@ -348,15 +348,16 @@ namespace SnaptrudeManagerAddin
                         if (column.AllFaceVertices != null)
                         {
                             TrudeDirectShape.GenerateObjectFromFaces(column.AllFaceVertices, BuiltInCategory.OST_Columns);
+                            deleteOld(column.ExistingElementIdDS);
                         }
                         else
                         {
                             new TrudeColumn(column);
-                        }
 
-                        foreach (var instance in column.Instances)
-                        {
-                            deleteOld(instance.ExistingElementId);
+                            foreach (var instance in column.Instances)
+                            {
+                                deleteOld(instance.ExistingElementId);
+                            }
                         }
 
                         if (t.Commit() != TransactionStatus.Committed)
@@ -366,7 +367,8 @@ namespace SnaptrudeManagerAddin
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + column.Instances[0].UniqueId + "\nError is: " + e.Message + "\n");
+                        int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }

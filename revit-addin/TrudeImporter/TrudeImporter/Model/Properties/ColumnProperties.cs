@@ -23,6 +23,12 @@ namespace TrudeImporter
 
         //[JsonProperty("type")]
         //public string Type { get; set; }
+
+        [JsonProperty("uniqueId")]
+        public int UniqueIdDS { get; set; }
+
+        [JsonProperty("existingElementId")]
+        public int? ExistingElementIdDS { get; set; }
     }
 
     [Serializable]
