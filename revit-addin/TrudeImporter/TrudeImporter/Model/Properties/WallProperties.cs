@@ -63,5 +63,8 @@ namespace TrudeImporter
 
         [JsonProperty("childrenUniqueIds")]
         public List<int> ChildrenUniqueIds { get; set; }
+
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
     }
 }

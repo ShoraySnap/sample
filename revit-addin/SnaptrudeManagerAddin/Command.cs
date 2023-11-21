@@ -123,6 +123,7 @@ namespace SnaptrudeManagerAddin
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
+            ImportMasses(trudeProperties.Masses);
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
@@ -272,7 +273,14 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        TrudeWall trudeWall = new TrudeWall(props);
+                        if (props.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(props.AllFaceVertices, BuiltInCategory.OST_Walls);
+                        }
+                        else
+                        {
+                            TrudeWall trudeWall = new TrudeWall(props);
+                        }
                         deleteOld(props.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -298,10 +306,19 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    deleteOld(beam.ExistingElementId);
+                    
                     try
                     {
-                        new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                        if (beam.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(beam.AllFaceVertices, BuiltInCategory.OST_StructuralFraming);
+                        }
+                        else
+                        {
+                            new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                        }
+                        
+                        deleteOld(beam.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -323,14 +340,24 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    foreach (var instance in column.Instances)
-                    {
-                        deleteOld(instance.ExistingElementId);
-                    }
 
                     try
                     {
-                        new TrudeColumn(column);
+                        if (column.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(column.AllFaceVertices, BuiltInCategory.OST_Columns);
+                            deleteOld(column.ExistingElementIdDS);
+                        }
+                        else
+                        {
+                            new TrudeColumn(column);
+
+                            foreach (var instance in column.Instances)
+                            {
+                                deleteOld(instance.ExistingElementId);
+                            }
+                        }
+
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -338,7 +365,8 @@ namespace SnaptrudeManagerAddin
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + column.Instances[0].UniqueId + "\nError is: " + e.Message + "\n");
+                        int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }
@@ -354,7 +382,15 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
+                        if (floor.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(floor.AllFaceVertices, BuiltInCategory.OST_Floors);
+                        }
+                        else
+                        {
+                            new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
+                        }
+                        
                         deleteOld(floor.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -384,7 +420,15 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        new TrudeSlab(slab);
+                        if (slab.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(slab.AllFaceVertices, BuiltInCategory.OST_Floors);
+                        }
+                        else
+                        {
+                            new TrudeSlab(slab);
+                        }
+
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -458,7 +502,15 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
-                        new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
+                        if (ceiling.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(ceiling.AllFaceVertices, BuiltInCategory.OST_Ceilings);
+                        }
+                        else
+                        {
+                            new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
+                        }
+                        
                         deleteOld(ceiling.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -468,6 +520,34 @@ namespace SnaptrudeManagerAddin
                     catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            }
+        }
+
+        private void ImportMasses(List<MassProperties> propsList)
+        {
+            foreach (var mass in propsList)
+            {
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    try
+                    {
+                        if (mass.AllFaceVertices != null)
+                        {
+                            TrudeDirectShape.GenerateObjectFromFaces(mass.AllFaceVertices, BuiltInCategory.OST_GenericModel);
+                        }
+                        deleteOld(mass.ExistingElementId);
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }
