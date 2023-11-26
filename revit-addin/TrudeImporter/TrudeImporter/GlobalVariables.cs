@@ -1,11 +1,7 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Visual;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
 using Document = Autodesk.Revit.DB.Document;
 
 namespace TrudeImporter
@@ -37,7 +33,17 @@ namespace TrudeImporter
             idToElement = new Dictionary<String, Element>();
             idToFamilySymbol = new Dictionary<String, FamilySymbol>();
         }
-        
+
+        public static string sanitizeString(string str)
+        {
+            string invalidChars = "{}[]|;<>?`~-";
+            foreach (var c in invalidChars)
+            {
+                str = str.Replace(c.ToString(), string.Empty);
+            }
+            str = str.ToLower();
+            return str;
+        }
 
     }
 }
