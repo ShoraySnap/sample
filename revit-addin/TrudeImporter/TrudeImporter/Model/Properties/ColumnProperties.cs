@@ -25,8 +25,17 @@ namespace TrudeImporter
         [JsonProperty("materialName")]
         public string MaterialName { get; set; }
 
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
+
         //[JsonProperty("type")]
         //public string Type { get; set; }
+
+        [JsonProperty("uniqueId")]
+        public int UniqueIdDS { get; set; }
+
+        [JsonProperty("existingElementId")]
+        public int? ExistingElementIdDS { get; set; }
     }
 
     [Serializable]

@@ -168,10 +168,6 @@ namespace TrudeImporter
 
             if (coreLayer != null)
             {
-                if (fallbackThickness != 0)
-                {
-                    coreLayer.ThicknessInMm = UnitsAdapter.FeetToMM(fallbackThickness, 1);
-                }
 
                 return;
             }

@@ -46,5 +46,8 @@ namespace TrudeImporter
 
         [JsonProperty("subMeshes")]
         public List<SubMeshProperties> SubMeshes { get; set; }
+
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
     }
 }
