@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
 using System.Collections.Generic;
 using System.Linq;
+using TrudeImporter;
 using Document = Autodesk.Revit.DB.Document;
 
 namespace MaterialOperations
@@ -10,10 +11,12 @@ namespace MaterialOperations
     {
         public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha = 100)
         {
+            matname = GlobalVariables.sanitizeString(matname);
+            System.Diagnostics.Debug.WriteLine("Creating material: " + matname);
             Dictionary<string, Material> materialsDict = new FilteredElementCollector(doc)
                 .OfClass(typeof(Material))
                 .Cast<Material>()
-                .ToDictionary(mat => mat.Name, mat => mat);
+                .ToDictionary(mat => mat.Name.ToLower(), mat => mat);
 
             if (materialsDict.TryGetValue(matname, out Material existingMaterial))
             {
@@ -35,6 +38,8 @@ namespace MaterialOperations
             if (appearanceAssetElement != null)
             {
                 Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
+                System.Diagnostics.Debug.WriteLine(matname);
+
                 ElementId material = Material.Create(doc, matname);
                 System.Diagnostics.Debug.WriteLine("Material created: " + matname + "with Id: " + material.ToString());
                 var newmat = doc.GetElement(material) as Material;
@@ -77,6 +82,4 @@ namespace MaterialOperations
         }
 
     }
-
-
 }
