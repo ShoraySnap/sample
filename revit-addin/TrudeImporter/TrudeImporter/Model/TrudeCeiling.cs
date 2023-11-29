@@ -9,11 +9,11 @@ namespace TrudeImporter
     public class TrudeCeiling : TrudeModel
     {
         private List<XYZ> faceVertices = new List<XYZ>();
-        ElementId existingCeilingType = null;
+        ElementId existingCeilingTypeId = null;
         private float thickness;
-        private float height;
+        private double height;
         private TrudeLayer[] Layers;
-        private static FloorTypeStore TypeStore = new FloorTypeStore();
+        private static CeilingTypeStore TypeStore = new CeilingTypeStore();
         private Ceiling ceiling { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
@@ -29,7 +29,7 @@ namespace TrudeImporter
             // add backward compatibility for ceiling, use create floor for 2021 or older instead of ceiling.create
             thickness = ceiling.Thickness;
             baseType = ceiling.BaseType;
-            height = ceiling.Height;
+            height = ceiling.FaceVertices[0].Z;
             centerPosition = ceiling.CenterPosition;
             materialName = ceiling.MaterialName;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
@@ -37,12 +37,16 @@ namespace TrudeImporter
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
-
+            
             // get existing ceiling id from revit meta data if already exists else set it to null
             if (ceiling.ExistingElementId != null)
             {
-                Ceiling existingCeiling = GlobalVariables.Document.GetElement(new ElementId((int)ceiling.ExistingElementId)) as Ceiling;
-                existingCeilingType = existingCeiling.Id;
+                bool isExistingCeiling = GlobalVariables.idToElement.TryGetValue(ceiling.ExistingElementId.ToString(), out Element e);
+                if (isExistingCeiling)
+                {
+                    Ceiling existingCeiling = (Ceiling)e;
+                    existingCeilingTypeId = existingCeiling.GetTypeId();
+                }
             }
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
@@ -172,38 +176,25 @@ namespace TrudeImporter
         private void CreateCeiling(ElementId levelId, bool depricated = false)
         {
             CurveLoop profile = getProfileLoop(faceVertices);
-            //FloorType floorType = existingFloorType;
-
+            CeilingType defaultCeilingType = null;
             var Doc = GlobalVariables.Document;
-            //if (floorType is null)
-            //{
-            //    FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
-            //    FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Ceiling").First() as FloorType;
-            //    floorType = defaultFloorType;
-            //}
-            //var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+
+            if (existingCeilingTypeId is null)
+            {
+                FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(CeilingType));
+                defaultCeilingType = collector.Where(type => ((CeilingType)type).FamilyName == "Compound Ceiling" && ((CeilingType)type).Name == "Plain").First() as CeilingType;
+            }
+
             try
             {
-                ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, existingCeilingType == null ? ElementId.InvalidElementId : existingCeilingType, levelId);
+                var ceilingType = TypeStore.GetType(Layers, Doc, defaultCeilingType);
+                ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, ceilingType.Id ?? ElementId.InvalidElementId, levelId);
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(height);
             }
             catch
             {
                 //Could not create ceiling
             }
-
-
-            // Rotate and move the slab
-            //rotate();
-
-            //bool result = ceiling.Location.Move(centerPosition);
-
-            //if (!result) throw new Exception("Move ceiling location failed.");
-
-            //this.setType(floorType);
-
-            //Level level = Doc.GetElement(levelId) as Level;
-            //setHeight(level);
             Doc.Regenerate();
         }
 
