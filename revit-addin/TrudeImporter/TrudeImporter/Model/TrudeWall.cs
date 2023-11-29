@@ -457,7 +457,7 @@ namespace TrudeImporter
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
 
             List<XYZ> revitFaceNormals = new List<XYZ>();
-
+            
             IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
             while (geoObjectItor.MoveNext())
             {
@@ -482,6 +482,12 @@ namespace TrudeImporter
 
             foreach (SubMeshProperties subMesh in subMeshes)
             {
+                if (subMesh.Normal == null)
+                {
+                    //   System.Diagnostics.Debug.WriteLine(subMesh);
+                    continue;
+                }
+
                 String key = subMesh.Normal.Stringify();
                 if (normalToRevitFace.ContainsKey(key))
                 {

@@ -38,10 +38,8 @@ namespace MaterialOperations
             if (appearanceAssetElement != null)
             {
                 Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
-                System.Diagnostics.Debug.WriteLine(matname);
-
                 ElementId material = Material.Create(doc, matname);
-                System.Diagnostics.Debug.WriteLine("Material created: " + matname + "with Id: " + material.ToString());
+                System.Diagnostics.Debug.WriteLine("Material created: " + matname + " with Id: " + material.ToString());
                 var newmat = doc.GetElement(material) as Material;
                 newmat.AppearanceAssetId = newAppearanceAsset.Id;
                 using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(doc))

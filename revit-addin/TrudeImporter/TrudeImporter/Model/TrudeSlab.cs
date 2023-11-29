@@ -334,6 +334,11 @@ namespace TrudeImporter
 
             foreach (SubMeshProperties subMesh in subMeshes)
             {
+                if (subMesh.Normal == null)
+                {
+                    //   System.Diagnostics.Debug.WriteLine(subMesh);
+                    continue;
+                }
                 String key = subMesh.Normal.Stringify();
                 if (normalToRevitFace.ContainsKey(key))
                 {
