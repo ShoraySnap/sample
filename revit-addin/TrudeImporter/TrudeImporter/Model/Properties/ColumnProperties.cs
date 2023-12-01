@@ -36,6 +36,10 @@ namespace TrudeImporter
 
         [JsonProperty("existingElementId")]
         public int? ExistingElementIdDS { get; set; }
+
+        [JsonProperty("faceMaterialIds")]
+        public List<int> FaceMaterialIds { get; set; }
+
     }
 
     [Serializable]
