@@ -9,7 +9,9 @@ namespace MaterialOperations
 {
     public class MaterialOperations
     {
-        public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha = 100)
+        public static double SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR = 39.37;
+        // Calculated using scale_set_by_revit * size_of_texture_in_snaptrude /size_of_texture_in_revit
+        public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha = 100, double uScale=1, double vScale=1)
         {
             matname = GlobalVariables.sanitizeString(matname);
             System.Diagnostics.Debug.WriteLine("Creating material: " + matname);
@@ -65,6 +67,13 @@ namespace MaterialOperations
                             {
                                 path.Value = texturepath;
                             }
+                            AssetPropertyDistance scaleX = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleX) as AssetPropertyDistance;
+
+                            AssetPropertyDistance scaleY = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleY) as AssetPropertyDistance;
+                            
+                            scaleX.Value = uScale*SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR;
+                            scaleY.Value = vScale*SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR;
+
                         }
                         editScope.Commit(true);
                     }
