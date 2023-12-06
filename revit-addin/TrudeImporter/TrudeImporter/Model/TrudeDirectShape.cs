@@ -7,8 +7,12 @@ namespace TrudeImporter
 {
     public class TrudeDirectShape
     {
-        public static void GenerateObjectFromFaces(List<List<XYZ>> faces, List<int> faceMaterialIds, string materialName, BuiltInCategory category)
+        public static void GenerateObjectFromFaces(DirectShapeProperties directShapeProps, BuiltInCategory category)
         {
+            List<List<XYZ>> faces = directShapeProps.AllFaceVertices;
+            List<int> faceMaterialIds = directShapeProps.FaceMaterialIds;
+            string materialName = directShapeProps.MaterialName;
+
             Document doc = GlobalVariables.Document; // Assuming GlobalVariables.Document is the active Revit Document
             TessellatedShapeBuilder builder = new TessellatedShapeBuilder();
             builder.OpenConnectedFaceSet(true);
