@@ -9,7 +9,9 @@ namespace MaterialOperations
 {
     public class MaterialOperations
     {
-        public static Material CreateMaterial(Document doc, string matname, string texturepath, float alpha = 100)
+        public static double SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR = 39.37;
+        // Calculated using scale_set_by_revit * size_of_texture_in_snaptrude /size_of_texture_in_revit
+        public static Material CreateMaterial(Document doc, string matname, TextureProperties textureProps, float alpha = 100)
         {
             matname = GlobalVariables.sanitizeString(matname);
             System.Diagnostics.Debug.WriteLine("Creating material: " + matname);
@@ -61,10 +63,26 @@ namespace MaterialOperations
                             AssetPropertyString path = connectedAsset
                               .FindByName(UnifiedBitmap.UnifiedbitmapBitmap)
                                 as AssetPropertyString;
-                            if (path.IsValidValue(texturepath))
+                            if (path.IsValidValue(textureProps.TexturePath))
                             {
-                                path.Value = texturepath;
+                                path.Value = textureProps.TexturePath;
                             }
+                            AssetPropertyDistance scaleX = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleX) as AssetPropertyDistance;
+
+                            AssetPropertyDistance scaleY = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleY) as AssetPropertyDistance;
+                            
+                            scaleX.Value = textureProps.UScale * SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR; ;
+                            scaleY.Value = textureProps.VScale * SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR; ;
+
+
+                            AssetPropertyDistance texture_uOffset = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldOffsetX) as AssetPropertyDistance;
+                            AssetPropertyDistance texture_vOffset = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldOffsetY) as AssetPropertyDistance;
+                            AssetPropertyDistance wAng = connectedAsset.FindByName(UnifiedBitmap.TextureWAngle) as AssetPropertyDistance;
+
+                            texture_uOffset.Value = textureProps.UOffset + SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR;
+                            texture_vOffset.Value = textureProps.VOffset + SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR;
+                            //wAng.Value = wAngle;
+
                         }
                         editScope.Commit(true);
                     }

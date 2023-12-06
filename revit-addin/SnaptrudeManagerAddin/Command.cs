@@ -8,6 +8,7 @@ using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -273,9 +274,16 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            props.MaterialName,
+                            props.FaceMaterialIds,
+                            props.AllFaceVertices
+                        );
+
                         if (props.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(props.AllFaceVertices, BuiltInCategory.OST_Walls);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Walls);
+
                         }
                         else
                         {
@@ -306,18 +314,23 @@ namespace SnaptrudeManagerAddin
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    
+
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            beam.MaterialName,
+                            beam.FaceMaterialIds,
+                            beam.AllFaceVertices
+                        );
                         if (beam.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(beam.AllFaceVertices, BuiltInCategory.OST_StructuralFraming);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_StructuralFraming);
                         }
                         else
                         {
                             new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
                         }
-                        
+
                         deleteOld(beam.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -343,9 +356,15 @@ namespace SnaptrudeManagerAddin
 
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            column.MaterialName,
+                            column.FaceMaterialIds,
+                            column.AllFaceVertices
+                            );
+
                         if (column.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(column.AllFaceVertices, BuiltInCategory.OST_Columns);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Columns);
                             deleteOld(column.ExistingElementIdDS);
                         }
                         else
@@ -382,15 +401,20 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            floor.MaterialName,
+                            floor.FaceMaterialIds,
+                            floor.AllFaceVertices
+                            );
                         if (floor.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(floor.AllFaceVertices, BuiltInCategory.OST_Floors);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
                         }
                         else
                         {
                             new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
                         }
-                        
+
                         deleteOld(floor.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -420,9 +444,14 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            slab.MaterialName,
+                            slab.FaceMaterialIds,
+                            slab.AllFaceVertices
+                            );
                         if (slab.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(slab.AllFaceVertices, BuiltInCategory.OST_Floors);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
                         }
                         else
                         {
@@ -502,15 +531,20 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            ceiling.MaterialName,
+                            ceiling.FaceMaterialIds,
+                            ceiling.AllFaceVertices
+                            );
                         if (ceiling.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(ceiling.AllFaceVertices, BuiltInCategory.OST_Ceilings);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Ceilings);
                         }
                         else
                         {
                             new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
                         }
-                        
+
                         deleteOld(ceiling.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
@@ -535,9 +569,14 @@ namespace SnaptrudeManagerAddin
                     t.Start();
                     try
                     {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                            mass.MaterialName,
+                            mass.FaceMaterialIds,
+                            mass.AllFaceVertices
+                            );
                         if (mass.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(mass.AllFaceVertices, BuiltInCategory.OST_GenericModel);
+                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
                         }
                         deleteOld(mass.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)

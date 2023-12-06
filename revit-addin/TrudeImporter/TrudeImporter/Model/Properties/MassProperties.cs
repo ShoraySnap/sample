@@ -21,5 +21,9 @@ namespace TrudeImporter
 
         [JsonProperty("allFaceVertices")]
         public List<List<XYZ>> AllFaceVertices { get; set; }
+        [JsonProperty("faceMaterialIds")]
+        public List<int> FaceMaterialIds { get; set; }
+        [JsonProperty("materialName")]
+        public string MaterialName { get; set; }
     }
 }

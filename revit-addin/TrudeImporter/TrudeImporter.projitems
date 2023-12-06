@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\GlobalVariables.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\EulerAngles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\CeilingProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\DirectShapeProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\DoorProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\FloorProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\BeamProperties.cs" />
@@ -30,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SlabProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\StoreyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SubMeshProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\TextureProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\TrudeProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\WallProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\WindowProperties.cs" />

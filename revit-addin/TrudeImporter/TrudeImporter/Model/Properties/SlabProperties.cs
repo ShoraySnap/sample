@@ -49,5 +49,9 @@ namespace TrudeImporter
 
         [JsonProperty("allFaceVertices")]
         public List<List<XYZ>> AllFaceVertices { get; set; }
+
+        [JsonProperty("faceMaterialIds")]
+        public List<int> FaceMaterialIds { get; set; }
+
     }
 }
