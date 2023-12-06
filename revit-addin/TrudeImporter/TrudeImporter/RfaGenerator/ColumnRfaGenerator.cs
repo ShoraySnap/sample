@@ -19,7 +19,7 @@ namespace TrudeImporter
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, /*double width, double depth,*/ bool forForge = false)
+        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double width, double depth, bool forForge = false)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
@@ -31,10 +31,10 @@ namespace TrudeImporter
             {
                 transaction.Start();
 
-                //FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
-                //FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
-                //fdoc.FamilyManager.Set(depthParam, depth);
-                //fdoc.FamilyManager.Set(widthParam, width);
+                FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
+                FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
+                fdoc.FamilyManager.Set(depthParam, depth);
+                fdoc.FamilyManager.Set(widthParam, width);
 
                 Extrusion extrusion = CreateExtrusion(fdoc, _countour);
                 ApplyMaterial(fdoc, extrusion);

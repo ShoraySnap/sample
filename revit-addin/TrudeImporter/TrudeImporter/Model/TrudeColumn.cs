@@ -55,7 +55,24 @@ namespace TrudeImporter
             {
                 if (shapeProperties is null)
                 {
-                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, forForge);
+                    //Calculate depth, width
+                    double xLeast = faceVertices[0].X;
+                    double xHighest = faceVertices[0].X;
+                    double yLeast = faceVertices[0].Y;
+                    double yHighest = faceVertices[0].Y;
+
+                    foreach (XYZ v in faceVertices)
+                    {
+                        xLeast = v.X < xLeast ? v.X : xLeast;
+                        yLeast = v.Y < yLeast ? v.Y : yLeast;
+                        xHighest = v.X > xHighest ? v.X : xHighest;
+                        yHighest = v.Y > yHighest ? v.Y : yHighest;
+                    }
+
+                    double depth = Math.Abs(xHighest - xLeast);
+                    double width = Math.Abs(yHighest - yLeast);
+
+                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth, forForge);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
@@ -133,6 +150,7 @@ namespace TrudeImporter
                 FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
                 // This is required for correct rotation of Beams of identified Shapes
                 column.Location.Rotate(curve as Line, props?.rotation ?? 0);
+                //var a = column.get_Parameter(BuiltInParameter.DEPTH);
 
                 if (instance.Rotation != null)
                 {
