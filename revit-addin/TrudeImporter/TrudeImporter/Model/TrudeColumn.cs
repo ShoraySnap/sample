@@ -150,7 +150,6 @@ namespace TrudeImporter
                 FamilyInstance column = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Column);
                 // This is required for correct rotation of Beams of identified Shapes
                 column.Location.Rotate(curve as Line, props?.rotation ?? 0);
-                //var a = column.get_Parameter(BuiltInParameter.DEPTH);
 
                 if (instance.Rotation != null)
                 {
