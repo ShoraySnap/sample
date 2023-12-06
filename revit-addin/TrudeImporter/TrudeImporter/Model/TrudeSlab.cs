@@ -73,8 +73,7 @@ namespace TrudeImporter
                         GlobalVariables.materials,
                         GlobalVariables.multiMaterials,
                         _materialIndex);
-                    snaptrudeMaterialName = snaptrudeMaterialName.Replace(" ", "");
-                    snaptrudeMaterialName = snaptrudeMaterialName.Replace("_", "");
+                    snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName);
 
                     FilteredElementCollector materialCollector =
                         new FilteredElementCollector(GlobalVariables.Document)
@@ -86,7 +85,7 @@ namespace TrudeImporter
 
                     foreach (var materialElement in materialsEnum)
                     {
-                        String matName = materialElement.Name.Replace(" ", "").Replace("_", "");
+                        string matName = GlobalVariables.sanitizeString(materialElement.Name);
                         if (matName == snaptrudeMaterialName)
                         {
                             _materialElement = materialElement;
@@ -335,6 +334,11 @@ namespace TrudeImporter
 
             foreach (SubMeshProperties subMesh in subMeshes)
             {
+                if (subMesh.Normal == null)
+                {
+                    //   System.Diagnostics.Debug.WriteLine(subMesh);
+                    continue;
+                }
                 String key = subMesh.Normal.Stringify();
                 if (normalToRevitFace.ContainsKey(key))
                 {
@@ -367,11 +371,11 @@ namespace TrudeImporter
 
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
-                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
+                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value));
                 Autodesk.Revit.DB.Material _materialElement = null;
                 foreach (var materialElement in materialsEnum)
                 {
-                    String matName = materialElement.Name;
+                    String matName = GlobalVariables.sanitizeString(materialElement.Name);
                     if (matName.Replace("_", "") == _materialName.Replace("_", ""))
                     {
                         _materialElement = materialElement;
