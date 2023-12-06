@@ -25,13 +25,16 @@ namespace FetchTextures
                         string url = (string)diffuseTexture["url"];
                         double uScale = (double)diffuseTexture["uScale"];
                         double vScale = (double)diffuseTexture["vScale"];
+                        double uOffset = (double)diffuseTexture["uOffset"];
+                        double vOffset = (double)diffuseTexture["vOffset"];
+                        double wAngle = (double)diffuseTexture["wAng"];
 
                         string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "fetchedTextures");
                         string savedPath = DownloadTexture(url, name, baseDir);
 
                         if (savedPath != "")
                         {
-                            MaterialOperations.MaterialOperations.CreateMaterial(GlobalVariables.Document, name, savedPath, alpha,uScale,vScale);
+                            MaterialOperations.MaterialOperations.CreateMaterial(GlobalVariables.Document, name, savedPath, alpha, uScale, vScale, uOffset, vOffset, wAngle);
                         }
                     }
                 }
