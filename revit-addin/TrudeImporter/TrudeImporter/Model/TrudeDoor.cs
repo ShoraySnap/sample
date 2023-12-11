@@ -86,7 +86,7 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"No door with name {door.RevitFamilyName} {door.Name}\n", e.Message);
+                System.Diagnostics.Debug.WriteLine($"No door with name {door.RevitFamilyName}, UniqueId: {door.UniqueId}\n", e.Message);
             }
         }
 

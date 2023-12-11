@@ -91,7 +91,7 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"No window with name {window.RevitFamilyName} {window.Name}\n", e.Message);
+                System.Diagnostics.Debug.WriteLine($"No window with name {window.RevitFamilyName} , UniqueId: {window.UniqueId}\n", e.Message);
             }
         }
 
