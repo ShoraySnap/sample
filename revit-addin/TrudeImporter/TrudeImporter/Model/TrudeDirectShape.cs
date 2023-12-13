@@ -15,7 +15,7 @@ namespace TrudeImporter
 
             Document doc = GlobalVariables.Document; // Assuming GlobalVariables.Document is the active Revit Document
             TessellatedShapeBuilder builder = new TessellatedShapeBuilder();
-            builder.OpenConnectedFaceSet(true);
+            builder.OpenConnectedFaceSet(false);
 
             // Collect all materials once to avoid querying in each iteration
             FilteredElementCollector materialCollector = new FilteredElementCollector(doc).OfClass(typeof(Material));
@@ -52,8 +52,8 @@ namespace TrudeImporter
             }
 
             builder.CloseConnectedFaceSet();
-            builder.Target = TessellatedShapeBuilderTarget.Mesh;
-            builder.Fallback = TessellatedShapeBuilderFallback.Salvage;
+            builder.Target = TessellatedShapeBuilderTarget.AnyGeometry;
+            builder.Fallback = TessellatedShapeBuilderFallback.Mesh;
 
             TessellatedShapeBuilderResult result;
             try

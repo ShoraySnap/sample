@@ -65,6 +65,7 @@ namespace FetchTextures
                     {
                         Console.WriteLine("Texture already exists at: " + fullPath);
                         System.Diagnostics.Debug.WriteLine("Texture already exists at: " + fullPath);
+
                         return fullPath;
                     }
                     client.DownloadFile(new Uri(url), fullPath);
@@ -75,6 +76,8 @@ namespace FetchTextures
                 catch (Exception ex)
                 {
                     Console.WriteLine("An error occurred while downloading the texture: " + ex.Message);
+                    Console.WriteLine("The faulty url is: " + url);
+
                     System.Diagnostics.Debug.WriteLine("An error occurred while downloading the texture: " + ex.Message);
                     return "";
                 }
