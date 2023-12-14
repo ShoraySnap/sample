@@ -43,7 +43,7 @@ namespace TrudeImporter
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = forForge
+                string filePath = GlobalVariables.ForForge
                     ? $"resourceFile/Doors/{familyName}.rfa"
                     : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors/{familyName}.rfa";
 
@@ -70,7 +70,7 @@ namespace TrudeImporter
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = forForge 
+                string filePath = GlobalVariables.ForForge 
                     ? $"resourceFile/Windows/{familyName}.rfa"
                     : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows/{familyName}.rfa";
 

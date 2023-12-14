@@ -8,10 +8,12 @@ namespace TrudeImporter
 {
     public class VoidRfaGenerator
     {
-        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        static string documentsPath = GlobalVariables.ForForge
+                ? "."
+                : Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/" + Configs.CUSTOM_FAMILY_DIRECTORY;
         private static string BASE_DIRECTORY = "tmp_voids";
         //string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model wall based.rft";
-        string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model.rft";
+        string TEMPLATE_FILE_NAME = documentsPath + "/resourceFile/Metric Generic Model.rft";
         public double height;
 
         public static void DeleteAll()

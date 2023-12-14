@@ -29,7 +29,7 @@ namespace TrudeImporter
                 ? $"column_custom_{Utils.RandomString(5)}"
                 : $"column_{shapeProperties.ToFamilyName()}";
 
-            string baseDir = forForge
+            string baseDir = GlobalVariables.ForForge
                 ? "."
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
