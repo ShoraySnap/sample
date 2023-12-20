@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\LayerProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\MassProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SlabProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\StairCaseProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\StoreyProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\SubMeshProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\TextureProperties.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMass.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeRoof.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStairCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWindowOld.cs" />

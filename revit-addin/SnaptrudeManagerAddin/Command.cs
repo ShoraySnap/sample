@@ -125,6 +125,8 @@ namespace SnaptrudeManagerAddin
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
+            ImportStairCases(trudeProperties.Staircases);
+
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
 
             FamilyLoader.LoadedFamilies.Clear();
@@ -587,6 +589,45 @@ namespace SnaptrudeManagerAddin
                     catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            }
+        }
+
+        private void ImportStairCases(List<StairCaseProperties> propsList)
+        {
+            System.Diagnostics.Debug.WriteLine("Importing Staircases");
+            foreach (var staircase in propsList)
+            {
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    try
+                    {
+                        //DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        //    ceiling.MaterialName,
+                        //    ceiling.FaceMaterialIds,
+                        //    ceiling.AllFaceVertices
+                        //    );
+                        //if (ceiling.AllFaceVertices != null)
+                        //{
+                        //    TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Ceilings);
+                        //}
+                        //else
+                        //{
+                            new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
+                        //}
+
+                        deleteOld(staircase.ExistingElementId);
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }
