@@ -2,6 +2,7 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
+using Autodesk.Revit.DB.Events;
 using DesignAutomationFramework;
 using Newtonsoft.Json.Linq;
 using System;
@@ -31,8 +32,49 @@ namespace SnaptrudeForgeExport
         private void HandleDesignAutomationReadyEvent(object sender, DesignAutomationReadyEventArgs e)
         {
             LogTrace("Design Automation Ready event triggered...");
+
+            // Hook up a custom FailuresProcessing.
+            Application rvtApp = e.DesignAutomationData.RevitApp;
+            rvtApp.FailuresProcessing += OnFailuresProcessing;
+
             e.Succeeded = true;
             ParseTrude(e.DesignAutomationData);
+        }
+
+        // Overwrite the failure processor to ignore all warnings and resolve all resolvable errors.
+        private void OnFailuresProcessing(object sender, FailuresProcessingEventArgs e)
+        {
+            var fa = e?.GetFailuresAccessor();
+
+            // Ignore all warnings.
+            fa.DeleteAllWarnings();
+
+            // Resolve all resolvable errors.
+            var failures = fa.GetFailureMessages();
+            if (!failures.Any())
+            {
+                return;
+            }
+
+            var preprocessorMessages = fa.GetFailureMessages(FailureSeverity.Error)
+                .Union(fa.GetFailureMessages(FailureSeverity.Warning))
+                .Where(x => x.HasResolutionOfType(FailureResolutionType.DeleteElements) || x.HasResolutionOfType(FailureResolutionType.DetachElements))
+                .ToList();
+
+            if (preprocessorMessages.Count == 0)
+                return;
+
+            foreach (var failureAccessor in preprocessorMessages)
+            {
+                failureAccessor.SetCurrentResolutionType(failureAccessor.HasResolutionOfType(FailureResolutionType.DetachElements) ? FailureResolutionType.DetachElements : FailureResolutionType.DeleteElements);
+
+                fa.ResolveFailure(failureAccessor);
+            }
+
+            failures = failures.Where(fail => fail.HasResolutions()).ToList();
+            fa.ResolveFailures(failures);
+
+            e.SetProcessingResult(FailureProcessingResult.ProceedWithCommit);
         }
 
         /// <summary>
