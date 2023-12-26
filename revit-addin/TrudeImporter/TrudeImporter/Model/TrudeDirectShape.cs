@@ -11,64 +11,57 @@ namespace TrudeImporter
         {
             List<List<XYZ>> faces = directShapeProps.AllFaceVertices;
             List<int> faceMaterialIds = directShapeProps.FaceMaterialIds;
-            string materialName = directShapeProps.MaterialName;
 
             Document doc = GlobalVariables.Document; // Assuming GlobalVariables.Document is the active Revit Document
-            TessellatedShapeBuilder builder = new TessellatedShapeBuilder();
-            builder.OpenConnectedFaceSet(false);
-
-            // Collect all materials once to avoid querying in each iteration
             FilteredElementCollector materialCollector = new FilteredElementCollector(doc).OfClass(typeof(Material));
             IList<Material> materials = materialCollector.ToElements().Cast<Material>().ToList();
 
-            for (int faceIndex = 0; faceIndex < faces.Count; faceIndex++)
-            {
-                List<XYZ> face = faces[faceIndex];
-                int materialIndex = faceMaterialIds[faceIndex];
+            // Group faces by material
+            var facesGroupedByMaterial = faces.Zip(faceMaterialIds, (face, id) => new { Face = face, MaterialId = id })
+                .GroupBy(item => item.MaterialId)
+                .ToList();
 
-                // Get the material name from the utility function
-                string snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                    materialName,
-                    GlobalVariables.materials,
-                    GlobalVariables.multiMaterials,
-                    materialIndex);
-                snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName);
-
-                // Find the material by name
-                Material materialElement = materials.FirstOrDefault(m => GlobalVariables.sanitizeString(m.Name) == snaptrudeMaterialName);
-
-                // If material is not found and the name contains "glass", try to find a glass material
-                if (materialElement == null && snaptrudeMaterialName.ToLower().Contains("glass"))
-                {
-                    materialElement = materials.FirstOrDefault(m => m.Name.ToLower().Contains("glass"));
-                }
-
-                // If material is still not found, use a default or invalid material ID
-                ElementId materialId = materialElement != null ? materialElement.Id : ElementId.InvalidElementId;
-
-                // Create the TessellatedFace with the specific material ID
-                TessellatedFace tFace = new TessellatedFace(face, materialId);
-                builder.AddFace(tFace);
-            }
-
-            builder.CloseConnectedFaceSet();
-            builder.Target = TessellatedShapeBuilderTarget.AnyGeometry;
-            builder.Fallback = TessellatedShapeBuilderFallback.Mesh;
-
-            TessellatedShapeBuilderResult result;
             try
             {
-                builder.Build();
-                result = builder.GetBuildResult();
+                foreach (var group in facesGroupedByMaterial)
+                {
+                    TessellatedShapeBuilder builder = new TessellatedShapeBuilder();
+                    builder.OpenConnectedFaceSet(false);
 
-                DirectShape ds = DirectShape.CreateElement(doc, new ElementId(category));
-                ds.ApplicationId = "Application id";
-                ds.ApplicationDataId = "Geometry object id";
-                ds.SetShape(result.GetGeometricalObjects());
+                    foreach (var faceInfo in group)
+                    {
+                        List<XYZ> face = faceInfo.Face;
+                        int materialIndex = faceInfo.MaterialId;
+                        string materialName = Utils.getMaterialNameFromMaterialId(
+                            directShapeProps.MaterialName,
+                            GlobalVariables.materials,
+                            GlobalVariables.multiMaterials,
+                            materialIndex);
+                        materialName = GlobalVariables.sanitizeString(materialName);
+
+                        Material materialElement = materials.FirstOrDefault(m => GlobalVariables.sanitizeString(m.Name) == materialName);
+                        ElementId materialId = materialElement != null ? materialElement.Id : ElementId.InvalidElementId;
+
+                        TessellatedFace tFace = new TessellatedFace(face, materialId);
+                        builder.AddFace(tFace);
+                    }
+
+                    builder.CloseConnectedFaceSet();
+                    builder.Target = TessellatedShapeBuilderTarget.AnyGeometry;
+                    builder.Fallback = TessellatedShapeBuilderFallback.Mesh;
+                    builder.Build();
+
+                    TessellatedShapeBuilderResult result = builder.GetBuildResult();
+                    DirectShape ds = DirectShape.CreateElement(doc, new ElementId(category));
+                    ds.ApplicationId = "Application id";
+                    ds.ApplicationDataId = "Geometry object id";
+                    ds.SetShape(result.GetGeometricalObjects());
+                    ds.Name = "Trude DirectShape Material " + group.Key;
+                }
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("Error building the tessellated shape: " + e.Message);
+                System.Diagnostics.Debug.WriteLine("Error building the tessellated shapes: " + e.Message);
                 throw;
             }
         }
