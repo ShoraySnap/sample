@@ -12,7 +12,7 @@ namespace TrudeImporter
             List<List<XYZ>> faces = directShapeProps.AllFaceVertices;
             List<int> faceMaterialIds = directShapeProps.FaceMaterialIds;
 
-            Document doc = GlobalVariables.Document; // Assuming GlobalVariables.Document is the active Revit Document
+            Document doc = GlobalVariables.Document;
             FilteredElementCollector materialCollector = new FilteredElementCollector(doc).OfClass(typeof(Material));
             IList<Material> materials = materialCollector.ToElements().Cast<Material>().ToList();
 
