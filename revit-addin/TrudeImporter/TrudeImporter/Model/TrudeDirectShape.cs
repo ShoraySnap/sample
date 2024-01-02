@@ -21,6 +21,8 @@ namespace TrudeImporter
                 .GroupBy(item => item.MaterialId)
                 .ToList();
 
+            List<GeometryObject> allGeometry = new List<GeometryObject>();
+
             try
             {
                 foreach (var group in facesGroupedByMaterial)
@@ -52,16 +54,21 @@ namespace TrudeImporter
                     builder.Build();
 
                     TessellatedShapeBuilderResult result = builder.GetBuildResult();
-                    DirectShape ds = DirectShape.CreateElement(doc, new ElementId(category));
-                    ds.ApplicationId = "Application id";
-                    ds.ApplicationDataId = "Geometry object id";
-                    ds.SetShape(result.GetGeometricalObjects());
-                    ds.Name = "Trude DirectShape Material " + group.Key;
+
+                    allGeometry.AddRange(result.GetGeometricalObjects());
                 }
+
+                // Create a single DirectShape and assign all the accumulated geometries
+                DirectShape combinedDirectShape = DirectShape.CreateElement(doc, new ElementId(category));
+                combinedDirectShape.ApplicationId = "Combined Application id";
+                combinedDirectShape.ApplicationDataId = "Combined Geometry object id";
+                combinedDirectShape.SetShape(allGeometry);
+                combinedDirectShape.Name = "Combined Trude DirectShape";
+
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("Error building the tessellated shapes: " + e.Message);
+                System.Diagnostics.Debug.WriteLine("Error combining the tessellated shapes: " + e.Message);
                 throw;
             }
         }
