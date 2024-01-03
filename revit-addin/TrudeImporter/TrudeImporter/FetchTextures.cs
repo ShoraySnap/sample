@@ -69,7 +69,7 @@ namespace FetchTextures
                 using (WebClient client = new WebClient())
                 {
                     string extension = Path.GetExtension(url);
-                    if (extension != ".jpg" && extension != ".png" && extension != ".bmp")
+                    if (extension != ".jpg" && extension != ".png" && extension != ".bmp" && extension != ".jpeg")
                     {
                         System.Diagnostics.Debug.WriteLine($"Skipping file with unsupported extension: {extension}");
                         return "";
