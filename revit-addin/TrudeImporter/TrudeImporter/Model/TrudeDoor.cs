@@ -44,7 +44,7 @@ namespace TrudeImporter
                         var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
                         if (family is null)
                         {
-                            System.Diagnostics.Debug.WriteLine("couln't find door family");
+                            System.Diagnostics.Debug.WriteLine("couln't find door family: "+ doorFamilyName);
                             return;
                         }
                     }
