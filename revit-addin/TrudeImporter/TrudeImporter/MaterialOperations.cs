@@ -89,6 +89,7 @@ namespace MaterialOperations
                 }
                 newmat.UseRenderAppearanceForShading = true;
                 newmat.Transparency = (int)alpha;
+                newmat.MaterialClass = "Snaptrude";
                 return newmat;
             }
             else
