@@ -31,7 +31,15 @@ namespace TrudeImporter
 
         public void CreateColumn(bool forForge = false)
         {
-            ShapeProperties shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+            ShapeProperties shapeProperties;
+            try
+            {
+                shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+            }
+            catch (Exception e)
+            {
+                shapeProperties = null;
+            }
 
             string familyName = shapeProperties is null
                 ? $"column_custom_{Utils.RandomString(5)}"
