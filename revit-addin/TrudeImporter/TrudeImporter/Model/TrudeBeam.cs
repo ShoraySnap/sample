@@ -49,7 +49,7 @@ namespace TrudeImporter
                 //Vertices of beam bottom face is just below the top face, so X and Y co-ordinates will be same and Z will change by the value of "Height"
                 XYZ globalVertix = new XYZ(v.X,
                                            v.Y,
-                                           v.Z - beam.Height);
+                                           v.Z - beam.Length);
                 XYZ rotatedPoint = globalRotationTransform.OfPoint(globalVertix);
 
                 if (!rotatedPoint.X.RoundedEquals(topFaceRotatedX))
@@ -65,13 +65,13 @@ namespace TrudeImporter
             // Find centroid of face
             Transform undoRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, -rotationAngle, beam.CenterPosition);
 
-            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Height / 2,
+            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Length / 2,
                                               beam.CenterPosition.Y,
                                               beam.CenterPosition.Z);
 
             this.topFaceCentroid = undoRotationTransform.OfPoint(rotatedTopFaceCentroid);
 
-            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Height / 2,
+            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Length / 2,
                                               beam.CenterPosition.Y,
                                               beam.CenterPosition.Z);
 
