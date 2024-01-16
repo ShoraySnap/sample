@@ -80,7 +80,7 @@ namespace TrudeImporter
                         GlobalVariables.materials,
                         GlobalVariables.multiMaterials,
                         _materialIndex);
-                    snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName);
+                    snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName) + "_snaptrude";
 
                     FilteredElementCollector materialCollector =
                         new FilteredElementCollector(GlobalVariables.Document)
@@ -345,7 +345,7 @@ namespace TrudeImporter
 
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
-                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value));
+                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value)) + "_snaptrude";
                 Autodesk.Revit.DB.Material _materialElement = null;
                 foreach (var materialElement in materialsEnum)
                 {

@@ -21,7 +21,7 @@ namespace FetchTextures
                     if (material["diffuseTexture"] != null)
                     {
                         JObject diffuseTexture = (JObject)material["diffuseTexture"];
-                        string name = SanitizeFilename((string)material["name"]);
+                        string name = SanitizeFilename((string)material["name"])+"_snaptrude";
                         float alpha = (float)material["alpha"] * 100;
                         TextureProperties textureProps = new TextureProperties(
                             (string)diffuseTexture["url"],
@@ -69,7 +69,7 @@ namespace FetchTextures
                 using (WebClient client = new WebClient())
                 {
                     string extension = Path.GetExtension(url);
-                    if (extension != ".jpg" && extension != ".png" && extension != ".bmp")
+                    if (extension != ".jpg" && extension != ".jpeg" && extension != ".png" && extension != ".bmp" )
                     {
                         System.Diagnostics.Debug.WriteLine($"Skipping file with unsupported extension: {extension}");
                         return "";

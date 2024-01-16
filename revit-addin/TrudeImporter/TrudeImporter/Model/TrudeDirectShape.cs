@@ -39,7 +39,7 @@ namespace TrudeImporter
                             GlobalVariables.materials,
                             GlobalVariables.multiMaterials,
                             materialIndex);
-                        materialName = GlobalVariables.sanitizeString(materialName);
+                        materialName = GlobalVariables.sanitizeString(materialName) + "_snaptrude";
 
                         Material materialElement = materials.FirstOrDefault(m => GlobalVariables.sanitizeString(m.Name) == materialName);
                         ElementId materialId = materialElement != null ? materialElement.Id : ElementId.InvalidElementId;
