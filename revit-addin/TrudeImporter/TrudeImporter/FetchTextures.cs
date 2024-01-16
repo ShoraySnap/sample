@@ -21,7 +21,7 @@ namespace FetchTextures
                     if (material["diffuseTexture"] != null)
                     {
                         JObject diffuseTexture = (JObject)material["diffuseTexture"];
-                        string name = SanitizeFilename((string)material["name"]);
+                        string name = SanitizeFilename((string)material["name"])+"_snaptrude";
                         float alpha = (float)material["alpha"] * 100;
                         TextureProperties textureProps = new TextureProperties(
                             (string)diffuseTexture["url"],
