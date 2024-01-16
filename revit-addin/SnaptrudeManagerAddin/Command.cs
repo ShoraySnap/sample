@@ -204,6 +204,25 @@ namespace SnaptrudeManagerAddin
 
         private void ImportStories(List<StoreyProperties> propsList)
         {
+            try
+            {
+                var existingLevelsIds = new FilteredElementCollector(GlobalVariables.Document)
+                        .WhereElementIsNotElementType()
+                        .OfCategory(BuiltInCategory.OST_Levels)
+                        .ToElementIds();
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    GlobalVariables.Document.Delete(existingLevelsIds);
+                    t.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                LogTrace(e.Message);
+            }
+
+
             if (propsList.Count == 0)
             {
                 try
