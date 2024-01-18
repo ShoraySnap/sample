@@ -50,20 +50,6 @@ namespace TrudeImporter
             StaircasePreset = staircaseProps.StaircasePreset;
             Layers = staircaseProps.Layers;
 
-            //print the layers
-            foreach (var layer in Layers)
-            {
-                System.Diagnostics.Debug.WriteLine("{0}={1}", layer.Name,layer.IsCore);
-            }
-
-
-            //print all the properties
-            System.Diagnostics.Debug.WriteLine("UniqueId={0}", UniqueId);
-
-
-
-
-            // Create the staircase in Revit on the specified storey
             CreateStaircase();
         }
 
@@ -79,20 +65,20 @@ namespace TrudeImporter
         private void CreateStaircase()
         {
             Document doc = GlobalVariables.Document;
-            Level baseLevel = doc.GetElement(new ElementId(Storey)) as Level;
-            Level topLevel = doc.GetElement(new ElementId(Storey + 1)) as Level;
+            int finalStorey = Storey + 1;
 
-            // Get the StairsType to be used for stairs creation
+            Level topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey])select lvl).First();
+            Level bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey])select lvl).First();
+
             StairsType stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
                 .OfType<StairsType>()
-                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase)); // Use a default stairs type or match by name
+                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase)); 
 
             if (stairsType == null)
             {
                 StairsType stairsTypeTemplate = new FilteredElementCollector(doc).OfClass(typeof(StairsType)).Cast<StairsType>().FirstOrDefault();
 
-                // If a template is available, duplicate it to create a new StairsType
                 if (stairsTypeTemplate != null)
                 {
                     stairsType = stairsTypeTemplate.Duplicate(StaircaseType) as StairsType;
@@ -105,46 +91,46 @@ namespace TrudeImporter
                 }
             }
 
-            ElementId stairsId = null;
-            using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
-            {
-                stairsId = stairsScope.Start(topLevel.Id);
+            //ElementId stairsId = null;
+            //using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
+            //{
+            //    stairsId = stairsScope.Start(topLevel.Id);
 
-                using (Transaction trans = new Transaction(doc, "Create Stairs Run"))
-                {
-                    trans.Start();
+            //    using (Transaction trans = new Transaction(doc, "Create Stairs Run"))
+            //    {
+            //        trans.Start();
 
-                    // Create the stairs run using the previously calculated points and curves
-                    // Example points for the run's sketch lines - replace with actual points from your stair design
-                    XYZ p1 = new XYZ(0, 0, 0);
-                    XYZ p2 = new XYZ(0, Width, 0);
-                    Line runLine = Line.CreateBound(p1, p2);
-                    StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
+            //        // Create the stairs run using the previously calculated points and curves
+            //        // Example points for the run's sketch lines - replace with actual points from your stair design
+            //        XYZ p1 = new XYZ(0, 0, 0);
+            //        XYZ p2 = new XYZ(0, Width, 0);
+            //        Line runLine = Line.CreateBound(p1, p2);
+            //        StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
 
-                    // Set the tread depth and riser height on the StairsType
-                    stairsType.MinTreadDepth = Tread;
-                    stairsType.MaxRiserHeight = Riser;
-                    stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
-                    stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
+            //        // Set the tread depth and riser height on the StairsType
+            //        stairsType.MinTreadDepth = Tread;
+            //        stairsType.MaxRiserHeight = Riser;
+            //        stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
+            //        stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
 
-                    // Create the landing if necessary
-                    // ...
+            //        // Create the landing if necessary
+            //        // ...
 
-                    trans.Commit();
-                }
+            //        trans.Commit();
+            //    }
 
-                stairsScope.Commit(new StairsFailurePreprocessor());
-            }
+            //    stairsScope.Commit(new StairsFailurePreprocessor());
+            //}
 
-            // Retrieve the stairs instance after creation
-            CreatedStaircase = doc.GetElement(stairsId) as Stairs;
+            //// Retrieve the stairs instance after creation
+            //CreatedStaircase = doc.GetElement(stairsId) as Stairs;
 
-            // Set the base offset if needed
-            if (BaseOffset != 0 && CreatedStaircase != null)
-            {
-                Parameter baseOffsetParam = CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET);
-                baseOffsetParam.Set(BaseOffset);
-            }
+            //// Set the base offset if needed
+            //if (BaseOffset != 0 && CreatedStaircase != null)
+            //{
+            //    Parameter baseOffsetParam = CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET);
+            //    baseOffsetParam.Set(BaseOffset);
+            //}
 
             // Apply materials to the staircase based on the layers
             // ...

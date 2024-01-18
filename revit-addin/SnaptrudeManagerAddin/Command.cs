@@ -110,21 +110,21 @@ namespace SnaptrudeManagerAddin
             };
             serializer.Converters.Add(new XyzConverter());
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
-            _ = new FetchTextures.FetchTextures();
+            //_ = new FetchTextures.FetchTextures();
             deleteRemovedElements(trudeProperties.DeletedElements);
             ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
-                ImportFloors(trudeProperties.Ceilings);
-            else
-                ImportCeilings(trudeProperties.Ceilings);
-            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-            ImportDoors(trudeProperties.Doors);
-            ImportWindows(trudeProperties.Windows);
-            ImportMasses(trudeProperties.Masses);
+            //ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            //ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            //ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            //ImportFloors(trudeProperties.Floors);
+            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+            //    ImportFloors(trudeProperties.Ceilings);
+            //else
+            //    ImportCeilings(trudeProperties.Ceilings);
+            //ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
+            //ImportDoors(trudeProperties.Doors);
+            //ImportWindows(trudeProperties.Windows);
+            //ImportMasses(trudeProperties.Masses);
             ImportStairCases(trudeProperties.Staircases);
 
             //ImportSnaptrude(trudeData, GlobalVariables.Document);
@@ -206,6 +206,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportStories(List<StoreyProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             if (propsList.Count == 0)
             {
                 try
@@ -266,6 +268,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportWalls(List<WallProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
@@ -311,6 +315,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportBeams(List<BeamProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var beam in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -350,6 +356,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportColumns(List<ColumnProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var column in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -396,6 +404,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportFloors(List<FloorProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var floor in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -439,6 +449,8 @@ namespace SnaptrudeManagerAddin
         /// <remarks>Keeping them seperate from Import Floors since data structures couble be changed at a later stage</remarks>
         private void ImportSlabs(List<SlabProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var slab in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -476,6 +488,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportDoors(List<DoorProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var door in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -501,6 +515,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportWindows(List<WindowProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var window in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -526,6 +542,7 @@ namespace SnaptrudeManagerAddin
 
         private void ImportCeilings(List<FloorProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
             foreach (var ceiling in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -564,6 +581,8 @@ namespace SnaptrudeManagerAddin
 
         private void ImportMasses(List<MassProperties> propsList)
         {
+            if (propsList == null || propsList.Count == 0) return;
+
             foreach (var mass in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -597,7 +616,7 @@ namespace SnaptrudeManagerAddin
 
         private void ImportStairCases(List<StairCaseProperties> propsList)
         {
-            System.Diagnostics.Debug.WriteLine("Importing Staircases");
+            if ( propsList==null ||propsList.Count == 0) return;
             foreach (var staircase in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -627,7 +646,7 @@ namespace SnaptrudeManagerAddin
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }
