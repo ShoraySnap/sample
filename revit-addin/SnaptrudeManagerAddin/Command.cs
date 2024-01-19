@@ -204,6 +204,54 @@ namespace SnaptrudeManagerAddin
 
         private void ImportStories(List<StoreyProperties> propsList)
         {
+            var storiesToCreate = new List<StoreyProperties>();
+
+            // Dealing with existing Levels
+            try
+            {
+                var existingLevels = new FilteredElementCollector(GlobalVariables.Document)
+                    .WhereElementIsNotElementType()
+                    .OfCategory(BuiltInCategory.OST_Levels)
+                    .Cast<Level>();
+
+                var existingLevelNames = existingLevels.Select(level => level.Name);
+                var storeyNames = new List<string>();
+
+                foreach (var storey in propsList)
+                {
+                    var storeyName = (string.IsNullOrEmpty(storey.Name) ? ((storey.LevelNumber > 0) ? (storey.LevelNumber - 1).ToString() : storey.LevelNumber.ToString()) : storey.Name);
+                    storeyNames.Add(storeyName);
+                    if (!existingLevelNames.Contains(storeyName)) storiesToCreate.Add(storey);
+                }
+
+                var levelsToCheckElevation = new List<Level>();
+                var levelsToDelete = new List<Level>();
+                foreach (var level in existingLevels)
+                {
+                    if (storeyNames.Contains(level.Name)) levelsToCheckElevation.Add(level);
+                    else levelsToDelete.Add(level);
+                }
+
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+
+                    foreach (var level in levelsToCheckElevation)
+                    {
+                        double storeyElevation = propsList.First(props => level.Name == (props.LevelNumber - 1).ToString()).Elevation;
+                        if (storeyElevation != level.Elevation) level.Elevation = storeyElevation;
+                    }
+                    if (levelsToDelete.Any()) GlobalVariables.Document.Delete(levelsToDelete.Select(level => level.Id).ToList());
+
+                    t.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                LogTrace(e.Message);
+            }
+
+
             if (propsList.Count == 0)
             {
                 try
@@ -216,7 +264,7 @@ namespace SnaptrudeManagerAddin
                         const double elevation = 0;
                         TrudeStorey newStorey = new TrudeStorey(levelNumber, elevation, Utils.RandomString());
                         newStorey.CreateLevel(GlobalVariables.Document);
-                        GlobalVariables.LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
+                        GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
 
                         t.Commit();
                     }
@@ -228,14 +276,14 @@ namespace SnaptrudeManagerAddin
                 }
             }
 
-            foreach (StoreyProperties props in propsList)
+            foreach (StoreyProperties props in storiesToCreate)
             {
                 TrudeStorey newStorey = new TrudeStorey(props);
 
                 if (!props.LowerLevelElementId.IsNull())
                 {
                     ElementId elementId = new ElementId((BuiltInParameter)props.LowerLevelElementId);
-                    GlobalVariables.LevelIdByNumber.Add(newStorey.levelNumber, elementId);
+                    GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, elementId);
 
                     continue;
                 }
@@ -248,7 +296,7 @@ namespace SnaptrudeManagerAddin
                         t.Start();
 
                         newStorey.CreateLevel(GlobalVariables.Document);
-                        GlobalVariables.LevelIdByNumber.Add(newStorey.levelNumber, newStorey.level.Id);
+                        GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
 
                         t.Commit();
                     }
