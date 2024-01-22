@@ -11,9 +11,9 @@ namespace TrudeImporter
         private Plane countoursPlane;
         private bool inverseDirection = false;
         private Transform rotationTransform;
-        private XYZ topFaceCentroid;
-        private XYZ bottomFaceCentroid;
-        private List<XYZ> LocalTopFaceVertices = new List<XYZ>();
+        private XYZ startFaceCentroid;
+        private XYZ endFaceCentroid;
+        private List<XYZ> LocalStartFaceVertices = new List<XYZ>();
         private string familyName;
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
@@ -35,54 +35,17 @@ namespace TrudeImporter
                 rotationAngle = this.countoursPlane.Normal.AngleTo(YZPlaneNormal);
             }
 
-            var globalRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, rotationAngle, beam.CenterPosition);
-            double topFaceRotatedX = -1;
-            foreach (XYZ v in beam.FaceVertices)
-            {
-                XYZ rotatedPoint = globalRotationTransform.OfPoint(v);
-                topFaceRotatedX = rotatedPoint.X;
-            }
+            this.startFaceCentroid = (beam.FaceVertices[0] + beam.FaceVertices[1] + beam.FaceVertices[2] + beam.FaceVertices[3]) / 4;
+            if (startFaceCentroid.Y > beam.CenterPosition.Y) this.inverseDirection = true;
 
-            double bottomFaceRotatedX = -1;
-            foreach (XYZ v in beam.FaceVertices)
-            {
-                //Vertices of beam bottom face is just below the top face, so X and Y co-ordinates will be same and Z will change by the value of "Height"
-                XYZ globalVertix = new XYZ(v.X,
-                                           v.Y,
-                                           v.Z - beam.Height);
-                XYZ rotatedPoint = globalRotationTransform.OfPoint(globalVertix);
+            this.endFaceCentroid = beam.CenterPosition + (beam.CenterPosition - startFaceCentroid);
 
-                if (!rotatedPoint.X.RoundedEquals(topFaceRotatedX))
-                {
-                    bottomFaceRotatedX = rotatedPoint.X;
-                }
-            }
-
-            if (bottomFaceRotatedX > topFaceRotatedX) this.inverseDirection = true;
-
-            this.rotationTransform = Transform.CreateRotation(axisOfRotation, rotationAngle);
-
-            // Find centroid of face
-            Transform undoRotationTransform = Transform.CreateRotationAtPoint(axisOfRotation, -rotationAngle, beam.CenterPosition);
-
-            XYZ rotatedTopFaceCentroid = new XYZ(beam.CenterPosition.X - beam.Height / 2,
-                                              beam.CenterPosition.Y,
-                                              beam.CenterPosition.Z);
-
-            this.topFaceCentroid = undoRotationTransform.OfPoint(rotatedTopFaceCentroid);
-
-            XYZ rotatedBottomFaceCentroid = new XYZ(beam.CenterPosition.X + beam.Height / 2,
-                                              beam.CenterPosition.Y,
-                                              beam.CenterPosition.Z);
-
-            this.bottomFaceCentroid = undoRotationTransform.OfPoint(rotatedBottomFaceCentroid);
-
+            this.rotationTransform = Transform.CreateRotation(axisOfRotation, inverseDirection ? rotationAngle : - rotationAngle);
+          
             // Find local face vertices
             foreach (var point in beam.FaceVertices)
             {
-                this.LocalTopFaceVertices.Add(new XYZ(point.X - this.topFaceCentroid.X,
-                                                          point.Y - this.topFaceCentroid.Y,
-                                                          point.Z - this.topFaceCentroid.Z));
+                this.LocalStartFaceVertices.Add(point - startFaceCentroid);
             }
 
             CreateBeam(levelId);
@@ -112,7 +75,7 @@ namespace TrudeImporter
             const double REF_PLANE_MEMBER_LEFT_X = -4.101049869;
 
             List<XYZ> rotatedCountours = new List<XYZ>();
-            foreach (XYZ point in LocalTopFaceVertices)
+            foreach (XYZ point in LocalStartFaceVertices)
             {
                 XYZ rotatedPoint = rotationTransform.OfPoint(point);
                 rotatedCountours.Add(new XYZ(REF_PLANE_MEMBER_LEFT_X, rotatedPoint.Y, rotatedPoint.Z));
@@ -134,7 +97,8 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/beams/rectangular_beam.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "rectangular_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -146,7 +110,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}resourceFile/beams/l_shaped_beam.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "l_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -160,7 +124,7 @@ namespace TrudeImporter
                 {
 
                     string defaultRfaPath = $"{baseDir}resourceFile/beams/i_shaped_beam.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "i_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "i_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -174,7 +138,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}resourceFile/beams/c_shaped_beam.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "c_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -212,11 +176,11 @@ namespace TrudeImporter
         {
             if (props is null)
             {
-                return Line.CreateBound(topFaceCentroid, bottomFaceCentroid);
+                return Line.CreateBound(startFaceCentroid, endFaceCentroid);
             }
             else
             {
-                return Line.CreateBound(bottomFaceCentroid, topFaceCentroid);
+                return Line.CreateBound(endFaceCentroid, startFaceCentroid);
             }
 
         }
