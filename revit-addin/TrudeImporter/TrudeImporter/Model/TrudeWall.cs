@@ -21,7 +21,7 @@ namespace TrudeImporter
                 Wall existingWall = null;
                 ElementId existingLevelId = null;
                 WallType existingWallType = null;
-                if (props.ExistingElementId != null)
+                if (!GlobalVariables.ForForge && props.ExistingElementId != null)
                 {
                     using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
@@ -286,7 +286,7 @@ namespace TrudeImporter
                         {
                             t.Start();
 
-                            if (props.SourceElementId != null)
+                            if (!GlobalVariables.ForForge && props.SourceElementId != null)
                             {
                                 Element element = GlobalVariables.Document.GetElement(props.SourceElementId);
                                 if (element != null)

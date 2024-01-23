@@ -19,7 +19,7 @@ namespace TrudeImporter
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
 
 
-        public TrudeBeam(BeamProperties beam, ElementId levelId, bool forForge = false)
+        public TrudeBeam (BeamProperties beam, ElementId levelId)
         {
             this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beam.FaceVertices[0]), Extensions.Round(beam.FaceVertices[1]), Extensions.Round(beam.FaceVertices[2]));
 
@@ -51,7 +51,7 @@ namespace TrudeImporter
             CreateBeam(levelId);
         }
 
-        private void CreateBeam(ElementId levelId, bool forForge = false)
+        private void CreateBeam(ElementId levelId)
         {
             List<XYZ> rotatedFaceVertices = RotateCountoursParallelToMemberRightPlane();
 
@@ -60,11 +60,11 @@ namespace TrudeImporter
 
             familyName = shapeProperties is null ? $"beam_custom_{Utils.RandomString(5)}" : $"beam_{shapeProperties.ToFamilyName()}";
 
-            string baseDir = forForge
+            string baseDir = GlobalVariables.ForForge
                 ? "."
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
-            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, GlobalVariables.Document, familyName, shapeProperties, rotatedFaceVertices, baseDir, forForge);
+            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, GlobalVariables.Document, familyName, shapeProperties, rotatedFaceVertices, baseDir);
             CreateFamilyInstance(GlobalVariables.Document, familyName, levelId, shapeProperties);
 
             BeamRfaGenerator.DeleteAll();
@@ -85,14 +85,14 @@ namespace TrudeImporter
         }
 
         private void CreateFamilyTypeIfNotExist(Application app, Document doc, string familyName, ShapeProperties shapeProperties,
-            List<XYZ> rotatedCountours, string baseDir, bool forForge)
+            List<XYZ> rotatedCountours, string baseDir)
         {
             if (!types.ContainsKey(familyName))
             {
 
                 if (shapeProperties is null)
                 {
-                    beamRfaGenerator.CreateRFAFile(app, familyName, rotatedCountours, forForge);
+                    beamRfaGenerator.CreateRFAFile(app, familyName, rotatedCountours);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {

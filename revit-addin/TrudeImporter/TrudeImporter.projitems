@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ShapeIdentifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeSlab.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\TrudeImporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\typestore\CeilingTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\DoorTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\FloorTypeStore.cs" />

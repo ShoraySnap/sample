@@ -67,7 +67,7 @@ namespace TrudeImporter
             return st_column;
         }
 
-        public void CreateColumn(Document doc, ElementId levelId, bool forForge = false)
+        public void CreateColumn(Document doc, ElementId levelId)
         {
             ShapeProperties shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
 
@@ -75,11 +75,11 @@ namespace TrudeImporter
                 ? $"column_custom_{Utils.RandomString(5)}"
                 : $"column_{shapeProperties.ToFamilyName()}";
 
-            string baseDir = forForge
+            string baseDir = GlobalVariables.ForForge
                 ? "."
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
-            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties, baseDir, forForge);
+            CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, doc, familyName, shapeProperties, baseDir);
             CreateFamilyInstance(doc, familyName, levelId, height, shapeProperties);
 
             ColumnRfaGenerator.DeleteAll();
@@ -150,13 +150,13 @@ namespace TrudeImporter
             }
         }
 
-        private void CreateFamilyTypeIfNotExist(Application app, Document doc, string familyName, ShapeProperties shapeProperties, string baseDir, bool forForge)
+        private void CreateFamilyTypeIfNotExist(Application app, Document doc, string familyName, ShapeProperties shapeProperties, string baseDir)
         {
             if (!types.ContainsKey(familyName))
             {
                 if (shapeProperties is null)
                 {
-                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth, forForge);
+                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
