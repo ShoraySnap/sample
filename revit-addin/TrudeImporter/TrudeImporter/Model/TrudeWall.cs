@@ -241,29 +241,6 @@ namespace TrudeImporter
                                 {
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
                                 }
-                                //else
-                                //{
-                                //    Material newmat = null;
-
-                                //    // Searching for the material named "newMetal" in the document
-                                //    foreach (var materialElement in materialsEnum)
-                                //    {
-                                //        if (materialElement.Name == "newMetal")
-                                //        {
-                                //            newmat = materialElement;
-                                //            break;
-                                //        }
-                                //    }
-                                //    if (newmat == null)
-                                //    {
-                                //        System.Diagnostics.Debug.WriteLine("Material not found, creating new in wall");
-                                //        string path = "C:\\Users\\shory\\OneDrive\\Documents\\snaptrudemanager\\revit-addin\\TrudeImporter\\TrudeImporter\\Model\\metal.jpg";
-                                //        newmat = GlobalVariables.CreateMaterial(GlobalVariables.Document, "newMetal", path);
-                                //        materialsEnum.Append(newmat);
-                                //    }
-
-                                //    this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, newmat);
-                                //}
                             }
                             else
                             {
