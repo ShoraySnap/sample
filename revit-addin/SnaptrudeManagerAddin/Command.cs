@@ -119,8 +119,8 @@ namespace SnaptrudeManagerAddin
             TrudeColumn.types.Clear();
             TrudeColumn.NewLevelsByElevation.Clear();
             TrudeSlab.TypeStore.Clear();
-            TrudeDoorold.TypeStore.Clear();
-            TrudeWindowOld.TypeStore.Clear();
+            TrudeDoor.TypeStore.Clear();
+            TrudeWindow.TypeStore.Clear();
 
             return true;
         }

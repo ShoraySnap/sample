@@ -13,6 +13,8 @@ namespace TrudeImporter
         FamilySymbol existingFamilySymbol = null;
         XYZ CenterPosition = null;
         float height = 0;
+        public static WindowTypeStore TypeStore = new WindowTypeStore();
+
         public TrudeWindow(WindowProperties window, ElementId levelId)
         {
             XYZ direction = window.Direction == null
@@ -71,7 +73,7 @@ namespace TrudeImporter
                 bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
                 if (setHeightAndWidthParamsInFamilySymbol)
                 {
-                    familySymbol = TrudeWindowOld.TypeStore.GetType(new double[] { window.Height, window.Width }, defaultFamilySymbol);
+                    familySymbol = TypeStore.GetType(new double[] { window.Height, window.Width }, defaultFamilySymbol);
                 }
                 else
                 {

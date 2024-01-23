@@ -9,6 +9,8 @@ namespace TrudeImporter
         string doorFamilyName = null;
         string fsName = null;
         XYZ CenterPosition = null;
+        public static DoorTypeStore TypeStore = new DoorTypeStore();
+
         public TrudeDoor(DoorProperties door, ElementId levelId)
         {
             XYZ direction = door.Direction == null
@@ -66,7 +68,7 @@ namespace TrudeImporter
                 bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
                 if (setHeightAndWidthParamsInFamilySymbol)
                 {
-                    familySymbol = TrudeDoorold.TypeStore.GetType(new double[] { door.Height, door.Width }, defaultFamilySymbol);
+                    familySymbol = TypeStore.GetType(new double[] { door.Height, door.Width }, defaultFamilySymbol);
                 }
                 else
                 {
