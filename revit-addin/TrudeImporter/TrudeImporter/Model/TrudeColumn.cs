@@ -18,14 +18,14 @@ namespace TrudeImporter
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private ColumnRfaGenerator columnRfaGenerator = new ColumnRfaGenerator();
         private string materialName = null;
-        public TrudeColumn(ColumnProperties column)
+        public TrudeColumn(ColumnProperties columnProps)
         {
-            faceVertices = column.FaceVertices;
-            columnHeight = column.Height;
-            instances = column.Instances;
-            materialName = column.MaterialName;
-            submeshCount = column.SubMeshes.Count;
-            submeshes = column.SubMeshes;
+            faceVertices = columnProps.FaceVertices;
+            columnHeight = columnProps.Height;
+            instances = columnProps.Instances;
+            materialName = columnProps.MaterialName;
+            submeshCount = columnProps.SubMeshes.Count;
+            submeshes = columnProps.SubMeshes;
             CreateColumn();
         }
 

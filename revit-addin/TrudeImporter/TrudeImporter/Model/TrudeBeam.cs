@@ -19,9 +19,9 @@ namespace TrudeImporter
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
 
 
-        public TrudeBeam (BeamProperties beam, ElementId levelId)
+        public TrudeBeam (BeamProperties beamProps, ElementId levelId)
         {
-            this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beam.FaceVertices[0]), Extensions.Round(beam.FaceVertices[1]), Extensions.Round(beam.FaceVertices[2]));
+            this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beamProps.FaceVertices[0]), Extensions.Round(beamProps.FaceVertices[1]), Extensions.Round(beamProps.FaceVertices[2]));
 
             // Get rotation angle required to align face plane with the YZ plane. (The faces are parallel to the YZ plane in rfa file)
             XYZ YZPlaneNormal = new XYZ(-1, 0, 0);
@@ -35,15 +35,15 @@ namespace TrudeImporter
                 rotationAngle = this.countoursPlane.Normal.AngleTo(YZPlaneNormal);
             }
 
-            this.startFaceCentroid = (beam.FaceVertices[0] + beam.FaceVertices[1] + beam.FaceVertices[2] + beam.FaceVertices[3]) / 4;
-            if (startFaceCentroid.Y > beam.CenterPosition.Y) this.inverseDirection = true;
+            this.startFaceCentroid = (beamProps.FaceVertices[0] + beamProps.FaceVertices[1] + beamProps.FaceVertices[2] + beamProps.FaceVertices[3]) / 4;
+            if (startFaceCentroid.Y > beamProps.CenterPosition.Y) this.inverseDirection = true;
 
-            this.endFaceCentroid = beam.CenterPosition + (beam.CenterPosition - startFaceCentroid);
+            this.endFaceCentroid = beamProps.CenterPosition + (beamProps.CenterPosition - startFaceCentroid);
 
             this.rotationTransform = Transform.CreateRotation(axisOfRotation, inverseDirection ? rotationAngle : - rotationAngle);
           
             // Find local face vertices
-            foreach (var point in beam.FaceVertices)
+            foreach (var point in beamProps.FaceVertices)
             {
                 this.LocalStartFaceVertices.Add(point - startFaceCentroid);
             }

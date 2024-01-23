@@ -23,35 +23,35 @@ namespace TrudeImporter
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
-        /// <param name="slabprops"></param>
+        /// <param name="slabProps"></param>
         /// <param name="levelId"></param>
-        public TrudeSlab(SlabProperties slabprops)
+        public TrudeSlab(SlabProperties slabProps)
         {
-            thickness = slabprops.Thickness;
-            baseType = slabprops.BaseType;
-            materialName = slabprops.MaterialName;
-            levelId = GlobalVariables.LevelIdByNumber[slabprops.Storey];
-            centerPosition = slabprops.CenterPosition;
+            thickness = slabProps.Thickness;
+            baseType = slabProps.BaseType;
+            materialName = slabProps.MaterialName;
+            levelId = GlobalVariables.LevelIdByNumber[slabProps.Storey];
+            centerPosition = slabProps.CenterPosition;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
-            foreach (var v in slabprops.FaceVertices)
+            foreach (var v in slabProps.FaceVertices)
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
 
             // get existing slab id from revit meta data if already exists else set it to null
-            if (!GlobalVariables.ForForge && slabprops.ExistingElementId != null)
+            if (!GlobalVariables.ForForge && slabProps.ExistingElementId != null)
             {
-                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)slabprops.ExistingElementId)) as Floor;
+                Floor existingFloor = GlobalVariables.Document.GetElement(new ElementId((int)slabProps.ExistingElementId)) as Floor;
                 existingFloorType = existingFloor.FloorType;
             }
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
             // --------------------------------------------
-            if (slabprops.Layers != null)
+            if (slabProps.Layers != null)
             {
-                foreach (var layer in slabprops.Layers)
+                foreach (var layer in slabProps.Layers)
                 {
-                    _layers.Add(new TrudeLayer(slabprops.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
+                    _layers.Add(new TrudeLayer(slabProps.BaseType, layer.Name, layer.ThicknessInMm, layer.IsCore));
                 }
             }
             Layers = _layers.ToArray();
@@ -59,16 +59,16 @@ namespace TrudeImporter
             // --------------------------------------------
             CreateSlab(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             GlobalVariables.Document.Regenerate();
-            CreateHoles(slabprops.Holes);
+            CreateHoles(slabProps.Holes);
             GlobalVariables.Document.Regenerate();
 
             try
             {
-                if (slabprops.SubMeshes.Count == 1)
+                if (slabProps.SubMeshes.Count == 1)
                 {
-                    int _materialIndex = slabprops.SubMeshes.First().MaterialIndex;
+                    int _materialIndex = slabProps.SubMeshes.First().MaterialIndex;
                     String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                        slabprops.MaterialName,
+                        slabProps.MaterialName,
                         GlobalVariables.materials,
                         GlobalVariables.multiMaterials,
                         _materialIndex);
@@ -122,7 +122,7 @@ namespace TrudeImporter
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
-                    this.ApplyMaterialByFace(GlobalVariables.Document, slabprops.MaterialName, slabprops.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.slab);
+                    this.ApplyMaterialByFace(GlobalVariables.Document, slabProps.MaterialName, slabProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.slab);
                 }
             }
             catch

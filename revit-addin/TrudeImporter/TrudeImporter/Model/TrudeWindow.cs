@@ -15,38 +15,38 @@ namespace TrudeImporter
         float height = 0;
         public static WindowTypeStore TypeStore = new WindowTypeStore();
 
-        public TrudeWindow(WindowProperties window, ElementId levelId)
+        public TrudeWindow(WindowProperties windowProps, ElementId levelId)
         {
-            XYZ direction = window.Direction == null
+            XYZ direction = windowProps.Direction == null
                                 ? XYZ.Zero
-                                : window.Direction;
-            CenterPosition = window.CenterPosition;
-            height = window.Height;
+                                : windowProps.Direction;
+            CenterPosition = windowProps.CenterPosition;
+            height = windowProps.Height;
             try
             {
-                if (window.RevitFamilyName != null)
+                if (windowProps.RevitFamilyName != null)
                 {
-                    doorFamilyName = window.RevitFamilyName;
+                    doorFamilyName = windowProps.RevitFamilyName;
                 }
                 else
                 {
-                    doorFamilyName = window.Name.RemoveIns();
+                    doorFamilyName = windowProps.Name.RemoveIns();
                     fsName = doorFamilyName;
                 }
 
                 //getting wall to add window to
                 Wall wall = null;
-                if (GlobalVariables.childUniqueIdToWallElementId.ContainsKey(window.UniqueId))
+                if (GlobalVariables.childUniqueIdToWallElementId.ContainsKey(windowProps.UniqueId))
                 {
-                    ElementId wallElementId = GlobalVariables.childUniqueIdToWallElementId[window.UniqueId];
+                    ElementId wallElementId = GlobalVariables.childUniqueIdToWallElementId[windowProps.UniqueId];
                     wall = (Wall)GlobalVariables.Document.GetElement(wallElementId);
                 }
 
                 FamilySymbol familySymbol = null;
                 FamilySymbol defaultFamilySymbol = null;
-                if (window.ExistingElementId == null)
+                if (windowProps.ExistingElementId == null)
                 {
-                    if (window.RevitFamilyName is null)
+                    if (windowProps.RevitFamilyName is null)
                     {
                         var family = FamilyLoader.LoadCustomWindowFamily(doorFamilyName);
                         if (family is null)
@@ -73,7 +73,7 @@ namespace TrudeImporter
                 bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
                 if (setHeightAndWidthParamsInFamilySymbol)
                 {
-                    familySymbol = TypeStore.GetType(new double[] { window.Height, window.Width }, defaultFamilySymbol);
+                    familySymbol = TypeStore.GetType(new double[] { windowProps.Height, windowProps.Width }, defaultFamilySymbol);
                 }
                 else
                 {
@@ -85,15 +85,15 @@ namespace TrudeImporter
                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = instance.FindWidthAndHeightParameters();
                 if (!setHeightAndWidthParamsInFamilySymbol)
                 {
-                    heightInstanceParam.Set(window.Height);
-                    widthInstanceParam.Set(window.Width);
+                    heightInstanceParam.Set(windowProps.Height);
+                    widthInstanceParam.Set(windowProps.Width);
                 }
-                if (heightTypeParam.IsReadOnly) heightInstanceParam.Set(window.Height);
-                if (widthTypeParam.IsReadOnly) widthInstanceParam.Set(window.Width);
+                if (heightTypeParam.IsReadOnly) heightInstanceParam.Set(windowProps.Height);
+                if (widthTypeParam.IsReadOnly) widthInstanceParam.Set(windowProps.Width);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"No window with name {window.RevitFamilyName} , UniqueId: {window.UniqueId}\n", e.Message);
+                System.Diagnostics.Debug.WriteLine($"No window with name {windowProps.RevitFamilyName} , UniqueId: {windowProps.UniqueId}\n", e.Message);
             }
         }
 
