@@ -26,6 +26,63 @@ namespace TrudeImporter
         private static void ImportStories(List<StoreyProperties> propsList)
         {
             if (propsList == null) return;
+            var storiesToCreate = new List<StoreyProperties>();
+            var levelsToCheckElevation = new List<Level>();
+            var levelsToDelete = new List<Level>();
+
+            // Get levels to create, delete and change
+            try
+            {
+                var existingLevels = new FilteredElementCollector(GlobalVariables.Document)
+                    .WhereElementIsNotElementType()
+                    .OfCategory(BuiltInCategory.OST_Levels)
+                    .Cast<Level>();
+
+                var existingLevelNames = existingLevels.Select(level => level.Name);
+                var storeyNames = new List<string>();
+
+                foreach (var storey in propsList)
+                {
+                    var storeyName = (string.IsNullOrEmpty(storey.Name) ? ((storey.LevelNumber > 0) ? (storey.LevelNumber - 1).ToString() : storey.LevelNumber.ToString()) : storey.Name);
+                    storeyNames.Add(storeyName);
+                    if (!existingLevelNames.Contains(storeyName)) storiesToCreate.Add(storey);
+                }
+
+                foreach (var level in existingLevels)
+                {
+                    if (storeyNames.Contains(level.Name)) levelsToCheckElevation.Add(level);
+                    else levelsToDelete.Add(level);
+                }
+
+                //Revit dont allow to delete the level that is associated with the current activeView
+                //If the activeView's GenLevel is set to be deleted, this will change the name and elevation of this level to equals the first in storiesToCreate, and remove it from the deleted list
+                var levelAssociatedWithActiveView = GlobalVariables.Document.ActiveView.GenLevel;
+                if (levelAssociatedWithActiveView != null)
+                {
+                    if (levelsToDelete.Select(l => l.Name).Contains(levelAssociatedWithActiveView.Name))
+                    {
+                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                        {
+                            t.Start();
+
+                            var storeyName = (string.IsNullOrEmpty(storiesToCreate[0].Name) ? ((storiesToCreate[0].LevelNumber > 0) ? (storiesToCreate[0].LevelNumber - 1).ToString() : storiesToCreate[0].LevelNumber.ToString()) : storiesToCreate[0].Name);
+                            levelAssociatedWithActiveView.Name = storeyName;
+                            levelAssociatedWithActiveView.Elevation = storiesToCreate[0].Elevation;
+                            GlobalVariables.LevelIdByNumber.Add(storiesToCreate[0].LevelNumber, levelAssociatedWithActiveView.Id);
+
+                            t.Commit();
+                            storiesToCreate = storiesToCreate.Skip(1).ToList();
+                            levelsToDelete = levelsToDelete.Where(l => l.Name != storeyName).ToList();
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogTrace(e.Message);
+            }
+
+
             if (propsList.Count == 0)
             {
                 try
@@ -50,7 +107,7 @@ namespace TrudeImporter
                 }
             }
 
-            foreach (StoreyProperties props in propsList)
+            foreach (StoreyProperties props in storiesToCreate)
             {
                 TrudeStorey newStorey = new TrudeStorey(props);
 
@@ -81,7 +138,33 @@ namespace TrudeImporter
                     LogTrace(e.Message);
                 }
             }
-            LogTrace("storey created");
+            LogTrace("stories created");
+
+            try
+            {
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+
+                    foreach (var level in levelsToCheckElevation)
+                    {
+                        double storeyElevation = propsList.First(props => level.Name == (props.LevelNumber - 1).ToString()).Elevation;
+                        if (storeyElevation != level.Elevation) level.Elevation = storeyElevation;
+                    }
+                    if (levelsToDelete.Any()) GlobalVariables.Document.Delete(levelsToDelete.Select(level => level.Id).ToList());
+
+                    t.Commit();
+                }
+                LogTrace("stories edited/deleted");
+
+            }
+            catch (Exception e)
+            {
+                LogTrace(e.Message);
+            }
+
+            LogTrace("stories handled");
+
         }
 
         private static void ImportWalls(List<WallProperties> propsList)
