@@ -9,37 +9,39 @@ namespace TrudeImporter
         string doorFamilyName = null;
         string fsName = null;
         XYZ CenterPosition = null;
-        public TrudeDoor(DoorProperties door, ElementId levelId)
+        public static DoorTypeStore TypeStore = new DoorTypeStore();
+
+        public TrudeDoor(DoorProperties doorProps, ElementId levelId)
         {
-            XYZ direction = door.Direction == null
+            XYZ direction = doorProps.Direction == null
                                 ? XYZ.Zero
-                                : door.Direction;
-            CenterPosition = door.CenterPosition;
+                                : doorProps.Direction;
+            CenterPosition = doorProps.CenterPosition;
             try
             {
-                if (door.RevitFamilyName != null)
+                if (doorProps.RevitFamilyName != null)
                 {
-                    doorFamilyName = door.RevitFamilyName;
+                    doorFamilyName = doorProps.RevitFamilyName;
                 }
                 else
                 {
-                    doorFamilyName = door.Name.RemoveIns();
+                    doorFamilyName = doorProps.Name.RemoveIns();
                     fsName = doorFamilyName;
                 }
 
                 //getting wall to add door to
                 Wall wall = null;
-                if (GlobalVariables.childUniqueIdToWallElementId.ContainsKey(door.UniqueId))
+                if (GlobalVariables.childUniqueIdToWallElementId.ContainsKey(doorProps.UniqueId))
                 {
-                    ElementId wallElementId = GlobalVariables.childUniqueIdToWallElementId[door.UniqueId];
+                    ElementId wallElementId = GlobalVariables.childUniqueIdToWallElementId[doorProps.UniqueId];
                     wall = (Wall)GlobalVariables.Document.GetElement(wallElementId);
                 }
 
                 FamilySymbol familySymbol = null;
                 FamilySymbol defaultFamilySymbol = null;
-                if (door.ExistingElementId == null)
+                if (doorProps.ExistingElementId == null)
                 {
-                    if (door.RevitFamilyName == null)
+                    if (doorProps.RevitFamilyName == null)
                     {
                         var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
                         if (family is null)
@@ -66,7 +68,7 @@ namespace TrudeImporter
                 bool setHeightAndWidthParamsInFamilySymbol = (heightTypeParam.HasValue && widthTypeParam.HasValue) && (!heightTypeParam.IsReadOnly || !widthTypeParam.IsReadOnly);
                 if (setHeightAndWidthParamsInFamilySymbol)
                 {
-                    familySymbol = TrudeDoorold.TypeStore.GetType(new double[] { door.Height, door.Width }, defaultFamilySymbol);
+                    familySymbol = TypeStore.GetType(new double[] { doorProps.Height, doorProps.Width }, defaultFamilySymbol);
                 }
                 else
                 {
@@ -78,15 +80,15 @@ namespace TrudeImporter
                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = instance.FindWidthAndHeightParameters();
                 if (!setHeightAndWidthParamsInFamilySymbol)
                 {
-                    heightInstanceParam.Set(door.Height);
-                    widthInstanceParam.Set(door.Width);
+                    heightInstanceParam.Set(doorProps.Height);
+                    widthInstanceParam.Set(doorProps.Width);
                 }
-                if (heightTypeParam.IsReadOnly) heightInstanceParam.Set(door.Height);
-                if (widthTypeParam.IsReadOnly) widthInstanceParam.Set(door.Width);
+                if (heightTypeParam.IsReadOnly) heightInstanceParam.Set(doorProps.Height);
+                if (widthTypeParam.IsReadOnly) widthInstanceParam.Set(doorProps.Width);
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine($"No door with name {door.RevitFamilyName}, UniqueId: {door.UniqueId}\n", e.Message);
+                System.Diagnostics.Debug.WriteLine($"No door with name {doorProps.RevitFamilyName}, UniqueId: {doorProps.UniqueId}\n", e.Message);
             }
         }
 

@@ -12,11 +12,11 @@ namespace TrudeImporter
         public Level Level { get; set; }
 
         public TrudeStorey() { }
-        public TrudeStorey(StoreyProperties props)
+        public TrudeStorey(StoreyProperties storeyProps)
         {
-            LevelNumber = props.LevelNumber;
-            Name = props.Name;
-            Elevation = props.Elevation;
+            LevelNumber = storeyProps.LevelNumber;
+            Name = storeyProps.Name;
+            Elevation = storeyProps.Elevation;
         }
         public TrudeStorey(int levelNumber, double elevation, string name)
         {

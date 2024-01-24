@@ -21,27 +21,26 @@ namespace TrudeImporter
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
-        /// <param name="ceiling"></param>
+        /// <param name="ceilingProps"></param>
         /// <param name="levelId"></param>
-        /// <param name="forForge"></param>
-        public TrudeCeiling(FloorProperties ceiling, ElementId levelId, bool forForge = false)
+        public TrudeCeiling(FloorProperties ceilingProps, ElementId levelId)
         {
             // add backward compatibility for ceiling, use create floor for 2021 or older instead of ceiling.create
-            thickness = ceiling.Thickness;
-            baseType = ceiling.BaseType;
-            height = ceiling.FaceVertices[0].Z;
-            centerPosition = ceiling.CenterPosition;
-            materialName = ceiling.MaterialName;
+            thickness = ceilingProps.Thickness;
+            baseType = ceilingProps.BaseType;
+            height = ceilingProps.FaceVertices[0].Z;
+            centerPosition = ceilingProps.CenterPosition;
+            materialName = ceilingProps.MaterialName;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
-            foreach (var v in ceiling.FaceVertices)
+            foreach (var v in ceilingProps.FaceVertices)
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
             
             // get existing ceiling id from revit meta data if already exists else set it to null
-            if (ceiling.ExistingElementId != null)
+            if (!GlobalVariables.ForForge && ceilingProps.ExistingElementId != null)
             {
-                bool isExistingCeiling = GlobalVariables.idToElement.TryGetValue(ceiling.ExistingElementId.ToString(), out Element e);
+                bool isExistingCeiling = GlobalVariables.idToElement.TryGetValue(ceilingProps.ExistingElementId.ToString(), out Element e);
                 if (isExistingCeiling)
                 {
                     Ceiling existingCeiling = (Ceiling)e;
@@ -51,32 +50,32 @@ namespace TrudeImporter
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
             // --------------------------------------------
-            if (ceiling.Layers != null)
+            if (ceilingProps.Layers != null)
             {
-                foreach (var layer in ceiling.Layers)
+                foreach (var layer in ceilingProps.Layers)
                 {
-                    _layers.Add(layer.ToTrudeLayer(ceiling.BaseType));
+                    _layers.Add(layer.ToTrudeLayer(ceilingProps.BaseType));
                 }
             }
             else
             {
-                _layers.Add(new TrudeLayer("Default Base Type", "Default Snaptrude Ceiling", ceiling.Thickness, true));
+                _layers.Add(new TrudeLayer("Default Base Type", "Default Snaptrude Ceiling", ceilingProps.Thickness, true));
             }
             Layers = _layers.ToArray();
             //setCoreLayerIfNotExist(Math.Abs(thickness));
             // --------------------------------------------
             CreateCeiling(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022);
-            CreateHoles(ceiling.Holes);
+            CreateHoles(ceilingProps.Holes);
 
 
 
             try
             {
-                if (ceiling.SubMeshes.Count == 1)
+                if (ceilingProps.SubMeshes.Count == 1)
                 {
-                    int _materialIndex = ceiling.SubMeshes.First().MaterialIndex;
+                    int _materialIndex = ceilingProps.SubMeshes.First().MaterialIndex;
                     String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                        ceiling.MaterialName,
+                        ceilingProps.MaterialName,
                         GlobalVariables.materials,
                         GlobalVariables.multiMaterials,
                         _materialIndex);
@@ -130,7 +129,7 @@ namespace TrudeImporter
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("Multiple submeshes detected.");
-                    this.ApplyMaterialByFace(GlobalVariables.Document, ceiling.MaterialName, ceiling.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.ceiling);
+                    this.ApplyMaterialByFace(GlobalVariables.Document, ceilingProps.MaterialName, ceilingProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.ceiling);
                 }
             }
             catch
