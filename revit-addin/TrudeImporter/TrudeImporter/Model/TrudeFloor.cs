@@ -23,8 +23,7 @@ namespace TrudeImporter
         /// </summary>
         /// <param name="floorProps"></param>
         /// <param name="levelId"></param>
-        /// <param name="forForge"></param>
-        public TrudeFloor(FloorProperties floorProps, ElementId levelId, bool forForge = false)
+        public TrudeFloor(FloorProperties floorProps, ElementId levelId)
         {
             thickness = floorProps.Thickness;
             baseType = floorProps.BaseType;
@@ -37,7 +36,7 @@ namespace TrudeImporter
             }
 
             // get existing floor id from revit meta data if already exists else set it to null
-            if (floorProps.ExistingElementId != null)
+            if (!GlobalVariables.ForForge && floorProps.ExistingElementId != null)
             {
                 Element e;
                 bool isExistingFloor = GlobalVariables.idToElement.TryGetValue(floorProps.ExistingElementId.ToString(), out e);

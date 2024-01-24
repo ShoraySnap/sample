@@ -8,21 +8,23 @@ namespace TrudeImporter
 {
     public class VoidRfaGenerator
     {
-        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        static string documentsPath = GlobalVariables.ForForge
+                ? "."
+                : Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/" + Configs.CUSTOM_FAMILY_DIRECTORY;
         private static string BASE_DIRECTORY = "tmp_voids";
         //string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model wall based.rft";
-        string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model.rft";
+        string TEMPLATE_FILE_NAME = documentsPath + "/resourceFile/Metric Generic Model.rft";
         public double height;
 
         public static void DeleteAll()
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public bool CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double thickness, Plane plane, bool forForge = false)
+        public bool CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double thickness, Plane plane)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
-            Document fdoc = app.NewFamilyDocument(forForge ? "resourceFile/Metric Generic Model.rft" : TEMPLATE_FILE_NAME);
+            Document fdoc = app.NewFamilyDocument(GlobalVariables.ForForge ? "resourceFile/Metric Generic Model.rft" : TEMPLATE_FILE_NAME);
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 
@@ -47,7 +49,7 @@ namespace TrudeImporter
             return fdoc.Close(true);
         }
 
-        public string fileName(string familyName, bool forForge = false)
+        public string fileName(string familyName)
         {
             return $"{BASE_DIRECTORY}/{familyName}.rfa";
         }

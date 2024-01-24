@@ -18,18 +18,18 @@ namespace TrudeImporter
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private ColumnRfaGenerator columnRfaGenerator = new ColumnRfaGenerator();
         private string materialName = null;
-        public TrudeColumn(ColumnProperties column, bool forForge = false)
+        public TrudeColumn(ColumnProperties columnProps)
         {
-            faceVertices = column.FaceVertices;
-            columnHeight = column.Height;
-            instances = column.Instances;
-            materialName = column.MaterialName;
-            submeshCount = column.SubMeshes.Count;
-            submeshes = column.SubMeshes;
+            faceVertices = columnProps.FaceVertices;
+            columnHeight = columnProps.Height;
+            instances = columnProps.Instances;
+            materialName = columnProps.MaterialName;
+            submeshCount = columnProps.SubMeshes.Count;
+            submeshes = columnProps.SubMeshes;
             CreateColumn();
         }
 
-        public void CreateColumn(bool forForge = false)
+        public void CreateColumn()
         {
             ShapeProperties shapeProperties;
             try
@@ -45,17 +45,17 @@ namespace TrudeImporter
                 ? $"column_custom_{Utils.RandomString(5)}"
                 : $"column_{shapeProperties.ToFamilyName()}";
 
-            string baseDir = forForge
+            string baseDir = GlobalVariables.ForForge
                 ? "."
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
-            CreateFamilyTypeIfNotExist(familyName, shapeProperties, baseDir, forForge);
+            CreateFamilyTypeIfNotExist(familyName, shapeProperties, baseDir);
             CreateFamilyInstances(familyName, shapeProperties);
 
             ColumnRfaGenerator.DeleteAll();
         }
 
-        private void CreateFamilyTypeIfNotExist(string familyName, ShapeProperties shapeProperties, string baseDir, bool forForge)
+        private void CreateFamilyTypeIfNotExist(string familyName, ShapeProperties shapeProperties, string baseDir)
         {
             var app = GlobalVariables.RvtApp;
             var doc = GlobalVariables.Document;
@@ -80,7 +80,7 @@ namespace TrudeImporter
                     double depth = Math.Abs(xHighest - xLeast);
                     double width = Math.Abs(yHighest - yLeast);
 
-                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth, forForge);
+                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
