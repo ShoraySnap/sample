@@ -87,19 +87,40 @@ namespace TrudeImporter
             return $"{BASE_DIRECTORY}/{familyName}.rfa";
         }
 
-        private CurveArray CreateLoop(List<XYZ> pts)
+        private CurveArray CreateLoop(List<XYZ> vertices)
         {
-            CurveArray loop = new CurveArray();
+            CurveArray curves = new CurveArray();
 
-            int _n = pts.Count;
-
-            for (int i = 0; i < _n; ++i)
+            for (int i = 0; i < vertices.Count(); i++)
             {
-                int j = (0 == i) ? _n - 1 : i - 1;
+                int currentIndex = i.Mod(vertices.Count());
+                int nextIndex = (i + 1).Mod(vertices.Count());
 
-                loop.Append(Line.CreateBound(pts[j], pts[i]));
+                XYZ pt1 = vertices[currentIndex];
+                XYZ pt2 = vertices[nextIndex];
+                bool samePoint = false;
+
+
+                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
+                {
+                    // This can be potentially handled on snaptrude side by sending correct vertices.Currently, some points are duplicate.
+                    if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
+                    {
+                        samePoint = true;
+                        break;
+                    }
+
+
+                    i++;
+                    if (i > vertices.Count() + 3) break;
+
+                    nextIndex = (i + 1).Mod(vertices.Count());
+                    pt2 = vertices[nextIndex];
+                }
+                if (samePoint) continue;
+                curves.Append(Line.CreateBound(pt1, pt2));
             }
-            return loop;
+            return curves;
         }
 
         private Extrusion CreateExtrusion(Document doc, List<XYZ> pts)

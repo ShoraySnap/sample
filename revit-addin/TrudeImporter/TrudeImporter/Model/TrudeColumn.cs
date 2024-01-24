@@ -31,7 +31,15 @@ namespace TrudeImporter
 
         public void CreateColumn(bool forForge = false)
         {
-            ShapeProperties shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+            ShapeProperties shapeProperties;
+            try
+            {
+                shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+            }
+            catch (Exception e)
+            {
+                shapeProperties = null;
+            }
 
             string familyName = shapeProperties is null
                 ? $"column_custom_{Utils.RandomString(5)}"
@@ -77,7 +85,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/rectangular_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "rectangular_column")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -89,7 +97,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/l_shaped_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "l_shaped_column")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -102,7 +110,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/h_shaped_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "h_shaped_column")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "h_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -116,7 +124,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/c_shaped_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "c_shaped_column"))  doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
