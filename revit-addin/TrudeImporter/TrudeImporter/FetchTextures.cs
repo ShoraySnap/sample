@@ -22,7 +22,7 @@ namespace FetchTextures
                     {
                         JObject diffuseTexture = (JObject)material["diffuseTexture"];
                         string name = SanitizeFilename((string)material["name"])+"_snaptrude";
-                        float alpha = (float)material["alpha"] * 100;
+                        float alpha = (float)material["alpha"];
                         TextureProperties textureProps = new TextureProperties(
                             (string)diffuseTexture["url"],
                             (double)diffuseTexture["uScale"],
