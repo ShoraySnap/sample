@@ -10,6 +10,7 @@ namespace TrudeImporter
         public int LevelNumber { get; set; }
         public string Name { get; set; }
         public Level Level { get; set; }
+        public string RevitName {  get; set; }
 
         public TrudeStorey() { }
         public TrudeStorey(StoreyProperties storeyProps)
@@ -17,20 +18,21 @@ namespace TrudeImporter
             LevelNumber = storeyProps.LevelNumber;
             Name = storeyProps.Name;
             Elevation = storeyProps.Elevation;
+            RevitName = string.IsNullOrEmpty(Name) ? ((LevelNumber > 0) ? (LevelNumber - 1).ToString() : LevelNumber.ToString()) : Name;
         }
         public TrudeStorey(int levelNumber, double elevation, string name)
         {
-            this.LevelNumber = levelNumber;
-            this.Elevation = elevation;
-            this.Name = name;
+            LevelNumber = levelNumber;
+            Elevation = elevation;
+            Name = name;
+            RevitName = string.IsNullOrEmpty(Name) ? ((LevelNumber > 0) ? (LevelNumber - 1).ToString() : LevelNumber.ToString()) : Name;
         }
 
         public Level CreateLevel(Document newDoc)
         {
-            this.Level = Level.Create(newDoc, this.Elevation);
-            this.Level.Name = (string.IsNullOrEmpty(Name)? ((LevelNumber > 0)? (LevelNumber-1).ToString(): LevelNumber.ToString()) : Name);
-
-            this.CreateFloorPlan(newDoc);
+            Level = Level.Create(newDoc, Elevation);
+            Level.Name = RevitName;
+            CreateFloorPlan(newDoc);
 
             return Level;
         }
