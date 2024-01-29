@@ -31,13 +31,12 @@
     - Install [inno-setup](https://jrsoftware.org/isinfo.php).
     - Create `custom_families` folder inside `<root-directory>/build-installer/misc`
     - Create `installers` folder inside `build-installer` put [these](https://drive.google.com/drive/folders/1rvZJ7jytefcPT2KEGaHOcRnVh6wW_vfY) installers inside it.
-2. Set the dynamo script version to be used in the `dynamo_script_version.txt` file. (Do not change it if there is no change for dynamo scripts.)
-3. If there is any new change in the `electron-app` under your branch then build the electron app and replace `snaptrude-manager-<version>` Setup insdie `build-installer`.
-4. On feature branches:
+2. If there is any new change in the `electron-app` under your branch then build the electron app and replace `snaptrude-manager-<version>` Setup inside `build-installer`.
+3. On feature branches:
     - Checkout the branch and build it from visual studio.
     - Run `build.ps1` file to create the installer for the new Snaptrude manager.
     - Go inside `<root-directory>/build-installer/out` and check new files' version in the format `<branch-name>_<YYYYMMDD>`.
-5. On master and dev:
+4. On master and dev:
     - Checkout the branch and build it from visual studio.
     - The version is read from version.txt file. Update the file with corretct version  and run build.ps1.
     - Check inside `<root-directory>/build-installer/out` for the build with correct version names.
