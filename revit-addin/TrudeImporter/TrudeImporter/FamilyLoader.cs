@@ -33,7 +33,7 @@ namespace TrudeImporter
                 return null;
             }
         }
-        public static Family LoadCustomDoorFamily(String familyName, bool forForge = false)
+        public static Family LoadCustomDoorFamily(String familyName)
         {
             if (LoadedFamilies.ContainsKey(familyName))
             {
@@ -43,7 +43,7 @@ namespace TrudeImporter
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = forForge
+                string filePath = GlobalVariables.ForForge
                     ? $"resourceFile/Doors/{familyName}.rfa"
                     : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors/{familyName}.rfa";
 
@@ -60,7 +60,7 @@ namespace TrudeImporter
                 return null;
             }
         }
-        public static Family LoadCustomWindowFamily(String familyName, bool forForge = false)
+        public static Family LoadCustomWindowFamily(String familyName)
         {
             if (LoadedFamilies.ContainsKey(familyName))
             {
@@ -70,7 +70,7 @@ namespace TrudeImporter
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = forForge 
+                string filePath = GlobalVariables.ForForge 
                     ? $"resourceFile/Windows/{familyName}.rfa"
                     : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows/{familyName}.rfa";
 

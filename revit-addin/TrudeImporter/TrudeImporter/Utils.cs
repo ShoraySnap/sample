@@ -8,6 +8,14 @@ namespace TrudeImporter
 {
     public class Utils
     {
+        public static bool DocHasFamily(Document doc, string familyName)
+        {
+            return new FilteredElementCollector(doc)
+                        .OfClass(typeof(Family))
+                        .Where(f => f.Name == familyName)
+                        .Any();
+        }
+
         public static String getMaterialNameFromMaterialId (String materialnameWithId, JArray materials, JArray multiMaterials, int materialIndex)
         {
             if(materialnameWithId == null)

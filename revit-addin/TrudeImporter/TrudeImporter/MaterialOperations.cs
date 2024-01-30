@@ -1,5 +1,6 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TrudeImporter;
@@ -11,7 +12,7 @@ namespace MaterialOperations
     {
         public static double SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR = 39.37;
         // Calculated using scale_set_by_revit * size_of_texture_in_snaptrude /size_of_texture_in_revit
-        public static Material CreateMaterial(Document doc, string matname, TextureProperties textureProps, float alpha = 100)
+        public static Material CreateMaterial(Document doc, string matname, TextureProperties textureProps, float alpha = 1)
         {
             matname = GlobalVariables.sanitizeString(matname);
             System.Diagnostics.Debug.WriteLine("Creating material: " + matname);
@@ -48,6 +49,7 @@ namespace MaterialOperations
                 {
                     Asset editableAsset = editScope.Start(
                       newAppearanceAsset.Id);
+                    SetTransparency(editableAsset, alpha);
                     AssetProperty assetProperty = editableAsset
                       .FindByName("generic_diffuse");
                     Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
@@ -70,7 +72,7 @@ namespace MaterialOperations
                             AssetPropertyDistance scaleX = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleX) as AssetPropertyDistance;
 
                             AssetPropertyDistance scaleY = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleY) as AssetPropertyDistance;
-                            
+                           
                             scaleX.Value = textureProps.UScale * SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR; ;
                             scaleY.Value = textureProps.VScale * SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR; ;
 
@@ -88,13 +90,20 @@ namespace MaterialOperations
                     }
                 }
                 newmat.UseRenderAppearanceForShading = true;
-                newmat.Transparency = (int)alpha;
+                newmat.Transparency = (int)alpha*100;
+                newmat.MaterialClass = "Snaptrude";
                 return newmat;
             }
             else
             {
                 return null;
             }
+        }
+
+        private static void SetTransparency(Asset editableAsset, double alpha)
+        {
+            AssetPropertyDouble genericTransparency = editableAsset.FindByName("generic_transparency") as AssetPropertyDouble;
+            genericTransparency.Value = Convert.ToDouble(alpha);
         }
 
     }

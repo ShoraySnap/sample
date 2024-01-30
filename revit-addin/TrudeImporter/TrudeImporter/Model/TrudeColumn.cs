@@ -18,36 +18,44 @@ namespace TrudeImporter
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private ColumnRfaGenerator columnRfaGenerator = new ColumnRfaGenerator();
         private string materialName = null;
-        public TrudeColumn(ColumnProperties column, bool forForge = false)
+        public TrudeColumn(ColumnProperties columnProps)
         {
-            faceVertices = column.FaceVertices;
-            columnHeight = column.Height;
-            instances = column.Instances;
-            materialName = column.MaterialName;
-            submeshCount = column.SubMeshes.Count;
-            submeshes = column.SubMeshes;
+            faceVertices = columnProps.FaceVertices;
+            columnHeight = columnProps.Height;
+            instances = columnProps.Instances;
+            materialName = columnProps.MaterialName;
+            submeshCount = columnProps.SubMeshes.Count;
+            submeshes = columnProps.SubMeshes;
             CreateColumn();
         }
 
-        public void CreateColumn(bool forForge = false)
+        public void CreateColumn()
         {
-            ShapeProperties shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+            ShapeProperties shapeProperties;
+            try
+            {
+                shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+            }
+            catch (Exception e)
+            {
+                shapeProperties = null;
+            }
 
             string familyName = shapeProperties is null
                 ? $"column_custom_{Utils.RandomString(5)}"
                 : $"column_{shapeProperties.ToFamilyName()}";
 
-            string baseDir = forForge
+            string baseDir = GlobalVariables.ForForge
                 ? "."
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
-            CreateFamilyTypeIfNotExist(familyName, shapeProperties, baseDir, forForge);
+            CreateFamilyTypeIfNotExist(familyName, shapeProperties, baseDir);
             CreateFamilyInstances(familyName, shapeProperties);
 
             ColumnRfaGenerator.DeleteAll();
         }
 
-        private void CreateFamilyTypeIfNotExist(string familyName, ShapeProperties shapeProperties, string baseDir, bool forForge)
+        private void CreateFamilyTypeIfNotExist(string familyName, ShapeProperties shapeProperties, string baseDir)
         {
             var app = GlobalVariables.RvtApp;
             var doc = GlobalVariables.Document;
@@ -72,12 +80,12 @@ namespace TrudeImporter
                     double depth = Math.Abs(xHighest - xLeast);
                     double width = Math.Abs(yHighest - yLeast);
 
-                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth, forForge);
+                    columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth);
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/rectangular_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "rectangular_column")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -89,7 +97,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/l_shaped_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "l_shaped_column")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -102,7 +110,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/h_shaped_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "h_shaped_column")) doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "h_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -116,7 +124,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
                     string defaultRfaPath = $"{baseDir}/resourceFile/Columns/c_shaped_column.rfa";
-                    doc.LoadFamily(defaultRfaPath, out Family family);
+                    if (!Utils.DocHasFamily(doc, "c_shaped_column"))  doc.LoadFamily(defaultRfaPath, out Family family);
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -176,7 +184,7 @@ namespace TrudeImporter
                             GlobalVariables.materials,
                             GlobalVariables.multiMaterials,
                             _materialIndex);
-                        snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName);
+                        snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName) + "_snaptrude";
                         FilteredElementCollector materialCollector =
                             new FilteredElementCollector(GlobalVariables.Document)
                             .OfClass(typeof(Material));
@@ -386,7 +394,7 @@ namespace TrudeImporter
 
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
-                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value));
+                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value)) + "_snaptrude";
                 Autodesk.Revit.DB.Material _materialElement = null;
                 foreach (var materialElement in materialsEnum)
                 {
