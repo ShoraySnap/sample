@@ -215,41 +215,38 @@ namespace TrudeImporter
 
         private static void ImportBeams(List<BeamProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit();
+
             foreach (var beam in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-
-                    try
+                    GlobalVariables.Transaction.Start();
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        beam.MaterialName,
+                        beam.FaceMaterialIds,
+                        beam.AllFaceVertices
+                    );
+                    if (beam.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            beam.MaterialName,
-                            beam.FaceMaterialIds,
-                            beam.AllFaceVertices
-                        );
-                        if (beam.AllFaceVertices != null)
-                        {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_StructuralFraming);
-                        }
-                        else
-                        {
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_StructuralFraming);
+                    }
+                    else
+                    {
                             new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
-                        }
+                    }
 
-                        deleteOld(beam.ExistingElementId);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    deleteOld(beam.ExistingElementId);
+                    GlobalVariables.Transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    GlobalVariables.Transaction.RollBack();
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
+
+            GlobalVariables.Transaction.Start();
         }
 
         private static void ImportColumns(List<ColumnProperties> propsList)

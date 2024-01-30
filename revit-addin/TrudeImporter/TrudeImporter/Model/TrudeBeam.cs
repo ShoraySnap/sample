@@ -166,10 +166,17 @@ namespace TrudeImporter
             Curve curve = GetPositionCurve(props);
 
             Level level = doc.GetElement(levelId) as Level;
+            double curveOffsetFromLevel = curve.GetEndPoint(0).Z - level.Elevation;
+            Transform transform = Transform.CreateTranslation(XYZ.BasisZ * -curveOffsetFromLevel);
+            Curve transformedCurve = curve.CreateTransformed(transform);
 
-            FamilyInstance beam = doc.Create.NewFamilyInstance(curve, familySymbol, level, StructuralType.Beam);
+            FamilyInstance beam = doc.Create.NewFamilyInstance(transformedCurve, familySymbol, level, StructuralType.Beam);
             beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
             beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int)ZJustification.Center);
+            GlobalVariables.Transaction.Commit();
+            GlobalVariables.Transaction.Start();
+            beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).Set(curveOffsetFromLevel);
+            beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END1_ELEVATION).Set(curveOffsetFromLevel);
         }
 
         private Curve GetPositionCurve(ShapeProperties props)
