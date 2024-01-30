@@ -33,6 +33,7 @@
     - Create `installers` folder inside `build-installer` put [these](https://drive.google.com/drive/folders/1rvZJ7jytefcPT2KEGaHOcRnVh6wW_vfY) installers inside it.
 2. If there is any new change in the `electron-app` under your branch then build the electron app and replace `snaptrude-manager-<version>` Setup inside `build-installer`.
 3. On feature branches:
+    - For building branch name should not have "/" in it. We can't have branch name like "feature/export", instead we can use "feature-export".
     - Checkout the branch and build it from visual studio.
     - Run `build.ps1` file to create the installer for the new Snaptrude manager.
     - Go inside `<root-directory>/build-installer/out` and check new files' version in the format `<branch-name>_<YYYYMMDD>`.
