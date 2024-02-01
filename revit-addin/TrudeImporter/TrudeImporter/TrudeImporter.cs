@@ -10,18 +10,19 @@ namespace TrudeImporter
         public static void Import(TrudeProperties trudeProperties)
         {
             ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
-                ImportFloors(trudeProperties.Ceilings);
-            else
-                ImportCeilings(trudeProperties.Ceilings);
-            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-            ImportDoors(trudeProperties.Doors);
-            ImportWindows(trudeProperties.Windows);
-            ImportMasses(trudeProperties.Masses);
+            //ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            //ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            //ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            //ImportFloors(trudeProperties.Floors);
+            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+            //    ImportFloors(trudeProperties.Ceilings);
+            //else
+            //    ImportCeilings(trudeProperties.Ceilings);
+            //ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
+            //ImportDoors(trudeProperties.Doors);
+            //ImportWindows(trudeProperties.Windows);
+            //ImportMasses(trudeProperties.Masses);
+            ImportStairCases(trudeProperties.Staircases);
         }
 
         private static void ImportStories(List<StoreyProperties> propsList)
@@ -463,6 +464,7 @@ namespace TrudeImporter
                 }
             }
         }
+
         private static void ImportMasses(List<MassProperties> propsList)
         {
             foreach (var mass in propsList)
@@ -494,6 +496,28 @@ namespace TrudeImporter
                     }
                 }
             }
+        }
+
+        private static void ImportStairCases(List<StairCaseProperties> propsList)
+        {
+            GlobalVariables.Transaction.Commit();
+
+            foreach (var staircase in propsList)
+            {
+                    try
+                    {
+                        //GlobalVariables.Transaction.Start();
+                        new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
+                        deleteOld(staircase.ExistingElementId);
+                        //GlobalVariables.Transaction.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
+                    }
+            }
+            GlobalVariables.Transaction.Start();
+
         }
 
         /// <summary>

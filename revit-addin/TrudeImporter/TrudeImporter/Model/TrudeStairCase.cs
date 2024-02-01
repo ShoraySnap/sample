@@ -90,37 +90,32 @@ namespace TrudeImporter
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
             }
+            System.Diagnostics.Debug.WriteLine("Staircase type: " + stairsType);
+            System.Diagnostics.Debug.WriteLine("topLevel: " + topLevel.Elevation);
+            System.Diagnostics.Debug.WriteLine("bottomLevel: " + bottomLevel.Elevation);
 
-            //ElementId stairsId = null;
-            //using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
-            //{
-            //    stairsId = stairsScope.Start(topLevel.Id);
+            ElementId stairsId = null;
+            using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
+            {
+                stairsId = stairsScope.Start(bottomLevel.Id, topLevel.Id);
 
-            //    using (Transaction trans = new Transaction(doc, "Create Stairs Run"))
-            //    {
-            //        trans.Start();
 
-            //        // Create the stairs run using the previously calculated points and curves
-            //        // Example points for the run's sketch lines - replace with actual points from your stair design
-            //        XYZ p1 = new XYZ(0, 0, 0);
-            //        XYZ p2 = new XYZ(0, Width, 0);
-            //        Line runLine = Line.CreateBound(p1, p2);
-            //        StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
+                    // Create the stairs run using the previously calculated points and curves
+                    // Example points for the run's sketch lines - replace with actual points from your stair design
+                    XYZ p1 = new XYZ(0, 0, 0);
+                    XYZ p2 = new XYZ(0, Width, 0);
+                    Line runLine = Line.CreateBound(p1, p2);
+                    StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
 
-            //        // Set the tread depth and riser height on the StairsType
-            //        stairsType.MinTreadDepth = Tread;
-            //        stairsType.MaxRiserHeight = Riser;
-            //        stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
-            //        stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
+                    // Set the tread depth and riser height on the StairsType
+                    stairsType.MinTreadDepth = Tread;
+                    stairsType.MaxRiserHeight = Riser;
+                    stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
+                    stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
 
-            //        // Create the landing if necessary
-            //        // ...
 
-            //        trans.Commit();
-            //    }
-
-            //    stairsScope.Commit(new StairsFailurePreprocessor());
-            //}
+                stairsScope.Commit(new StairsFailurePreprocessor());
+            }
 
             //// Retrieve the stairs instance after creation
             //CreatedStaircase = doc.GetElement(stairsId) as Stairs;
