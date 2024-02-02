@@ -506,10 +506,10 @@ namespace TrudeImporter
             {
                     try
                     {
-                        //GlobalVariables.Transaction.Start();
+                        GlobalVariables.Transaction.Start();
                         new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
                         deleteOld(staircase.ExistingElementId);
-                        //GlobalVariables.Transaction.Commit();
+                        GlobalVariables.Transaction.Commit();
                     }
                     catch (Exception e)
                     {

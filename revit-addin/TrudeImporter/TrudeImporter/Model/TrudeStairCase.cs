@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Controls;
 using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
@@ -49,7 +50,6 @@ namespace TrudeImporter
             StaircaseType = staircaseProps.StaircaseType;
             StaircasePreset = staircaseProps.StaircasePreset;
             Layers = staircaseProps.Layers;
-
             CreateStaircase();
         }
 
@@ -95,10 +95,14 @@ namespace TrudeImporter
             System.Diagnostics.Debug.WriteLine("bottomLevel: " + bottomLevel.Elevation);
 
             ElementId stairsId = null;
+
             using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
             {
                 stairsId = stairsScope.Start(bottomLevel.Id, topLevel.Id);
 
+                using (Transaction trans = new Transaction(GlobalVariables.Document, "Create Stairs"))
+                {
+                    trans.Start();
 
                     // Create the stairs run using the previously calculated points and curves
                     // Example points for the run's sketch lines - replace with actual points from your stair design
@@ -113,7 +117,8 @@ namespace TrudeImporter
                     stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
                     stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
 
-
+                    trans.Commit();
+                }
                 stairsScope.Commit(new StairsFailurePreprocessor());
             }
 
@@ -135,94 +140,3 @@ namespace TrudeImporter
 }
 
 
-
-//        //STAIRCASES......................................................................
-//        //ST_Staircase st_staircase = new ST_Staircase();
-//        //JToken stairs = geometryParent["staircases"];
-//        //foreach (var stair in stairs)
-//        //{
-//        //    break;
-//        //    processedElements++;
-//        //    LogProgress(processedElements, totalElements);
-
-//        //    try
-//        //    {
-//        //        var stairData = stair.First;
-//        //        if (IsThrowAway(stairData))
-//        //        {
-//        //            continue;
-//        //        }
-//        //        ST_Staircase stairObj = new ST_Staircase();
-//        //        stairObj.Props = stairData["dsProps"];
-//        //        stairObj.Mesh = stairData["meshes"].First;
-//        //        stairObj.Scaling = stairObj.Mesh["scaling"].Select(jv => (double)jv).ToArray();
-//        //        stairObj.SnaptrudePosition = stairObj.Mesh["position"].Select(jv => UnitsAdapter.convertToRevit((double)jv)).ToArray();
-//        //        stairObj.Type = stairObj.Props["staircaseType"].ToString();
-//        //        stairObj.levelBottom = (from lvl in new FilteredElementCollector(GlobalVariables.Document).
-//        //            OfClass(typeof(Level)).
-//        //            Cast<Level>()
-//        //                                where (lvl.Id == GlobalVariables.LevelIdByNumber[int.Parse(stairObj.Props["storey"].ToString())])
-//        //                                select lvl).First();
-//        //        stairObj.levelTop = (from lvl in new FilteredElementCollector(GlobalVariables.Document).
-//        //            OfClass(typeof(Level)).
-//        //            Cast<Level>()
-//        //                             where (lvl.Id == GlobalVariables.LevelIdByNumber[int.Parse(stairObj.Props["storey"].ToString()) + 1])
-//        //                             select lvl).First();
-
-//        //        ElementId staircase = stairObj.CreateStairs(GlobalVariables.Document);
-//        //        Stairs currStair;
-//        //        using (StairsEditScope newStairsScope = new StairsEditScope(GlobalVariables.Document, "edit Stairs"))
-//        //        {
-//        //            ElementId newStairsId = newStairsScope.Start(staircase);
-//        //            using (SubTransaction stairsTrans = new SubTransaction(GlobalVariables.Document))
-//        //            {
-//        //                stairsTrans.Start();
-//        //                currStair = GlobalVariables.Document.GetElement(newStairsId) as Stairs;
-//        //                currStair.DesiredRisersNumber = int.Parse(stairObj.Props["steps"].ToString());
-//        //                StairsType stairsType = GlobalVariables.Document.GetElement(currStair.GetTypeId()) as StairsType;
-
-//        //                StairsType newStairsType = stairsType.Duplicate("stairs_" + RandomString(5)) as StairsType;
-
-//        //                newStairsType.MaxRiserHeight = UnitsAdapter.convertToRevit(stairObj.Props["riser"]);
-//        //                newStairsType.MinRunWidth = UnitsAdapter.convertToRevit(stairObj.Props["width"]);
-//        //                newStairsType.MinTreadDepth = UnitsAdapter.convertToRevit(stairObj.Props["tread"]);
-
-//        //                currStair.ChangeTypeId(newStairsType.Id);
-
-//        //                currStair
-//        //                    .get_Parameter(BuiltInParameter.STAIRS_ACTUAL_TREAD_DEPTH)
-//        //                    .Set(UnitsAdapter.convertToRevit(stairObj.Props["tread"]));
-
-//        //                stairsTrans.Commit();
-//        //            }
-//        //            newStairsScope.Commit(new StairsFailurePreprocessor());
-//        //        }
-
-//        //        // DELETE EXISTING RAILINGS
-//        //        using(SubTransaction transactionDeleteRailings = new SubTransaction(GlobalVariables.Document))
-//        //        {
-//        //            transactionDeleteRailings.Start();
-//        //            try
-//        //            {
-
-//        //                ICollection<ElementId> railingIds = currStair.GetAssociatedRailings();
-//        //                foreach (ElementId railingId in railingIds)
-//        //                {
-//        //                    GlobalVariables.Document.Delete(railingId);
-//        //                }
-//        //                transactionDeleteRailings.Commit();
-
-//        //            }
-//        //            catch (Exception e)
-//        //            {
-//        //                LogTrace("Error in deleting staircase railings", e.ToString());
-//        //            }
-//        //        }
-//        //    }
-//        //    catch (Exception exception)
-//        //    {
-//        //        LogTrace("Error in creating staircase", exception.ToString());
-//        //    }
-//        //}
-//        //LogTrace("staircases created");
-//        // ......................................................................
