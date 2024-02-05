@@ -213,9 +213,22 @@ namespace TrudeImporter
 
                 if (!Path.GetFileNameWithoutExtension(sourcePath).Equals(familyName, StringComparison.OrdinalIgnoreCase))
                 {
-                    TaskDialog.Show("Error", "The selected family does not match the expected family name. Please select the correct family file.");
-                    // show the dialog again
-                    return UploadAndLoadFamily(familyName, directoryPath);
+                    TaskDialog mainDialog = new TaskDialog("Incorrect Family");
+                    mainDialog.MainInstruction = $"The selected family file does not match the expected family name.";
+                    mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink1, "Upload Again");
+                    mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink2, "Skip this family.");
+
+                    TaskDialogResult tResult = mainDialog.Show();
+
+                    if (tResult == TaskDialogResult.CommandLink1)
+                    {
+                        return UploadAndLoadFamily(familyName, directoryPath);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+
                 }
 
                 try
