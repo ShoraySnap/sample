@@ -27,6 +27,8 @@ namespace TrudeImporter
         public string Type { get; set; }
         public string StaircaseType { get; set; }
         public string StaircasePreset { get; set; }
+
+        public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
         public List<LayerProperties> Layers { get; set; }
         public Stairs CreatedStaircase { get; private set; }
 
@@ -49,7 +51,9 @@ namespace TrudeImporter
             Type = staircaseProps.Type;
             StaircaseType = staircaseProps.StaircaseType;
             StaircasePreset = staircaseProps.StaircasePreset;
+            StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
+
             CreateStaircase();
         }
 
@@ -85,12 +89,9 @@ namespace TrudeImporter
                 }
                 else
                 {
-                    // Handle the case where no template is available
-                    // This might involve loading a template from a file or handling the error
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
             }
-            System.Diagnostics.Debug.WriteLine("Staircase type: " + stairsType);
             System.Diagnostics.Debug.WriteLine("topLevel: " + topLevel.Elevation);
             System.Diagnostics.Debug.WriteLine("bottomLevel: " + bottomLevel.Elevation);
 
@@ -105,14 +106,11 @@ namespace TrudeImporter
                 {
                     trans.Start();
 
-                    // Create the stairs run using the previously calculated points and curves
-                    // Example points for the run's sketch lines - replace with actual points from your stair design
                     XYZ p1 = new XYZ(0, 0, 0);
                     XYZ p2 = new XYZ(0, Width, 0);
                     Line runLine = Line.CreateBound(p1, p2);
                     StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
 
-                    // Set the tread depth and riser height on the StairsType
                     stairsType.MinTreadDepth = Tread;
                     stairsType.MaxRiserHeight = Riser;
                     //stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters

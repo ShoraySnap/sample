@@ -52,6 +52,9 @@ namespace TrudeImporter
         [JsonProperty("staircasePreset")]
         public string StaircasePreset { get; set; }
 
+        [JsonProperty("staircaseBlocks")]
+        public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
+
         [JsonProperty("layers")]
         public List<LayerProperties> Layers { get; set; }
 
@@ -85,4 +88,5 @@ namespace TrudeImporter
         public List<int> FaceMaterialIds { get; set; }
 
     }
+
 }
