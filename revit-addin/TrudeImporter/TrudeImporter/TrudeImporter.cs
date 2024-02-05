@@ -500,23 +500,23 @@ namespace TrudeImporter
 
         private static void ImportStairCases(List<StairCaseProperties> propsList)
         {
-            GlobalVariables.Transaction.Commit();
+            //GlobalVariables.Transaction.Commit();
 
             foreach (var staircase in propsList)
             {
                     try
                     {
-                        GlobalVariables.Transaction.Start();
+                        //GlobalVariables.Transaction.Start();
                         new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
                         deleteOld(staircase.ExistingElementId);
-                        GlobalVariables.Transaction.Commit();
+                        //GlobalVariables.Transaction.Commit();
                     }
                     catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                     }
             }
-            GlobalVariables.Transaction.Start();
+            //GlobalVariables.Transaction.Start();
 
         }
 
