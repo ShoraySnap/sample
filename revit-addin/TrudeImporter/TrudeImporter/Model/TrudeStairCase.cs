@@ -1,3 +1,4 @@
+using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Newtonsoft.Json.Linq;
@@ -5,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
@@ -22,11 +24,7 @@ namespace TrudeImporter
         public double StairThickness { get; set; }
         public int Steps { get; set; }
         public double BaseOffset { get; set; }
-        public new string Name { get; set; }
-        public XYZ CenterPosition { get; set; }
-        public string Type { get; set; }
         public string StaircaseType { get; set; }
-        public string StaircasePreset { get; set; }
 
         public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
         public List<LayerProperties> Layers { get; set; }
@@ -68,7 +66,7 @@ namespace TrudeImporter
 
         private void CreateStaircase()
         {
-            Document doc = GlobalVariables.Document;
+            Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
             int finalStorey = Storey + 1;
 
             Level topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey])select lvl).First();
@@ -92,8 +90,6 @@ namespace TrudeImporter
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
             }
-            System.Diagnostics.Debug.WriteLine("topLevel: " + topLevel.Elevation);
-            System.Diagnostics.Debug.WriteLine("bottomLevel: " + bottomLevel.Elevation);
 
             ElementId stairsId = null;
 
@@ -105,16 +101,20 @@ namespace TrudeImporter
                 using (Transaction trans = new Transaction(GlobalVariables.Document, "Create Stairs"))
                 {
                     trans.Start();
+                    StaircaseBlockProperties staircaseBlockProperties = StaircaseBlocks[0];
 
-                    XYZ p1 = new XYZ(0, 0, 0);
-                    XYZ p2 = new XYZ(0, Width, 0);
+                    XYZ p1 = ComputePoints(staircaseBlockProperties.StartPoint, staircaseBlockProperties.Translation, staircaseBlockProperties.Rotation);
+                    System.Diagnostics.Debug.WriteLine("p1: " + p1);
+                    XYZ p2 = ComputePoints(new XYZ(staircaseBlockProperties.StartPoint.X, staircaseBlockProperties.StartPoint.Y + Width, staircaseBlockProperties.StartPoint.Z), staircaseBlockProperties.Translation, staircaseBlockProperties.Rotation);
+                    System.Diagnostics.Debug.WriteLine("p2: " + p2);
                     Line runLine = Line.CreateBound(p1, p2);
                     StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
-
+                    
                     stairsType.MinTreadDepth = Tread;
                     stairsType.MaxRiserHeight = Riser;
-                    //stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
-                    //stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
+                    stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread);
+                    stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
+                    //stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_TREAD_THICKNESS).Set(StairThickness);
 
                     trans.Commit();
                 }
@@ -122,20 +122,30 @@ namespace TrudeImporter
             }
             GlobalVariables.Transaction.Start();
 
-            //// Retrieve the stairs instance after creation
-            //CreatedStaircase = doc.GetElement(stairsId) as Stairs;
-
-            //// Set the base offset if needed
-            //if (BaseOffset != 0 && CreatedStaircase != null)
-            //{
-            //    Parameter baseOffsetParam = CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET);
-            //    baseOffsetParam.Set(BaseOffset);
-            //}
-
-            // Apply materials to the staircase based on the layers
-            // ...
+            CreatedStaircase = doc.GetElement(stairsId) as Stairs;
+            ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
+            foreach (ElementId railingId in railingIds)
+            {
+                doc.Delete(railingId);
+            }
+            if (CreatedStaircase != null)
+            {
+                CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
+                CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+                //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_ACTUAL_NUMBER_OF_RISERS).Set(Steps);
+                //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_ACTUAL_NUMBER_OF_RISERS).Set(Steps);
+            }
         }
 
+        private XYZ ComputePoints(XYZ startingPoint, double[] translation, double[] rotation)
+        {
+            XYZ currPoint = startingPoint;
+            //apply translation
+            currPoint = new XYZ(currPoint.X + (double)translation.GetValue(0), currPoint.Y + (double)translation.GetValue(1), currPoint.Z + (double)translation.GetValue(2));
+            //apply rotation
+            currPoint = new XYZ(currPoint.X * Math.Cos((double)rotation.GetValue(0)) - currPoint.Y * Math.Sin((double)rotation.GetValue(0)), currPoint.X * Math.Sin((double)rotation.GetValue(0)) + currPoint.Y * Math.Cos((double)rotation.GetValue(0)), currPoint.Z);
+            return currPoint;
+        }
     }
 }
 
