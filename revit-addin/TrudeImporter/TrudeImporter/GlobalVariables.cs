@@ -16,6 +16,9 @@ namespace TrudeImporter
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
+        public static IDictionary<int, ElementId> UniqueIdToElementId = new Dictionary<int, ElementId>();
+
+        public static List<ElementId> WallElementIdsToRecreate = new List<ElementId>();
 
         public static JArray materials;
         public static JArray multiMaterials;
@@ -25,10 +28,13 @@ namespace TrudeImporter
 
         public static void cleanGlobalVariables()
         {
+            Transaction = null;
             Document = null;
             RvtApp = null;
             LevelIdByNumber = new Dictionary<int, ElementId>();
             childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
+            UniqueIdToElementId = new Dictionary<int, ElementId>();
+            WallElementIdsToRecreate = new List<ElementId>();
 
             materials = null;
             multiMaterials = null;
