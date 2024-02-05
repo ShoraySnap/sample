@@ -176,6 +176,8 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
+            GlobalVariables.Transaction.Start();
             TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
             foreach (WallProperties props in propsList)
             {
@@ -216,8 +218,10 @@ namespace TrudeImporter
                 }
             }
 
+            GlobalVariables.Transaction.Commit();
             TrudeWall.TypeStore.Clear();
             LogTrace("Finished Walls");
+            GlobalVariables.Transaction.Start(); // Temporary start before complete refactor of transactions
         }
 
         private static void ImportBeams(List<BeamProperties> propsList)
