@@ -399,6 +399,7 @@ namespace TrudeImporter
                     }
                 }
             }
+            TrudeDoor.skipAllMissingFamilies = false;
         }
 
         private static void ImportWindows(List<WindowProperties> propsList)
