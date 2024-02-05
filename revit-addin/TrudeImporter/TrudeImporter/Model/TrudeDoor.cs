@@ -1,6 +1,10 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.UI;
+using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace TrudeImporter
 {
@@ -43,7 +47,8 @@ namespace TrudeImporter
                 {
                     if (doorProps.RevitFamilyName == null)
                     {
-                        var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
+                        System.Diagnostics.Debug.WriteLine("Creating door with name " + doorFamilyName);
+                        var family = LoadCustomDoorFamilyWithDialog(doorFamilyName);
                         if (family is null)
                         {
                             System.Diagnostics.Debug.WriteLine("couln't find door family: "+ doorFamilyName);
@@ -125,6 +130,75 @@ namespace TrudeImporter
             }
 
             return instance;
+        }
+
+        private Family LoadCustomDoorFamilyWithDialog(string familyName)
+        {
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string directoryPath = GlobalVariables.ForForge
+                ? "resourceFile/Doors"
+                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors");
+            string filePath = Path.Combine(directoryPath, $"{familyName}.rfa");
+
+            if (File.Exists(filePath))
+            {
+                GlobalVariables.Document.LoadFamily(filePath, out Family family);
+                return family;
+            }
+            else
+            {
+                if (AskUserForFamilyUpload(familyName))
+                {
+                    return UploadAndLoadFamily(familyName, directoryPath);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private bool AskUserForFamilyUpload(string familyName)
+        {
+            TaskDialog mainDialog = new TaskDialog("Family Not Found");
+            mainDialog.MainInstruction = $"The family '{familyName}' was not found.";
+            mainDialog.MainContent = "Would you like to upload the family file?";
+            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink1, "Yes, I want to upload the family.");
+            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink2, "No, skip this operation.");
+            mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
+            mainDialog.DefaultButton = TaskDialogResult.Close;
+
+            TaskDialogResult tResult = mainDialog.Show();
+
+            return tResult == TaskDialogResult.CommandLink1;
+        }
+
+        private Family UploadAndLoadFamily(string familyName, string directoryPath)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select Family File";
+            openFileDialog.Filter = "Revit Families (*.rfa)|*.rfa";
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string sourcePath = openFileDialog.FileName;
+                string destinationPath = Path.Combine(directoryPath, Path.GetFileName(sourcePath));
+
+                try
+                {
+                    File.Copy(sourcePath, destinationPath, true);
+                    GlobalVariables.Document.LoadFamily(destinationPath, out Family family);
+                    return family;
+                }
+                catch (Exception e)
+                {
+                    TaskDialog.Show("Error", "Failed to load the family file.\n" + e.Message);
+                    return null;
+                }
+            }
+
+            return null;
         }
     }
 }
