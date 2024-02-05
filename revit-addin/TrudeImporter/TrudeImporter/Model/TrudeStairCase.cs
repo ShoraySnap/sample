@@ -96,6 +96,7 @@ namespace TrudeImporter
 
             ElementId stairsId = null;
 
+            GlobalVariables.Transaction.Commit();
             using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
             {
                 stairsId = stairsScope.Start(bottomLevel.Id, topLevel.Id);
@@ -121,6 +122,7 @@ namespace TrudeImporter
                 }
                 stairsScope.Commit(new StairsFailurePreprocessor());
             }
+            GlobalVariables.Transaction.Start();
 
             //// Retrieve the stairs instance after creation
             //CreatedStaircase = doc.GetElement(stairsId) as Stairs;
