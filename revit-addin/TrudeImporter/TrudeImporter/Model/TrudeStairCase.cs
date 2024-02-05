@@ -115,8 +115,8 @@ namespace TrudeImporter
                     // Set the tread depth and riser height on the StairsType
                     stairsType.MinTreadDepth = Tread;
                     stairsType.MaxRiserHeight = Riser;
-                    stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
-                    stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
+                    //stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread); // Use appropriate parameters
+                    //stairsRun.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
 
                     trans.Commit();
                 }
