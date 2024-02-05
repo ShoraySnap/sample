@@ -7,33 +7,34 @@ namespace TrudeImporter
     public class TrudeStorey
     {
         public double Elevation { get; set; }
-        public int levelNumber { get; set; }
-        public string name { get; set; }
-
-        public Level level { get; set; }
+        public int LevelNumber { get; set; }
+        public string Name { get; set; }
+        public Level Level { get; set; }
+        public string RevitName {  get; set; }
 
         public TrudeStorey() { }
-        public TrudeStorey(StoreyProperties props)
+        public TrudeStorey(StoreyProperties storeyProps)
         {
-            levelNumber = props.LevelNumber;
-            name = props.Name;
-            Elevation = props.Elevation;
+            LevelNumber = storeyProps.LevelNumber;
+            Name = storeyProps.Name;
+            Elevation = storeyProps.Elevation;
+            RevitName = string.IsNullOrEmpty(Name) ? ((LevelNumber > 0) ? (LevelNumber - 1).ToString() : LevelNumber.ToString()) : Name;
         }
         public TrudeStorey(int levelNumber, double elevation, string name)
         {
-            this.levelNumber = levelNumber;
-            this.Elevation = elevation;
-            this.name = name;
+            LevelNumber = levelNumber;
+            Elevation = elevation;
+            Name = name;
+            RevitName = string.IsNullOrEmpty(Name) ? ((LevelNumber > 0) ? (LevelNumber - 1).ToString() : LevelNumber.ToString()) : Name;
         }
 
         public Level CreateLevel(Document newDoc)
         {
-            this.level = Level.Create(newDoc, this.Elevation);
-            this.level.Name = (string.IsNullOrEmpty(name)? ((levelNumber > 0)? (levelNumber-1).ToString(): levelNumber.ToString()) : name);
+            Level = Level.Create(newDoc, Elevation);
+            Level.Name = RevitName;
+            CreateFloorPlan(newDoc);
 
-            this.CreateFloorPlan(newDoc);
-
-            return level;
+            return Level;
         }
 
         private ViewPlan CreateFloorPlan(Document newDoc)
@@ -43,7 +44,7 @@ namespace TrudeImporter
                                 .Cast<ViewFamilyType>()
                                 .FirstOrDefault(x => ViewFamily.FloorPlan == x.ViewFamily);
 
-            ViewPlan floorPlan = ViewPlan.Create(newDoc, floorPlanType.Id, level.Id);
+            ViewPlan floorPlan = ViewPlan.Create(newDoc, floorPlanType.Id, Level.Id);
             if (floorPlan.CanModifyViewDiscipline()) floorPlan.Discipline = ViewDiscipline.Architectural;
 
             return floorPlan;
