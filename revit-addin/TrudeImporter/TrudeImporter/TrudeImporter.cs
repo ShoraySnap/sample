@@ -176,6 +176,7 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
+            TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
