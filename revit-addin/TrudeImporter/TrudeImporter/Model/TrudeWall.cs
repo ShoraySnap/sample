@@ -667,7 +667,7 @@ namespace TrudeImporter
                         return FailureProcessingResult.ProceedWithCommit;
                     }
                 }
-                return FailureProcessingResult.WaitForUserInput;
+                return FailureProcessingResult.Continue;
             }
         }
     }
