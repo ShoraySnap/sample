@@ -74,7 +74,7 @@ namespace TrudeImporter
                         if (family.Name.Equals(familyName, StringComparison.OrdinalIgnoreCase))
                         {
                             // REMOVE THIS LINE IN PRODUCTION FOR TESTING PURPOSES ONLY
-                            File.Delete(destinationPath);
+                            //File.Delete(destinationPath);
                             return family;
                         }
                         else
@@ -98,4 +98,23 @@ namespace TrudeImporter
             return null;
         }
     }
+
+    internal class UserDescretion
+    {
+        public static bool PromptUserForFloatingWindow()
+        {
+            TaskDialog mainDialog = new TaskDialog("Floating Window Detected");
+            mainDialog.MainInstruction = "A window has been detected floating above the ground level.";
+            mainDialog.MainContent = "Do you want to continue placing the window at this position?";
+            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink1, "Yes, place the window.");
+            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink2, "No, do not place the window.");
+
+            TaskDialogResult tResult = mainDialog.Show();
+
+            return tResult == TaskDialogResult.CommandLink1;
+        }
+    }
+
+
+
 }
