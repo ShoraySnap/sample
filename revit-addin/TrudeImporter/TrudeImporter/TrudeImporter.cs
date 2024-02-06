@@ -176,6 +176,9 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
+            GlobalVariables.Transaction.Start();
+            TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
@@ -199,7 +202,7 @@ namespace TrudeImporter
                         }
                         else
                         {
-                            TrudeWall trudeWall = new TrudeWall(props);
+                            TrudeWall trudeWall = new TrudeWall(props, false);
                         }
                         deleteOld(props.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
@@ -215,8 +218,20 @@ namespace TrudeImporter
                 }
             }
 
+            GlobalVariables.Transaction.Commit();
+
+            GlobalVariables.Transaction.Start();
+            foreach (var wallIdToRecreate in GlobalVariables.WallElementIdsToRecreate)
+            {
+                int matchUniqueId = GlobalVariables.UniqueIdToElementId.First(x => x.Value == wallIdToRecreate).Key;
+                WallProperties props = propsList.First(p => matchUniqueId == p.UniqueId);
+                TrudeWall trudeWall = new TrudeWall(props, true);
+            }
+            GlobalVariables.Transaction.Commit();
+
             TrudeWall.TypeStore.Clear();
             LogTrace("Finished Walls");
+            GlobalVariables.Transaction.Start(); // Temporary start before complete refactor of transactions
         }
 
         private static void ImportBeams(List<BeamProperties> propsList)

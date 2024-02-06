@@ -14,7 +14,7 @@ namespace TrudeImporter
         public Wall wall { get; set; }
         public static WallTypeStore TypeStore = new WallTypeStore();
 
-        public TrudeWall(WallProperties wallProps)
+        public TrudeWall(WallProperties wallProps, bool recreate)
         {
             try
             {
@@ -254,9 +254,11 @@ namespace TrudeImporter
 
                         WallType _wallType = this.wall.WallType;
 
-                        // Uncomment if you dont want to join walls
-                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
-                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                        if (recreate)
+                        {
+                            WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                            WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                        }
 
                         TransactionStatus transactionStatus = trans.Commit();
 
@@ -277,9 +279,13 @@ namespace TrudeImporter
 
                         Utils.LogTrace("wall created");
 
-                        foreach (JToken childUID in wallProps.ChildrenUniqueIds)
+                        if (!recreate)
                         {
-                            GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            foreach (JToken childUID in wallProps.ChildrenUniqueIds)
+                            {
+                                GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            }
+                            GlobalVariables.UniqueIdToElementId.Add((int)wallProps.UniqueId, wallId);
                         }
 
                         using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -433,7 +439,7 @@ namespace TrudeImporter
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
 
             List<XYZ> revitFaceNormals = new List<XYZ>();
-            
+
             IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
             while (geoObjectItor.MoveNext())
             {
@@ -632,6 +638,36 @@ namespace TrudeImporter
             catch (Exception e)
             {
                 return false;
+            }
+        }
+        public static void HandleWallWarnings(Transaction trans)
+        {
+            FailureHandlingOptions options = trans.GetFailureHandlingOptions();
+            WallsPreProcessor preproccessor = new WallsPreProcessor();
+            options.SetClearAfterRollback(true);
+            options.SetFailuresPreprocessor(preproccessor);
+            trans.SetFailureHandlingOptions(options);
+        }
+
+        class WallsPreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+                foreach (FailureMessageAccessor fma in fmas)
+                {
+                    if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
+                    {
+                        GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
+                        failuresAccessor.ResolveFailure(fma);
+
+                        return FailureProcessingResult.ProceedWithCommit;
+                    }
+                }
+                return FailureProcessingResult.Continue;
             }
         }
     }
