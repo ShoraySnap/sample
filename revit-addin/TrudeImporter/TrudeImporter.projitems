@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\WallTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\WindowTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\UnitsAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\UploadInterface.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Utils.cs" />
   </ItemGroup>
 </Project>
