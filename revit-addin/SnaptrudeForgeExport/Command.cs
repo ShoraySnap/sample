@@ -111,13 +111,18 @@ namespace SnaptrudeForgeExport
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
 
-            using (Transaction t = new Transaction(newDoc, "Parse Trude"))
+            using (TransactionGroup tg = new TransactionGroup(newDoc, "Parse Trude"))
             {
-                t.Start();
-                TrudeImporterMain.Import(trudeProperties);
-                t.Commit();
+                tg.Start();
+                using (Transaction t = new Transaction(newDoc, "Parse Trude"))
+                {
+                    GlobalVariables.Transaction = t;
+                    t.Start();
+                    TrudeImporterMain.Import(trudeProperties);
+                    t.Commit();
+                }
+                tg.Assimilate();
             }
-
 
             //ImportSnaptrude(structureCollection, newDoc);
 
