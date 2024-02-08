@@ -21,7 +21,7 @@ namespace RevitImporter.Components
             Element level = GlobalVariables.Document.GetElement(element.LevelId);
             return level.Name;
         }
-        public static void SetImportData(SerializedData importData, Element element)
+        public static void SetImportData(SerializedTrudeData importData, Element element)
         {
             importData.AddLevel(GetImportData(element));
         }

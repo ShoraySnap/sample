@@ -14,7 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeWall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GlobalVariables.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Command.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Importer\SerializedData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Importer\SerializedTrudeData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\ComponentHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\FamilyElement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporter.cs" />

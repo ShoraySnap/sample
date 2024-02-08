@@ -8,21 +8,18 @@ namespace RevitImporter
 {
     class TrudeCustomExporter : IExportContext
     {
-
         Document doc;
         Stack<Transform> transforms = new Stack<Transform>();
         private object familyData;
         private object creationData;
         private String currentMaterialId;
         private FamilyElement currentFamilyElement;
-        public SerializedData importData ;
+        public SerializedTrudeData serializedSnaptrudeData;
 
-        public Object GetExportData()
+        public SerializedTrudeData GetExportData()
         {
-            return importData;
-
+            return serializedSnaptrudeData;
         }
-
 
         Transform CurrentTransform
         {
@@ -41,9 +38,8 @@ namespace RevitImporter
             transforms.Push(CurrentTransform);
             this.familyData = new Object();
             this.creationData = new Object();
-            this.importData = new SerializedData();
-            this.currentFamilyElement = new FamilyElement("","");
-
+            this.serializedSnaptrudeData = new SerializedTrudeData();
+            this.currentFamilyElement = new FamilyElement("", "");
         }
 
         bool IExportContext.Start()
@@ -84,7 +80,7 @@ namespace RevitImporter
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
             Element element = doc.GetElement(elementId);
-            ComponentHandler.Instance.SetData(importData, element);
+            ComponentHandler.Instance.SetData(serializedSnaptrudeData, element);
             return RenderNodeAction.Proceed;
         }
 
@@ -114,8 +110,6 @@ namespace RevitImporter
             return;
         }
 
-
-
         void IExportContext.OnLight(LightNode node)
         {
             return;
@@ -133,26 +127,21 @@ namespace RevitImporter
             String name = this.currentFamilyElement.name;
             String category = this.currentFamilyElement.category;
 
-            if (!this.currentFamilyElement.hasMaterial(materialId)){
-
+            if (!this.currentFamilyElement.hasMaterial(materialId))
+            {
                 Element material = doc.GetElement(node.MaterialId);
 
                 if (material != null && material.IsValidObject)
                 {
-
                 }
                 else
                 {
                     Color nodeColor = node.Color;
                 }
-
-
             }
 
             return;
         }
-
-       
 
         void IExportContext.OnPolymesh(PolymeshTopology node)
         {
@@ -160,9 +149,7 @@ namespace RevitImporter
             String category = this.currentFamilyElement.category;
             String materialId = this.currentMaterialId;
 
-
             return;
         }
-
     }
 }
