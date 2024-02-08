@@ -1,19 +1,24 @@
-﻿using Autodesk.Revit.ApplicationServices;
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using Document = Autodesk.Revit.DB.Document;
 
 namespace TrudeImporter
 {
     public static class GlobalVariables
     {
+        public static Transaction Transaction;
         public static Document Document;
-        public static Application RvtApp;
+        public static Autodesk.Revit.ApplicationServices.Application RvtApp;
+
+        public static bool ForForge = false;
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
+        public static IDictionary<int, ElementId> UniqueIdToElementId = new Dictionary<int, ElementId>();
+
+        public static List<ElementId> WallElementIdsToRecreate = new List<ElementId>();
 
         public static JArray materials;
         public static JArray multiMaterials;
@@ -23,10 +28,13 @@ namespace TrudeImporter
 
         public static void cleanGlobalVariables()
         {
+            Transaction = null;
             Document = null;
             RvtApp = null;
             LevelIdByNumber = new Dictionary<int, ElementId>();
             childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
+            UniqueIdToElementId = new Dictionary<int, ElementId>();
+            WallElementIdsToRecreate = new List<ElementId>();
 
             materials = null;
             multiMaterials = null;
@@ -34,5 +42,17 @@ namespace TrudeImporter
             idToElement = new Dictionary<String, Element>();
             idToFamilySymbol = new Dictionary<String, FamilySymbol>();
         }
+
+        public static string sanitizeString(string str)
+        {
+            string invalidChars = "{}[]|;<>?`~-";
+            foreach (var c in invalidChars)
+            {
+                str = str.Replace(c.ToString(), string.Empty);
+            }
+            str = str.ToLower();
+            return str;
+        }
+
     }
 }

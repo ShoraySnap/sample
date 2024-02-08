@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,59 +9,133 @@ namespace TrudeImporter
     public class TrudeCeiling : TrudeModel
     {
         private List<XYZ> faceVertices = new List<XYZ>();
-        ElementId existingCeilingType = null;
+        ElementId existingCeilingTypeId = null;
         private float thickness;
-        private float height;
+        private double height;
         private TrudeLayer[] Layers;
-        private static FloorTypeStore TypeStore = new FloorTypeStore();
+        private static CeilingTypeStore TypeStore = new CeilingTypeStore();
         private Ceiling ceiling { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
-
+        private string materialName = null;
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
-        /// <param name="ceiling"></param>
+        /// <param name="ceilingProps"></param>
         /// <param name="levelId"></param>
-        /// <param name="forForge"></param>
-        public TrudeCeiling(FloorProperties ceiling, ElementId levelId, bool forForge = false)
+        public TrudeCeiling(FloorProperties ceilingProps, ElementId levelId)
         {
             // add backward compatibility for ceiling, use create floor for 2021 or older instead of ceiling.create
-            thickness = ceiling.Thickness;
-            baseType = ceiling.BaseType;
-            height = ceiling.Height;
-            centerPosition = ceiling.CenterPosition;
+            thickness = ceilingProps.Thickness;
+            baseType = ceilingProps.BaseType;
+            height = ceilingProps.FaceVertices[0].Z;
+            centerPosition = ceilingProps.CenterPosition;
+            materialName = ceilingProps.MaterialName;
             // To fix height offset issue, this can fixed from snaptude side by sending top face vertices instead but that might or might not introduce further issues
-            foreach (var v in ceiling.FaceVertices)
+            foreach (var v in ceilingProps.FaceVertices)
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
-
+            
             // get existing ceiling id from revit meta data if already exists else set it to null
-            if (ceiling.ExistingElementId != null)
+            if (!GlobalVariables.ForForge && ceilingProps.ExistingElementId != null)
             {
-                Ceiling existingCeiling = GlobalVariables.Document.GetElement(new ElementId((int)ceiling.ExistingElementId)) as Ceiling;
-                existingCeilingType = existingCeiling.Id;
+                bool isExistingCeiling = GlobalVariables.idToElement.TryGetValue(ceilingProps.ExistingElementId.ToString(), out Element e);
+                if (isExistingCeiling)
+                {
+                    Ceiling existingCeiling = (Ceiling)e;
+                    existingCeilingTypeId = existingCeiling.GetTypeId();
+                }
             }
             var _layers = new List<TrudeLayer>();
             //you can improve this section 
             // --------------------------------------------
-            if (ceiling.Layers != null)
+            if (ceilingProps.Layers != null)
             {
-                foreach (var layer in ceiling.Layers)
+                foreach (var layer in ceilingProps.Layers)
                 {
-                    _layers.Add(layer.ToTrudeLayer(ceiling.BaseType));
+                    _layers.Add(layer.ToTrudeLayer(ceilingProps.BaseType));
                 }
             }
             else
             {
-                _layers.Add(new TrudeLayer("Default Base Type", "Default Snaptrude Ceiling" , ceiling.Thickness, true));
+                _layers.Add(new TrudeLayer("Default Base Type", "Default Snaptrude Ceiling", ceilingProps.Thickness, true));
             }
             Layers = _layers.ToArray();
             //setCoreLayerIfNotExist(Math.Abs(thickness));
             // --------------------------------------------
             CreateCeiling(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022);
-            CreateHoles(ceiling.Holes);
+            CreateHoles(ceilingProps.Holes);
+
+
+
+            try
+            {
+                if (ceilingProps.SubMeshes.Count == 1)
+                {
+                    int _materialIndex = ceilingProps.SubMeshes.First().MaterialIndex;
+                    String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
+                        ceilingProps.MaterialName,
+                        GlobalVariables.materials,
+                        GlobalVariables.multiMaterials,
+                        _materialIndex);
+                    snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName) + "_snaptrude";
+
+                    FilteredElementCollector materialCollector =
+                        new FilteredElementCollector(GlobalVariables.Document)
+                        .OfClass(typeof(Material));
+
+                    IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
+
+                    Material _materialElement = null;
+
+                    foreach (var materialElement in materialsEnum)
+                    {
+                        string matName = GlobalVariables.sanitizeString(materialElement.Name);
+                        if (matName == snaptrudeMaterialName)
+                        {
+                            _materialElement = materialElement;
+                            break;
+                        }
+                    }
+                    try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
+                    {
+                        if (snaptrudeMaterialName != null)
+                        {
+                            if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                            {
+                                foreach (var materialElement in materialsEnum)
+                                {
+                                    String matName = materialElement.Name;
+                                    if (matName.ToLower().Contains("glass"))
+                                    {
+                                        _materialElement = materialElement;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+
+                    if (_materialElement != null)
+                    {
+                        this.ApplyMaterialByObject(GlobalVariables.Document, this.ceiling, _materialElement);
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected.");
+                    this.ApplyMaterialByFace(GlobalVariables.Document, ceilingProps.MaterialName, ceilingProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.ceiling);
+                }
+            }
+            catch
+            {
+                Utils.LogTrace("Failed to set Slab material");
+            }
         }
 
         //private void setCoreLayerIfNotExist(double fallbackThickness)
@@ -100,38 +175,25 @@ namespace TrudeImporter
         private void CreateCeiling(ElementId levelId, bool depricated = false)
         {
             CurveLoop profile = getProfileLoop(faceVertices);
-            //FloorType floorType = existingFloorType;
-
+            CeilingType defaultCeilingType = null;
             var Doc = GlobalVariables.Document;
-            //if (floorType is null)
-            //{
-            //    FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
-            //    FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Ceiling").First() as FloorType;
-            //    floorType = defaultFloorType;
-            //}
-            //var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+
+            if (existingCeilingTypeId is null)
+            {
+                FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(CeilingType));
+                defaultCeilingType = collector.Where(type => ((CeilingType)type).FamilyName == "Compound Ceiling" && ((CeilingType)type).Name == "Plain").First() as CeilingType;
+            }
+
             try
             {
-                ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, existingCeilingType == null? ElementId.InvalidElementId: existingCeilingType , levelId);
+                var ceilingType = TypeStore.GetType(Layers, Doc, defaultCeilingType);
+                ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, ceilingType.Id ?? ElementId.InvalidElementId, levelId);
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(height);
             }
             catch
             {
                 //Could not create ceiling
             }
-
-
-            // Rotate and move the slab
-            //rotate();
-
-            //bool result = ceiling.Location.Move(centerPosition);
-
-            //if (!result) throw new Exception("Move ceiling location failed.");
-
-            //this.setType(floorType);
-
-            //Level level = Doc.GetElement(levelId) as Level;
-            //setHeight(level);
             Doc.Regenerate();
         }
 
@@ -199,7 +261,7 @@ namespace TrudeImporter
 
                     i++;
                     if (i > vertices.Count() + 3) break;
-                    
+
                     nextIndex = (i + 1).Mod(vertices.Count());
                     pt2 = vertices[nextIndex];
                 }
@@ -207,6 +269,139 @@ namespace TrudeImporter
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;
+        }
+
+        public GeometryElement GetGeometryElement()
+        {
+            Options geoOptions = new Options();
+            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            geoOptions.ComputeReferences = true;
+
+            return ceiling.get_Geometry(geoOptions);
+        }
+
+
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Ceiling ceiling)
+        {
+            //Dictionary that stores Revit Face And Its Normal
+            IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
+
+            List<XYZ> revitFaceNormals = new List<XYZ>();
+
+            IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
+            while (geoObjectItor.MoveNext())
+            {
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        revitFaceNormals.Add(normal.Round(3));
+                        if (!normalToRevitFace.ContainsKey(normal.Round(3).Stringify()))
+                        {
+                            normalToRevitFace.Add(normal.Round(3).Stringify(), face);
+                        }
+                    }
+                }
+            }
+
+            //Dictionary that has Revit Face And The Material Index to Be Applied For It.
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+
+            foreach (SubMeshProperties subMesh in subMeshes)
+            {
+                String key = subMesh.Normal.Stringify();
+                if (normalToRevitFace.ContainsKey(key))
+                {
+                    Face revitFace = normalToRevitFace[key];
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+                else
+                {
+                    // find the closest key
+                    double leastDistance = Double.MaxValue;
+                    foreach (XYZ normal in revitFaceNormals)
+                    {
+                        double distance = normal.DistanceTo(subMesh.Normal);
+                        if (distance < leastDistance)
+                        {
+                            leastDistance = distance;
+                            key = normal.Stringify();
+                        }
+                    }
+
+                    Face revitFace = normalToRevitFace[key];
+
+                    if (!revitFaceAndItsSubMeshIndex.ContainsKey(revitFace)) revitFaceAndItsSubMeshIndex.Add(revitFace, subMesh.MaterialIndex);
+                }
+            }
+
+            FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
+            IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
+
+
+            foreach (var face in revitFaceAndItsSubMeshIndex)
+            {
+                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value)) + "_snaptrude";
+                Autodesk.Revit.DB.Material _materialElement = null;
+                foreach (var materialElement in materialsEnum)
+                {
+                    String matName = GlobalVariables.sanitizeString(materialElement.Name);
+                    if (matName.Replace("_", "") == _materialName.Replace("_", ""))
+                    {
+                        _materialElement = materialElement;
+                    }
+                }
+                if (_materialElement != null)
+                {
+                    document.Paint(ceiling.Id, face.Key, _materialElement.Id);
+                }
+            }
+
+        }
+
+        public void ApplyMaterialByObject(Document document, Ceiling ceiling, Material material)
+        {
+            // Before acquiring the geometry, make sure the detail level is set to 'Fine'
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
+
+            // Obtain geometry for the given ceiling element
+            GeometryElement geoElem = ceiling.get_Geometry(geoOptions);
+
+            // Find a face on the ceiling
+            //Face ceilingFace = null;
+            IEnumerator<GeometryObject> geoObjectItor = geoElem.GetEnumerator();
+            List<Face> ceilingFaces = new List<Face>();
+
+            while (geoObjectItor.MoveNext())
+            {
+                // need to find a solid first
+                Solid theSolid = geoObjectItor.Current as Solid;
+                if (null != theSolid)
+                {
+                    // Examine faces of the solid to find one with at least
+                    // one region. Then take the geometric face of that region.
+                    foreach (Face face in theSolid.Faces)
+                    {
+                        PlanarFace p = (PlanarFace)face;
+                        var normal = p.FaceNormal;
+                        ceilingFaces.Add(face);
+                    }
+                }
+            }
+
+            //loop through all the faces and paint them
+
+
+            foreach (Face face in ceilingFaces)
+            {
+                document.Paint(ceiling.Id, face, material.Id);
+            }
         }
 
         //private void rotate()
@@ -257,4 +452,6 @@ namespace TrudeImporter
         //    return null;
         //}
     }
+
+
 }

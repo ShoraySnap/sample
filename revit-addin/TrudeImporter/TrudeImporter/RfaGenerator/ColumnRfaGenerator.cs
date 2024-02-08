@@ -19,11 +19,11 @@ namespace TrudeImporter
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, /*double width, double depth,*/ bool forForge = false)
+        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour, double width, double depth)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
-            Document fdoc = app.NewFamilyDocument(forForge ? "resourceFile/Metric Column.rft" : TEMPLATE_FILE_NAME);
+            Document fdoc = app.NewFamilyDocument(GlobalVariables.ForForge ? "resourceFile/Metric Column.rft" : TEMPLATE_FILE_NAME);
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 
@@ -31,10 +31,10 @@ namespace TrudeImporter
             {
                 transaction.Start();
 
-                //FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
-                //FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
-                //fdoc.FamilyManager.Set(depthParam, depth);
-                //fdoc.FamilyManager.Set(widthParam, width);
+                FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
+                FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
+                fdoc.FamilyManager.Set(depthParam, depth);
+                fdoc.FamilyManager.Set(widthParam, width);
 
                 Extrusion extrusion = CreateExtrusion(fdoc, _countour);
                 ApplyMaterial(fdoc, extrusion);
@@ -87,19 +87,40 @@ namespace TrudeImporter
             return $"{BASE_DIRECTORY}/{familyName}.rfa";
         }
 
-        private CurveArray CreateLoop(List<XYZ> pts)
+        private CurveArray CreateLoop(List<XYZ> vertices)
         {
-            CurveArray loop = new CurveArray();
+            CurveArray curves = new CurveArray();
 
-            int _n = pts.Count;
-
-            for (int i = 0; i < _n; ++i)
+            for (int i = 0; i < vertices.Count(); i++)
             {
-                int j = (0 == i) ? _n - 1 : i - 1;
+                int currentIndex = i.Mod(vertices.Count());
+                int nextIndex = (i + 1).Mod(vertices.Count());
 
-                loop.Append(Line.CreateBound(pts[j], pts[i]));
+                XYZ pt1 = vertices[currentIndex];
+                XYZ pt2 = vertices[nextIndex];
+                bool samePoint = false;
+
+
+                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
+                {
+                    // This can be potentially handled on snaptrude side by sending correct vertices.Currently, some points are duplicate.
+                    if (pt1.X == pt2.X && pt1.Y == pt2.Y && pt1.Z == pt2.Z)
+                    {
+                        samePoint = true;
+                        break;
+                    }
+
+
+                    i++;
+                    if (i > vertices.Count() + 3) break;
+
+                    nextIndex = (i + 1).Mod(vertices.Count());
+                    pt2 = vertices[nextIndex];
+                }
+                if (samePoint) continue;
+                curves.Append(Line.CreateBound(pt1, pt2));
             }
-            return loop;
+            return curves;
         }
 
         private Extrusion CreateExtrusion(Document doc, List<XYZ> pts)

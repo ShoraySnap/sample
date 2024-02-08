@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 using System.Collections.Generic;
 
 namespace TrudeImporter
@@ -35,5 +34,15 @@ namespace TrudeImporter
 
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
+
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
+
+        [JsonProperty("materialName")]
+        public string MaterialName { get; set; }
+
+        [JsonProperty("faceMaterialIds")]
+        public List<int> FaceMaterialIds { get; set; }
+
     }
 }
