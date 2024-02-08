@@ -1,20 +1,11 @@
-﻿using Autodesk.Revit.ApplicationServices;
-using Autodesk.Revit.Attributes;
+﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
-using Autodesk.Revit.DB.ExtensibleStorage;
-using Autodesk.Revit.DB.Visual;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
 using RevitImporter.Importer;
 using RevitImporter.Utils;
-using SnaptrudeManagerAddin;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
-using System.Text;
-using System.Xml.Linq;
 
 namespace RevitImporter
 {
@@ -43,30 +34,30 @@ namespace RevitImporter
                 ImportData importData = exporterContext.importData;
 
                 var serializedObject = JsonConvert.SerializeObject(importData);
-                string fileName = "test.json";
-                string filePath = @"C:\Users\pooja\Documents\test\test.json";
-                string configPath = @"C:\Users\pooja\AppData\Roaming\snaptrude-manager\config.json";
+                string snaptrudeManagerPath = "snaptrude-manager";
+                string configFileName = "config.json";
+                string fileName = "serializedData.json"; // for debugging
+
+                string configPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    snaptrudeManagerPath,
+                    configFileName
+                );
+                string filePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    snaptrudeManagerPath,
+                    fileName
+                );
+
                 string config = File.ReadAllText(configPath);
                 var configObject = JsonConvert.DeserializeObject<Config>(config);
-                var floorKey = configObject.floorKey;
+                string floorKey = configObject.floorKey;
                 string projectName = floorKey + ".json";
-                File.WriteAllText(filePath, serializedObject);
+                File.WriteAllText(filePath, serializedObject); // for debugging
 
                 //Uploader.S3helper.UploadJSON(projectName, filePath);
 
-                //var server = new NamedPipeServerStream("snaptrudeRevitPipe");
-
-                //server.WaitForConnection();
-
-                //var writer = new StreamWriter(server);
-                //writer.AutoFlush = true;
-                //var REVIT_PIPE_MSG_DONE_IMPORT = "done-Import"; // 11 characters
-
-
-                //writer.WriteLine(REVIT_PIPE_MSG_DONE_IMPORT);
-
                 string requestURL = "snaptrude://finish?name=test";
-                // System.Diagnostics.Process.Start("explorer", requestURL);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
 
                 return Result.Succeeded;
