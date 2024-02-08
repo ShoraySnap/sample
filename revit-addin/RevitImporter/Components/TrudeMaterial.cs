@@ -3,7 +3,6 @@ using Autodesk.Revit.DB.Visual;
 using RevitImporter.Utils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -21,19 +20,30 @@ namespace RevitImporter.Components
         public double wAng;
         public String texturepath;
 
-        public TrudeMaterial()
+        private readonly Dictionary<string, double[]> GLASS_COLOR_MAP = new Dictionary<string, double[]>
         {
-        }
-        //public TrudeMaterial()
-        //{
-        //    this.diffuseColor = new double[] { 0, 0, 0 };
-        //    this.name = "default";
-        //}
+            { "Blue", new double[] { 0, 0, 1, 0.2 } },
+            { "Green", new double[] { 0, 1, 0, 0.2} },
+            { "Bronze", new double[] { 0.8, 0.5, 0.2, 0.2 } },
+            { "Gray", new double[] { 0.32, 0.32, 0.32, 0.2} },
+            { "Bluegreen", new double[] { 0.05, 0.59, 0.73, 0.2 } },
+            { "Clear", new double[] { 0, 0, 0, 0.2 } }
+        };
+
+        private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80 / 255, 80 / 255, 80 / 255, 1 };
+
+        public TrudeMaterial() { }
 
         public TrudeMaterial(double[] diffuseColor, String name)
         {
             this.diffuseColor = diffuseColor;
             this.name = name;
+        }
+
+        public static TrudeMaterial GetDefaultMaterial()
+        {
+            String name = "default";
+            return new TrudeMaterial(DEFAULT_DIFFUSE_COLOR, name);
         }
 
         public static TrudeMaterial GetMaterial(Material material)
@@ -44,19 +54,15 @@ namespace RevitImporter.Components
 
             ElementId apperanceAssetId = material.AppearanceAssetId;
 
-            if (!(document.GetElement(apperanceAssetId) is AppearanceAssetElement appearanceElem))
+            AppearanceAssetElement appearanceElem = document.GetElement(apperanceAssetId) as AppearanceAssetElement;
+
+            if (appearanceElem == null || appearanceElem.GetRenderingAsset().Size == 0)
             {
                 trudeMaterial.SetConsistentColor(material);
                 return trudeMaterial;
             }
 
             Asset renderingAsset = appearanceElem.GetRenderingAsset();
-
-            if (renderingAsset.Size == 0)
-            {
-                trudeMaterial.SetConsistentColor(material);
-                return trudeMaterial;
-            }
 
             String name = appearanceElem.Name;
 
@@ -66,95 +72,15 @@ namespace RevitImporter.Components
 
             trudeMaterial.type = materialClass;
 
-            if (materialClass == "Glass")
+            if (IsGlassMaterial(trudeMaterial.type))
             {
                 trudeMaterial.SetGlassMaterial(renderingAsset);
                 return trudeMaterial;
             }
 
-            for (int idx = 0; idx < renderingAsset.Size; idx++)
-            {
-                AssetProperty currentAsset = renderingAsset.Get(idx);
-                if (currentAsset is null)
-                {
-                    continue;
-                }
+            trudeMaterial.ReadMaterialInformationFromAsset(renderingAsset);
 
-                String propertyName = currentAsset.Name;
-
-                if (propertyName == "unifiedbitmap_Bitmap")
-                {
-                    AssetPropertyString assetPropertyString = currentAsset as AssetPropertyString;
-                    String texturePath = assetPropertyString.Value;
-                    trudeMaterial.SetTextureIndformation(currentAsset, texturePath);
-                }
-
-                Boolean isValidProperty = IsValidAssetForDiffuseColor(currentAsset);
-
-                if (currentAsset.NumberOfConnectedProperties > 0 && isValidProperty)
-                {
-                    if (currentAsset is AssetPropertyDoubleArray4d)
-                    {
-                        IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d).GetValueAsDoubles();
-                        trudeMaterial.diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
-                        AssetPropertyDouble alphaProperty = renderingAsset.FindByName("generic_transparency") as AssetPropertyDouble;
-                        if (alphaProperty != null && alphaProperty.Value != 0)
-                        {
-                            double alpha = alphaProperty.Value;
-                            trudeMaterial.diffuseColor[3] = 1 - alpha;
-                        }
-                    }
-                    AssetProperty connectedProperty = currentAsset.GetConnectedProperty(0);
-                    if (!(connectedProperty is Asset) || (connectedProperty as Asset).Size == 0) continue;
-
-                    for (int i = 0; i < (connectedProperty as Asset).Size; i++)
-                    {
-                        AssetProperty connectedPropertyAsset = (connectedProperty as Asset).Get(i);
-                        if (connectedPropertyAsset.Name == "unifiedbitmap_Bitmap")
-                        {
-                            AssetPropertyString connectAssetPropertyString = connectedPropertyAsset as AssetPropertyString;
-                            String connectedTexturePath = connectAssetPropertyString.Value;
-                            trudeMaterial.SetTextureIndformation(connectedProperty, connectedTexturePath);
-                            break;
-                        }
-                    }
-                }
-                else if (currentAsset is AssetPropertyDoubleArray4d && isValidProperty)
-                {
-                    IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d).GetValueAsDoubles();
-                    trudeMaterial.diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
-                    AssetPropertyDouble alphaProperty = renderingAsset.FindByName("generic_transparency") as AssetPropertyDouble;
-                    if (alphaProperty != null && alphaProperty.Value != 0)
-                    {
-                        double alpha = alphaProperty.Value;
-                        trudeMaterial.diffuseColor[3] = 1 - alpha;
-                    }
-                }
-            }
             return trudeMaterial;
-        }
-
-        private static Boolean IsValidAssetForDiffuseColor(AssetProperty asset)
-        {
-            string propertyName = asset.Name.ToString();
-
-            Regex diffuseRegex = new Regex("(?=(diffuse))");
-            Regex colorRegex = new Regex(@"(?=(color))");
-            Regex glazingRegex = new Regex(@"(?=(glazing))");
-
-            if (diffuseRegex.IsMatch(propertyName) || colorRegex.IsMatch(propertyName) || glazingRegex.IsMatch(propertyName))
-            {
-                Boolean isCommonTintColor = propertyName == "common_Tint_color";
-                return true && !isCommonTintColor;
-            }
-            return false;
-        }
-
-        public static TrudeMaterial GetDefaultMaterial()
-        {
-            double[] defaultDiffuseColor = { 80 / 255, 80 / 255, 80 / 255 };
-            String name = "default";
-            return new TrudeMaterial(defaultDiffuseColor, name);
         }
 
         private void SetConsistentColor(Material mat)
@@ -165,53 +91,113 @@ namespace RevitImporter.Components
             this.name = name;
         }
 
+        private static Boolean IsGlassMaterial(String mterialType)
+        {
+            return mterialType == "Glass";
+        }
+
         private void SetGlassMaterial(Asset renderingAsset)
         {
             String[] GLAZING_COLOR = { "Clear", "Green", "Gray", "Blue", "Bluegreen", "Bronze", "Custom" };
             AssetProperty colorMap = renderingAsset.FindByName("glazing_transmittance_color");
             int index = (int)(colorMap as AssetPropertyInteger).Value;
 
-            String glassColorName = GLAZING_COLOR[index];
+            String glassColorName = GLAZING_COLOR[Math.Min(index, GLAZING_COLOR.Length - 1)];
 
-            switch(glassColorName)
-            {
-                case "Clear":
-                    this.diffuseColor = new double[] { 0, 0, 0, 0.2 };
-                    break;
-                case "Green":
-                    this.diffuseColor = new double[] { 0, 1, 0, 0.2 };
-                    break;
-                case "Gray":
-                    this.diffuseColor = new double[] { 0.32, 0.32, 0.32, 0.2 };
-                    break;
-                case "Blue":
-                    this.diffuseColor = new double[] { 0, 0, 1, 0.2 };
-                    break;
-                case "Bluegreen":
-                    this.diffuseColor = new double[] { 0.05, 0.059, 0.73, 0.2 };
-                    break;
-                case "Bronze":
-                    this.diffuseColor = new double[] { 0.8, 0.5, 0.2, 0.2 };
-                    break;
-                case "Custom":
-                    IList<Double>customColor = (renderingAsset.FindByName("glazing_transmittance_custom_color") as AssetPropertyDoubleArray4d).GetValueAsDoubles();
-                    this.diffuseColor = new double[] { customColor[0], customColor[1], customColor[2]};
-                    this.diffuseColor[3] = 0.2;
-                    break;
-                case "default":
-                    this.diffuseColor = new double[] { 0, 0, 0, 0.2 };
-                    break;
-            }
-            
+            SetGlassColor(renderingAsset, glassColorName);
+
             this.name = "Glass";
             this.type = "Glass";
         }
 
-        private void SetTextureIndformation(AssetProperty asset, String texturePath)
+        private void SetGlassColor(Asset renderingAsset, string name)
         {
-            Asset textureAsset = asset as Asset;
-            if (textureAsset == null) return;
+            if (GLASS_COLOR_MAP.ContainsKey(name))
+            {
+                this.diffuseColor = GLASS_COLOR_MAP[name];
+                return;
+            }
+
+            SetCustomGlassColor(renderingAsset);
+        }
+
+        private void SetCustomGlassColor(Asset renderingAsset)
+        {
+            AssetProperty customColorProperty = renderingAsset.FindByName("glazing_transmittance_custom_color");
+
+            if (customColorProperty is AssetPropertyDoubleArray4d)
+            {
+                IList<Double> customColor = (customColorProperty as AssetPropertyDoubleArray4d).GetValueAsDoubles();
+                this.diffuseColor = new double[] { customColor[0], customColor[1], customColor[2], 0.2 };
+            }
+            else
+            {
+                this.diffuseColor = new double[] { 0, 0, 0, 0.2 };
+            }
+        }
+
+        private void ReadMaterialInformationFromAsset(Asset asset)
+        {
+            for (int idx = 0; idx < asset.Size; idx++)
+            {
+                AssetProperty currentAsset = asset.Get(idx);
+                if (currentAsset is null)
+                {
+                    continue;
+                }
+
+                String propertyName = currentAsset.Name;
+
+                if (IsTextureAssetProperty(propertyName))
+                {
+                    SetTextureIndformation(asset, currentAsset);
+                    break;
+                }
+
+                if (!IsValidAssetForDiffuseColor(currentAsset)) continue;
+
+                if (!(currentAsset is AssetPropertyDoubleArray4d)) continue;
+
+                IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
+                if (color == null) continue;
+                diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
+                AssetPropertyDouble alphaProperty = asset.FindByName("generic_transparency") as AssetPropertyDouble;
+                if (alphaProperty != null && alphaProperty.Value != 0)
+                {
+                    double alpha = alphaProperty.Value;
+                    diffuseColor[3] = 1 - alpha;
+                }
+
+                if (currentAsset.NumberOfConnectedProperties == 0) continue;
+
+                AssetProperty connectedAssetProperty = currentAsset.GetConnectedProperty(0);
+                if (!(connectedAssetProperty is Asset) || (connectedAssetProperty as Asset).Size == 0) continue;
+
+                ReadMaterialInformationFromAsset(connectedAssetProperty as Asset);
+                break;
+            }
+        }
+
+        private static Boolean IsTextureAssetProperty(String assetName)
+        {
+            return assetName == "unifiedbitmap_Bitmap";
+        }
+
+        private void SetTextureIndformation(AssetProperty mainAsset, AssetProperty connectTextureAsset)
+        {
+            if (!(mainAsset is Asset textureAsset) || !(connectTextureAsset is AssetPropertyString connectTextureString))
+                return;
+
+            String texturePath = connectTextureString.Value;
             this.texturepath = Path.GetFileName(texturePath);
+
+            SetTextureScales(textureAsset);
+            SetTextureOffset(textureAsset);
+            SetTextureAngle(textureAsset);
+        }
+
+        private void SetTextureScales(Asset textureAsset)
+        {
             if (textureAsset.FindByName("texture_RealWorldScaleX") != null && textureAsset.FindByName("texture_RealWorldScaleY") != null)
             {
                 AssetPropertyDistance uScaleProperty = textureAsset.FindByName("texture_RealWorldScaleX") as AssetPropertyDistance;
@@ -224,18 +210,22 @@ namespace RevitImporter.Components
 
                 this.uScale = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(uScaleInRealWorld, uScaleUnit);
                 this.vScale = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(vScaleInRealWorld, vScaleUnit);
+
+                return;
             }
-            else
+
+            if (textureAsset.FindByName("texture_UScale") != null)
             {
-                if (textureAsset.FindByName("texture_UScale") != null)
-                {
-                    this.uScale = (textureAsset.FindByName("texture_UScale") as AssetPropertyDouble).Value;
-                }
-                if (textureAsset.FindByName("texture_VScale") != null)
-                {
-                    this.vScale = (textureAsset.FindByName("texture_VScale") as AssetPropertyDouble).Value;
-                }
+                this.uScale = (textureAsset.FindByName("texture_UScale") as AssetPropertyDouble).Value;
             }
+            if (textureAsset.FindByName("texture_VScale") != null)
+            {
+                this.vScale = (textureAsset.FindByName("texture_VScale") as AssetPropertyDouble).Value;
+            }
+        }
+
+        private void SetTextureOffset(Asset textureAsset)
+        {
             if (textureAsset.FindByName("texture_UOffset") != null)
             {
                 this.uOffset = (textureAsset.FindByName("texture_UOffset") as AssetPropertyDouble).Value;
@@ -244,10 +234,25 @@ namespace RevitImporter.Components
             {
                 this.vOffset = (textureAsset.FindByName("texture_VOffset") as AssetPropertyDouble).Value;
             }
+        }
+
+        private void SetTextureAngle(Asset textureAsset)
+        {
             if (textureAsset.FindByName("texture_WAngle") != null)
             {
                 this.wAng = (textureAsset.FindByName("texture_WAngle") as AssetPropertyDouble).Value;
             }
+        }
+
+        private static Boolean IsValidAssetForDiffuseColor(AssetProperty asset)
+        {
+            string propertyName = asset.Name.ToString();
+
+            bool isCommonTintColor = propertyName.Equals("common_Tint_color");
+
+            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing");
+
+            return isDiffuseColorProperty && !isCommonTintColor;
         }
     }
 }
