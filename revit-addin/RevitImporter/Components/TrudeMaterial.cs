@@ -10,15 +10,15 @@ namespace RevitImporter.Components
 {
     internal class TrudeMaterial
     {
-        public Double[] diffuseColor;
-        public String name;
-        public String type;
+        public double[] diffuseColor;
+        public string name;
+        public string type;
         public double uScale;
         public double vScale;
         public double uOffset;
         public double vOffset;
         public double wAng;
-        public String texturepath;
+        public string texturepath;
 
         private readonly Dictionary<string, double[]> GLASS_COLOR_MAP = new Dictionary<string, double[]>
         {
@@ -91,7 +91,7 @@ namespace RevitImporter.Components
             this.name = name;
         }
 
-        private static Boolean IsGlassMaterial(String mterialType)
+        private static bool IsGlassMaterial(String mterialType)
         {
             return mterialType == "Glass";
         }
@@ -178,7 +178,7 @@ namespace RevitImporter.Components
             }
         }
 
-        private static Boolean IsTextureAssetProperty(String assetName)
+        private static bool IsTextureAssetProperty(String assetName)
         {
             return assetName == "unifiedbitmap_Bitmap";
         }
@@ -244,7 +244,7 @@ namespace RevitImporter.Components
             }
         }
 
-        private static Boolean IsValidAssetForDiffuseColor(AssetProperty asset)
+        private static bool IsValidAssetForDiffuseColor(AssetProperty asset)
         {
             string propertyName = asset.Name.ToString();
 
