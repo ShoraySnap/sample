@@ -18,7 +18,7 @@ namespace TrudeImporter
 
         public override string ToFamilyName()
         {
-            return $"rectangular_{UnitsAdapter.FeetToMM(depth)}x{UnitsAdapter.FeetToMM(width)}";
+            return $"rectangular_{UnitsAdapter.FeetToMM(width)}x{UnitsAdapter.FeetToMM(depth)}";
         }
     }
     public class LShapeProperties : ShapeProperties
@@ -109,66 +109,38 @@ namespace TrudeImporter
             if (!ComputeNormal(edges[0]).RoundedEquals(-ComputeNormal(edges[2]))) return null;
             if (!ComputeNormal(edges[1]).RoundedEquals(-ComputeNormal(edges[3]))) return null;
 
-            props.depth = edges[0].Length;
-            props.width = edges[1].Length;
+            Plane contourPlane = Plane.CreateByThreePoints(Extensions.Round(vertices[0]), Extensions.Round(vertices[1]), Extensions.Round(vertices[2]));
 
-            // Get direction
-            XYZ localOrigin;
-            int baseEdge = -1;
-
-            XYZ p0;
-            XYZ p1;
-
-            if (edges[0].GetEndPoint(0).IsAlmostEqualTo(edges[1].GetEndPoint(0)))
+            if (planeId == YZ)
             {
-                localOrigin = Round(edges[0].GetEndPoint(0));
-                p0 = Round(edges[0].GetEndPoint(1)) - localOrigin;
-                p1 = Round(edges[1].GetEndPoint(1)) - localOrigin;
+                if (edges[0].Direction.IsAlmostEqualTo(-XYZ.BasisZ) || edges[0].Direction.IsAlmostEqualTo(XYZ.BasisZ))
+                    props.rotation = 0;
+                else if(edges[0].Direction.Y > 0)
+                    props.rotation = ComputeNormal(edges[0]).AngleTo(-XYZ.BasisZ);
+                else
+                    props.rotation = -ComputeNormal(edges[0]).AngleTo(-XYZ.BasisZ);
+                props.depth = edges[0].Length;
+                props.width = edges[1].Length;
             }
-            else if(edges[0].GetEndPoint(0).IsAlmostEqualTo(edges[1].GetEndPoint(1)))
+            else if (planeId == XY)
             {
-                localOrigin = Round(edges[0].GetEndPoint(0));
-                p0 = Round(edges[0].GetEndPoint(1)) - localOrigin;
-                p1 = Round(edges[1].GetEndPoint(0)) - localOrigin;
+                Dictionary<int, double> edgesByYPosition = new Dictionary<int, double>();
+                for (int i = 0; i < edges.Count; i++)
+                {
+                    edgesByYPosition.Add(i, edges[i].Evaluate(0.5, true).Y);
+                }
+                edgesByYPosition.OrderBy(kvp => kvp.Value);
+                int baseEdge = edgesByYPosition.First().Key;
+                int prevIndex = baseEdge == 0 ? edges.Count - 1 : baseEdge - 1;
+                if (edges[prevIndex].Direction.IsAlmostEqualTo(-XYZ.BasisY) || edges[prevIndex].Direction.IsAlmostEqualTo(XYZ.BasisY))
+                    props.rotation = 0;
+                else if (edges[prevIndex].Direction.X > 0)
+                    props.rotation = ComputeNormal(edges[prevIndex]).AngleTo(-XYZ.BasisY);
+                else
+                    props.rotation = -ComputeNormal(edges[prevIndex]).AngleTo(-XYZ.BasisY);
+                props.width = edges[baseEdge].Length;
+                props.depth = edges[prevIndex].Length;
             }
-            else if(edges[0].GetEndPoint(1).IsAlmostEqualTo(edges[1].GetEndPoint(0)))
-            {
-                localOrigin = Round(edges[0].GetEndPoint(1));
-                p0 = Round(edges[0].GetEndPoint(0)) - localOrigin;
-                p1 = Round(edges[1].GetEndPoint(1)) - localOrigin;
-            }
-            else//if(edges[0].GetEndPoint(1).IsAlmostEqualTo(edges[1].GetEndPoint(1)))
-            {
-                localOrigin = Round(edges[0].GetEndPoint(1));
-                p0 = Round(edges[0].GetEndPoint(0)) - localOrigin;
-                p1 = Round(edges[1].GetEndPoint(0)) - localOrigin;
-            }
-
-            if (InFirstQuadrant(p0) && InSecondQuadrant(p1) || InSecondQuadrant(p0) && InThirdQuadrant(p1))
-            {
-                baseEdge = 0;
-                props.rotation = ComputeNormal(edges[baseEdge]).AngleTo(rotationVector);
-            }
-
-            else if (InFirstQuadrant(p1) && InSecondQuadrant(p0) || InSecondQuadrant(p1) && InThirdQuadrant(p0))
-            {
-                baseEdge = 1;
-                props.rotation = ComputeNormal(edges[baseEdge]).AngleTo(rotationVector);
-            }
-
-            else if (InThirdQuadrant(p0) && InFourthQuadrant(p1) || InFourthQuadrant(p0) && InFirstQuadrant(p1))
-            {
-                baseEdge = 0;
-                props.rotation = -ComputeNormal(edges[baseEdge]).AngleTo(rotationVector);
-            }
-            else if (InThirdQuadrant(p1) && InFourthQuadrant(p0) || InFourthQuadrant(p1) && InFirstQuadrant(p0))
-            {
-                baseEdge = 1;
-                props.rotation = -ComputeNormal(edges[baseEdge]).AngleTo(rotationVector);
-            }
-
-            props.width = edges[baseEdge].Length;
-            props.depth = edges[baseEdge == 0 ?  1 : 0].Length;
 
             return props;
         }
@@ -717,11 +689,11 @@ namespace TrudeImporter
 
         private XYZ ComputeNormal(Line line)
         {
-            XYZ startPoint = line.GetEndPoint(0);
-            XYZ endPoint = line.GetEndPoint(1);
+            //XYZ startPoint = line.GetEndPoint(0);
+            //XYZ endPoint = line.GetEndPoint(1);
 
-            XYZ direction = (endPoint - startPoint).Normalize();
-            return Round(direction);
+            //XYZ direction = (endPoint - startPoint).Normalize();
+            return Round(line.Direction);
         }
 
         private double Distance(Line a, Line b)

@@ -6,8 +6,8 @@ namespace TrudeImporter
 {
     public abstract class TypeStore<T_RawKey, T_Type> where T_Type : ElementType
     {
-        public  IDictionary<string, T_Type> Types = new Dictionary<string, T_Type>();
-        public  T_Type GetType(T_RawKey rawKey, Document doc, T_Type defaultType = null)
+        public IDictionary<string, T_Type> Types = new Dictionary<string, T_Type>();
+        public T_Type GetType(T_RawKey rawKey, Document doc, T_Type defaultType = null)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(T_Type));
 
@@ -15,7 +15,7 @@ namespace TrudeImporter
 
             return GetType(rawKey, defaultType);
         }
-        public  T_Type GetType(T_RawKey rawKey, T_Type defaultType)
+        public T_Type GetType(T_RawKey rawKey, T_Type defaultType)
         {
             string key = KeyAdapter(rawKey, defaultType);
             key = CleanKey(key);

@@ -32,6 +32,9 @@ namespace TrudeImporter
         [JsonProperty("windows")]
         public List<WindowProperties> Windows { get; set; }
 
+        [JsonProperty("masses")]
+        public List<MassProperties> Masses { get; set; }
+
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
     }
