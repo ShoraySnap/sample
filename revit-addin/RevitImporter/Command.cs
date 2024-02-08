@@ -6,6 +6,7 @@ using RevitImporter.Importer;
 using RevitImporter.Utils;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace RevitImporter
 {
@@ -26,14 +27,11 @@ namespace RevitImporter
             {
                 bool status = false;
 
-                TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
-                CustomExporter exporter2 = new CustomExporter(doc, exporterContext);
+                View3D view = Get3dView(doc);
+                SetDetailViewToFine(doc, view);
+                SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
 
-                exporter2.Export(doc.ActiveView);
-
-                SerializedData importData = exporterContext.importData;
-
-                var serializedObject = JsonConvert.SerializeObject(importData);
+                string serializedObject = JsonConvert.SerializeObject(serializedData);
                 string snaptrudeManagerPath = "snaptrude-manager";
                 string configFileName = "config.json";
                 string fileName = "serializedData.json"; // for debugging
@@ -50,7 +48,7 @@ namespace RevitImporter
                 );
 
                 string config = File.ReadAllText(configPath);
-                var configObject = JsonConvert.DeserializeObject<Config>(config);
+                Config configObject = JsonConvert.DeserializeObject<Config>(config);
                 string floorKey = configObject.floorKey;
                 string projectName = floorKey + ".json";
                 File.WriteAllText(filePath, serializedObject); // for debugging
@@ -75,7 +73,45 @@ namespace RevitImporter
             }
         }
 
-        void Application_FailuresProcessing(object sender, Autodesk.Revit.DB.Events.FailuresProcessingEventArgs e)
+        private SerializedTrudeData ExportViewUsingCustomExporter(Document doc, View3D view)
+        {
+            TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
+            CustomExporter exporter = new CustomExporter(doc, exporterContext);
+
+            exporter.Export(view);
+            return exporterContext.GetExportData();
+        }
+
+        private View3D Get3dView(Document doc)
+        {
+            View currentView = doc.ActiveView;
+            if (currentView is View3D) return currentView as View3D;
+
+            Element default3DView = new FilteredElementCollector(doc).OfClass(typeof(View3D)).ToElements().FirstOrDefault();
+
+            return default3DView as View3D;
+        }
+
+        private void SetDetailViewToFine(Document doc, View3D view)
+        {
+            if (view.DetailLevel == ViewDetailLevel.Fine) return;
+
+            using (Transaction tx = new Transaction(doc, "Update detail level to fine"))
+            {
+                tx.Start();
+                try
+                {
+                    view.DetailLevel = ViewDetailLevel.Fine;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e); // debug change it to log
+                }
+                tx.Commit();
+            }
+        }
+
+        private void Application_FailuresProcessing(object sender, Autodesk.Revit.DB.Events.FailuresProcessingEventArgs e)
         {
             FailuresAccessor fa = e.GetFailuresAccessor();
 
