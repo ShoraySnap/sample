@@ -90,7 +90,7 @@ const snaptrudeService = (function () {
       });
   };
 
-  const createProject = async function (streamId, teamId, folderId) {
+  const createProjectDeprecated = async function (streamId, teamId, folderId) {
     logger.log("Creating Snaptrude project for", streamId, teamId);
     const REACT_URL = urls.get("snaptrudeReactUrl");
 
@@ -108,6 +108,23 @@ const snaptrudeService = (function () {
       logger.log("Created Snaptrude project", floorkey);
 
       return REACT_URL + "/model/" + floorkey;
+    }
+  };
+  const createProject = async function () {
+    logger.log("Creating Snaptrude project");
+    const REACT_URL = urls.get("snaptrudeReactUrl");
+
+    const endPoint = "/newBlankProject";
+    const data = {
+      project_name: sessionData.getUserData()["revitProjectName"],
+    };
+
+    const response = await _callApi(endPoint, RequestType.POST, data);
+    if (response) {
+      const floorkey = response.data.floorkey;
+      logger.log("Created Snaptrude project", floorkey);
+
+      return floorkey;
     }
   };
 

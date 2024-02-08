@@ -66,6 +66,12 @@ const parseProtocolArgs = async function (argv){
     
     logger.log("Login successful", store.get("fullname"));
     logger.log();
+  } else if(deepLinkingUrl.includes("finish")){
+    const REACT_URL = urls.get("snaptrudeReactUrl");
+    store.set("modelLink", REACT_URL + "/model/" + store.get("floorkey"));
+    electronCommunicator.syncSessionData();
+    electronCommunicator.revitImportDone();
+
   }
 };
 

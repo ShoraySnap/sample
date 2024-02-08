@@ -21,6 +21,7 @@ import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
 import { Tooltip } from "antd";
 
+
 const Wrapper = styled.div`
   // position: relative;
   min-width: 100vw;
@@ -120,14 +121,18 @@ const Workspace = ({
     const workspaceId = selectedWorkspaceId;
     const folderId = currentFolderId;
 
-    const projectLink = await snaptrudeService.createProject(
-      sessionData.getUserData()["streamId"],
-      workspaceId,
-      folderId
-    );
+    // const projectLink = await snaptrudeService.createProject(
+    //   sessionData.getUserData()["streamId"],
+    //   workspaceId,
+    //   folderId
+    // );
     // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     setIsLoading(false);
+
+    const projectLink = sessionData.getUserData()["modelLink"];
+
+    console.log("projectLink", projectLink);
 
     if (projectLink) {
       window.electronAPI.openPageInDefaultBrowser(projectLink);
