@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>8d197602-7456-410d-b7e9-a9069a7eae81</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>RevitImporter</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeMaterial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeWall.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GlobalVariables.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Command.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Importer\ExportData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Importer\ComponentHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Importer\FamilyElement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeLayer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversion.cs" />
+  </ItemGroup>
+</Project>

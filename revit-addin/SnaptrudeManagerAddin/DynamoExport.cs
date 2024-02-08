@@ -88,10 +88,13 @@ namespace SnaptrudeManagerAddin
                 {
                     server.Close();
 
-                    log("Calling dynamo");
+                    //log("Calling dynamo");
+                    log("Calling revit importer");
                     writeAndClose();
 
-                    return OpenDynamo(commandData, ref message, elements);
+                    //return OpenDynamo(commandData, ref message, elements);
+                    RevitImporter.Command revitImporter = new RevitImporter.Command();
+                    return revitImporter.Execute(commandData, ref message, elements);
                 }
                 else if (data == REVIT_PIPE_MSG_STOP)
                 {
@@ -111,6 +114,7 @@ namespace SnaptrudeManagerAddin
 
                     SnaptrudeManagerAddin.Command trudeImporter = new SnaptrudeManagerAddin.Command();
                     return trudeImporter.Execute(commandData, ref message, elements);
+
                 }
                 else
                 {
