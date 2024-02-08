@@ -99,7 +99,7 @@ namespace SnaptrudeManagerAddin
                     log("Calling snaptrude importer");
                     writeAndClose();
 
-                    SnaptrudeManagerAddin.Command trudeImporter = new SnaptrudeManagerAddin.Command();
+                    Command trudeImporter = new Command();
                     return trudeImporter.Execute(commandData, ref message, elements);
 
                 }

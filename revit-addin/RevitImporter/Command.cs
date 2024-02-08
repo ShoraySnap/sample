@@ -31,7 +31,7 @@ namespace RevitImporter
 
                 exporter2.Export(doc.ActiveView);
 
-                ImportData importData = exporterContext.importData;
+                SerializedData importData = exporterContext.importData;
 
                 var serializedObject = JsonConvert.SerializeObject(importData);
                 string snaptrudeManagerPath = "snaptrude-manager";

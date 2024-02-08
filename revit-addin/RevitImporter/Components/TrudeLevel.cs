@@ -2,8 +2,6 @@
 using RevitImporter.Importer;
 using RevitImporter.Utils;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RevitImporter.Components
 {
@@ -23,7 +21,7 @@ namespace RevitImporter.Components
             Element level = GlobalVariables.Document.GetElement(element.LevelId);
             return level.Name;
         }
-        public static void SetImportData(ImportData importData, Element element)
+        public static void SetImportData(SerializedData importData, Element element)
         {
             importData.AddLevel(GetImportData(element));
         }

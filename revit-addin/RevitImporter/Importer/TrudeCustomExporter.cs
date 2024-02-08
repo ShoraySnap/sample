@@ -15,7 +15,7 @@ namespace RevitImporter
         private object creationData;
         private String currentMaterialId;
         private FamilyElement currentFamilyElement;
-        public ImportData importData ;
+        public SerializedData importData ;
 
         public Object GetExportData()
         {
@@ -41,7 +41,7 @@ namespace RevitImporter
             transforms.Push(CurrentTransform);
             this.familyData = new Object();
             this.creationData = new Object();
-            this.importData = new ImportData();
+            this.importData = new SerializedData();
             this.currentFamilyElement = new FamilyElement("","");
 
         }

@@ -39,7 +39,7 @@ namespace RevitImporter.Components
         }
 
 
-        static public void SetImportData(ImportData importData, Element element)
+        static public void SetImportData(SerializedData importData, Element element)
         {
             Wall wall = element as Wall;
             TrudeWall snaptrudeWall = GetImportData(element);
@@ -97,7 +97,7 @@ namespace RevitImporter.Components
 
         }
 
-        static public void SetWallType(ImportData importData, Wall wall)
+        static public void SetWallType(SerializedData importData, Wall wall)
         {
             String name = wall.WallType.Name;
             if (importData.familyTypes.HasWallType(name)) return;

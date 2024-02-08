@@ -7,14 +7,14 @@ using System.Text;
 
 namespace RevitImporter.Importer
 {
-    internal class ImportData
+    internal class SerializedData
     {
         public object families;
         public Dictionary<string, TrudeWall> walls;
         public Dictionary<string, SnaptrudeLevel> levels;
         public FamilyTypes familyTypes;
 
-        public ImportData()
+        public SerializedData()
         {
             this.families = new Object();
             this.familyTypes = new FamilyTypes();

@@ -25,7 +25,7 @@ namespace RevitImporter.Importer
                 return instance;
             }
         }
-        public void SetData(ImportData importData, Element element)
+        public void SetData(SerializedData importData, Element element)
         {
             if (element is Wall)
             {
