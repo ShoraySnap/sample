@@ -1,9 +1,9 @@
 ﻿using Autodesk.Revit.DB;
-using RevitImporter.Importer;
-using RevitImporter.Utils;
+using TrudeSerializer.Importer;
+using TrudeSerializer.Utils;
 using System;
 
-namespace RevitImporter.Components
+namespace TrudeSerializer.Components
 {
     internal class SnaptrudeLevel
     {

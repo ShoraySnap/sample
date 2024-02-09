@@ -1,12 +1,11 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
-using RevitImporter.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
+using TrudeSerializer.Utils;
 
-namespace RevitImporter.Components
+namespace TrudeSerializer.Components
 {
     internal class TrudeMaterial
     {

@@ -1,9 +1,7 @@
-﻿using RevitImporter.Components;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using TrudeSerializer.Components;
 
-namespace RevitImporter.Types
+namespace TrudeSerializer.Types
 {
     internal class TrudeLayer
     {
@@ -19,4 +17,3 @@ namespace RevitImporter.Types
         }
     }
 }
-  

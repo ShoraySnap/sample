@@ -80,8 +80,8 @@ namespace SnaptrudeManagerAddin
                     log("Calling revit importer");
                     writeAndClose();
 
-                    RevitImporter.Command revitImporter = new RevitImporter.Command();
-                    return revitImporter.Execute(commandData, ref message, elements);
+                    TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
+                    return trudeSerializer.Execute(commandData, ref message, elements);
                 }
                 else if (data == REVIT_PIPE_MSG_STOP)
                 {

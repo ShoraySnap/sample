@@ -1,10 +1,10 @@
-﻿using System;
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using RevitImporter.Importer;
+using TrudeSerializer.Importer;
 
-namespace RevitImporter
+
+namespace TrudeSerializer
 {
     class TrudeCustomExporter : IExportContext
     {
@@ -127,7 +127,7 @@ namespace RevitImporter
             String name = this.currentFamilyElement.name;
             String category = this.currentFamilyElement.category;
 
-            if (!this.currentFamilyElement.hasMaterial(materialId))
+            if (!this.currentFamilyElement.HasMaterial(materialId))
             {
                 Element material = doc.GetElement(node.MaterialId);
 

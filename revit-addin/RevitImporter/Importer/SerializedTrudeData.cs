@@ -1,11 +1,9 @@
-﻿using Autodesk.Revit.DB;
-using RevitImporter.Components;
-using RevitImporter.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using TrudeSerializer.Components;
+using TrudeSerializer.Types;
 
-namespace RevitImporter.Importer
+namespace TrudeSerializer.Importer
 {
     internal class SerializedTrudeData
     {
@@ -54,10 +52,7 @@ namespace RevitImporter.Importer
             if (this.HasWallType(wallTypeName)) return;
             this.wallTypes.Add(wallTypeName, wallType);
         }
-
-
     }
-
 
     //class families
     //{

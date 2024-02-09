@@ -1,12 +1,9 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Visual;
-using RevitImporter.Components;
-using RevitImporter.Utils;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using TrudeSerializer.Components;
+using TrudeSerializer.Utils;
 
-namespace RevitImporter.Types
+namespace TrudeSerializer.Types
 {
     internal class TrudeWallType
     {
@@ -33,7 +30,7 @@ namespace RevitImporter.Types
 
 
                 TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material);
-                
+
                 TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 
                 layersData.Add(Snaptrudelayer);

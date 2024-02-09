@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace RevitImporter.Importer
+namespace TrudeSerializer.Importer
 {
     internal class FamilyElement
     {
@@ -12,7 +11,6 @@ namespace RevitImporter.Importer
 
         public FamilyElement()
         {
-
         }
         public FamilyElement(String name, String category)
         {
@@ -21,17 +19,17 @@ namespace RevitImporter.Importer
             this.materials = new List<String>();
         }
 
-        public void addName(String name)
+        public void AddName(String name)
         {
             this.name = name;
         }
-        public void addCategory(String category) { this.category = category; }
-        public void addMaterial(String subMaterialId)
+        public void AddCategory(String category) { this.category = category; }
+        public void AddMaterial(String subMaterialId)
         {
             this.materials.Add(subMaterialId);
         }
 
-        public bool hasMaterial(String subMaterialId)
+        public bool HasMaterial(String subMaterialId)
         {
             return this.materials.Contains(subMaterialId);
         }

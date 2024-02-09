@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RevitImporter.Utils
+﻿namespace TrudeSerializer.Utils
 {
     internal class Config
     {

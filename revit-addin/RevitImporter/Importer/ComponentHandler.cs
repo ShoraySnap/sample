@@ -1,15 +1,11 @@
 ﻿using Autodesk.Revit.DB;
-using RevitImporter.Components;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using TrudeSerializer.Components;
 
-namespace RevitImporter.Importer
+namespace TrudeSerializer.Importer
 {
     internal class ComponentHandler
     {
-
         String[] SUPPORTED_PARAMETRIC = new String[] { "Wall" };
 
         private ComponentHandler() { }
@@ -39,8 +35,6 @@ namespace RevitImporter.Importer
             }
 
             return;
-
-
         }
     }
 }

@@ -1,18 +1,14 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
-namespace RevitImporter
+namespace TrudeSerializer
 {
     public static class GlobalVariables
     {
         public static Document Document;
         public static Application RvtApp;
 
-        public static void cleanGlobalVariables()
+        public static void CleanGlobalVariables()
         {
             Document = null;
             RvtApp = null;

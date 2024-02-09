@@ -1,13 +1,10 @@
-﻿using Autodesk.Revit.DB.IFC;
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using RevitImporter.Types;
-using RevitImporter.Importer;
-using RevitImporter.Utils;
+using TrudeSerializer.Types;
+using TrudeSerializer.Utils;
+using TrudeSerializer.Importer;
 
-namespace RevitImporter.Components
+namespace TrudeSerializer.Components
 {
     internal class TrudeWall
     {
@@ -38,7 +35,6 @@ namespace RevitImporter.Components
             this.wallBottomProfile = endpoints;
         }
 
-
         static public void SetImportData(SerializedTrudeData importData, Element element)
         {
             Wall wall = element as Wall;
@@ -49,7 +45,6 @@ namespace RevitImporter.Components
 
         static public TrudeWall GetImportData(Element element)
         {
-
             Wall wall = element as Wall;
 
             String elementId = element.Id.ToString();
@@ -64,9 +59,7 @@ namespace RevitImporter.Components
             Boolean isCurvedWall = baseLine is Arc;
             double height = GetWallHeight(element);
 
-
             return new TrudeWall(elementId, levelName, wallType, width, height, family, function, orientation, endpoints, isCurvedWall);
-
         }
         static public double GetWallHeight(Element element)
         {
@@ -80,7 +73,6 @@ namespace RevitImporter.Components
             LocationCurve locationCurve = location as LocationCurve;
             Curve curve = locationCurve.Curve;
             return curve;
-
         }
 
         static double[][] getEndPoints(Curve curve)
@@ -92,16 +84,13 @@ namespace RevitImporter.Components
             endpoints.SetValue(new double[] { startPoint.X * 304.8, startPoint.Y * 304.8, startPoint.Z * 304.8 }, 0);
             endpoints.SetValue(new double[] { endPoint.X * 304.8, endPoint.Y * 304.8, endPoint.Z * 304.8 }, 1);
 
-
             return endpoints;
-
         }
 
         static public void SetWallType(SerializedTrudeData importData, Wall wall)
         {
             String name = wall.WallType.Name;
             if (importData.familyTypes.HasWallType(name)) return;
-
 
             TrudeWallType snaptrudeWallType = TrudeWallType.GetLayersData(wall);
             importData.familyTypes.AddWallType(name, snaptrudeWallType);

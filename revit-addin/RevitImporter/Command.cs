@@ -2,13 +2,13 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
-using RevitImporter.Importer;
-using RevitImporter.Utils;
+using TrudeSerializer.Importer;
+using TrudeSerializer.Utils;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace RevitImporter
+namespace TrudeSerializer
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -63,13 +63,13 @@ namespace RevitImporter
             catch (Exception ex)
             {
                 TaskDialog.Show("catch", ex.ToString());
-                GlobalVariables.cleanGlobalVariables();
+                GlobalVariables.CleanGlobalVariables();
                 return Result.Failed;
             }
             finally
             {
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
-                GlobalVariables.cleanGlobalVariables();
+                GlobalVariables.CleanGlobalVariables();
             }
         }
 
