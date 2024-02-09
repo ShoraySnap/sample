@@ -40,5 +40,8 @@ namespace TrudeImporter
 
         [JsonProperty("holes")]
         public List<List<XYZ>> Holes { get; set; }
+
+        [JsonProperty("allFaceVertices")]
+        public List<List<XYZ>> AllFaceVertices { get; set; }
     }
 }

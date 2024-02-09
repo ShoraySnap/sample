@@ -18,11 +18,11 @@ namespace TrudeImporter
         {
             if (Directory.Exists(BASE_DIRECTORY)) Directory.Delete(BASE_DIRECTORY, true);
         }
-        public void CreateRFAFile(Application app, string familyName,/* double height,*/ List<XYZ> _countour, bool forForge = false)
+        public void CreateRFAFile(Application app, string familyName, List<XYZ> _countour)
         {
             Directory.CreateDirectory(BASE_DIRECTORY);
 
-            Document fdoc = app.NewFamilyDocument(forForge ? "resourceFile/Metric Structural Framing - Beams and Braces.rft" : TEMPLATE_FILE_NAME);
+            Document fdoc = app.NewFamilyDocument(GlobalVariables.ForForge ? "resourceFile/Metric Structural Framing - Beams and Braces.rft" : TEMPLATE_FILE_NAME);
 
             if (fdoc is null) throw new Exception("failed creating fdoc");
 

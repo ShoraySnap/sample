@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
 {
@@ -13,14 +14,14 @@ namespace TrudeImporter
         public Wall wall { get; set; }
         public static WallTypeStore TypeStore = new WallTypeStore();
 
-        public TrudeWall(WallProperties props)
+        public TrudeWall(WallProperties wallProps, bool recreate)
         {
             try
             {
                 Wall existingWall = null;
                 ElementId existingLevelId = null;
                 WallType existingWallType = null;
-                if (props.ExistingElementId != null)
+                if (!GlobalVariables.ForForge && wallProps.ExistingElementId != null)
                 {
                     using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
@@ -29,7 +30,7 @@ namespace TrudeImporter
                             t.Start();
 
                             Element e;
-                            bool isExistingWall = GlobalVariables.idToElement.TryGetValue(props.ExistingElementId.ToString(), out e);
+                            bool isExistingWall = GlobalVariables.idToElement.TryGetValue(wallProps.ExistingElementId.ToString(), out e);
                             if (isExistingWall)
                             {
                                 existingWall = (Wall)e;
@@ -51,19 +52,19 @@ namespace TrudeImporter
                     trans.Start();
                     try
                     {
-                        double baseHeight = props.BaseHeight;
-                        double height = props.Height;
+                        double baseHeight = wallProps.BaseHeight;
+                        double height = wallProps.Height;
 
                         bool useOriginalMesh = false;
 
-                        this.Layers = props.Layers.Select(layer => layer.ToTrudeLayer(props.Type)).ToArray();
+                        this.Layers = wallProps.Layers.Select(layer => layer.ToTrudeLayer(wallProps.Type)).ToArray();
 
-                        this.levelNumber = (int)props.Storey;
+                        this.levelNumber = (int)wallProps.Storey;
 
-                        IList<Curve> profile = TrudeWall.GetProfile(props.ProfilePoints);
+                        IList<Curve> profile = TrudeWall.GetProfile(wallProps.ProfilePoints);
 
                         //TODO remove this loop after wall core layer thickness is fixed after doing freemove
-                        if (!props.ThicknessInMm.IsNull())
+                        if (!wallProps.ThicknessInMm.IsNull())
                         {
                             bool coreIsFound = false;
                             for (int i = 0; i < this.Layers.Length; i++)
@@ -71,7 +72,7 @@ namespace TrudeImporter
                                 if (this.Layers[i].IsCore)
                                 {
                                     coreIsFound = true;
-                                    this.Layers[i].ThicknessInMm = (double)props.ThicknessInMm;
+                                    this.Layers[i].ThicknessInMm = (double)wallProps.ThicknessInMm;
                                 }
                             }
 
@@ -80,7 +81,7 @@ namespace TrudeImporter
                                 int index = (int)(this.Layers.Length / 2);
 
                                 this.Layers[index].IsCore = true;
-                                this.Layers[index].ThicknessInMm = (double)props.ThicknessInMm;
+                                this.Layers[index].ThicknessInMm = (double)wallProps.ThicknessInMm;
                             }
                         }
 
@@ -90,7 +91,7 @@ namespace TrudeImporter
 
                         if (existingWall == null)
                         {
-                            string familyName = props.RevitFamily;
+                            string familyName = wallProps.RevitFamily;
 
                             FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
                             WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
@@ -108,12 +109,12 @@ namespace TrudeImporter
                             {
                                 wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document);
                             }
-                            else if (!AreLayersSame(this.Layers, wallType) && !props.IsStackedWallParent)
+                            else if (!AreLayersSame(this.Layers, wallType) && !wallProps.IsStackedWallParent)
                             {
                                 wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document);
                             }
 
-                            if (props.IsStackedWallParent)
+                            if (wallProps.IsStackedWallParent)
                             {
                                 this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
                             }
@@ -126,10 +127,10 @@ namespace TrudeImporter
                         {
                             bool areLayersSame = AreLayersSame(this.Layers, existingWallType);
 
-                            if (areLayersSame || props.IsStackedWallParent)
+                            if (areLayersSame || wallProps.IsStackedWallParent)
                             {
                                 this.wall = this.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
-                                if (props.IsStackedWallParent)
+                                if (wallProps.IsStackedWallParent)
                                 {
                                     var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                                     var newHeightParam = this.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
@@ -148,14 +149,14 @@ namespace TrudeImporter
                         // Create holes
                         GlobalVariables.Document.Regenerate();
 
-                        foreach (List<XYZ> hole in props.Holes)
+                        foreach (List<XYZ> hole in wallProps.Holes)
                         {
                             try
                             {
                                 // Create cutting family
                                 VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
                                 string familyName = "snaptrudeVoidFamily" + Utils.RandomString();
-                                Plane plane = Plane.CreateByThreePoints(props.ProfilePoints[0], props.ProfilePoints[1], props.ProfilePoints[2]);
+                                Plane plane = Plane.CreateByThreePoints(wallProps.ProfilePoints[0], wallProps.ProfilePoints[1], wallProps.ProfilePoints[2]);
 
                                 // Project points on to the plane to make sure all the points are co-planar.
                                 // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
@@ -186,27 +187,28 @@ namespace TrudeImporter
                         GlobalVariables.Document.Regenerate();
                         try
                         {
-                            if (props.SubMeshes.Count == 1)
+                            if (wallProps.SubMeshes.Count == 1)
                             {
-                                int _materialIndex = props.SubMeshes.First().MaterialIndex;
+                                int _materialIndex = wallProps.SubMeshes.First().MaterialIndex;
                                 String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                                    props.MaterialName,
+                                    wallProps.MaterialName,
                                     GlobalVariables.materials,
                                     GlobalVariables.multiMaterials,
                                     _materialIndex);
+                                snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName) + "_snaptrude";
 
                                 FilteredElementCollector materialCollector =
                                     new FilteredElementCollector(GlobalVariables.Document)
-                                    .OfClass(typeof(Autodesk.Revit.DB.Material));
+                                    .OfClass(typeof(Material));
 
-                                IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = materialCollector.ToElements().Cast<Autodesk.Revit.DB.Material>();
+                                IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
 
-                                Autodesk.Revit.DB.Material _materialElement = null;
+                                Material _materialElement = null;
 
                                 foreach (var materialElement in materialsEnum)
                                 {
-                                    String matName = materialElement.Name;
-                                    if (matName.Replace("_", " ") == snaptrudeMaterialName)
+                                    string matName = GlobalVariables.sanitizeString(materialElement.Name);
+                                    if (matName == snaptrudeMaterialName)
                                     {
                                         _materialElement = materialElement;
                                         break;
@@ -239,13 +241,11 @@ namespace TrudeImporter
                                 {
                                     this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
                                 }
-
                             }
                             else
                             {
-                                //this.ApplyMaterialByFace(GlobalVariables.Document, props.MaterialName, props.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                                this.ApplyMaterialByFace(GlobalVariables.Document, wallProps.MaterialName, wallProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
                             }
-
                         }
                         catch
                         {
@@ -254,9 +254,11 @@ namespace TrudeImporter
 
                         WallType _wallType = this.wall.WallType;
 
-                        // Uncomment if you dont want to join walls
-                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
-                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                        if (recreate)
+                        {
+                            WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                            WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                        }
 
                         TransactionStatus transactionStatus = trans.Commit();
 
@@ -277,21 +279,25 @@ namespace TrudeImporter
 
                         Utils.LogTrace("wall created");
 
-                        foreach (JToken childUID in props.ChildrenUniqueIds)
+                        if (!recreate)
                         {
-                            GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            foreach (JToken childUID in wallProps.ChildrenUniqueIds)
+                            {
+                                GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            }
+                            GlobalVariables.UniqueIdToElementId.Add((int)wallProps.UniqueId, wallId);
                         }
 
                         using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                         {
                             t.Start();
 
-                            if (props.SourceElementId != null)
+                            if (!GlobalVariables.ForForge && wallProps.SourceElementId != null)
                             {
-                                Element element = GlobalVariables.Document.GetElement(props.SourceElementId);
-                                if(element != null) 
+                                Element element = GlobalVariables.Document.GetElement(wallProps.SourceElementId);
+                                if (element != null)
                                 {
-                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(props.SourceElementId)));
+                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(wallProps.SourceElementId)));
                                 }
                             }
 
@@ -320,6 +326,7 @@ namespace TrudeImporter
             {
                 Utils.LogTrace(e.Message);
                 throw e;
+
             }
         }
 
@@ -330,7 +337,7 @@ namespace TrudeImporter
             for (int i = 0; i < points.Count(); i++)
             {
                 XYZ point0 = points[i];
-                XYZ point1 = points[(i+1).Mod(points.Count())];
+                XYZ point1 = points[(i + 1).Mod(points.Count())];
 
                 if (point1.IsAlmostEqualTo(point0))
                 {
@@ -426,7 +433,7 @@ namespace TrudeImporter
             return null;
         }
 
-        public void ApplyMaterialByFace( Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall )
+        public void ApplyMaterialByFace(Document document, String materialNameWithId, List<SubMeshProperties> subMeshes, JArray materials, JArray multiMaterials, Wall wall)
         {
             //Dictionary that stores Revit Face And Its Normal
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
@@ -453,10 +460,16 @@ namespace TrudeImporter
             }
 
             //Dictionary that has Revit Face And The Material Index to Be Applied For It.
-            IDictionary <Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
+            IDictionary<Face, int> revitFaceAndItsSubMeshIndex = new Dictionary<Face, int>();
 
             foreach (SubMeshProperties subMesh in subMeshes)
             {
+                if (subMesh.Normal == null)
+                {
+                    //   System.Diagnostics.Debug.WriteLine(subMesh);
+                    continue;
+                }
+
                 String key = subMesh.Normal.Stringify();
                 if (normalToRevitFace.ContainsKey(key))
                 {
@@ -470,7 +483,7 @@ namespace TrudeImporter
                     double leastDistance = Double.MaxValue;
                     foreach (XYZ normal in revitFaceNormals)
                     {
-                        double distance = subMesh.Normal.MultiplyEach(Scaling).DistanceTo(normal);
+                        double distance = normal.DistanceTo(subMesh.Normal);
                         if (distance < leastDistance)
                         {
                             leastDistance = distance;
@@ -486,26 +499,21 @@ namespace TrudeImporter
 
             FilteredElementCollector collector1 = new FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Material));
             IEnumerable<Autodesk.Revit.DB.Material> materialsEnum = collector1.ToElements().Cast<Autodesk.Revit.DB.Material>();
-            
-            
+
+
             foreach (var face in revitFaceAndItsSubMeshIndex)
             {
-                String _materialName = Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value);
-
+                String _materialName = GlobalVariables.sanitizeString(Utils.getMaterialNameFromMaterialId(materialNameWithId, materials, multiMaterials, face.Value)) + "_snaptrude";
                 Autodesk.Revit.DB.Material _materialElement = null;
-
                 foreach (var materialElement in materialsEnum)
                 {
-                    String matName = materialElement.Name;
-
-                    if (matName.Replace("_", " ") == _materialName)
+                    String matName = GlobalVariables.sanitizeString(materialElement.Name);
+                    if (matName == _materialName)
                     {
                         _materialElement = materialElement;
                     }
                 }
-
-
-                if ( _materialElement != null )
+                if (_materialElement != null)
                 {
                     document.Paint(wall.Id, face.Key, _materialElement.Id);
                 }
@@ -513,11 +521,13 @@ namespace TrudeImporter
 
         }
 
-        public void ApplyMaterialByObject(Document document, Wall wall, Autodesk.Revit.DB.Material material)
+        public void ApplyMaterialByObject(Document document, Wall wall, Material material)
         {
             // Before acquiring the geometry, make sure the detail level is set to 'Fine'
-            Options geoOptions = new Options();
-            geoOptions.DetailLevel = ViewDetailLevel.Fine;
+            Options geoOptions = new Options
+            {
+                DetailLevel = ViewDetailLevel.Fine
+            };
 
             // Obtain geometry for the given Wall element
             GeometryElement geoElem = wall.get_Geometry(geoOptions);
@@ -544,20 +554,23 @@ namespace TrudeImporter
                 }
             }
 
+            //loop through all the faces and paint them
+
+
             foreach (Face face in wallFaces)
             {
                 document.Paint(wall.Id, face, material.Id);
             }
         }
 
-        public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType=null)
+        public static WallType GetWallTypeByWallLayers(TrudeLayer[] layers, Document doc, WallType existingWallType = null)
         {
             WallType defaultType = null;
             if (!(existingWallType is null)) defaultType = existingWallType;
 
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(WallType));
-            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType) wallType).Kind == WallKind.Basic) as WallType;
-            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType) wallType).Kind == WallKind.Stacked) as WallType;
+            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType)wallType).Kind == WallKind.Basic) as WallType;
+            if (defaultType is null) defaultType = collector.Where(wallType => ((WallType)wallType).Kind == WallKind.Stacked) as WallType;
             if (defaultType is null)
                 foreach (WallType wt in collector.ToElements())
                 {
@@ -572,7 +585,8 @@ namespace TrudeImporter
             try
             {
                 return TypeStore.GetType(layers, defaultType);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return defaultType;
             }
@@ -624,6 +638,36 @@ namespace TrudeImporter
             catch (Exception e)
             {
                 return false;
+            }
+        }
+        public static void HandleWallWarnings(Transaction trans)
+        {
+            FailureHandlingOptions options = trans.GetFailureHandlingOptions();
+            WallsPreProcessor preproccessor = new WallsPreProcessor();
+            options.SetClearAfterRollback(true);
+            options.SetFailuresPreprocessor(preproccessor);
+            trans.SetFailureHandlingOptions(options);
+        }
+
+        class WallsPreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+                foreach (FailureMessageAccessor fma in fmas)
+                {
+                    if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
+                    {
+                        GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
+                        failuresAccessor.ResolveFailure(fma);
+
+                        return FailureProcessingResult.ProceedWithCommit;
+                    }
+                }
+                return FailureProcessingResult.Continue;
             }
         }
     }
