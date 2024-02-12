@@ -34,7 +34,7 @@ namespace TrudeImporter
             }
 
             String materialName = null;
-            
+
             foreach ( JToken eachMaterial in materials ){
 
                 if ( materialnameWithId == (String)eachMaterial["id"] )
@@ -61,9 +61,9 @@ namespace TrudeImporter
 
             return materialName;
         }
-        
-        
-        
+
+
+
         private static Random random = new Random();
         public static string RandomString(int length=5)
         {
@@ -84,7 +84,7 @@ namespace TrudeImporter
             }
             else
             {
-                return collector.OfClass(targetType).FirstOrDefault<Element>(e => e.Name.Equals(targetName));
+                return collector.OfClass(targetType).FirstOrDefault<Element>(e => e.Name.ToLower().Equals(targetName.ToLower()));
             }
         }
         public static FillPatternElement GetSolidFillPatternElement(Document Document)
