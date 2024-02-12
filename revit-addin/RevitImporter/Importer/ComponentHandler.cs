@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Importer
@@ -27,6 +28,10 @@ namespace TrudeSerializer.Importer
             else if (element is Level)
             {
                 return TrudeLevel.GetSerializedComponent(element);
+            }
+            else if (element is Stairs  || element is Railing)
+            {
+                return TrudeMass.GetSerializedComponent(serializedData, element);
             }
             //else if (TrudeFurniture.IsFurnitureCategory(element))
             //{
