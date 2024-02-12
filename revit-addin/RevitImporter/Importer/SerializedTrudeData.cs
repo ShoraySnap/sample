@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RevitImporter.Components;
+using System;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
 using TrudeSerializer.Types;
@@ -8,28 +9,44 @@ namespace TrudeSerializer.Importer
     internal class SerializedTrudeData
     {
         public object families;
-        public Dictionary<string, TrudeWall> walls;
-        public Dictionary<string, SnaptrudeLevel> levels;
-        public FamilyTypes familyTypes;
+        public ProjectProperties ProjectProperties;
+        public Dictionary<string, TrudeWall> Walls;
+        public TrudeFurnitureObject Furniture;
+
+        public FamilyTypes FamilyTypes;
 
         public SerializedTrudeData()
         {
             this.families = new Object();
-            this.familyTypes = new FamilyTypes();
-            this.walls = new Dictionary<string, TrudeWall>();
-            this.levels = new Dictionary<string, SnaptrudeLevel>();
+            this.FamilyTypes = new FamilyTypes();
+            this.Walls = new Dictionary<string, TrudeWall>();
+            this.Furniture = new TrudeFurnitureObject();
+            this.ProjectProperties = new ProjectProperties();
         }
 
         public void AddWall(TrudeWall wall)
         {
-            if (this.walls.ContainsKey(wall.elementId)) return;
-            this.walls.Add(wall.elementId, wall);
+            if (this.Walls.ContainsKey(wall.elementId)) return;
+            this.Walls.Add(wall.elementId, wall);
         }
 
-        public void AddLevel(SnaptrudeLevel level)
+        public void AddLevel(TrudeLevel level)
         {
-            if (this.levels.ContainsKey(level.elementId)) return;
-            this.levels.Add(level.elementId, level);
+            ProjectProperties.AddLevel(level);
+        }
+
+        public void SetProjectUnit(string unit)
+        {
+            ProjectProperties.SetProjectUnit(unit);
+        }
+
+        public void AddFurnitureFamily(string familyName, TrudeFurniture family)
+        {
+            this.Furniture.AddFamily(familyName, family);
+        }
+        public void AddFurnitureInstance(string instanceId, TrudeInstance instance)
+        {
+            this.Furniture.AddInstance(instanceId, instance);
         }
     }
 
@@ -54,8 +71,53 @@ namespace TrudeSerializer.Importer
         }
     }
 
-    //class families
-    //{
-    //    public
-    //}
+    class ProjectProperties
+    {
+        public Dictionary<string, TrudeLevel> levels;
+        public string projectUnit;
+
+        public ProjectProperties()
+        {
+            this.levels = new Dictionary<string, TrudeLevel>();
+        }
+
+        public void AddLevel(TrudeLevel level)
+        {
+            if (this.levels.ContainsKey(level.elementId)) return;
+            this.levels.Add(level.elementId, level);
+        }
+
+        public void SetProjectUnit(string unit)
+        {
+            this.projectUnit = unit;
+        }
+    }
+}
+
+class TrudeFurnitureObject
+{
+    Dictionary<string, TrudeFurniture> families;
+    Dictionary<string, TrudeInstance> instances;
+
+    public TrudeFurnitureObject()
+    {
+        this.families = new Dictionary<string, TrudeFurniture>();
+        this.instances = new Dictionary<string, TrudeInstance>();
+    }
+
+    public bool HasFamily(string familyName)
+    {
+        return this.families.ContainsKey(familyName);
+    }
+
+    public void AddFamily(string familyName, TrudeFurniture family)
+    {
+        if (this.HasFamily(familyName)) return;
+        this.families.Add(familyName, family);
+    }
+
+    public void AddInstance(string instanceId, TrudeInstance instance)
+    { 
+        this.instances.Add(instanceId, instance);
+    }
 }

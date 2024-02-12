@@ -9,6 +9,11 @@
     <Import_RootNamespace>RevitImporter</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Components\InstanceUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFurniture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeGeometry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeMaterial.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeWall.cs" />
@@ -22,6 +27,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Dimensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\TransformObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversion.cs" />
   </ItemGroup>
 </Project>

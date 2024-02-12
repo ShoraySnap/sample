@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using RevitImporter.Components;
 using System;
 using TrudeSerializer.Components;
 
@@ -6,8 +7,6 @@ namespace TrudeSerializer.Importer
 {
     internal class ComponentHandler
     {
-        String[] SUPPORTED_PARAMETRIC = new String[] { "Wall" };
-
         private ComponentHandler() { }
         private static ComponentHandler instance = null;
         public static ComponentHandler Instance
@@ -21,20 +20,22 @@ namespace TrudeSerializer.Importer
                 return instance;
             }
         }
-        public void SetData(SerializedTrudeData importData, Element element)
+        public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
             if (element is Wall)
             {
-                TrudeWall.SetImportData(importData, element);
-                return;
+                return TrudeWall.GetSerializedComponent(serializedData, element);
             }
-            if (element is Level)
+            else if (element is Level)
             {
-                SnaptrudeLevel.SetImportData(importData, element);
-                return;
+                return TrudeLevel.GetSerializedComponent(element);
             }
+            //else if (TrudeFurniture.IsFurnitureCategory(element))
+            //{
+            //    return TrudeFurniture.GetSerializedComponent(serializedData, element);
+            //}
 
-            return;
+            return TrudeComponent.GetDefaultComponent();
         }
     }
 }

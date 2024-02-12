@@ -28,18 +28,13 @@ namespace TrudeSerializer.Types
 
                 Material material = document.GetElement(layer.MaterialId) as Material;
 
-
                 TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material);
 
                 TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 
                 layersData.Add(Snaptrudelayer);
-
-
             }
             return new TrudeWallType(layersData);
         }
-
-
     }
 }

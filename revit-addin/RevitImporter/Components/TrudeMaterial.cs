@@ -47,6 +47,10 @@ namespace TrudeSerializer.Components
 
         public static TrudeMaterial GetMaterial(Material material)
         {
+            if (material == null)
+            {
+                return GetDefaultMaterial();
+            }
             Document document = GlobalVariables.Document;
 
             TrudeMaterial trudeMaterial = new TrudeMaterial();

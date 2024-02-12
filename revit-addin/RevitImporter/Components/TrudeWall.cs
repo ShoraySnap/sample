@@ -6,28 +6,22 @@ using TrudeSerializer.Importer;
 
 namespace TrudeSerializer.Components
 {
-    internal class TrudeWall
+    internal class TrudeWall : TrudeComponent
     {
-        public String elementId;
-        public String level;
-        public String type;
+        public string type;
         public double width;
         public double height;
-        public String family;
-        public Boolean function;
-        public Double[] orientation;
+        public bool function;
+        public double[] orientation;
         public double[][] endpoints;
         public double[][] wallBottomProfile;
-        public Boolean isCurvedWall;
+        public bool isCurvedWall;
 
-        private TrudeWall(string elementId, string levelName, string wallType, double width, double height, string family, bool function, double[] orientation, double[][] endpoints, Boolean isCurvedWall)
+        private TrudeWall(string elementId, string level, string wallType, double width, double height, string family, bool function, double[] orientation, double[][] endpoints, Boolean isCurvedWall) : base(elementId, "Walls", family, level)
         {
-            this.elementId = elementId;
-            this.level = levelName;
             this.type = wallType;
             this.width = width;
             this.height = height;
-            this.family = family;
             this.function = function;
             this.orientation = orientation;
             this.endpoints = endpoints;
@@ -35,31 +29,26 @@ namespace TrudeSerializer.Components
             this.wallBottomProfile = endpoints;
         }
 
-        static public void SetImportData(SerializedTrudeData importData, Element element)
-        {
-            Wall wall = element as Wall;
-            TrudeWall snaptrudeWall = GetImportData(element);
-            importData.AddWall(snaptrudeWall);
-            TrudeWall.SetWallType(importData, wall);
-        }
-
-        static public TrudeWall GetImportData(Element element)
+        static public TrudeWall GetSerializedComponent(SerializedTrudeData importData, Element element)
         {
             Wall wall = element as Wall;
 
-            String elementId = element.Id.ToString();
-            Curve baseLine = getBaseLine(element);
-            String levelName = SnaptrudeLevel.GetLevelName(element);
-            String wallType = element.Name;
+            string elementId = element.Id.ToString();
+            Curve baseLine = GetBaseLine(element);
+            string levelName = TrudeLevel.GetLevelName(element);
+            string wallType = element.Name;
             double width = wall.Width;
-            String family = wall.WallType.FamilyName;
-            Boolean function = wall.WallType.Function == WallFunction.Exterior;
-            Double[] orientation = new Double[] { wall.Orientation.X, wall.Orientation.Z, wall.Orientation.Y };
-            double[][] endpoints = getEndPoints(baseLine);
-            Boolean isCurvedWall = baseLine is Arc;
+            string family = wall.WallType.FamilyName;
+            bool function = wall.WallType.Function == WallFunction.Exterior;
+            double[] orientation = new Double[] { wall.Orientation.X, wall.Orientation.Z, wall.Orientation.Y };
+            double[][] endpoints = GetEndPoints(baseLine);
+            bool isCurvedWall = baseLine is Arc;
             double height = GetWallHeight(element);
+            SetWallType(importData, wall);
 
-            return new TrudeWall(elementId, levelName, wallType, width, height, family, function, orientation, endpoints, isCurvedWall);
+            TrudeWall serializedWall = new TrudeWall(elementId, levelName, wallType, width, height, family, function, orientation, endpoints, isCurvedWall);
+            serializedWall.SetIsParametric();
+            return serializedWall;
         }
         static public double GetWallHeight(Element element)
         {
@@ -67,7 +56,7 @@ namespace TrudeSerializer.Components
             double height = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).AsDouble(), UnitTypeId.Feet);
             return height;
         }
-        static Curve getBaseLine(Element element)
+        static Curve GetBaseLine(Element element)
         {
             Location location = element.Location;
             LocationCurve locationCurve = location as LocationCurve;
@@ -75,7 +64,7 @@ namespace TrudeSerializer.Components
             return curve;
         }
 
-        static double[][] getEndPoints(Curve curve)
+        static double[][] GetEndPoints(Curve curve)
         {
             XYZ startPoint = curve.GetEndPoint(0);
             XYZ endPoint = curve.GetEndPoint(1);
@@ -87,13 +76,25 @@ namespace TrudeSerializer.Components
             return endpoints;
         }
 
+        private void SetIsParametric()
+        {
+            if (this.isCurvedWall)
+            {
+                this.isParametric = false;
+            }
+            else
+            {
+                this.isParametric = true;
+            }
+        }
+
         static public void SetWallType(SerializedTrudeData importData, Wall wall)
         {
-            String name = wall.WallType.Name;
-            if (importData.familyTypes.HasWallType(name)) return;
+            string name = wall.WallType.Name;
+            if (importData.FamilyTypes.HasWallType(name)) return;
 
             TrudeWallType snaptrudeWallType = TrudeWallType.GetLayersData(wall);
-            importData.familyTypes.AddWallType(name, snaptrudeWallType);
+            importData.FamilyTypes.AddWallType(name, snaptrudeWallType);
         }
     }
 }
