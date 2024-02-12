@@ -1,6 +1,4 @@
 ﻿using Autodesk.Revit.DB;
-using RevitImporter.Components;
-using System;
 using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Importer

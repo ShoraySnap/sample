@@ -1,9 +1,6 @@
-﻿using Autodesk.Revit.DB;
-using System;
-using TrudeSerializer.Components;
-using TrudeSerializer.Utils;
+﻿using TrudeSerializer.Utils;
 
-namespace RevitImporter.Components
+namespace TrudeSerializer.Components
 {
     internal class TrudeInstance : TrudeComponent
     {
@@ -12,7 +9,7 @@ namespace RevitImporter.Components
         public string subType;
         public string subCategory;
 
-        public TrudeInstance(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform  ) : base(elementId, "Furniture", family, level)
+        public TrudeInstance(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform) : base(elementId, "Furniture", family, level)
         {
             this.subType = subType;
             this.subCategory = subCategory;
@@ -22,7 +19,7 @@ namespace RevitImporter.Components
         }
     }
 
-    
 
-    
+
+
 }

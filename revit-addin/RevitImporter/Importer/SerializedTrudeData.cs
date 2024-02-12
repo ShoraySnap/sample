@@ -1,5 +1,4 @@
-﻿using RevitImporter.Components;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
 using TrudeSerializer.Types;
@@ -117,7 +116,7 @@ class TrudeFurnitureObject
     }
 
     public void AddInstance(string instanceId, TrudeInstance instance)
-    { 
+    {
         this.instances.Add(instanceId, instance);
     }
 }

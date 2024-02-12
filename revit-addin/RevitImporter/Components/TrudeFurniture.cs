@@ -1,9 +1,7 @@
 ﻿using Autodesk.Revit.DB;
-using RevitImporter.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Media.Media3D;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
 
@@ -74,7 +72,7 @@ namespace TrudeSerializer.Components
 
             bool hasParentElement = HasParentElement(element);
             string[] subComponents = GetSubComponentIds(element);
-           
+
 
             string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
 
