@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Importer
 {
@@ -11,6 +12,7 @@ namespace TrudeSerializer.Importer
 
         public FamilyElement()
         {
+            this.materials = new List<String>();
         }
         public FamilyElement(String name, String category)
         {
@@ -32,6 +34,14 @@ namespace TrudeSerializer.Importer
         public bool HasMaterial(String subMaterialId)
         {
             return this.materials.Contains(subMaterialId);
+        }
+
+        public static FamilyElement SetCurrentFamilyElement(TrudeComponent component)
+        {
+            FamilyElement familyElement = new FamilyElement();
+            familyElement.AddName(component.elementId);
+            familyElement.AddCategory(component.category);
+            return familyElement;
         }
     }
 }

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
-
+using TrudeSerializer.Components;
 
 namespace TrudeSerializer
 {
@@ -15,6 +15,7 @@ namespace TrudeSerializer
         private String currentMaterialId;
         private FamilyElement currentFamilyElement;
         public SerializedTrudeData serializedSnaptrudeData;
+        private TrudeComponent currentComponent;
 
         public SerializedTrudeData GetExportData()
         {
@@ -39,11 +40,12 @@ namespace TrudeSerializer
             this.familyData = new Object();
             this.creationData = new Object();
             this.serializedSnaptrudeData = new SerializedTrudeData();
-            this.currentFamilyElement = new FamilyElement("", "");
         }
 
         bool IExportContext.Start()
         {
+            Units units = doc.GetUnits();
+
             return true;
         }
         void IExportContext.Finish()
@@ -80,8 +82,35 @@ namespace TrudeSerializer
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
             Element element = doc.GetElement(elementId);
-            ComponentHandler.Instance.SetData(serializedSnaptrudeData, element);
+            TrudeComponent component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
+            if (component.elementId == "-1")
+            {
+                return RenderNodeAction.Skip;
+            }
+
+            AddComponentToSerializedData(component);
+            currentComponent = component;
+
+            if (component.IsParametric())
+            {
+                return RenderNodeAction.Skip;
+            }
+
+            this.currentFamilyElement = FamilyElement.SetCurrentFamilyElement(component);
+
             return RenderNodeAction.Proceed;
+        }
+
+        void AddComponentToSerializedData(TrudeComponent component)
+        {
+            if (component is TrudeWall)
+            {
+                serializedSnaptrudeData.AddWall(component as TrudeWall);
+            }
+            else if (component is TrudeLevel)
+            {
+                serializedSnaptrudeData.AddLevel(component as TrudeLevel);
+            }
         }
 
         void IExportContext.OnElementEnd(ElementId elementId)
@@ -124,30 +153,41 @@ namespace TrudeSerializer
         {
             String materialId = node.MaterialId.ToString();
             this.currentMaterialId = materialId;
-            String name = this.currentFamilyElement.name;
-            String category = this.currentFamilyElement.category;
 
-            if (!this.currentFamilyElement.HasMaterial(materialId))
-            {
-                Element material = doc.GetElement(node.MaterialId);
+            if (this.currentFamilyElement.HasMaterial(materialId)) return;
 
-                if (material != null && material.IsValidObject)
-                {
-                }
-                else
-                {
-                    Color nodeColor = node.Color;
-                }
-            }
+            Element material = doc.GetElement(node.MaterialId);
+
+            TrudeMaterial trudeMaterial = TrudeMaterial.GetMaterial(material as Material);
+            currentComponent.SetMaterial(currentMaterialId, trudeMaterial);
 
             return;
         }
 
         void IExportContext.OnPolymesh(PolymeshTopology node)
         {
-            String name = this.currentFamilyElement.name;
-            String category = this.currentFamilyElement.category;
             String materialId = this.currentMaterialId;
+
+            long size = currentComponent.geometries[materialId].Vertices.Count;
+
+            for (int i = 0; i < node.NumberOfPoints; i++)
+            {
+                XYZ vertex = node.GetPoint(i);
+                XYZ transformedPoint = CurrentTransform.OfPoint(vertex);
+                currentComponent.SetVertices(materialId, transformedPoint.X, transformedPoint.Z, transformedPoint.Y);
+            }
+
+            for (int i = 0; i < node.NumberOfFacets; i++)
+            {
+                PolymeshFacet triangle = node.GetFacet(i);
+                currentComponent.SetFaces(materialId, triangle.V1 + size, triangle.V2 + size, triangle.V3 + size);
+            }
+
+            for (int i = 0; i < node.NumberOfUVs; i++)
+            {
+                UV uv = node.GetUV(i);
+                currentComponent.SetUVs(materialId, uv.U, uv.V);
+            }
 
             return;
         }
