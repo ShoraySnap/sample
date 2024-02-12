@@ -131,7 +131,11 @@ namespace SnaptrudeManagerAddin
             {
                 try
                 {
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                     ElementId id = new ElementId((int)elementId);
+#else
+                    ElementId id = new ElementId((Int64)elementId);
+#endif
                     Element element = GlobalVariables.Document.GetElement(id);
                     if (!element.GroupId.Equals(ElementId.InvalidElementId))
                         TrudeImporterMain.deleteIfInGroup(element);
@@ -159,7 +163,11 @@ namespace SnaptrudeManagerAddin
                     {
                         try
                         {
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                             ElementId id = new ElementId((int)elementId);
+#else
+                            ElementId id = new ElementId((Int64)elementId);
+#endif
                             GlobalVariables.Document.Delete(id);
                         }
                         catch (Exception e)

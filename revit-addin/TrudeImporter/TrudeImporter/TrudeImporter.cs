@@ -14,10 +14,11 @@ namespace TrudeImporter
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+#if REVIT2019 || REVIT2020|| REVIT2021
                 ImportFloors(trudeProperties.Ceilings);
-            else
+#else
                 ImportCeilings(trudeProperties.Ceilings);
+#endif
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
@@ -510,7 +511,11 @@ namespace TrudeImporter
                 return;
             if (elementId != null)
             {
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                 ElementId id = new ElementId((int)elementId);
+#else
+                ElementId id = new ElementId((Int64)elementId);
+#endif
                 Element element = GlobalVariables.Document.GetElement(id);
                 if (element != null)
                 {

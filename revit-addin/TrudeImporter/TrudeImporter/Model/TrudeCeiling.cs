@@ -187,8 +187,10 @@ namespace TrudeImporter
             try
             {
                 var ceilingType = TypeStore.GetType(Layers, Doc, defaultCeilingType);
+#if !(REVIT2019 || REVIT2020 || REVIT2021)
                 ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, ceilingType.Id ?? ElementId.InvalidElementId, levelId);
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(height);
+#endif
             }
             catch
             {

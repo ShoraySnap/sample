@@ -186,6 +186,7 @@ namespace TrudeImporter
         private void CreateFloor(ElementId levelId, bool depricated = false)
         {
             CurveArray profile = getProfile(faceVertices);
+            CurveLoop profileLoop = Utils.GetProfileLoop(verticesInLevelElevation);
             FloorType floorType = existingFloorType;
 
             var Doc = GlobalVariables.Document;
@@ -200,11 +201,21 @@ namespace TrudeImporter
             {
                 //throws exception 
                 var newFloorType = TypeStore.GetType(Layers, Doc, floorType);
+#if REVIT2019 || REVIT2020 || REVIT2021
                 floor = Doc.Create.NewFloor(profile, newFloorType, Doc.GetElement(levelId) as Level, false);
+#else
+                IList<CurveLoop> curveLoops = new List<CurveLoop> { profileLoop };
+                floor = Floor.Create(Doc, curveLoops, newFloorType.Id, levelId);
+#endif          
             }
             catch
             {
+#if REVIT2019 || REVIT2020 || REVIT2021
                 floor = Doc.Create.NewFloor(profile, floorType, Doc.GetElement(levelId) as Level, false);
+#else
+                IList<CurveLoop> curveLoops = new List<CurveLoop> { profileLoop };
+                floor = Floor.Create(Doc, curveLoops, floorType.Id, levelId);
+#endif
             }
 
             // Rotate and move the slab

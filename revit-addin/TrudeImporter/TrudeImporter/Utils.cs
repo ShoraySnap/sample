@@ -106,5 +106,28 @@ namespace TrudeImporter
 
             return collector.OfClass(targetType).ToList<Element>();
         }
+        public static CurveLoop GetProfileLoop(List<XYZ> vertices)
+        {
+            CurveLoop curves = new CurveLoop();
+
+            for (int i = 0; i < vertices.Count(); i++)
+            {
+                int currentIndex = i.Mod(vertices.Count());
+                int nextIndex = (i + 1).Mod(vertices.Count());
+
+                XYZ pt1 = vertices[currentIndex];
+                XYZ pt2 = vertices[nextIndex];
+
+                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
+                {
+                    i++;
+                    if (i > vertices.Count() + 3) break;
+                    nextIndex = (i + 1).Mod(vertices.Count());
+                    pt2 = vertices[nextIndex];
+                }
+                curves.Append(Line.CreateBound(pt1, pt2));
+            }
+            return curves;
+        }
     }
 }
