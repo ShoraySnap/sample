@@ -174,7 +174,10 @@ namespace TrudeImporter
 
         private void CreateCeiling(ElementId levelId, bool depricated = false)
         {
-            CurveLoop profile = getProfileLoop(faceVertices);
+            double levelElevation = (GlobalVariables.Document.GetElement(levelId) as Level).Elevation;
+            height = faceVertices[0].Z - levelElevation;
+            List<XYZ> verticesInLevelElevation = faceVertices.Select(v => new XYZ(v.X, v.Y, levelElevation)).ToList();
+            CurveLoop profile = getProfileLoop(verticesInLevelElevation);
             CeilingType defaultCeilingType = null;
             var Doc = GlobalVariables.Document;
 
