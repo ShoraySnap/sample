@@ -184,7 +184,7 @@ namespace TrudeImporter
             if (existingCeilingTypeId is null)
             {
                 FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(CeilingType));
-                defaultCeilingType = collector.Where(type => ((CeilingType)type).FamilyName == "Compound Ceiling" && ((CeilingType)type).Name == "Plain").First() as CeilingType;
+                defaultCeilingType = collector.Where(type => ((CeilingType)type).FamilyName == "Compound Ceiling").FirstOrDefault() as CeilingType;
             }
 
             try
