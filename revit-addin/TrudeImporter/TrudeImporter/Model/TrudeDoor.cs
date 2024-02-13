@@ -43,7 +43,7 @@ namespace TrudeImporter
                 {
                     if (doorProps.RevitFamilyName == null)
                     {
-                        var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
+                        var family = FamilyLoader.LoadCustomFamily(doorFamilyName, FamilyLoader.FamilyFolder.Doors);
                         if (family is null)
                         {
                             System.Diagnostics.Debug.WriteLine("couln't find door family: "+ doorFamilyName);

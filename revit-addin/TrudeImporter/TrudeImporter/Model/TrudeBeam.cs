@@ -96,8 +96,7 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
-                    string defaultRfaPath = $"{baseDir}/resourceFile/beams/rectangular_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "rectangular_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("rectangular_beam", FamilyLoader.FamilyFolder.Beams);
                     
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
@@ -109,8 +108,8 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
-                    string defaultRfaPath = $"{baseDir}resourceFile/beams/l_shaped_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "l_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("l_shaped_beam", FamilyLoader.FamilyFolder.Beams);
+
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -122,9 +121,8 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
-
-                    string defaultRfaPath = $"{baseDir}resourceFile/beams/i_shaped_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "i_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("i_shaped_beam", FamilyLoader.FamilyFolder.Beams);
+                    
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "i_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -137,8 +135,8 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
-                    string defaultRfaPath = $"{baseDir}resourceFile/beams/c_shaped_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "c_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("c_shaped_beam", FamilyLoader.FamilyFolder.Beams);
+                    
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 

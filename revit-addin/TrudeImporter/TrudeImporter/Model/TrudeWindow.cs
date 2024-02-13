@@ -48,7 +48,7 @@ namespace TrudeImporter
                 {
                     if (windowProps.RevitFamilyName is null)
                     {
-                        var family = FamilyLoader.LoadCustomWindowFamily(doorFamilyName);
+                        var family = FamilyLoader.LoadCustomFamily(doorFamilyName, FamilyLoader.FamilyFolder.Windows);
                         if (family is null)
                         {
                             System.Diagnostics.Debug.WriteLine("couln't find window family");
