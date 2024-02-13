@@ -60,6 +60,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Icons\logo16.png" />
+	  <None Remove="Icons\logo24.png" />
+	  <None Remove="Icons\logo32.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Icons\logo16.png" />
+	  <EmbeddedResource Include="Icons\logo24.png" />
+	  <EmbeddedResource Include="Icons\logo32.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="PresentationCore" />
 		<Reference Include="PresentationFramework" />
 		<Reference Include="System" />
