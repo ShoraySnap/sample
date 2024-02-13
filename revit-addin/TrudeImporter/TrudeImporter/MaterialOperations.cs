@@ -49,7 +49,7 @@ namespace MaterialOperations
                 {
                     Asset editableAsset = editScope.Start(
                       newAppearanceAsset.Id);
-                    SetTransparency(editableAsset, alpha);
+                    SetTransparency(editableAsset, 1-alpha);
                     AssetProperty assetProperty = editableAsset
                       .FindByName("generic_diffuse");
                     Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
@@ -90,7 +90,7 @@ namespace MaterialOperations
                     }
                 }
                 newmat.UseRenderAppearanceForShading = true;
-                newmat.Transparency = (int)alpha*100;
+                newmat.Transparency = (1-(int)alpha)*100;
                 newmat.MaterialClass = "Snaptrude";
                 return newmat;
             }
@@ -100,10 +100,10 @@ namespace MaterialOperations
             }
         }
 
-        private static void SetTransparency(Asset editableAsset, double alpha)
+        private static void SetTransparency(Asset editableAsset, double transparency)
         {
             AssetPropertyDouble genericTransparency = editableAsset.FindByName("generic_transparency") as AssetPropertyDouble;
-            genericTransparency.Value = Convert.ToDouble(alpha);
+            genericTransparency.Value = Convert.ToDouble(transparency);
         }
 
     }

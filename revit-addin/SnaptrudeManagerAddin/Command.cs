@@ -34,11 +34,17 @@ namespace SnaptrudeManagerAddin
             try
             {
                 bool status = false;
-                using (Transaction t = new Transaction(doc, "Parse Trude"))
+                using (TransactionGroup tg = new TransactionGroup(doc, "Parse Trude"))
                 {
-                    t.Start();
-                    status = ParseTrude();
-                    t.Commit();
+                    tg.Start();
+                    using (Transaction t = new Transaction(doc, "Parse Trude"))
+                    {
+                        GlobalVariables.Transaction = t;
+                        t.Start();
+                        status = ParseTrude();
+                        t.Commit();
+                    }
+                    tg.Assimilate();
                 }
 
                 if (status) ShowSuccessDialogue();

@@ -28,7 +28,8 @@ namespace TrudeImporter
         private static void ImportStories(List<StoreyProperties> propsList)
         {
             if (propsList == null) return;
-            var storiesToCreate = new List<StoreyProperties>();
+            var storiesWithMatchingLevelIds = new List<(TrudeStorey Storey, Level Level)>();
+            var storiesToCreate = new List<TrudeStorey>();
             var levelsToCheckElevation = new List<Level>();
             var levelsToDelete = new List<Level>();
 
@@ -43,11 +44,15 @@ namespace TrudeImporter
                 var existingLevelNames = existingLevels.Select(level => level.Name);
                 var storeyNames = new List<string>();
 
-                foreach (var storey in propsList)
+                foreach (var storeyProperties in propsList)
                 {
-                    var storeyName = (string.IsNullOrEmpty(storey.Name) ? ((storey.LevelNumber > 0) ? (storey.LevelNumber - 1).ToString() : storey.LevelNumber.ToString()) : storey.Name);
-                    storeyNames.Add(storeyName);
-                    if (!existingLevelNames.Contains(storeyName)) storiesToCreate.Add(storey);
+                    TrudeStorey storey = new TrudeStorey(storeyProperties);
+                    storeyNames.Add(storey.RevitName);
+                    var levelWithSameId = existingLevels.FirstOrDefault(l => l.Id.IntegerValue == storeyProperties.LowerLevelElementId);
+                    if (!levelWithSameId.IsNull())
+                        storiesWithMatchingLevelIds.Add((storey, levelWithSameId));
+                    else
+                        if (!existingLevelNames.Contains(storey.RevitName)) storiesToCreate.Add(storey);
                 }
 
                 foreach (var level in existingLevels)
@@ -65,16 +70,19 @@ namespace TrudeImporter
                     {
                         using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                         {
+                            TrudeStorey firstStorey = storiesToCreate.Any() ? storiesToCreate[0] : storiesWithMatchingLevelIds[0].Storey;
                             t.Start();
-
-                            var storeyName = (string.IsNullOrEmpty(storiesToCreate[0].Name) ? ((storiesToCreate[0].LevelNumber > 0) ? (storiesToCreate[0].LevelNumber - 1).ToString() : storiesToCreate[0].LevelNumber.ToString()) : storiesToCreate[0].Name);
-                            levelAssociatedWithActiveView.Name = storeyName;
-                            levelAssociatedWithActiveView.Elevation = storiesToCreate[0].Elevation;
-                            GlobalVariables.LevelIdByNumber.Add(storiesToCreate[0].LevelNumber, levelAssociatedWithActiveView.Id);
+                            
+                            levelAssociatedWithActiveView.Name = firstStorey.RevitName;
+                            levelAssociatedWithActiveView.Elevation = firstStorey.Elevation;
+                            GlobalVariables.LevelIdByNumber.Add(firstStorey.LevelNumber, levelAssociatedWithActiveView.Id);
 
                             t.Commit();
-                            storiesToCreate = storiesToCreate.Skip(1).ToList();
-                            levelsToDelete = levelsToDelete.Where(l => l.Name != storeyName).ToList();
+                            if (storiesToCreate.Any())
+                                storiesToCreate = storiesToCreate.Skip(1).ToList();
+                            else
+                                storiesWithMatchingLevelIds = storiesWithMatchingLevelIds.Skip(1).ToList();
+                            levelsToDelete = levelsToDelete.Where(l => l.Name != firstStorey.RevitName).ToList();
                         }
                     }
                 }
@@ -109,18 +117,8 @@ namespace TrudeImporter
                 }
             }
 
-            foreach (StoreyProperties props in storiesToCreate)
+            foreach (TrudeStorey newStorey in storiesToCreate)
             {
-                TrudeStorey newStorey = new TrudeStorey(props);
-
-                if (!GlobalVariables.ForForge && !props.LowerLevelElementId.IsNull())
-                {
-                    ElementId elementId = new ElementId((BuiltInParameter)props.LowerLevelElementId);
-                    GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, elementId);
-
-                    continue;
-                }
-
                 try
                 {
 
@@ -148,10 +146,18 @@ namespace TrudeImporter
                 {
                     t.Start();
 
+                    foreach (var matchById in storiesWithMatchingLevelIds)
+                    {
+                        matchById.Level.Name = matchById.Storey.RevitName;
+                        matchById.Level.Elevation = matchById.Storey.Elevation;
+                    }
+
                     foreach (var level in levelsToCheckElevation)
                     {
-                        double storeyElevation = propsList.First(props => level.Name == (props.LevelNumber - 1).ToString()).Elevation;
-                        if (storeyElevation != level.Elevation) level.Elevation = storeyElevation;
+                        StoreyProperties matchProp = propsList.First(prop => level.Name == prop.Name || level.Name == (prop.LevelNumber - 1).ToString());
+                        if (!GlobalVariables.LevelIdByNumber.ContainsKey(matchProp.LevelNumber))
+                            GlobalVariables.LevelIdByNumber.Add(matchProp.LevelNumber, level.Id);
+                        if (matchProp.Elevation != level.Elevation) level.Elevation = matchProp.Elevation;
                     }
                     if (levelsToDelete.Any()) GlobalVariables.Document.Delete(levelsToDelete.Select(level => level.Id).ToList());
 
@@ -171,6 +177,9 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
+            GlobalVariables.Transaction.Start();
+            TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
@@ -194,7 +203,7 @@ namespace TrudeImporter
                         }
                         else
                         {
-                            TrudeWall trudeWall = new TrudeWall(props);
+                            TrudeWall trudeWall = new TrudeWall(props, false);
                         }
                         deleteOld(props.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
@@ -210,47 +219,56 @@ namespace TrudeImporter
                 }
             }
 
+            GlobalVariables.Transaction.Commit();
+
+            GlobalVariables.Transaction.Start();
+            foreach (var wallIdToRecreate in GlobalVariables.WallElementIdsToRecreate)
+            {
+                int matchUniqueId = GlobalVariables.UniqueIdToElementId.First(x => x.Value == wallIdToRecreate).Key;
+                WallProperties props = propsList.First(p => matchUniqueId == p.UniqueId);
+                TrudeWall trudeWall = new TrudeWall(props, true);
+            }
+            GlobalVariables.Transaction.Commit();
+
             TrudeWall.TypeStore.Clear();
             LogTrace("Finished Walls");
+            GlobalVariables.Transaction.Start(); // Temporary start before complete refactor of transactions
         }
 
         private static void ImportBeams(List<BeamProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit();
+
             foreach (var beam in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-
-                    try
+                    GlobalVariables.Transaction.Start();
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        beam.MaterialName,
+                        beam.FaceMaterialIds,
+                        beam.AllFaceVertices
+                    );
+                    if (beam.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            beam.MaterialName,
-                            beam.FaceMaterialIds,
-                            beam.AllFaceVertices
-                        );
-                        if (beam.AllFaceVertices != null)
-                        {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_StructuralFraming);
-                        }
-                        else
-                        {
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_StructuralFraming);
+                    }
+                    else
+                    {
                             new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
-                        }
+                    }
 
-                        deleteOld(beam.ExistingElementId);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    deleteOld(beam.ExistingElementId);
+                    GlobalVariables.Transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    GlobalVariables.Transaction.RollBack();
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
+
+            GlobalVariables.Transaction.Start();
         }
 
         private static void ImportColumns(List<ColumnProperties> propsList)
