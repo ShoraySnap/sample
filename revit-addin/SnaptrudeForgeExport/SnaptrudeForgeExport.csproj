@@ -1,78 +1,97 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0A89A8DD-10C0-40D0-8225-12CAE6DF19B2}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SnaptrudeForgeExport</RootNamespace>
-    <AssemblyName>SnaptrudeForgeExport</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="DesignAutomationBridge, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Autodesk.Forge.DesignAutomation.Revit.2023.0.2\lib\net48\DesignAutomationBridge.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="RevitAPI">
-      <HintPath>lib\RevitAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Drawing.Common.7.0.0\lib\net462\System.Drawing.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsBase.4.6.1055.0\lib\WindowsBase.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Command.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="..\TrudeImporter\TrudeImporter.projitems" Label="Shared" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<OutputType>Library</OutputType>
+		<Configurations>2019;2020;2021;2022;2023;2024</Configurations>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ProjectGuid>{0A89A8DD-10C0-40D0-8225-12CAE6DF19B2}</ProjectGuid>
+		<RootNamespace>SnaptrudeManagerAddin</RootNamespace>
+		<AssemblyName>SnaptrudeManagerAddin</AssemblyName>
+	</PropertyGroup>
+
+	<Choose>
+		<When Condition="$(Configuration.Contains('2019'))">
+			<PropertyGroup>
+				<RevitVersion>2019</RevitVersion>
+				<TargetFramework>net47</TargetFramework>
+			</PropertyGroup>
+		</When>
+		<When Condition="$(Configuration.Contains('2020'))">
+			<PropertyGroup>
+				<RevitVersion>2020</RevitVersion>
+				<TargetFramework>net47</TargetFramework>
+			</PropertyGroup>
+		</When>
+		<When Condition="$(Configuration.Contains('2021'))">
+			<PropertyGroup>
+				<RevitVersion>2021</RevitVersion>
+				<TargetFramework>net48</TargetFramework>
+			</PropertyGroup>
+		</When>
+		<When Condition="$(Configuration.Contains('2022'))">
+			<PropertyGroup>
+				<RevitVersion>2022</RevitVersion>
+				<TargetFramework>net48</TargetFramework>
+			</PropertyGroup>
+		</When>
+		<When Condition="$(Configuration.Contains('2023'))">
+			<PropertyGroup>
+				<RevitVersion>2023</RevitVersion>
+				<TargetFramework>net48</TargetFramework>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<RevitVersion>2024</RevitVersion>
+				<TargetFramework>net48</TargetFramework>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<ItemGroup>
+	  <Compile Remove="assets\**" />
+	  <Compile Remove="lib\**" />
+	  <EmbeddedResource Remove="assets\**" />
+	  <EmbeddedResource Remove="lib\**" />
+	  <None Remove="assets\**" />
+	  <None Remove="lib\**" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<Reference Include="PresentationCore" />
+		<Reference Include="PresentationFramework" />
+		<Reference Include="System" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Drawing" />
+		<Reference Include="System.Windows.Forms" />
+		<Reference Include="System.Xaml" />
+		<Reference Include="System.Xml" />
+		<Reference Include="WindowsBase" />
+		<Reference Include="RevitAPI" />
+		<Reference Include="DesignAutomationBridge" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
+		<PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
+	</ItemGroup>
+
+	<Target Name="CleanRevitAddin" BeforeTargets="CoreClean">
+		<Message Text="Clean Revit Addin Files" Importance="high" />
+	</Target>
+
+	<Import Project="..\TrudeImporter\TrudeImporter.projitems" Label="Shared" />
+
+	<PropertyGroup>
+		<Optimize>False</Optimize>
+		<DebugSymbols>true</DebugSymbols>
+		<OutputPath>bin\Debug\Forge$(RevitVersion)\</OutputPath>
+		<DefineConstants>DEBUG;TRACE;REVIT$(RevitVersion)</DefineConstants>
+		<DebugType>Full</DebugType>
+	</PropertyGroup>
+
 </Project>

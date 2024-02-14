@@ -297,7 +297,12 @@ namespace TrudeImporter
                                 Element element = GlobalVariables.Document.GetElement(wallProps.SourceElementId);
                                 if (element != null)
                                 {
-                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(wallProps.SourceElementId)));
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                                    ElementId sourceElementId = new ElementId(int.Parse(wallProps.SourceElementId));
+#else
+                                    ElementId sourceElementId = new ElementId(Int64.Parse(wallProps.SourceElementId));
+#endif
+                                    GlobalVariables.Document.Delete(sourceElementId);
                                 }
                             }
 
