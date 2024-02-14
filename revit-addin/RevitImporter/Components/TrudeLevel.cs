@@ -18,6 +18,7 @@ namespace TrudeSerializer.Components
         public static string GetLevelName(Element element)
         {
             Element level = GlobalVariables.Document.GetElement(element.LevelId);
+            if (level == null) return "Level 1";
             return level.Name;
         }
 

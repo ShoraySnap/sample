@@ -25,7 +25,7 @@ namespace TrudeSerializer.Components
         static public TrudeMass GetSerializedComponent(SerializedTrudeData importData, Element element)
         {
             string elementId = element.Id.ToString();
-            string family = element.ElementType.FamilyName;
+            string family = InstanceUtility.GetFamily(element);
             string levelName = TrudeLevel.GetLevelName(element);
 
             string subCategory = element.GetType().Name;
