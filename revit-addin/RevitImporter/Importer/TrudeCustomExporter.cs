@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Components;
+using RevitImporter.Components;
 
 namespace TrudeSerializer
 {
@@ -110,6 +111,10 @@ namespace TrudeSerializer
             else if (component is TrudeLevel)
             {
                 serializedSnaptrudeData.AddLevel(component as TrudeLevel);
+            }
+            else if(component is TrudeFloor)
+            {
+                serializedSnaptrudeData.AddFloor(component as TrudeFloor);
             }
         }
 

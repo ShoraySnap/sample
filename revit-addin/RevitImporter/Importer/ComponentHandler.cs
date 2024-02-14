@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using RevitImporter.Components;
 using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Importer
@@ -27,6 +28,10 @@ namespace TrudeSerializer.Importer
             else if (element is Level)
             {
                 return TrudeLevel.GetSerializedComponent(element);
+            }
+            else if(element is Floor)
+            {
+                return TrudeFloor.GetSerializedComponent(serializedData, element);
             }
             //else if (TrudeFurniture.IsFurnitureCategory(element))
             //{
