@@ -172,7 +172,7 @@ namespace TrudeSerializer
         {
             String materialId = this.currentMaterialId;
 
-            long size = currentComponent.geometries[materialId].Vertices.Count;
+            long size = currentComponent.geometries[materialId].Vertices.Count / 3;
 
             for (int i = 0; i < node.NumberOfPoints; i++)
             {

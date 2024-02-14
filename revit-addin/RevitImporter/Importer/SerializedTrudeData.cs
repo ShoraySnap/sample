@@ -13,7 +13,7 @@ namespace TrudeSerializer.Importer
         public ProjectProperties ProjectProperties;
         public Dictionary<string, TrudeWall> Walls;
         public TrudeFurnitureObject Furniture;
-        public Dictionary<string, TrudeMass> Masses;
+        public Dictionary<string, TrudeMass> masses;
 
         public FamilyTypes FamilyTypes;
 
@@ -23,7 +23,7 @@ namespace TrudeSerializer.Importer
             this.FamilyTypes = new FamilyTypes();
             this.Walls = new Dictionary<string, TrudeWall>();
             this.Furniture = new TrudeFurnitureObject();
-            this.Masses = new Dictionary<string, TrudeMass>();
+            this.masses = new Dictionary<string, TrudeMass>();
             this.ProjectProperties = new ProjectProperties();
         }
 
@@ -35,8 +35,8 @@ namespace TrudeSerializer.Importer
 
         public void AddMass(TrudeMass mass)
         {
-            if (this.Masses.ContainsKey(mass.elementId)) return;
-            this.Masses.Add(mass.elementId, mass);
+            if (this.masses.ContainsKey(mass.elementId)) return;
+            this.masses.Add(mass.elementId, mass);
         }
 
         public void AddLevel(TrudeLevel level)
