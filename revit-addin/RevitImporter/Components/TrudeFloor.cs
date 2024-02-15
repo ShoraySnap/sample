@@ -15,20 +15,27 @@ namespace RevitImporter.Components
 {
     internal class TrudeFloor : TrudeComponent
     {
-        public string type;
-        public string subType;
         public Dictionary<string, double[][]> outline;
         public double area;
-        public double[][] voids;
-        private TrudeFloor(string elementId, string level, string family, string type, string subType, bool isInstance, bool isParametric, Dictionary<string, double[][]> outline) : base(elementId, "Floors", family, level)
+        public Dictionary<string, Dictionary<string, double[][]>> voids;
+        public string type;
+        const double FOOT_TO_MM = 304.8;
+
+        public bool createWithGeometry = false;
+        private TrudeFloor(string elementId,
+            string level, string family, string type,
+            bool isInstance, bool isParametric,
+            Dictionary<string,double[][]> outline,
+            Dictionary<string, Dictionary<string, double[][]>> voids
+            ) : base(elementId, "Floors", family, level)
         {
             this.elementId = elementId;
             this.level = level;
             this.family = family;
             this.type = type;
-            this.subType = subType; 
             this.isInstance = isInstance;
             this.isParametric = isParametric;
+            this.voids = voids;
 
             this.outline = outline;
         }
@@ -46,17 +53,100 @@ namespace RevitImporter.Components
             // TODO: IsInstance
             // TODO: isParametric
 
-            var outline = GetOutline(element);
-
+            var (outline, voids) = GetOutline(element); 
             SetFloorType(importData, floor);
-            TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, "", false, true, outline);
+            TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, false, true, outline, voids);
             serializedFloor.SetIsParametric();
             return serializedFloor;
         }
 
-        static Dictionary<string, double[][]> GetOutline(Element element)
+        static private List<XYZ> GetPointsListFromCurveLoop(CurveLoop curveLoop, bool voidLoop = false)
         {
-            const double FOOT_TO_MM = 304.8;
+            var itr = curveLoop.GetCurveLoopIterator();
+            List<XYZ> curvePoints = new List<XYZ>();
+            if (!itr.IsValidObject) return curvePoints;
+            while (itr.MoveNext()) {
+                var curve = itr.Current;
+                if (curve is Arc || curve is NurbSpline)
+                {
+                    var points = curve.Tessellate();
+                    foreach (var p in points)
+                    {
+                        var pconv = p.Multiply(FOOT_TO_MM);
+                        curvePoints.Add(pconv);
+                    }
+                }
+                else if (curve is Line)
+                {
+                    var endPoint = curve.GetEndPoint(0);
+                    curvePoints.Add(endPoint);
+                }
+                else
+                {
+                }
+            }
+
+            return curvePoints;
+        }
+
+        static List<XYZ> GetPointsInProperUnits(List<XYZ> dataList) {
+            var convertedPoints = new List<XYZ>();
+            foreach (var point in dataList)
+            {
+                convertedPoints.Add(point.Multiply(FOOT_TO_MM));
+            }
+
+            return convertedPoints;
+        }
+
+        static private string GetCurveKeyFromPointsList(List<XYZ> curvePoints, string elementID)
+        {
+            if (curvePoints.Count <= 0) return "";
+            StringBuilder keyBuilder = new StringBuilder();
+            keyBuilder.Append("[");
+            foreach(var curvePoint in curvePoints)
+            {
+                keyBuilder.Append("[" + Math.Round(curvePoint.X).ToString() + ", " + Math.Round(curvePoint.Y) + "]");
+                if (curvePoints.IndexOf(curvePoint) != curvePoints.Count - 1) keyBuilder.Append(", ");
+            }
+
+            keyBuilder.Append("]");
+            keyBuilder.Append(elementID);
+            return keyBuilder.ToString();
+        }
+
+        static private double[][] TransformPointsListToDoubleArray(List<XYZ> pointList)
+        {
+            double[][] dataArrays = new double[pointList.Count][];
+            foreach(var point in pointList)
+            {
+                dataArrays[pointList.IndexOf(point)] = new double[] { point.X, point.Y, point.Z };
+            }
+            return dataArrays;
+        }
+
+        static private Dictionary<string, double[][]> GetPointsDataDict(List<string> keys, List<List<XYZ>> values)
+        {
+            if(keys.Count != values.Count)
+            {
+                throw new Exception("Points data invalid!");
+            }
+            var dataDict = new Dictionary<string, double[][]>();
+            List<double[][]> data = new List<double[][]>();
+            foreach(var plist in values)
+            {
+                data.Add(TransformPointsListToDoubleArray(GetPointsInProperUnits(plist)));
+            }
+            for(int i = 0; i < keys.Count; i++)
+            {
+                dataDict.Add(keys[i], data[i]);
+            }
+
+            return dataDict;
+        }
+
+        static (Dictionary<string, double[][]>, Dictionary<string, Dictionary<string, double[][]>>) GetOutline(Element element)
+        {
             var bottomProfileRef = HostObjectUtils.GetBottomFaces(element as HostObject);
 
             var bottomProfile = element.GetGeometryObjectFromReference(bottomProfileRef[0]);
@@ -73,6 +163,10 @@ namespace RevitImporter.Components
 
             List<string> curveKeys = new List<string>();
             List<List<XYZ>> curveData = new List<List<XYZ>>();
+            Dictionary<string, Dictionary<string, double[][]>> outlinesToVoidsMap = new Dictionary<string, Dictionary<string, double[][]>>();
+
+
+            bool isDifferentCurve = false;
             foreach(var geo in geometry)
             {
                 XYZ currentFaceNormal = new XYZ();
@@ -102,79 +196,45 @@ namespace RevitImporter.Components
 
                                 foreach(var sortedLists in sortedLoops)
                                 {
-                                    StringBuilder curveKey = new StringBuilder();
-                                    curveKey.Append("[");
-                                    List<XYZ> curveDataPoint = new List<XYZ>();
-                                    foreach(var curveLoop in sortedLists)
-                                    {
-                                        var itr = curveLoop.GetCurveLoopIterator();
-                                        if(!itr.IsValidObject) continue;
-                                        do
-                                        {
-                                            var curve = itr.Current;
-                                            if (curve is Arc || curve is NurbSpline)
-                                            {
-                                                // is different curve
-                                                var points = curve.Tessellate();
-                                                foreach (var p in points)
-                                                {
-                                                    var pconv = p.Multiply(FOOT_TO_MM);
-                                                    curveDataPoint.Add(pconv);
-                                                    curveKey.Append("[" + p.X + ", " + p.Y + ", " + p.Z + "]");
-                                                }
-
-                                            }
-                                            else if (curve is Line)
-                                            {
-                                                var endPoint = curve.GetEndPoint(0);
-                                                curveDataPoint.Add(endPoint.Multiply(FOOT_TO_MM));
-                                                curveKey.Append("[" + endPoint.X + ", " + endPoint.Y + "]");
-                                            }
-                                            else
-                                            {
-
-                                            }
-                                        } while (itr.MoveNext());
-                                    }
-                                    curveKey.Append("]");
-                                    curveKey.Append(element.Id.ToString());
-                                    curveKeys.Add(curveKey.ToString());
+                                    var curveLoop = sortedLists[0]; // Take the outer curve
+                                    var curveDataPoint = GetPointsListFromCurveLoop(curveLoop);
+                                    var curveKey = GetCurveKeyFromPointsList(curveDataPoint, element.Id.ToString());
+                                    curveKeys.Add(curveKey);
                                     curveData.Add(curveDataPoint);
+                                    var voidKeys = new List<string>();
+                                    var voidData = new List<List<XYZ>>();
+                                    if (sortedLists.Count > 1) // Inner Curves mean voids
+                                    {
+                                        // START FROM 1 means ignore the outer curve
+                                        for (var i = 1; i < sortedLists.Count; i++)
+                                        {
+                                            var voidCurve = sortedLists[i];
+                                            var voidDataPoint = GetPointsListFromCurveLoop(voidCurve);
+                                            voidKeys.Add(GetCurveKeyFromPointsList(voidDataPoint, element.Id.ToString()));
+                                            voidData.Add(voidDataPoint);
+                                        }
+
+                                        var voidsDict = GetPointsDataDict(voidKeys, voidData);
+
+                                        outlinesToVoidsMap.Add(curveKey, voidsDict);
+                                    }
                                 }
+                                
+
+
                             }
                         }
                     }
                 }
             }
 
-            List<string> keys = new List<string>();
-            List<double[][]> data = new List<double[][]>();
-            foreach(var ck in curveKeys)
-            {
-                keys.Add(ck);
-            }
-
-            foreach(var plist in curveData)
-            {
-                double[][] arrofarr = new double[plist.Count][];
-                int idx = 0;
-                foreach(var p in plist)
-                {
-                    double[] arr = new double[3] { p.X, p.Y, p.Z };
-                    arrofarr[idx] = arr;
-                    idx++;
-                }
-
-                data.Add(arrofarr);
-            }
             
-            var dic = new Dictionary<string, double[][]>();
+            var outlineDict = GetPointsDataDict(curveKeys, curveData);
 
-            for(int i = 0; i < keys.Count; i++)
-            {
-                dic.Add(keys[i], data[i]);
-            }
-            return dic;
+            // Process voids
+
+
+            return (outlineDict, outlinesToVoidsMap);
         }
 
 

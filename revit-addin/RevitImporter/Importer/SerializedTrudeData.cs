@@ -84,12 +84,6 @@ namespace TrudeSerializer.Importer
             this.floorTypes.Add(floorTypeName, floorType);
         }
 
-        public void AddFloorType(String floorTypeName, TrudeFloorType floorType)
-        {
-            if (this.HasFloorType(floorTypeName)) return;
-            this.floorTypes.Add(floorTypeName, floorType);
-        }
-
         public void AddWallType(String wallTypeName, TrudeWallType wallType)
         {
             if (this.HasWallType(wallTypeName)) return;
