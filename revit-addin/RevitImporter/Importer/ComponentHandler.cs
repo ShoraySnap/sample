@@ -33,10 +33,10 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeFloor.GetSerializedComponent(serializedData, element);
             }
-            //else if (TrudeFurniture.IsFurnitureCategory(element))
-            //{
-            //    return TrudeFurniture.GetSerializedComponent(serializedData, element);
-            //}
+            else if (TrudeFurniture.IsFurnitureCategory(element))
+            {
+                return TrudeFurniture.GetSerializedComponent(serializedData, element);
+            }
 
             return TrudeComponent.GetDefaultComponent();
         }

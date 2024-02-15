@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
@@ -184,13 +185,23 @@ namespace TrudeSerializer.Components
             {
                 XYZ position = location.Point;
 
-                return new double[] { position.X, position.Z, position.Y };
+                double[] positionPoint = new double[] { position.X, position.Z, position.Y };
+                for (int i = 0; i < 3; i++)
+                {
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+                }
+                return positionPoint;
             }
 
             if (element.Category.Name == "Doors")
             {
                 XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
-                return new double[] { position.X, position.Z, position.Y };
+                double[] positionPoint = new double[] { position.X, position.Z, position.Y };
+                for (int i = 0; i < 3; i++)
+                {
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+                }
+                return positionPoint;
             }
 
             return new double[] { 0, 0, 0 };
@@ -245,8 +256,13 @@ namespace TrudeSerializer.Components
             string category = element.Category?.Name;
             // todo: check and implement for other categories
             
-            XYZ TransformOrigin = (element as FamilyInstance).GetTotalTransform().Origin;
-            return new double[] { TransformOrigin.X, TransformOrigin.Z, TransformOrigin.Y };
+            XYZ transformOrigin = (element as FamilyInstance).GetTotalTransform().Origin;
+            double[] positionPoint = new double[] { transformOrigin.X, transformOrigin.Z, transformOrigin.Y };
+            for (int i = 0; i < 3; i++)
+            {
+                positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+            }
+            return positionPoint; 
         }
     }
 }
