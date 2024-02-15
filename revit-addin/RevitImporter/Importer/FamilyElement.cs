@@ -4,17 +4,18 @@ using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Importer
 {
-    internal class FamilyElement
+    internal class CurrentElement
     {
         public String name;
         public String category;
         public List<String> materials;
+        public TrudeComponent component;
 
-        public FamilyElement()
+        public CurrentElement()
         {
             this.materials = new List<String>();
         }
-        public FamilyElement(String name, String category)
+        public CurrentElement(String name, String category)
         {
             this.name = name;
             this.category = category;
@@ -26,6 +27,11 @@ namespace TrudeSerializer.Importer
             this.name = name;
         }
         public void AddCategory(String category) { this.category = category; }
+
+        public void SetComponent(TrudeComponent component)
+        {
+            this.component = component;
+        }
         public void AddMaterial(String subMaterialId)
         {
             this.materials.Add(subMaterialId);
@@ -36,12 +42,13 @@ namespace TrudeSerializer.Importer
             return this.materials.Contains(subMaterialId);
         }
 
-        public static FamilyElement SetCurrentFamilyElement(TrudeComponent component)
+        public static CurrentElement SetCurrentElement(TrudeComponent component)
         {
-            FamilyElement familyElement = new FamilyElement();
-            familyElement.AddName(component.elementId);
-            familyElement.AddCategory(component.category);
-            return familyElement;
+            CurrentElement currentElement = new CurrentElement();
+            currentElement.SetComponent(component);
+            currentElement.AddName(component.elementId);
+            currentElement.AddCategory(component.category);
+            return currentElement;
         }
     }
 }

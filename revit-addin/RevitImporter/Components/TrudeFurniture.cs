@@ -30,6 +30,7 @@ namespace TrudeSerializer.Components
         "Sprinklers"
         };
 
+        
         public static bool IsFurnitureCategory(Element element)
         {
             string category = element.Category.Name;
@@ -40,13 +41,22 @@ namespace TrudeSerializer.Components
         public TransformObject transform;
         public bool hasParentElement;
         public string[] subComponents;
+        public string subType;
+        public string subCategory;
 
-        public TrudeFurniture(string elementId, string level, string family) : base(elementId, "Furniture", family, level)
+
+        public TrudeFurniture(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, string[] subComponent) : base(elementId, "Furniture", family, level)
         {
+            this.subType = subType;
+            this.subCategory = subCategory;
+            this.dimension = dimension;
+            this.transform = transform;
+            this.subComponents = subComponent;
         }
 
         public static TrudeComponent GetSerializedComponent(SerializedTrudeData serializedData, Element element)
         {
+            ClearCurrentFamily();
             string elementId = element.Id.ToString();
             string level = TrudeLevel.GetLevelName(element);
 
@@ -80,14 +90,17 @@ namespace TrudeSerializer.Components
             TrudeFurniture furniture;
             if (!isFamilyPresent)
             {
-                furniture = new TrudeFurniture(elementId, level, family);
-                //serializedData.Furniture.AddFamily(familyName);
+                furniture = new TrudeFurniture(elementId, level, family, subType, subCategory,  dimension, transform, subComponents);
+                CurrentFamily = furniture;
+                serializedData.Furniture.AddFamily(familyName, furniture);
             }
 
-            TrudeInstance instance = new TrudeInstance(elementId, level, family, subType, subCategory, dimension, transform);
+            TrudeInstance instance = new TrudeInstance(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);
 
-            return new TrudeFurniture(elementId, level, family);
+            return instance;
         }
+
+        
 
         public static bool HasParentElement(Element element)
         {
@@ -103,13 +116,13 @@ namespace TrudeSerializer.Components
                 }
 
                 ElementId assemblySuperComponent = familyInstance.AssemblyInstanceId;
-                if (assemblySuperComponent != null || assemblySuperComponent.ToString() != "-1")
+                if (assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1")
                 {
                     hasParentElement = true;
                 }
 
                 ElementId groupId = familyInstance.GroupId;
-                if (groupId != null || groupId.ToString() != "-1")
+                if (groupId != null && groupId.IntegerValue.ToString() != "-1")
                 {
                     hasParentElement = true;
                 }
