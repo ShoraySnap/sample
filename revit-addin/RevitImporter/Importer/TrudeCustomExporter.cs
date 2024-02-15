@@ -3,13 +3,24 @@ using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Components;
+using Amazon.Runtime.Internal.Transform;
+using System.ComponentModel;
 
 namespace TrudeSerializer
 {
+    class CurrentLink
+    {
+        public string name;
+        public string category;
+    }
     class TrudeCustomExporter : IExportContext
     {
+        private Document primaryDoc;
+        private bool isRevitLink = false;
+        private CurrentLink currentLink;
+        private List<string> revitLinks = new List<string>();
+
         Document doc;
-        Document primaryDoc;
         Stack<Transform> transforms = new Stack<Transform>();
         private object familyData;
         private object creationData;
@@ -37,6 +48,7 @@ namespace TrudeSerializer
         {
             this.doc = doc;
             this.primaryDoc = doc;
+            this.currentLink = new CurrentLink();
             transforms.Push(CurrentTransform);
             this.familyData = new Object();
             this.creationData = new Object();
@@ -73,8 +85,30 @@ namespace TrudeSerializer
         {
             // implement link part
             doc = node.GetDocument();
-            currentFamilyElement.name = doc.Title.Replace(".", "");
+            isRevitLink = true;
+            string name = doc.Title.Replace(".", "");
+            string category = "RVT Links";
+
+            currentLink.name = name;
+            currentLink.category = category;
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
+
+            // check for circular dependency
+            if (revitLinks.Find(revitLink => revitLink == name) == null)
+            {
+                revitLinks.Add(name);
+                serializedSnaptrudeData.RevitLinks.Add(name, new Dictionary<string, TrudeMass>());
+            }
+            else
+            {
+                isRevitLink = false;
+                return RenderNodeAction.Skip;
+            }
+
+            if (isRevitLink)
+            {
+                // initialize serializedSnaptrudeData.revitLinks dictionary if needed
+            }
 
             return RenderNodeAction.Proceed;
         }
@@ -83,19 +117,35 @@ namespace TrudeSerializer
         {
             // implement link part
             doc = primaryDoc;
+            currentLink.name = "";
+            currentLink.category = "";
+            isRevitLink = false;
             transforms.Pop();
         }
 
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
             Element element = doc.GetElement(elementId);
-            TrudeComponent component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
-            if (component.elementId == "-1")
+            TrudeComponent component = null;
+            if (isRevitLink)
             {
-                return RenderNodeAction.Skip;
+                TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
+                if (mass.elementId == "-1")
+                {
+                    return RenderNodeAction.Skip;
+                }
+                serializedSnaptrudeData.RevitLinks[currentLink.name].Add(elementId.ToString(), mass);
+                component = mass;
             }
-
-            AddComponentToSerializedData(component);
+            else
+            {
+                component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
+                if (component.elementId == "-1")
+                {
+                    return RenderNodeAction.Skip;
+                }
+                AddComponentToSerializedData(component);
+            }
 
             if (component.IsParametric())
             {
@@ -111,8 +161,6 @@ namespace TrudeSerializer
             {
                 return RenderNodeAction.Skip;
             }
-
-
 
             this.currentElement.component = familyComponent;
 
@@ -132,10 +180,6 @@ namespace TrudeSerializer
             else if (component is TrudeMass)
             {
                 serializedSnaptrudeData.AddMass(component as TrudeMass);
-            }
-            else if (component is TrudeRevitLink)
-            {
-                serializedSnaptrudeData.AddRevitLink(component as TrudeRevitLink);
             }
             else if(component is TrudeInstance)
             {

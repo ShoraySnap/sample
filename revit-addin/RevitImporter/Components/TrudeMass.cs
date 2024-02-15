@@ -9,7 +9,7 @@ namespace TrudeSerializer.Components
         public string subCategory;
         public double[] center;
 
-        private TrudeMass
+        public TrudeMass
             (
                 string elementId,
                 string family,

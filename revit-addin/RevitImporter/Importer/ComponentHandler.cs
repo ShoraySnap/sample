@@ -29,17 +29,13 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeLevel.GetSerializedComponent(element);
             }
-            else if (element is Stairs  || element is Railing)
-            {
-                return TrudeMass.GetSerializedComponent(serializedData, element);
-            }
-            else if (element is RevitLinkInstance)
-            {
-                return TrudeRevitLink.GetSerializedComponent(serializedData, element);
-            }
             else if (TrudeFurniture.IsFurnitureCategory(element))
             {
                 return TrudeFurniture.GetSerializedComponent(serializedData, element);
+            }
+            else
+            {
+                return TrudeMass.GetSerializedComponent(serializedData, element);
             }
 
             return TrudeComponent.GetDefaultComponent();
