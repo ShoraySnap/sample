@@ -4,36 +4,36 @@ namespace TrudeSerializer.Components
 {
     class TrudeGeometry
     {
-        public List<double> Vertices;
-        public List<long> Faces;
-        public List<double> UVs;
+        public List<double> vertices;
+        public List<long> indices;
+        public List<double> uvs;
         public TrudeMaterial material;
 
         public TrudeGeometry()
         {
-            Vertices = new List<double>();
-            Faces = new List<long>();
-            UVs = new List<double>();
+            vertices = new List<double>();
+            indices = new List<long>();
+            uvs = new List<double>();
         }
 
         public void AddVertices(double x, double y, double z)
         {
-            Vertices.Add(x);
-            Vertices.Add(y);
-            Vertices.Add(z);
+            vertices.Add(x);
+            vertices.Add(y);
+            vertices.Add(z);
         }
 
         public void AddFaces(long a, long b, long c)
         {
-            Faces.Add(a);
-            Faces.Add(b);
-            Faces.Add(c);
+            indices.Add(a);
+            indices.Add(b);
+            indices.Add(c);
         }
 
         public void AddUVs(double u, double v)
         {
-            UVs.Add(u);
-            UVs.Add(v);
+            uvs.Add(u);
+            uvs.Add(v);
         }
 
         public void SetMaterial(TrudeMaterial material)

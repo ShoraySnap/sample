@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
@@ -39,7 +40,10 @@ namespace TrudeSerializer.Components
             {
                 geometries.Add(materialId, new TrudeGeometry());
             }
-            geometries[materialId].AddVertices(x, y, z);
+            double updatedX = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(x);
+            double updatedY = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(y);
+            double updatedZ = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(z);
+            geometries[materialId].AddVertices(updatedX, updatedY, updatedZ);
         }
 
         public void SetFaces(string materialId, long a, long b, long c)
@@ -62,11 +66,18 @@ namespace TrudeSerializer.Components
 
         public void SetMaterial(string materialId, TrudeMaterial material)
         {
+
             if (!geometries.ContainsKey(materialId))
             {
                 geometries.Add(materialId, new TrudeGeometry());
             }
             geometries[materialId].SetMaterial(material);
+        }
+
+        static public TrudeComponent CurrentFamily { get; set; }
+        static public void ClearCurrentFamily()
+        {
+            CurrentFamily = null;
         }
     }
 }
