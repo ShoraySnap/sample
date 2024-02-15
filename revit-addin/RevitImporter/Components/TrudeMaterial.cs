@@ -17,7 +17,7 @@ namespace TrudeSerializer.Components
         public double uOffset;
         public double vOffset;
         public double wAng;
-        public string texturepath;
+        public string texturePath;
 
         private readonly Dictionary<string, double[]> GLASS_COLOR_MAP = new Dictionary<string, double[]>
         {
@@ -159,16 +159,17 @@ namespace TrudeSerializer.Components
 
                 if (!IsValidAssetForDiffuseColor(currentAsset)) continue;
 
-                if (!(currentAsset is AssetPropertyDoubleArray4d)) continue;
-
-                IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
-                if (color == null) continue;
-                diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
-                AssetPropertyDouble alphaProperty = asset.FindByName("generic_transparency") as AssetPropertyDouble;
-                if (alphaProperty != null && alphaProperty.Value != 0)
+               if(currentAsset is AssetPropertyDoubleArray4d)
                 {
-                    double alpha = alphaProperty.Value;
-                    diffuseColor[3] = 1 - alpha;
+                    IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
+                    if (color == null) continue;
+                    diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
+                    AssetPropertyDouble alphaProperty = asset.FindByName("generic_transparency") as AssetPropertyDouble;
+                    if (alphaProperty != null && alphaProperty.Value != 0)
+                    {
+                        double alpha = alphaProperty.Value;
+                        diffuseColor[3] = 1 - alpha;
+                    }
                 }
 
                 if (currentAsset.NumberOfConnectedProperties == 0) continue;
@@ -177,7 +178,7 @@ namespace TrudeSerializer.Components
                 if (!(connectedAssetProperty is Asset) || (connectedAssetProperty as Asset).Size == 0) continue;
 
                 ReadMaterialInformationFromAsset(connectedAssetProperty as Asset);
-                break;
+                //break;
             }
         }
 
@@ -192,7 +193,7 @@ namespace TrudeSerializer.Components
                 return;
 
             String texturePath = connectTextureString.Value;
-            this.texturepath = Path.GetFileName(texturePath);
+            this.texturePath = Path.GetFileName(texturePath);
 
             SetTextureScales(textureAsset);
             SetTextureOffset(textureAsset);
@@ -211,8 +212,8 @@ namespace TrudeSerializer.Components
                 ForgeTypeId uScaleUnit = uScaleProperty.GetUnitTypeId();
                 ForgeTypeId vScaleUnit = vScaleProperty.GetUnitTypeId();
 
-                this.uScale = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(uScaleInRealWorld, uScaleUnit);
-                this.vScale = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(vScaleInRealWorld, vScaleUnit);
+                this.uScale = UnitConversion.ConvertToSnaptrudeUnits(uScaleInRealWorld, uScaleUnit);
+                this.vScale = UnitConversion.ConvertToSnaptrudeUnits(vScaleInRealWorld, vScaleUnit);
 
                 return;
             }

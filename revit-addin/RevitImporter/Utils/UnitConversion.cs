@@ -25,5 +25,36 @@ namespace TrudeSerializer.Utils
             }
             return value;
         }
+
+        public static double ConvertToSnaptrudeUnits(double value, ForgeTypeId unit)
+        {
+            if (unit.Equals(UnitTypeId.Inches))
+            {
+                value /= 10;
+            }
+            else if (unit.Equals(UnitTypeId.Feet))
+            {
+                value *= (12/10);
+            }
+            else if (unit.Equals(UnitTypeId.Meters))
+            {
+                value *= (39.37/10);
+            }
+            else if (unit.Equals(UnitTypeId.Centimeters))
+            {
+                value /= 25.4;
+
+            }
+            else if (unit.Equals(UnitTypeId.Millimeters))
+            {
+                value /= 254;
+            }
+            return value;
+        }
+
+        public static double ConvertToSnaptrudeUnitsFromFeet(double value)
+        {
+            return ConvertToSnaptrudeUnits(value, UnitTypeId.Feet);
+        }
     }
 }

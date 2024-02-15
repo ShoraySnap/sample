@@ -7,7 +7,6 @@ namespace TrudeSerializer.Importer
 {
     internal class SerializedTrudeData
     {
-        public object families;
         public ProjectProperties ProjectProperties;
         public Dictionary<string, TrudeWall> Walls;
         public TrudeFurnitureObject Furniture;
@@ -16,7 +15,6 @@ namespace TrudeSerializer.Importer
 
         public SerializedTrudeData()
         {
-            this.families = new Object();
             this.FamilyTypes = new FamilyTypes();
             this.Walls = new Dictionary<string, TrudeWall>();
             this.Furniture = new TrudeFurnitureObject();
@@ -51,72 +49,72 @@ namespace TrudeSerializer.Importer
 
     class FamilyTypes
     {
-        public Dictionary<String, TrudeWallType> wallTypes;
+        public Dictionary<String, TrudeWallType> WallTypes;
 
         public FamilyTypes()
         {
-            this.wallTypes = new Dictionary<String, TrudeWallType>();
+            this.WallTypes = new Dictionary<String, TrudeWallType>();
         }
 
         public bool HasWallType(String wallTypeName)
         {
-            return this.wallTypes.ContainsKey(wallTypeName);
+            return this.WallTypes.ContainsKey(wallTypeName);
         }
 
         public void AddWallType(String wallTypeName, TrudeWallType wallType)
         {
             if (this.HasWallType(wallTypeName)) return;
-            this.wallTypes.Add(wallTypeName, wallType);
+            this.WallTypes.Add(wallTypeName, wallType);
         }
     }
 
     class ProjectProperties
     {
-        public Dictionary<string, TrudeLevel> levels;
-        public string projectUnit;
+        public Dictionary<string, TrudeLevel> Levels;
+        public string ProjectUnit;
 
         public ProjectProperties()
         {
-            this.levels = new Dictionary<string, TrudeLevel>();
+            this.Levels = new Dictionary<string, TrudeLevel>();
         }
 
         public void AddLevel(TrudeLevel level)
         {
-            if (this.levels.ContainsKey(level.elementId)) return;
-            this.levels.Add(level.elementId, level);
+            if (this.Levels.ContainsKey(level.elementId)) return;
+            this.Levels.Add(level.elementId, level);
         }
 
         public void SetProjectUnit(string unit)
         {
-            this.projectUnit = unit;
+            this.ProjectUnit = unit;
         }
     }
 }
 
 class TrudeFurnitureObject
 {
-    Dictionary<string, TrudeFurniture> families;
-    Dictionary<string, TrudeInstance> instances;
+    public Dictionary<string, TrudeFurniture> Families;
+    public Dictionary<string, TrudeInstance> Instances;
 
     public TrudeFurnitureObject()
     {
-        this.families = new Dictionary<string, TrudeFurniture>();
-        this.instances = new Dictionary<string, TrudeInstance>();
+        this.Families = new Dictionary<string, TrudeFurniture>();
+        this.Instances = new Dictionary<string, TrudeInstance>();
     }
 
     public bool HasFamily(string familyName)
     {
-        return this.families.ContainsKey(familyName);
+        return this.Families.ContainsKey(familyName);
     }
 
     public void AddFamily(string familyName, TrudeFurniture family)
     {
         if (this.HasFamily(familyName)) return;
-        this.families.Add(familyName, family);
+        this.Families.Add(familyName, family);
     }
 
     public void AddInstance(string instanceId, TrudeInstance instance)
     {
-        this.instances.Add(instanceId, instance);
+        this.Instances.Add(instanceId, instance);
     }
 }
