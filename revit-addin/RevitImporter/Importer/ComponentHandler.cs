@@ -33,6 +33,10 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeMass.GetSerializedComponent(serializedData, element);
             }
+            else if (element is RevitLinkInstance)
+            {
+                return TrudeRevitLink.GetSerializedComponent(serializedData, element);
+            }
             //else if (TrudeFurniture.IsFurnitureCategory(element))
             //{
             //    return TrudeFurniture.GetSerializedComponent(serializedData, element);

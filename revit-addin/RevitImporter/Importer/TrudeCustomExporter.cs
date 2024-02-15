@@ -9,6 +9,7 @@ namespace TrudeSerializer
     class TrudeCustomExporter : IExportContext
     {
         Document doc;
+        Document primaryDoc;
         Stack<Transform> transforms = new Stack<Transform>();
         private object familyData;
         private object creationData;
@@ -36,6 +37,7 @@ namespace TrudeSerializer
         public TrudeCustomExporter(Document doc)
         {
             this.doc = doc;
+            this.primaryDoc = doc;
             transforms.Push(CurrentTransform);
             this.familyData = new Object();
             this.creationData = new Object();
@@ -71,12 +73,18 @@ namespace TrudeSerializer
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
             // implement link part
+            doc = node.GetDocument();
+            currentFamilyElement.name = doc.Title.Replace(".", "");
+            transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
+
             return RenderNodeAction.Proceed;
         }
 
         void IExportContext.OnLinkEnd(LinkNode node)
         {
             // implement link part
+            doc = primaryDoc;
+            transforms.Pop();
         }
 
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
@@ -114,6 +122,10 @@ namespace TrudeSerializer
             else if (component is TrudeMass)
             {
                 serializedSnaptrudeData.AddMass(component as TrudeMass);
+            }
+            else if (component is TrudeRevitLink)
+            {
+                serializedSnaptrudeData.AddRevitLink(component as TrudeRevitLink);
             }
         }
 
