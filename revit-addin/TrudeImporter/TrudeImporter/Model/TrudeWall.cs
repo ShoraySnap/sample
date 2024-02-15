@@ -63,28 +63,6 @@ namespace TrudeImporter
 
                         IList<Curve> profile = TrudeWall.GetProfile(wallProps.ProfilePoints);
 
-                        //TODO remove this loop after wall core layer thickness is fixed after doing freemove
-                        if (!wallProps.ThicknessInMm.IsNull())
-                        {
-                            bool coreIsFound = false;
-                            for (int i = 0; i < this.Layers.Length; i++)
-                            {
-                                if (this.Layers[i].IsCore)
-                                {
-                                    coreIsFound = true;
-                                    this.Layers[i].ThicknessInMm = (double)wallProps.ThicknessInMm;
-                                }
-                            }
-
-                            if (!coreIsFound)
-                            {
-                                int index = (int)(this.Layers.Length / 2);
-
-                                this.Layers[index].IsCore = true;
-                                this.Layers[index].ThicknessInMm = (double)wallProps.ThicknessInMm;
-                            }
-                        }
-
                         ElementId levelIdForWall;
                         levelIdForWall = GlobalVariables.LevelIdByNumber[this.levelNumber];
                         Level level = (Level)GlobalVariables.Document.GetElement(levelIdForWall);
