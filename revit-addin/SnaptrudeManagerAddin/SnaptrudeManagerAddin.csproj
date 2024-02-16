@@ -87,6 +87,6 @@
     <Analyzer Include="..\packages\AWSSDK.S3.3.7.305.17\analyzers\dotnet\cs\SharedAnalysisCode.dll" />
   </ItemGroup>
   <Import Project="..\TrudeImporter\TrudeImporter.projitems" Label="Shared" />
-  <Import Project="..\RevitImporter\RevitImporter.projitems" Label="Shared" />
+  <Import Project="..\TrudeSerializer\TrudeSerializer.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
