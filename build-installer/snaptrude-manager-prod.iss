@@ -74,12 +74,12 @@ var
   I: Integer;
 begin
     FileURLs := [
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-zip-file.zip',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-large-zip-file.zip',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-zip-file.zip',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-large-zip-file.zip',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-zip-file.zip',
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-large-zip-file.zip'
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2019.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2020.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2021.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2022.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2023.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2024.zip'
     ];
     Versions := ['2019','2020','2021','2022','2023','2024'];
 
