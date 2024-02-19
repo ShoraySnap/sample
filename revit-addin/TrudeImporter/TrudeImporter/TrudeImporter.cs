@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
+using System.Windows.Forms;
 
 namespace TrudeImporter
 {
@@ -509,9 +510,10 @@ namespace TrudeImporter
                     t.Start();
                     try
                     {
-                    TrudeMissing.ImportMissingDoors(propsListDoors);
-                    //new UploadInterface();
-                    }
+                    //TrudeMissing.ImportMissingDoors(propsListDoors);
+                    FamilyUploadForm uploadForm = new FamilyUploadForm();
+                    DialogResult result = uploadForm.ShowDialog();
+                }
                     catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Doors, " + "\nError is: " + e.Message + "\n");

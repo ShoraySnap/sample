@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection.Emit;
@@ -13,8 +14,12 @@ using Button = System.Windows.Forms.Button;
 using CheckBox = System.Windows.Forms.CheckBox;
 using Form = System.Windows.Forms.Form;
 using Label = System.Windows.Forms.Label;
+using ListView = System.Windows.Forms.ListView;
+using ListViewItem = System.Windows.Forms.ListViewItem;
 using Panel = System.Windows.Forms.Panel;
 using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
+using View = System.Windows.Forms.View;
 
 namespace TrudeImporter
 {
@@ -130,6 +135,10 @@ namespace TrudeImporter
         public FamilyUploadForm()
         {
             InitializeComponents();
+            foreach (var item in GlobalVariables.MissingDoorFamiliesCount)
+            {
+                System.Diagnostics.Debug.WriteLine("Missing Family: " + item.Key + " Count: " + item.Value);
+            }
         }
 
         private void InitializeComponents()
@@ -162,29 +171,64 @@ namespace TrudeImporter
                 BorderStyle = BorderStyle.FixedSingle,
                 Location = new Point(10, 80),
                 Size = new Size(this.ClientSize.Width - 20, 2)
-
             };
-
-            // Dummy data for demonstration purposes
-            CheckBox uploadCheckbox = new CheckBox { Text = "Option 1: Upload missing family", Location = new Point(10, 90), AutoSize = true };
-            uploadCheckbox.CheckedChanged += (sender, e) => UploadFamily = uploadCheckbox.Checked;
-
-            CheckBox skipThisCheckbox = new CheckBox { Text = "Option 2: Skip this family", Location = new Point(10, 120), AutoSize = true };
-            skipThisCheckbox.CheckedChanged += (sender, e) => SkipThisFamily = skipThisCheckbox.Checked;
-
-            CheckBox skipAllCheckbox = new CheckBox { Text = "Option 3: Skip all missing families", Location = new Point(10, 150), AutoSize = true };
-            skipAllCheckbox.CheckedChanged += (sender, e) => SkipAllFamilies = skipAllCheckbox.Checked;
 
             Button closeButton = new Button { Text = "Close", Location = new Point(this.ClientSize.Width - 80, this.ClientSize.Height - 30) };
             closeButton.Click += (sender, e) => Close();
 
+            var missingDoorFamiliesCount = GlobalVariables.MissingDoorFamiliesCount;
+
             Controls.Add(mainInstructionLabel);
             Controls.Add(mainContentLabel);
             Controls.Add(separatorPanel);
-            Controls.Add(uploadCheckbox);
-            Controls.Add(skipThisCheckbox);
-            Controls.Add(skipAllCheckbox);
+
+            ListView familyList = new ListView();
+            familyList.Bounds = new Rectangle(new Point(1, 1), new Size(this.ClientSize.Width - 20, 280));
+            familyList.View = View.Details;
+            familyList.CheckBoxes = true;
+            familyList.FullRowSelect = true;
+            familyList.GridLines = true;
+            familyList.Columns.Add("Family Name", -2, HorizontalAlignment.Center);
+            familyList.Columns.Add("Number of Elements", -2, HorizontalAlignment.Center);
+            familyList.HeaderStyle = ColumnHeaderStyle.None;
+
+            string familyName = "";
+
+            foreach (var item in missingDoorFamiliesCount)
+            {
+                familyName = $"{item.Key}";
+                ListViewItem cell = new ListViewItem(familyName);
+                cell.SubItems.Add(item.Value.ToString());
+                cell.Checked = true;
+                familyList.Items.Add(cell);
+            }
+            familyList.Location = new Point(10, 90);
+
+            //Controls.Add(uploadCheckbox);
+            //Controls.Add(skipThisCheckbox);
+            //Controls.Add(skipAllCheckbox);
+            Controls.Add(familyList);
+            Button toggleCheckStateButton = new Button
+            {
+                Text = "Toggle Check State",
+                Location = new Point(10, this.ClientSize.Height - 50),
+                Size = new Size(150, 30)
+            };
+            toggleCheckStateButton.Click += ToggleCheckStateButtonClick;
+
+            Controls.Add(toggleCheckStateButton);
+
+            void ToggleCheckStateButtonClick(object sender, EventArgs e)
+            {
+                foreach (ListViewItem item in familyList.Items)
+                {
+                    item.Checked = !item.Checked;
+                }
+            }
         }
+
+
     }
 
 }
+
