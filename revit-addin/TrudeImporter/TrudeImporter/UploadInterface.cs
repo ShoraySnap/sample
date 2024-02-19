@@ -12,6 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Button = System.Windows.Forms.Button;
 using CheckBox = System.Windows.Forms.CheckBox;
+using Color = System.Drawing.Color;
 using Form = System.Windows.Forms.Form;
 using Label = System.Windows.Forms.Label;
 using ListView = System.Windows.Forms.ListView;
@@ -173,9 +174,6 @@ namespace TrudeImporter
                 Size = new Size(this.ClientSize.Width - 20, 2)
             };
 
-            Button closeButton = new Button { Text = "Close", Location = new Point(this.ClientSize.Width - 80, this.ClientSize.Height - 30) };
-            closeButton.Click += (sender, e) => Close();
-
             var missingDoorFamiliesCount = GlobalVariables.MissingDoorFamiliesCount;
 
             Controls.Add(mainInstructionLabel);
@@ -191,9 +189,43 @@ namespace TrudeImporter
             familyList.Columns.Add("Family Name", -2, HorizontalAlignment.Center);
             familyList.Columns.Add("Number of Elements", -2, HorizontalAlignment.Center);
             familyList.HeaderStyle = ColumnHeaderStyle.None;
+            familyList.Location = new Point(10, 115);
+
+            Panel customHeaderPanel = new Panel
+            {
+                Location = new Point(10, 90),
+                Size = new Size(this.ClientSize.Width - 20, 25),
+                BackColor = Color.LightGray
+            };
+
+            CheckBox headerCheckBox = new CheckBox
+            {
+                Text = "Select All",
+                AutoSize = true,
+                Parent = customHeaderPanel,
+                Location = new Point(5, 5),
+                BackColor = Color.LightGray,
+                Checked = true
+            };
+
+            headerCheckBox.Click += (sender, e) =>
+            {
+                foreach (ListViewItem item in familyList.Items)
+                {
+                    item.Checked = headerCheckBox.Checked;
+                }
+            };
+
+            Label totalCountLabel = new Label
+            {
+                Text = $"Total Missing Families: {missingDoorFamiliesCount.Count}",
+                AutoSize = true,
+                Parent = customHeaderPanel,
+                Location = new Point(customHeaderPanel.Width - 195, 5),
+                BackColor = Color.LightGray
+            };
 
             string familyName = "";
-
             foreach (var item in missingDoorFamiliesCount)
             {
                 familyName = $"{item.Key}";
@@ -202,33 +234,57 @@ namespace TrudeImporter
                 cell.Checked = true;
                 familyList.Items.Add(cell);
             }
-            familyList.Location = new Point(10, 90);
-
-            //Controls.Add(uploadCheckbox);
-            //Controls.Add(skipThisCheckbox);
-            //Controls.Add(skipAllCheckbox);
+            customHeaderPanel.Controls.Add(headerCheckBox);
+            customHeaderPanel.Controls.Add(totalCountLabel);
+            Controls.Add(customHeaderPanel);
             Controls.Add(familyList);
-            Button toggleCheckStateButton = new Button
+
+            Panel footerPanel = new Panel
             {
-                Text = "Toggle Check State",
-                Location = new Point(10, this.ClientSize.Height - 50),
-                Size = new Size(150, 30)
+                Location = new Point(0, this.ClientSize.Height - 80),
+                Size = new Size(this.ClientSize.Width, 40),
+                BackColor = Color.LightGray
             };
-            toggleCheckStateButton.Click += ToggleCheckStateButtonClick;
-
-            Controls.Add(toggleCheckStateButton);
-
-            void ToggleCheckStateButtonClick(object sender, EventArgs e)
+            Label checkedCountLabel = new Label
             {
-                foreach (ListViewItem item in familyList.Items)
+                Text = $"Checked Families: {familyList.CheckedItems.Count}",
+                AutoSize = true,
+                Location = new Point(10, 10),
+                Parent = footerPanel
+            };
+
+            Button skipAllButton = new Button
+            {
+                Text = "Skip All",
+                Location = new Point(footerPanel.Width - 240, 5),
+                Size = new Size(100, 30)
+            };
+            skipAllButton.Click += (sender, e) =>
+            {
+                MessageBox.Show("Skipped all.");
+                Close();
+            };
+            footerPanel.Controls.Add(skipAllButton);
+            Button nextButton = new Button
+            {
+                Text = "Next",
+                Location = new Point(footerPanel.Width - 120, 5),
+                Size = new Size(100, 30)
+            };
+            nextButton.Click += (sender, e) =>
+            {
+                MessageBox.Show("Proceeding to Next.");
+                Close();
+            };
+            footerPanel.Controls.Add(nextButton);
+            familyList.ItemChecked += (sender, e) => {
+                if (checkedCountLabel != null)
                 {
-                    item.Checked = !item.Checked;
+                    checkedCountLabel.Text = $"{familyList.CheckedItems.Count} Selected";
                 }
-            }
+            };
+            Controls.Add(footerPanel);
         }
-
-
     }
-
 }
 
