@@ -2,7 +2,19 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Microsoft.Win32;
 using System;
+using System.Drawing;
 using System.IO;
+using System.Reflection.Emit;
+using System.Windows.Controls;
+using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Button = System.Windows.Forms.Button;
+using CheckBox = System.Windows.Forms.CheckBox;
+using Form = System.Windows.Forms.Form;
+using Label = System.Windows.Forms.Label;
+using Panel = System.Windows.Forms.Panel;
+using Point = System.Drawing.Point;
 
 namespace TrudeImporter
 {
@@ -15,28 +27,28 @@ namespace TrudeImporter
                 return false;
             }
 
-            TaskDialog mainDialog = new TaskDialog("Family Not Found");
-            mainDialog.MainInstruction = $"The family '{familyName}' was not found.";
-            mainDialog.MainContent = "Would you like to upload the family file, or skip all missing families?";
-            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink1, "Yes, I want to upload the family.");
-            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink2, "No, skip this family.");
-            mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink3, "No, skip all missing families.");
-            mainDialog.CommonButtons = TaskDialogCommonButtons.Close;
-            mainDialog.DefaultButton = TaskDialogResult.Close;
+            FamilyUploadForm uploadForm = new FamilyUploadForm();
 
-            TaskDialogResult tResult = mainDialog.Show();
+            // print TrudeDoor.MissingFamilies
+            foreach (var missingFamily in GlobalVariables.MissingDoorFamilies)
+            {
+                System.Diagnostics.Debug.WriteLine("Missing Family: " + missingFamily.Value);
+            }
 
-            if (tResult == TaskDialogResult.CommandLink3)
+            // Show dialog center parent if possible 
+            DialogResult result = uploadForm.ShowDialog();
+
+            if (uploadForm.SkipAllFamilies)
             {
                 skipAllMissingFamilies = true;
             }
 
-            return tResult == TaskDialogResult.CommandLink1;
+            return uploadForm.UploadFamily;
         }
 
         public static Family UploadAndLoadFamily(string familyName, string directoryPath, ref bool skipAllMissingFamilies, Document doc)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
             openFileDialog.Title = "Select Family File For " + familyName;
             openFileDialog.Filter = "Revit Families (*.rfa)|*.rfa";
             openFileDialog.RestoreDirectory = true;
@@ -52,7 +64,7 @@ namespace TrudeImporter
                     mainDialog.MainInstruction = $"The selected family file does not match the expected family name.";
                     mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink1, "Upload Again");
                     mainDialog.AddCommandLink(TaskDialogCommandLinkId.CommandLink2, "Skip this family.");
-
+                    
                     TaskDialogResult tResult = mainDialog.Show();
 
                     if (tResult == TaskDialogResult.CommandLink1)
@@ -115,6 +127,70 @@ namespace TrudeImporter
         }
     }
 
+    internal class FamilyUploadForm : Form
+    {
+        public bool UploadFamily { get; private set; } = false;
+        public bool SkipThisFamily { get; private set; } = false;
+        public bool SkipAllFamilies { get; private set; } = false;
 
+        public FamilyUploadForm()
+        {
+            InitializeComponents();
+        }
+
+        private void InitializeComponents()
+        {
+            Text = "Assets Not Found";
+            Size = new Size(640, 560);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterScreen;
+            this.MinimizeBox = false;
+            this.MaximizeBox = false;
+            //this.Icon = new Icon("");
+            //this.ControlBox = false;
+            Label mainInstructionLabel = new Label
+            {
+                Text = $"Missing RFAs",
+                AutoSize = true,
+                Location = new Point(10, 20),
+                Font = new Font(Font.FontFamily, 15)
+            };
+
+            Label mainContentLabel = new Label
+            {   MaximumSize = new Size(this.ClientSize.Width - 20, 0),
+                Text = "Your project uses assets that were not found while reconciling the Snaptrude file to Revit.  Please link the missing assets. Any unlinked assets will not show up in the resulting model in Revit.",
+                AutoSize = true,
+                Location = new Point(10, 50)
+            };
+
+            Panel separatorPanel = new Panel
+            {
+                BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(10, 80),
+                Size = new Size(this.ClientSize.Width - 20, 2)
+
+            };
+
+            // Dummy data for demonstration purposes
+            CheckBox uploadCheckbox = new CheckBox { Text = "Option 1: Upload missing family", Location = new Point(10, 90), AutoSize = true };
+            uploadCheckbox.CheckedChanged += (sender, e) => UploadFamily = uploadCheckbox.Checked;
+
+            CheckBox skipThisCheckbox = new CheckBox { Text = "Option 2: Skip this family", Location = new Point(10, 120), AutoSize = true };
+            skipThisCheckbox.CheckedChanged += (sender, e) => SkipThisFamily = skipThisCheckbox.Checked;
+
+            CheckBox skipAllCheckbox = new CheckBox { Text = "Option 3: Skip all missing families", Location = new Point(10, 150), AutoSize = true };
+            skipAllCheckbox.CheckedChanged += (sender, e) => SkipAllFamilies = skipAllCheckbox.Checked;
+
+            Button closeButton = new Button { Text = "Close", Location = new Point(this.ClientSize.Width - 80, this.ClientSize.Height - 30) };
+            closeButton.Click += (sender, e) => Close();
+
+            Controls.Add(mainInstructionLabel);
+            Controls.Add(mainContentLabel);
+            Controls.Add(separatorPanel);
+            Controls.Add(uploadCheckbox);
+            Controls.Add(skipThisCheckbox);
+            Controls.Add(skipAllCheckbox);
+        }
+    }
 
 }

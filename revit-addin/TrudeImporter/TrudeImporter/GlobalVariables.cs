@@ -16,6 +16,7 @@ namespace TrudeImporter
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
+        public static IDictionary<int, string> MissingDoorFamilies = new Dictionary<int, string>();
 
         public static JArray materials;
         public static JArray multiMaterials;

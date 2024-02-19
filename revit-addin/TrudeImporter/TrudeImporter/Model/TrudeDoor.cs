@@ -3,6 +3,7 @@ using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace TrudeImporter
@@ -14,6 +15,7 @@ namespace TrudeImporter
         XYZ CenterPosition = null;
         public static bool skipAllMissingFamilies = false;
         public static DoorTypeStore TypeStore = new DoorTypeStore();
+
 
         public TrudeDoor(DoorProperties doorProps, ElementId levelId)
         {
@@ -48,6 +50,7 @@ namespace TrudeImporter
                     if (doorProps.RevitFamilyName == null)
                     {
                         System.Diagnostics.Debug.WriteLine("Creating door with name " + doorFamilyName);
+                        GlobalVariables.MissingDoorFamilies.Add(doorProps.UniqueId, doorFamilyName);
                         var family = LoadCustomDoorFamilyWithDialog(doorFamilyName);
                         if (family is null && !skipAllMissingFamilies)
                         {
