@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using TrudeImporter.TrudeImporter.Model;
 
 namespace TrudeImporter
 {
@@ -9,6 +10,8 @@ namespace TrudeImporter
     {
         public static void Import(TrudeProperties trudeProperties)
         {
+            GlobalVariables.MissingDoorFamiliesCount.Clear();
+            GlobalVariables.MissingDoorIndexes.Clear();
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
@@ -22,6 +25,7 @@ namespace TrudeImporter
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
+            ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
         }
 
         private static void ImportStories(List<StoreyProperties> propsList)
@@ -378,7 +382,7 @@ namespace TrudeImporter
 
         private static void ImportDoors(List<DoorProperties> propsList)
         {
-            foreach (var door in propsList)
+            foreach (var (door,index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -386,7 +390,7 @@ namespace TrudeImporter
                     deleteOld(door.ExistingElementId);
                     try
                     {
-                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey]);
+                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey],index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -399,7 +403,6 @@ namespace TrudeImporter
                     }
                 }
             }
-            TrudeDoor.skipAllMissingFamilies = false;
         }
 
         private static void ImportWindows(List<WindowProperties> propsList)
@@ -464,6 +467,7 @@ namespace TrudeImporter
                 }
             }
         }
+
         private static void ImportMasses(List<MassProperties> propsList)
         {
             foreach (var mass in propsList)
@@ -497,6 +501,41 @@ namespace TrudeImporter
             }
         }
 
+        private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
+        {
+            
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    try
+                    {
+                    TrudeMissing.ImportMissingDoors(propsListDoors);
+                    //new UploadInterface();
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Doors, " + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            //foreach (var window in propsListWindows)
+            //{
+            //    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            //    {
+            //        t.Start();
+            //        try
+            //        {
+            //            TrudeMissing.ImportMissingWindows(window);
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Windows:" + window.UniqueId + "\nError is: " + e.Message + "\n");
+            //            t.RollBack();
+            //        }
+            //    }
+            //}
+        }
+
         /// <summary>
         /// This will appear on the Design Automation output
         /// </summary>
@@ -525,7 +564,6 @@ namespace TrudeImporter
                 }
             }
         }
-
         public static void deleteIfInGroup(Element element)
         {
             if (GlobalVariables.ForForge)
@@ -547,5 +585,11 @@ namespace TrudeImporter
                 }
             }
         }
+
+    }
+    public static class IEnumerableExtensions
+    {
+        public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> self)
+           => self.Select((item, index) => (item, index));
     }
 }

@@ -16,13 +16,15 @@ namespace TrudeImporter
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
-        public static IDictionary<int, string> MissingDoorFamilies = new Dictionary<int, string>();
+        public static IDictionary<string, int> MissingDoorFamiliesCount = new Dictionary<string, int>();
 
         public static JArray materials;
         public static JArray multiMaterials;
 
         public static Dictionary<String, Element> idToElement = new Dictionary<String, Element>();
         public static Dictionary<String, FamilySymbol> idToFamilySymbol = new Dictionary<String, FamilySymbol>();
+
+        public static List<int> MissingDoorIndexes = new List<int>();
 
         public static void cleanGlobalVariables()
         {

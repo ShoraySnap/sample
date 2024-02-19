@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+
 namespace TrudeImporter
 {
     internal class TrudeDoor : TrudeModel
@@ -13,11 +14,9 @@ namespace TrudeImporter
         string doorFamilyName = null;
         string fsName = null;
         XYZ CenterPosition = null;
-        public static bool skipAllMissingFamilies = false;
         public static DoorTypeStore TypeStore = new DoorTypeStore();
 
-
-        public TrudeDoor(DoorProperties doorProps, ElementId levelId)
+        public TrudeDoor(DoorProperties doorProps, ElementId levelId, int index)
         {
             XYZ direction = doorProps.Direction == null
                                 ? XYZ.Zero
@@ -49,28 +48,18 @@ namespace TrudeImporter
                 {
                     if (doorProps.RevitFamilyName == null)
                     {
-                        System.Diagnostics.Debug.WriteLine("Creating door with name " + doorFamilyName);
-                        GlobalVariables.MissingDoorFamilies.Add(doorProps.UniqueId, doorFamilyName);
-                        var family = LoadCustomDoorFamilyWithDialog(doorFamilyName);
-                        if (family is null && !skipAllMissingFamilies)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Couldn't find or load door family: " + doorFamilyName);
-                            return;
-                        }
+                        var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
                         if (family is null)
                         {
-                            System.Diagnostics.Debug.WriteLine("couln't find door family: "+ doorFamilyName);
+                            GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] = GlobalVariables.MissingDoorFamiliesCount.ContainsKey(doorFamilyName) ? GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] + 1 : 1;
+                            GlobalVariables.MissingDoorIndexes.Add(index);
+                            System.Diagnostics.Debug.WriteLine("couln't find door family: " + doorFamilyName);
                             return;
                         }
                     }
                 }
 
                 defaultFamilySymbol = GetFamilySymbolByName(GlobalVariables.Document, doorFamilyName, fsName);
-                if (defaultFamilySymbol is null)
-                {
-                    System.Diagnostics.Debug.WriteLine("No door with name " + doorFamilyName);
-                    return;
-                }
                 if (!defaultFamilySymbol.IsActive)
                 {
                     defaultFamilySymbol.Activate();
@@ -143,37 +132,6 @@ namespace TrudeImporter
             }
 
             return instance;
-        }
-
-        private Family LoadCustomDoorFamilyWithDialog(string familyName)
-        {
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-            string directoryPath = GlobalVariables.ForForge
-                ? "resourceFile/Doors"
-                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors");
-            string filePath = Path.Combine(directoryPath, $"{familyName}.rfa");
-
-            if (skipAllMissingFamilies)
-            {
-                return null;
-            }
-
-            if (File.Exists(filePath))
-            {
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
-                return family;
-            }
-            else
-            {
-                if (UploadInterface.AskUserForFamilyUpload(familyName, ref skipAllMissingFamilies))
-                {
-                    return UploadInterface.UploadAndLoadFamily(familyName, directoryPath, ref skipAllMissingFamilies, GlobalVariables.Document);
-                }
-                else
-                {
-                    return null;
-                }
-            }
         }
     }
 }

@@ -29,12 +29,6 @@ namespace TrudeImporter
 
             FamilyUploadForm uploadForm = new FamilyUploadForm();
 
-            // print TrudeDoor.MissingFamilies
-            foreach (var missingFamily in GlobalVariables.MissingDoorFamilies)
-            {
-                System.Diagnostics.Debug.WriteLine("Missing Family: " + missingFamily.Value);
-            }
-
             // Show dialog center parent if possible 
             DialogResult result = uploadForm.ShowDialog();
 
