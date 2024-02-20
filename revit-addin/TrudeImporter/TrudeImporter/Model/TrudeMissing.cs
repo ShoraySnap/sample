@@ -12,7 +12,7 @@ namespace TrudeImporter.TrudeImporter.Model
                 //print missing door families
                 foreach (var missingFamily in GlobalVariables.MissingDoorFamiliesCount)
                 {
-                    System.Diagnostics.Debug.WriteLine("Missing Family: " + missingFamily.Key+ " Count: "+ missingFamily.Value);
+                    System.Diagnostics.Debug.WriteLine("Missing Family: " + missingFamily.Key+ " Count: "+ missingFamily.Value.NumberOfElements);
                 
                 }
         }

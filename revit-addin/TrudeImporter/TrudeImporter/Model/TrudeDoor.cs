@@ -51,8 +51,8 @@ namespace TrudeImporter
                         var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
                         if (family is null)
                         {
-                            GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] = GlobalVariables.MissingDoorFamiliesCount.ContainsKey(doorFamilyName) ? GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] + 1 : 1;
-                            GlobalVariables.MissingDoorIndexes.Add(index);
+                            GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] = GlobalVariables.MissingDoorFamiliesCount.ContainsKey(doorFamilyName) ? 
+                                (true, GlobalVariables.MissingDoorFamiliesCount[doorFamilyName].NumberOfElements + 1) : (true, 1);
                             System.Diagnostics.Debug.WriteLine("couln't find door family: " + doorFamilyName);
                             return;
                         }
