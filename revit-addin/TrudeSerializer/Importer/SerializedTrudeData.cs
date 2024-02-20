@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Amazon.Runtime.Internal.Transform;
-using Autodesk.Revit.DB;
 using TrudeSerializer.Components;
 using TrudeSerializer.Types;
 

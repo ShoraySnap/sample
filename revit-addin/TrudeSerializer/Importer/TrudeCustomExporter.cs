@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Components;
-using Amazon.Runtime.Internal.Transform;
-using System.ComponentModel;
 
 namespace TrudeSerializer
 {
