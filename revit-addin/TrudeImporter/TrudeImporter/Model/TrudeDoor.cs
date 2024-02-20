@@ -52,7 +52,7 @@ namespace TrudeImporter
                         if (family is null)
                         {
                             GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] = GlobalVariables.MissingDoorFamiliesCount.ContainsKey(doorFamilyName) ? 
-                                (true, GlobalVariables.MissingDoorFamiliesCount[doorFamilyName].NumberOfElements + 1) : (true, 1);
+                                (true, GlobalVariables.MissingDoorFamiliesCount[doorFamilyName].NumberOfElements + 1,"") : (true, 1,"");
                             System.Diagnostics.Debug.WriteLine("couln't find door family: " + doorFamilyName);
                             return;
                         }
