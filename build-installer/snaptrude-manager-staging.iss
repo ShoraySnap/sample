@@ -59,8 +59,10 @@ end;
 var
   CheckListBoxPage: TInputOptionWizardPage;
   DownloadPage: TDownloadWizardPage;
-  FileURLs: TArrayOfString;
-  Versions: TArrayOfString;
+  AllFileURLs: TArrayOfString;
+  AllVersions: TArrayOfString;
+  InstalledVersions: TStringList;
+  InstalledVersionsURLs: TStringList;
 
 function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
 begin
@@ -73,7 +75,7 @@ procedure InitializeWizard;
 var
   I: Integer;
 begin
-    FileURLs := [
+    AllFileURLs := [
     'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2019.zip',
     'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2020.zip',
     'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2021.zip',
@@ -81,12 +83,19 @@ begin
     'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2023.zip',
     'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2024.zip'
     ];
-    Versions := ['2019','2020','2021','2022','2023','2024'];
+    AllVersions := ['2019','2020','2021','2022','2023','2024'];
 
   // Create a page with checkboxes for each file
   CheckListBoxPage := CreateInputOptionPage(wpSelectTasks, 'Select Revit versions', 'ATTENTION: Only select the versions that you are going to use the Snaptrude <-> Revit Link. Several families will be downloaded for each selected Revit version.', '', False, True);
-  for I := 0 to High(Versions) do
-    CheckListBoxPage.Add('Revit ' + Versions[I]);
+  InstalledVersions := TStringList.Create;
+  InstalledVersionsURLs := TStringList.Create;
+  for I := 0 to High(AllVersions) do
+    if DirExists(ExpandConstant('{commonpf64}\Autodesk\Revit ' + AllVersions[I])) then
+      begin
+        InstalledVersions.Add(AllVersions[I]);
+        InstalledVersionsURLs.Add(AllFileURLs[I]);
+        CheckListBoxPage.Add('Revit ' + AllVersions[I]);
+      end;
   // Create a download page
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
 end;
@@ -115,9 +124,17 @@ begin
   unzip(ExpandConstant(src), ExpandConstant(target));
 end;
 
-function InstallVersion (IntegerVersion: Integer): Boolean;
+function InstallVersion (VersionToCheck: String): Boolean;
+var
+  I: Integer;
 begin
-  Result := CheckListBoxPage.Values[IntegerVersion];
+  for I := 0 to High(InstalledVersions) do
+    begin
+      if VersionToCheck = InstalledVersions[I] then
+        if CheckListBoxPage.Values[I] then
+          Result := true;
+    end;
+  Result := false;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -130,7 +147,7 @@ begin
     begin
       CheckedCount := 0;
       
-      for I := 0 to High(Versions) do
+      for I := 0 to InstalledVersions.Count - 1 do
       
       if CheckListBoxPage.Values[I] then
         Inc(CheckedCount);
@@ -143,11 +160,10 @@ begin
       else
         begin
           DownloadPage.Clear;
-          for I := 0 to High(Versions) do
+          for I := 0 to InstalledVersions.Count - 1 do
             if CheckListBoxPage.Values[I] then
               try
-                CreateDir('{tmp}\VersionTexts[I]\');
-                DownloadPage.Add(FileURLs[I], Versions[I] + '.zip', '');
+                DownloadPage.Add(InstalledVersionsURLs[I], InstalledVersions[I] + '.zip', '');
                 Result := True;
               except
                 Log(GetExceptionMessage);
@@ -158,9 +174,9 @@ begin
             try
               DownloadPage.Download; // This downloads the files to {tmp}
               Result := True;
-              for I := 0 to High(Versions) do
+              for I := 0 to InstalledVersions.Count - 1 do
                 if CheckListBoxPage.Values[I] then
-                  ExtractMe('{tmp}\' + Versions[I] + '.zip','{tmp}\' + Versions[I] + '\');
+                  ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
             except
               if DownloadPage.AbortedByUser then
                 Log('Aborted by user.')
@@ -171,7 +187,7 @@ begin
             finally
               DownloadPage.Hide;
             end;
-        end;
+      end;
     end;
   end;
 end.
@@ -198,29 +214,29 @@ Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2020.dyn"; 
 Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude.dyn"; Flags: ignoreversion
 
 ;2019
-Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion(0);
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: InstallVersion(0);
-Source: "{tmp}\2019\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2019"; Flags: external; Check: InstallVersion(0);
+Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: InstallVersion('2019');
+Source: "{tmp}\2019\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2019"; Flags: external; Check: InstallVersion('2019');
 ;2020
-Source: "{#RevitAddinDllPath}\2020\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion(1);
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020"; Flags: ignoreversion; Check: InstallVersion(1);
-Source: "{tmp}\2020\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2020"; Flags: external; Check: InstallVersion(1);
+Source: "{#RevitAddinDllPath}\2020\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2020');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020"; Flags: ignoreversion; Check: InstallVersion('2020');
+Source: "{tmp}\2020\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2020"; Flags: external; Check: InstallVersion('2020');
 ;2021
-Source: "{#RevitAddinDllPath}\2021\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion(2);
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021"; Flags: ignoreversion; Check: InstallVersion(2);
-Source: "{tmp}\2021\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2021"; Flags: external; Check: InstallVersion(2);
+Source: "{#RevitAddinDllPath}\2021\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2021');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021"; Flags: ignoreversion; Check: InstallVersion('2021');
+Source: "{tmp}\2021\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2021"; Flags: external; Check: InstallVersion('2021');
 ;2022
-Source: "{#RevitAddinDllPath}\2022\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion(3);
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022"; Flags: ignoreversion; Check: InstallVersion(3);
-Source: "{tmp}\2022\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2022"; Flags: external; Check: InstallVersion(3);
+Source: "{#RevitAddinDllPath}\2022\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2022');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022"; Flags: ignoreversion; Check: InstallVersion('2022');
+Source: "{tmp}\2022\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2022"; Flags: external; Check: InstallVersion('2022');
 ;2023
-Source: "{#RevitAddinDllPath}\2023\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion(4);
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: InstallVersion(4);
-Source: "{tmp}\2023\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2023"; Flags: external; Check: InstallVersion(4);
+Source: "{#RevitAddinDllPath}\2023\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2023');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: InstallVersion('2023');
+Source: "{tmp}\2023\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2023"; Flags: external; Check: InstallVersion('2023');
 ;2024
-Source: "{#RevitAddinDllPath}\2024\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion(5);
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024"; Flags: ignoreversion; Check: InstallVersion(5);
-Source: "{tmp}\2024\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2024"; Flags: external; Check: InstallVersion(5);
+Source: "{#RevitAddinDllPath}\2024\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2024');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024"; Flags: ignoreversion; Check: InstallVersion('2024');
+Source: "{tmp}\2024\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile\2024"; Flags: external; Check: InstallVersion('2024');
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
