@@ -3,14 +3,10 @@ using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Components;
+using TrudeSerializer.Types;
 
 namespace TrudeSerializer
 {
-    class CurrentLink
-    {
-        public string name;
-        public string category;
-    }
     class TrudeCustomExporter : IExportContext
     {
         private Document primaryDoc;
@@ -46,7 +42,6 @@ namespace TrudeSerializer
         {
             this.doc = doc;
             this.primaryDoc = doc;
-            this.currentLink = new CurrentLink();
             transforms.Push(CurrentTransform);
             this.familyData = new Object();
             this.creationData = new Object();
@@ -86,8 +81,7 @@ namespace TrudeSerializer
             isRevitLink = true;
             string name = doc.Title.Replace(".", "");
             string category = "RVT Links";
-
-            currentLink.name = name;
+            currentLink = new CurrentLink(name, category);
             currentLink.category = category;
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
 
