@@ -21,7 +21,7 @@ namespace TrudeSerializer.Utils
             this.isHandFlipped = isHandFlipped;
         }
 
-        public TransformObject(double[] center)
+        public TransformObject(List<double> center)
         {
             this.center = center;
         }
