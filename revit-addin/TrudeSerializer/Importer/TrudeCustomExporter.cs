@@ -167,6 +167,10 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddLevel(component as TrudeLevel);
             }
+            else if(component is TrudeFloor)
+            {
+                serializedSnaptrudeData.AddFloor(component as TrudeFloor);
+            }
             else if (component is TrudeMass)
             {
                 serializedSnaptrudeData.AddMass(component as TrudeMass);

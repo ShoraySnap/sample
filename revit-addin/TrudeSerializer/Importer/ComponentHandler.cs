@@ -28,6 +28,10 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeLevel.GetSerializedComponent(element);
             }
+            else if(element is Floor)
+            {
+                return TrudeFloor.GetSerializedComponent(serializedData, element);
+            }
             else if (TrudeFurniture.IsFurnitureCategory(element))
             {
                 return TrudeFurniture.GetSerializedComponent(serializedData, element);
