@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Components;
 using TrudeSerializer.Types;
-using RevitImporter.Components;
 
 namespace TrudeSerializer
 {

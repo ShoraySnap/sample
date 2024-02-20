@@ -1,18 +1,14 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
-using TrudeSerializer.Components;
-using TrudeSerializer;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 using System.Collections.Generic;
 using TrudeImporter;
 using System;
-using System.Linq;
 using System.Text;
-using Amazon.Runtime.Internal.Util;
 using TrudeSerializer.Utils;
 
-namespace RevitImporter.Components
+namespace TrudeSerializer.Components
 {
     internal class TrudeFloor : TrudeComponent
     {
@@ -51,9 +47,6 @@ namespace RevitImporter.Components
             string floorType = element.Name;
 
             // TODO: Subtype
-            // TODO: IsInstance
-            // TODO: isParametric
-
             var (outline, voids, isDifferentCurve) = GetOutline(element); 
             SetFloorType(importData, floor);
             TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, false, true, outline, voids);
@@ -64,14 +57,14 @@ namespace RevitImporter.Components
         static private List<XYZ> GetPointsListFromCurveLoop(CurveLoop curveLoop, out bool isDifferentCurve, bool voidLoop = false)
         {
             isDifferentCurve = false;
-            var itr = curveLoop.GetCurveLoopIterator();
+            CurveLoopIterator itr = curveLoop.GetCurveLoopIterator();
             List<XYZ> curvePoints = new List<XYZ>();
             if (!itr.IsValidObject) return curvePoints;
             while (itr.MoveNext()) {
                 var curve = itr.Current;
                 if (curve is Arc || curve is NurbSpline)
                 {
-                    var points = curve.Tessellate();
+                    IList<XYZ> points = curve.Tessellate();
                     foreach (var p in points)
                     {
                         curvePoints.Add(p);
@@ -79,7 +72,7 @@ namespace RevitImporter.Components
                 }
                 else if (curve is Line)
                 {
-                    var endPoint = curve.GetEndPoint(0);
+                    XYZ endPoint = curve.GetEndPoint(0);
                     curvePoints.Add(endPoint);
                 }
                 else
@@ -93,7 +86,7 @@ namespace RevitImporter.Components
 
         static List<XYZ> GetPointsInProperUnits(List<XYZ> dataList) {
             var convertedPoints = new List<XYZ>();
-            foreach (var point in dataList)
+            foreach (XYZ point in dataList)
             {
                 float multiplier = (float)UnitConversion.ConvertToMillimeterForRevit2021AndAbove(1.0, UnitTypeId.Feet);
                 convertedPoints.Add(point.Multiply(multiplier));
@@ -107,7 +100,7 @@ namespace RevitImporter.Components
             if (curvePoints.Count <= 0) return "";
             StringBuilder keyBuilder = new StringBuilder();
             keyBuilder.Append("[");
-            foreach(var curvePoint in curvePoints)
+            foreach(XYZ curvePoint in curvePoints)
             {
                 keyBuilder.Append("[" + Math.Round(curvePoint.X).ToString() + ", " + Math.Round(curvePoint.Y) + "]");
                 if (curvePoints.IndexOf(curvePoint) != curvePoints.Count - 1) keyBuilder.Append(", ");
@@ -157,17 +150,18 @@ namespace RevitImporter.Components
         {
             var bottomProfileRef = HostObjectUtils.GetBottomFaces(element as HostObject);
 
-            var bottomProfile = element.GetGeometryObjectFromReference(bottomProfileRef[0]);
+            GeometryObject bottomProfile = element.GetGeometryObjectFromReference(bottomProfileRef[0]);
 
             var faceNormal = new XYZ();
-            using(var bottomProfilePlanarFace = bottomProfile as PlanarFace)
+            using(PlanarFace bottomProfilePlanarFace = bottomProfile as PlanarFace)
             {
-                faceNormal = bottomProfilePlanarFace.FaceNormal;
+                if(bottomProfilePlanarFace != null)
+                    faceNormal = bottomProfilePlanarFace.FaceNormal;
             }
 
             var options = new Options();
             options.View = TrudeSerializer.GlobalVariables.Document.ActiveView;
-            var geometry = element.get_Geometry(options);
+            GeometryElement geometry = element.get_Geometry(options);
 
             List<string> curveKeys = new List<string>();
             List<List<XYZ>> curveData = new List<List<XYZ>>();
@@ -175,7 +169,7 @@ namespace RevitImporter.Components
 
 
             bool isDifferentCurve = false;
-            foreach(var geo in geometry)
+            foreach(GeometryObject geo in geometry)
             {
                 XYZ currentFaceNormal = new XYZ();
                 if (geo is Solid)
@@ -190,18 +184,16 @@ namespace RevitImporter.Components
                                 currentFaceNormal = planarFace.FaceNormal;
                             else
                             {
-                                var bbox = planarFace.GetBoundingBox();
-                                var faceCenter = (bbox.Max - bbox.Min) / 2;
+                                BoundingBoxUV bbox = planarFace.GetBoundingBox();
+                                UV faceCenter = (bbox.Max - bbox.Min) / 2;
                                 currentFaceNormal = planarFace.ComputeNormal(faceCenter).Normalize();
                             }
                             bool areSameNormal = currentFaceNormal.IsAlmostEqualTo(faceNormal);
 
                             if(areSameNormal)
                             {
-                                var curveLoops = planarFace.GetEdgesAsCurveLoops();
-                                var sortedLoops = ExporterIFCUtils.SortCurveLoops(curveLoops);
-
-                                //return new Dictionary<string, double[][]>();
+                                IList<CurveLoop> curveLoops = planarFace.GetEdgesAsCurveLoops();
+                                IList<IList<CurveLoop>> sortedLoops = ExporterIFCUtils.SortCurveLoops(curveLoops);
 
                                 foreach(var sortedLists in sortedLoops)
                                 {
@@ -216,7 +208,7 @@ namespace RevitImporter.Components
                                     if (sortedLists.Count > 1) // Inner Curves mean voids
                                     {
                                         bool isInnerCurveDifferent = false;
-                                        // START FROM 1 means ignore the outer curve
+                                        // STARTING FROM 1 means ignore the outer curve
                                         for (var i = 1; i < sortedLists.Count; i++)
                                         {
                                             var voidCurve = sortedLists[i];
@@ -225,7 +217,7 @@ namespace RevitImporter.Components
                                             voidData.Add(voidDataPoint);
                                         }
 
-                                        var voidsDict = GetPointsDataDict(voidKeys, voidData, out isInnerCurveDifferent);
+                                        Dictionary<string, double[][]> voidsDict = GetPointsDataDict(voidKeys, voidData, out isInnerCurveDifferent);
 
                                         outlinesToVoidsMap.Add(curveKey, voidsDict);
 
@@ -234,22 +226,15 @@ namespace RevitImporter.Components
 
                                     isDifferentCurve |= isOuterCurveDifferent;
                                 }
-                                
-
-
                             }
                         }
                     }
                 }
             }
 
-
             bool tooManyPoints = false;
             var outlineDict = GetPointsDataDict(curveKeys, curveData, out tooManyPoints);
             isDifferentCurve = isDifferentCurve || tooManyPoints;
-
-
-
 
             return (outlineDict, outlinesToVoidsMap, isDifferentCurve);
         }
