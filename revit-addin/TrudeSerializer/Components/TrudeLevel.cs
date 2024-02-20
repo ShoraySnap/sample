@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.DB;
-using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -18,6 +17,7 @@ namespace TrudeSerializer.Components
         public static string GetLevelName(Element element)
         {
             Element level = GlobalVariables.Document.GetElement(element.LevelId);
+            if (level == null) return "";
             return level.Name;
         }
 

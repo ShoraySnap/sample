@@ -66,7 +66,6 @@ namespace TrudeSerializer.Components
 
         public void SetMaterial(string materialId, TrudeMaterial material)
         {
-
             if (!geometries.ContainsKey(materialId))
             {
                 geometries.Add(materialId, new TrudeGeometry());
