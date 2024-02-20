@@ -32,8 +32,7 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeFurniture.GetSerializedComponent(serializedData, element);
             }
-
-            return TrudeComponent.GetDefaultComponent();
+            return TrudeMass.GetSerializedComponent(serializedData, element);
         }
     }
 }

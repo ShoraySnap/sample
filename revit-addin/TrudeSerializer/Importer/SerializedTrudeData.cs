@@ -10,6 +10,8 @@ namespace TrudeSerializer.Importer
         public ProjectProperties ProjectProperties;
         public Dictionary<string, TrudeWall> Walls;
         public TrudeFurnitureObject Furniture;
+        public Dictionary<string, TrudeMass> Masses;
+        public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks;
 
         public FamilyTypes FamilyTypes;
 
@@ -18,6 +20,8 @@ namespace TrudeSerializer.Importer
             this.FamilyTypes = new FamilyTypes();
             this.Walls = new Dictionary<string, TrudeWall>();
             this.Furniture = new TrudeFurnitureObject();
+            this.Masses = new Dictionary<string, TrudeMass>();
+            this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
         }
 
@@ -25,6 +29,12 @@ namespace TrudeSerializer.Importer
         {
             if (this.Walls.ContainsKey(wall.elementId)) return;
             this.Walls.Add(wall.elementId, wall);
+        }
+
+        public void AddMass(TrudeMass mass)
+        {
+            if (this.Masses.ContainsKey(mass.elementId)) return;
+            this.Masses.Add(mass.elementId, mass);
         }
 
         public void AddLevel(TrudeLevel level)
