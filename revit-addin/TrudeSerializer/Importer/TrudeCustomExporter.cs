@@ -104,8 +104,6 @@ namespace TrudeSerializer
                 return RenderNodeAction.Skip;
             }
 
-
-
             this.currentElement.component = familyComponent;
 
             return RenderNodeAction.Proceed;
@@ -121,12 +119,13 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddLevel(component as TrudeLevel);
             }
-            else if(component is TrudeInstance)
+            else if (component is TrudeFurniture)
             {
-                if(component.category == "Furniture")
-                {
-                    serializedSnaptrudeData.AddFurnitureInstance(component.elementId, component as TrudeInstance);
-                }
+                serializedSnaptrudeData.AddFurnitureInstance(component.elementId, component as TrudeFurniture);
+            }
+            else if (component is TrudeDoor)
+            {
+                serializedSnaptrudeData.AddDoorInstance(component.elementId, component as TrudeDoor);
             }
         }
 
@@ -186,13 +185,21 @@ namespace TrudeSerializer
         {
             String materialId = this.currentMaterialId;
             TrudeComponent component = this.currentElement.component;
-            long size = component.geometries[materialId].vertices.Count/3;
+            long size = component.geometries[materialId].vertices.Count / 3;
 
             for (int i = 0; i < node.NumberOfPoints; i++)
             {
-                XYZ vertex = node.GetPoint(i);
-                XYZ transformedPoint = CurrentTransform.OfPoint(vertex);
-                component.SetVertices(materialId, transformedPoint.X, transformedPoint.Z, transformedPoint.Y);
+                XYZ point = node.GetPoint(i);
+                XYZ transformedPoint = CurrentTransform.OfPoint(point);
+                if(component.category == "Doors")
+                {
+                    component.SetVertices(materialId, point.X, point.Z, point.Y);
+                }
+                else
+                {
+                    component.SetVertices(materialId, transformedPoint.X, transformedPoint.Z, transformedPoint.Y);
+                }
+
             }
 
             for (int i = 0; i < node.NumberOfFacets; i++)

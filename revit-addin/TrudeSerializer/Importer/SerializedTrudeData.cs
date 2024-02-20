@@ -9,7 +9,8 @@ namespace TrudeSerializer.Importer
     {
         public ProjectProperties ProjectProperties;
         public Dictionary<string, TrudeWall> Walls;
-        public TrudeFurnitureObject Furniture;
+        public TrudeObject<TrudeFurniture> Furniture;
+        public TrudeObject<TrudeDoor> Doors;
 
         public FamilyTypes FamilyTypes;
 
@@ -17,7 +18,8 @@ namespace TrudeSerializer.Importer
         {
             this.FamilyTypes = new FamilyTypes();
             this.Walls = new Dictionary<string, TrudeWall>();
-            this.Furniture = new TrudeFurnitureObject();
+            this.Furniture = new TrudeObject<TrudeFurniture>();
+            this.Doors = new TrudeObject<TrudeDoor>();
             this.ProjectProperties = new ProjectProperties();
         }
 
@@ -37,13 +39,23 @@ namespace TrudeSerializer.Importer
             ProjectProperties.SetProjectUnit(unit);
         }
 
-        public void AddFurnitureFamily(string familyName, TrudeFurniture family)
+        public void AddFurnitureFamily(string familyName, TrudeFamily family)
         {
             this.Furniture.AddFamily(familyName, family);
         }
-        public void AddFurnitureInstance(string instanceId, TrudeInstance instance)
+        public void AddFurnitureInstance(string instanceId, TrudeFurniture instance)
         {
             this.Furniture.AddInstance(instanceId, instance);
+        }
+
+        public void AddDoorFamily(string familyName, TrudeFamily family)
+        {
+            this.Doors.AddFamily(familyName, family);
+        }
+
+        public void AddDoorInstance(string instanceId, TrudeDoor instance)
+        {
+            this.Doors.AddInstance(instanceId, instance);
         }
     }
 
@@ -89,32 +101,34 @@ namespace TrudeSerializer.Importer
             this.ProjectUnit = unit;
         }
     }
+
+     class TrudeObject<TFamily>
+    {
+        public Dictionary<string, TrudeFamily> Families;
+        public Dictionary<string, TFamily> Instances;
+
+        public TrudeObject()
+        {
+            this.Families = new Dictionary<string, TrudeFamily>();
+            this.Instances = new Dictionary<string, TFamily>();
+        }
+
+        public bool HasFamily(string familyName)
+        {
+            return this.Families.ContainsKey(familyName);
+        }
+
+        public void AddFamily(string familyName, TrudeFamily family)
+        {
+            if (this.HasFamily(familyName)) return;
+            this.Families.Add(familyName, family);
+        }
+
+        public void AddInstance(string instanceId, TFamily instance)
+        {
+            this.Instances.Add(instanceId, instance);
+        }
+    }
+
 }
 
-class TrudeFurnitureObject
-{
-    public Dictionary<string, TrudeFurniture> Families;
-    public Dictionary<string, TrudeInstance> Instances;
-
-    public TrudeFurnitureObject()
-    {
-        this.Families = new Dictionary<string, TrudeFurniture>();
-        this.Instances = new Dictionary<string, TrudeInstance>();
-    }
-
-    public bool HasFamily(string familyName)
-    {
-        return this.Families.ContainsKey(familyName);
-    }
-
-    public void AddFamily(string familyName, TrudeFurniture family)
-    {
-        if (this.HasFamily(familyName)) return;
-        this.Families.Add(familyName, family);
-    }
-
-    public void AddInstance(string instanceId, TrudeInstance instance)
-    {
-        this.Instances.Add(instanceId, instance);
-    }
-}
