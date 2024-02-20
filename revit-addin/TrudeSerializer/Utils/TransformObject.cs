@@ -20,5 +20,10 @@ namespace TrudeSerializer.Utils
             this.isFaceFlipped = isFaceFlipped;
             this.isHandFlipped = isHandFlipped;
         }
+
+        public TransformObject(double[] center)
+        {
+            this.center = center;
+        }
     }
 }

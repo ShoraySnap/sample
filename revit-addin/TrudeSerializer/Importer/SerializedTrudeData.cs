@@ -1,6 +1,6 @@
-﻿using System;
+﻿using TrudeSerializer.Components;
+using System;
 using System.Collections.Generic;
-using TrudeSerializer.Components;
 using TrudeSerializer.Types;
 
 namespace TrudeSerializer.Importer
@@ -11,6 +11,9 @@ namespace TrudeSerializer.Importer
         public Dictionary<string, TrudeWall> Walls;
         public TrudeObject<TrudeFurniture> Furniture;
         public TrudeObject<TrudeDoor> Doors;
+        public Dictionary<string, TrudeFloor> Floors;
+        public Dictionary<string, TrudeMass> Masses;
+        public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks;
 
         public FamilyTypes FamilyTypes;
 
@@ -20,6 +23,9 @@ namespace TrudeSerializer.Importer
             this.Walls = new Dictionary<string, TrudeWall>();
             this.Furniture = new TrudeObject<TrudeFurniture>();
             this.Doors = new TrudeObject<TrudeDoor>();
+            this.Floors = new Dictionary<string, TrudeFloor>();
+            this.Masses = new Dictionary<string, TrudeMass>();
+            this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
         }
 
@@ -29,11 +35,22 @@ namespace TrudeSerializer.Importer
             this.Walls.Add(wall.elementId, wall);
         }
 
+        public void AddMass(TrudeMass mass)
+        {
+            if (this.Masses.ContainsKey(mass.elementId)) return;
+            this.Masses.Add(mass.elementId, mass);
+        }
+
         public void AddLevel(TrudeLevel level)
         {
             ProjectProperties.AddLevel(level);
         }
 
+        public void AddFloor(TrudeFloor trudeFloor)
+        {
+            if(this.Floors.ContainsKey(trudeFloor.elementId)) return; 
+            this.Floors.Add(trudeFloor.elementId, trudeFloor);
+        }
         public void SetProjectUnit(string unit)
         {
             ProjectProperties.SetProjectUnit(unit);
@@ -62,15 +79,29 @@ namespace TrudeSerializer.Importer
     class FamilyTypes
     {
         public Dictionary<String, TrudeWallType> WallTypes;
+        public Dictionary<string, TrudeFloorType> FloorTypes;
 
         public FamilyTypes()
         {
             this.WallTypes = new Dictionary<String, TrudeWallType>();
+            this.FloorTypes = new Dictionary<String, TrudeFloorType>();
+        }
+
+
+        public bool HasFloorType(String floorTypeName)
+        {
+            return this.FloorTypes.ContainsKey(floorTypeName);
         }
 
         public bool HasWallType(String wallTypeName)
         {
             return this.WallTypes.ContainsKey(wallTypeName);
+        }
+
+        public void AddFloorType(String floorTypeName, TrudeFloorType floorType)
+        {
+            if (this.HasFloorType(floorTypeName)) return;
+            this.FloorTypes.Add(floorTypeName, floorType);
         }
 
         public void AddWallType(String wallTypeName, TrudeWallType wallType)
