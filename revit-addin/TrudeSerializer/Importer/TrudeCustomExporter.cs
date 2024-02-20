@@ -9,7 +9,6 @@ namespace TrudeSerializer
 {
     class TrudeCustomExporter : IExportContext
     {
-        private Document primaryDoc;
         private bool isRevitLink = false;
         private CurrentLink currentLink;
         private List<string> revitLinks = new List<string>();
@@ -41,7 +40,6 @@ namespace TrudeSerializer
         public TrudeCustomExporter(Document doc)
         {
             this.doc = doc;
-            this.primaryDoc = doc;
             transforms.Push(CurrentTransform);
             this.familyData = new Object();
             this.creationData = new Object();
@@ -108,7 +106,7 @@ namespace TrudeSerializer
         void IExportContext.OnLinkEnd(LinkNode node)
         {
             // implement link part
-            doc = primaryDoc;
+            doc = GlobalVariables.Document;
             currentLink.name = "";
             currentLink.category = "";
             isRevitLink = false;
