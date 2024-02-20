@@ -59,18 +59,18 @@ namespace TrudeSerializer.Importer
     class FamilyTypes
     {
         public Dictionary<String, TrudeWallType> WallTypes;
-        public Dictionary<String, TrudeFloorType> floorTypes;
+        public Dictionary<string, TrudeFloorType> FloorTypes;
 
         public FamilyTypes()
         {
             this.WallTypes = new Dictionary<String, TrudeWallType>();
-            this.floorTypes = new Dictionary<string, TrudeFloorType>();
+            this.FloorTypes = new Dictionary<String, TrudeFloorType>();
         }
 
 
         public bool HasFloorType(String floorTypeName)
         {
-            return this.floorTypes.ContainsKey(floorTypeName);
+            return this.FloorTypes.ContainsKey(floorTypeName);
         }
 
         public bool HasWallType(String wallTypeName)
@@ -81,7 +81,7 @@ namespace TrudeSerializer.Importer
         public void AddFloorType(String floorTypeName, TrudeFloorType floorType)
         {
             if (this.HasFloorType(floorTypeName)) return;
-            this.floorTypes.Add(floorTypeName, floorType);
+            this.FloorTypes.Add(floorTypeName, floorType);
         }
 
         public void AddWallType(String wallTypeName, TrudeWallType wallType)

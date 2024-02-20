@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using System.Text;
 using Amazon.Runtime.Internal.Util;
+using TrudeSerializer.Utils;
 
 namespace RevitImporter.Components
 {
@@ -53,15 +54,16 @@ namespace RevitImporter.Components
             // TODO: IsInstance
             // TODO: isParametric
 
-            var (outline, voids) = GetOutline(element); 
+            var (outline, voids, isDifferentCurve) = GetOutline(element); 
             SetFloorType(importData, floor);
             TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, false, true, outline, voids);
-            serializedFloor.SetIsParametric();
+            serializedFloor.SetIsParametric(isDifferentCurve);
             return serializedFloor;
         }
 
-        static private List<XYZ> GetPointsListFromCurveLoop(CurveLoop curveLoop, bool voidLoop = false)
+        static private List<XYZ> GetPointsListFromCurveLoop(CurveLoop curveLoop, out bool isDifferentCurve, bool voidLoop = false)
         {
+            isDifferentCurve = false;
             var itr = curveLoop.GetCurveLoopIterator();
             List<XYZ> curvePoints = new List<XYZ>();
             if (!itr.IsValidObject) return curvePoints;
@@ -72,8 +74,7 @@ namespace RevitImporter.Components
                     var points = curve.Tessellate();
                     foreach (var p in points)
                     {
-                        var pconv = p.Multiply(FOOT_TO_MM);
-                        curvePoints.Add(pconv);
+                        curvePoints.Add(p);
                     }
                 }
                 else if (curve is Line)
@@ -83,6 +84,7 @@ namespace RevitImporter.Components
                 }
                 else
                 {
+                    isDifferentCurve = true;
                 }
             }
 
@@ -93,7 +95,8 @@ namespace RevitImporter.Components
             var convertedPoints = new List<XYZ>();
             foreach (var point in dataList)
             {
-                convertedPoints.Add(point.Multiply(FOOT_TO_MM));
+                float multiplier = (float)UnitConversion.ConvertToMillimeterForRevit2021AndAbove(1.0, UnitTypeId.Feet);
+                convertedPoints.Add(point.Multiply(multiplier));
             }
 
             return convertedPoints;
@@ -125,8 +128,9 @@ namespace RevitImporter.Components
             return dataArrays;
         }
 
-        static private Dictionary<string, double[][]> GetPointsDataDict(List<string> keys, List<List<XYZ>> values)
+        static private Dictionary<string, double[][]> GetPointsDataDict(List<string> keys, List<List<XYZ>> values, out bool isDifferentCurve)
         {
+            isDifferentCurve = false;
             if(keys.Count != values.Count)
             {
                 throw new Exception("Points data invalid!");
@@ -142,10 +146,14 @@ namespace RevitImporter.Components
                 dataDict.Add(keys[i], data[i]);
             }
 
+            if(values.Count > 600)
+            {
+                isDifferentCurve = true;
+            }
             return dataDict;
         }
 
-        static (Dictionary<string, double[][]>, Dictionary<string, Dictionary<string, double[][]>>) GetOutline(Element element)
+        static (Dictionary<string, double[][]>, Dictionary<string, Dictionary<string, double[][]>>, bool) GetOutline(Element element)
         {
             var bottomProfileRef = HostObjectUtils.GetBottomFaces(element as HostObject);
 
@@ -177,7 +185,8 @@ namespace RevitImporter.Components
                     {
                         using(var planarFace = face as PlanarFace)
                         {
-                            if(!planarFace.FaceNormal.IsNull())
+                            if (planarFace == null) continue;
+                            if(planarFace.FaceNormal.IsNull())
                                 currentFaceNormal = planarFace.FaceNormal;
                             else
                             {
@@ -197,7 +206,8 @@ namespace RevitImporter.Components
                                 foreach(var sortedLists in sortedLoops)
                                 {
                                     var curveLoop = sortedLists[0]; // Take the outer curve
-                                    var curveDataPoint = GetPointsListFromCurveLoop(curveLoop);
+                                    bool isOuterCurveDifferent = false;
+                                    var curveDataPoint = GetPointsListFromCurveLoop(curveLoop, out isOuterCurveDifferent);
                                     var curveKey = GetCurveKeyFromPointsList(curveDataPoint, element.Id.ToString());
                                     curveKeys.Add(curveKey);
                                     curveData.Add(curveDataPoint);
@@ -205,19 +215,24 @@ namespace RevitImporter.Components
                                     var voidData = new List<List<XYZ>>();
                                     if (sortedLists.Count > 1) // Inner Curves mean voids
                                     {
+                                        bool isInnerCurveDifferent = false;
                                         // START FROM 1 means ignore the outer curve
                                         for (var i = 1; i < sortedLists.Count; i++)
                                         {
                                             var voidCurve = sortedLists[i];
-                                            var voidDataPoint = GetPointsListFromCurveLoop(voidCurve);
+                                            var voidDataPoint = GetPointsListFromCurveLoop(voidCurve, out isInnerCurveDifferent, true);
                                             voidKeys.Add(GetCurveKeyFromPointsList(voidDataPoint, element.Id.ToString()));
                                             voidData.Add(voidDataPoint);
                                         }
 
-                                        var voidsDict = GetPointsDataDict(voidKeys, voidData);
+                                        var voidsDict = GetPointsDataDict(voidKeys, voidData, out isInnerCurveDifferent);
 
                                         outlinesToVoidsMap.Add(curveKey, voidsDict);
+
+                                        isDifferentCurve |= isInnerCurveDifferent;
                                     }
+
+                                    isDifferentCurve |= isOuterCurveDifferent;
                                 }
                                 
 
@@ -228,13 +243,15 @@ namespace RevitImporter.Components
                 }
             }
 
-            
-            var outlineDict = GetPointsDataDict(curveKeys, curveData);
 
-            // Process voids
+            bool tooManyPoints = false;
+            var outlineDict = GetPointsDataDict(curveKeys, curveData, out tooManyPoints);
+            isDifferentCurve = isDifferentCurve || tooManyPoints;
 
 
-            return (outlineDict, outlinesToVoidsMap);
+
+
+            return (outlineDict, outlinesToVoidsMap, isDifferentCurve);
         }
 
 
@@ -247,9 +264,10 @@ namespace RevitImporter.Components
             importData.FamilyTypes.AddFloorType(name, snaptrudeFloorType);
         }
 
-        private void SetIsParametric()
+        private void SetIsParametric(bool isDifferentCurve)
         {
-            // TODO: Logic for parametric
+            if (isDifferentCurve)
+                this.isParametric = false;
         }
 
     }
