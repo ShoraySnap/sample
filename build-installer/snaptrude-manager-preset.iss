@@ -76,12 +76,12 @@ var
   I: Integer;
 begin
     AllFileURLs := [
-    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2019.zip',
-    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2020.zip',
-    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2021.zip',
-    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2022.zip',
-    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2023.zip',
-    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/snaptrudemanagerrfas/2024.zip'
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2019.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2020.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2021.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2022.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2023.zip',
+    'https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2024.zip'
     ];
     AllVersions := ['2019','2020','2021','2022','2023','2024'];
 
