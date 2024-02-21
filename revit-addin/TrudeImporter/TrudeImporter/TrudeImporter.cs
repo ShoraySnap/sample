@@ -26,7 +26,8 @@ namespace TrudeImporter
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
-            ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
+            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+                ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
         }
 
         private static void ImportStories(List<StoreyProperties> propsList)

@@ -409,8 +409,13 @@ namespace TrudeImporter
                         var count = GlobalVariables.MissingDoorFamiliesCount[familyName].NumberOfElements;
                         GlobalVariables.MissingDoorFamiliesCount[familyName] =
                             (isCheck, count, sourcePath);
-                        e.SubItem.Text = "Uploaded";
-                        linkedFiles++;
+                        
+                        if (e.SubItem.Text != "Uploaded")
+                        {
+                            e.SubItem.Text = "Uploaded";
+                            linkedFiles++;
+                        }
+
                         totalCountLabel.Text =
                             $"Linked {linkedFiles} of {filesToLink}";
 
