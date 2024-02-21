@@ -519,6 +519,10 @@ namespace TrudeImporter
                         {
                             TrudeMissing.ImportMissingDoors(propsListDoors);
                         }
+                    if (t.Commit() != TransactionStatus.Committed)
+                    {
+                        t.RollBack();
+                    }
                 }
                 catch (Exception e)
                     {
