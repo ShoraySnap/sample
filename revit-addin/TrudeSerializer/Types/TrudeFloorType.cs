@@ -1,4 +1,3 @@
-
 using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
