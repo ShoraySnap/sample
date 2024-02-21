@@ -504,38 +504,28 @@ namespace TrudeImporter
 
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
         {
-            
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            {
+                t.Start();
+                try
                 {
-                    t.Start();
-                    try
-                    {
-                    //TrudeMissing.ImportMissingDoors(propsListDoors);
                     FamilyUploadForm uploadForm = new FamilyUploadForm();
                     DialogResult result = uploadForm.ShowDialog();
+                    if (FamilyUploadForm.SkipAllFamilies)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Skipping Importing Missing Doors");
+                        }
+                    else
+                        {
+                            TrudeMissing.ImportMissingDoors(propsListDoors);
+                        }
                 }
-                    catch (Exception e)
+                catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Doors, " + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
-                }
-            //foreach (var window in propsListWindows)
-            //{
-            //    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-            //    {
-            //        t.Start();
-            //        try
-            //        {
-            //            TrudeMissing.ImportMissingWindows(window);
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Windows:" + window.UniqueId + "\nError is: " + e.Message + "\n");
-            //            t.RollBack();
-            //        }
-            //    }
-            //}
+            }
         }
 
         /// <summary>

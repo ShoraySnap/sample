@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using Autodesk.Revit.DB;
+
 
 namespace TrudeImporter.TrudeImporter.Model
 {
@@ -8,14 +12,60 @@ namespace TrudeImporter.TrudeImporter.Model
     {
         public static void ImportMissingDoors(List<DoorProperties> doorProps)
         {
-                if (GlobalVariables.MissingDoorFamiliesCount.Count == 0) return;
-                //print missing door families
-                foreach (var missingFamily in GlobalVariables.MissingDoorFamiliesCount)
+            if (GlobalVariables.MissingDoorFamiliesCount.Count == 0) return;
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string directoryPath = GlobalVariables.ForForge
+                ? "resourceFile/Doors"
+                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors");
+            foreach (var missingFamily in GlobalVariables.MissingDoorFamiliesCount)
+            {
+                bool isChecked = missingFamily.Value.IsChecked;
+                string sourcePath = missingFamily.Value.path;
+                string destinationPath = Path.Combine(directoryPath, missingFamily.Key + ".rfa");
+
+                if (isChecked)
                 {
-                    System.Diagnostics.Debug.WriteLine("Missing Family: " + missingFamily.Key+ " Count: "+ missingFamily.Value.NumberOfElements);
-                
+                    if (File.Exists(sourcePath))
+                    {
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        File.Copy(sourcePath, destinationPath, true);
+                        System.Diagnostics.Debug.WriteLine("Family: " + missingFamily.Key + " Copied to: " + destinationPath);
+                    }
                 }
+            }
+
+            foreach (var index in GlobalVariables.MissingDoorIndexes)
+            {
+                DoorProperties door = doorProps[index];
+                string doorName = door.Name.RemoveIns();
+                if (GlobalVariables.MissingDoorFamiliesCount[doorName].IsChecked)
+                {
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    {
+                        t.Start();
+                        deleteOld(door.ExistingElementId);
+                        try
+                        {
+                            new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
+                            if (t.Commit() != TransactionStatus.Committed)
+                            {
+                                t.RollBack();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
+                            t.RollBack();
+                        }
+                    }
+                }
+            }
         }
+
+
         //public static void ImportMissingWindows(WindowProperties window)
         //{
 
@@ -25,5 +75,45 @@ namespace TrudeImporter.TrudeImporter.Model
         //    }
 
         //}
+
+        public static void deleteOld(int? elementId)
+        {
+            if (GlobalVariables.ForForge)
+                return;
+            if (elementId != null)
+            {
+                ElementId id = new ElementId((int)elementId);
+                Element element = GlobalVariables.Document.GetElement(id);
+                if (element != null)
+                {
+                    if (!element.GroupId.Equals(ElementId.InvalidElementId))
+                        deleteIfInGroup(element);
+                    else
+                        GlobalVariables.Document.Delete(element.Id);
+                }
+            }
+        }
+
+        public static void deleteIfInGroup(Element element)
+        {
+            if (GlobalVariables.ForForge)
+                return;
+
+            Group group = GlobalVariables.Document.GetElement(element.GroupId) as Group;
+            //string groupName = group.Name;
+            //GroupType groupType = group.GroupType;
+            IList<ElementId> groupMemberdIds = group.GetMemberIds();
+            foreach (ElementId item in groupMemberdIds)
+            {
+                if (item == element.Id)
+                {
+                    group.UngroupMembers();
+                    GlobalVariables.Document.Delete(element.Id);
+                    groupMemberdIds.Remove(element.Id);
+                    var newGroup = GlobalVariables.Document.Create.NewGroup(groupMemberdIds);
+                    break;
+                }
+            }
+        }
     }
 }

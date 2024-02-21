@@ -18,6 +18,7 @@ namespace TrudeImporter
 
         public TrudeDoor(DoorProperties doorProps, ElementId levelId, int index)
         {
+            System.Diagnostics.Debug.WriteLine("Creating door: " + doorProps.Name);
             XYZ direction = doorProps.Direction == null
                                 ? XYZ.Zero
                                 : doorProps.Direction;
@@ -53,8 +54,13 @@ namespace TrudeImporter
                         {
                             GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] = GlobalVariables.MissingDoorFamiliesCount.ContainsKey(doorFamilyName) ? 
                                 (true, GlobalVariables.MissingDoorFamiliesCount[doorFamilyName].NumberOfElements + 1,"") : (true, 1,"");
+                            GlobalVariables.MissingDoorIndexes.Add(index);
                             System.Diagnostics.Debug.WriteLine("couln't find door family: " + doorFamilyName);
                             return;
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("Door family loaded: " + doorFamilyName);
                         }
                     }
                 }
@@ -130,7 +136,7 @@ namespace TrudeImporter
                 instance.flipFacing();
                 instance.flipHand();
             }
-
+            System.Diagnostics.Debug.WriteLine("Door created: " + instance.Id);
             return instance;
         }
     }

@@ -28,14 +28,11 @@ namespace TrudeImporter
 {
     internal class FamilyUploadForm : Form
     {
-        public bool UploadFamily { get; private set; } = false;
-        public bool SkipThisFamily { get; private set; } = false;
-        public bool SkipAllFamilies { get; private set; } = false;
+        public static bool SkipAllFamilies { get; private set; } = false;
 
         public Form SelectFamiliesForm { get; private set; }
 
         public Form UploadFamiliesForm { get; private set; }
-
 
         public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = GlobalVariables.MissingDoorFamiliesCount;
 
@@ -178,7 +175,7 @@ namespace TrudeImporter
             };
             skipAllButton.Click += (sender, e) =>
             {
-                MessageBox.Show("Skipped all.");
+                SkipAllFamilies = true;
                 Close();
             };
 
@@ -191,18 +188,14 @@ namespace TrudeImporter
             };
             nextButton.Click += (sender, e) =>
             {
-                foreach (var missingFamily in GlobalVariables.MissingDoorFamiliesCount)
-                {
-                    System.Diagnostics.Debug.WriteLine("Family: " + missingFamily.Key + "\nCount: " + missingFamily.Value.NumberOfElements + "\nCheck:" + missingFamily.Value.IsChecked + "\nPath: " + missingFamily.Value.path);
-                }
                 UploadFamiliesForm?.Dispose();
                 this.Hide();
                 UploadFamilies();
             };
             this.FormClosing += (sender, e) =>
             {
-                e.Cancel = true; // Prevents form from closing
-                this.Hide(); // Hides the form instead
+                e.Cancel = true;
+                this.Hide();
             };
             footerPanel.Controls.Add(nextButton);
             familyList.ItemChecked += (sender, e) =>
@@ -212,7 +205,6 @@ namespace TrudeImporter
                     familyName = e.Item.Tag.ToString();
                     bool isChecked = e.Item.Checked;
 
-                    // Update GlobalVariables to reflect new checked state
                     if (GlobalVariables.MissingDoorFamiliesCount.ContainsKey(familyName))
                     {
                         var count = GlobalVariables.MissingDoorFamiliesCount[familyName].NumberOfElements;
@@ -258,8 +250,8 @@ namespace TrudeImporter
             UploadFamiliesForm = newDialog;
             UploadFamiliesForm.FormClosing += (sender, e) =>
             {
-                e.Cancel = true; // Prevents actual closing
-                UploadFamiliesForm.Hide(); // Hides instead of closing
+                e.Cancel = true;
+                UploadFamiliesForm.Hide();
             };
             Label mainInstructionLabel = new Label
             {
@@ -305,7 +297,6 @@ namespace TrudeImporter
             };
             var linkedFiles = 0;
             var filesToLink = 0;
-            //count checked items in missingDoorFamiliesCount
             foreach (var item in missingDoorFamiliesCount)
             {
                 if (item.Value.IsChecked)
@@ -388,8 +379,8 @@ namespace TrudeImporter
             };
             backButton.Click += (sender, e) =>
             {
-                this.Show(); // Show the Select Families Form again
-                UploadFamiliesForm.Hide(); // Hide the current form properly
+                this.Show();
+                UploadFamiliesForm.Hide();
             };
 
             Button doneButton = new Button
@@ -400,7 +391,6 @@ namespace TrudeImporter
                 Enabled = false
             };
             
-            
             void OnButtonActionClick(object sender, ListViewColumnMouseEventArgs e)
             {
                 familyName = e.Item.Text;
@@ -410,7 +400,7 @@ namespace TrudeImporter
                 openFileDialog.RestoreDirectory = true;
                 bool? uploadResult = openFileDialog.ShowDialog();
 
-                if (uploadResult == true) // Check if user selected a file
+                if (uploadResult == true)
                 {
                     string sourcePath = openFileDialog.FileName;
                     if (GlobalVariables.MissingDoorFamiliesCount.ContainsKey(familyName) && !string.IsNullOrEmpty(sourcePath))
@@ -422,24 +412,22 @@ namespace TrudeImporter
                         e.SubItem.Text = "Uploaded";
                         linkedFiles++;
                         totalCountLabel.Text =
-                            $"Linked {linkedFiles} of {missingDoorFamiliesCount.Count}";
+                            $"Linked {linkedFiles} of {filesToLink}";
 
                         CheckAllUploaded();
                     }
                     void CheckAllUploaded()
                     {
                         doneButton.Enabled =
-                            missingDoorFamiliesCount.All(item => item.Value.path != null && item.Value.path != "");
+                            linkedFiles.Equals(filesToLink)? true : false;
                         linkMessage.Text = doneButton.Enabled ? "All assets linked" : "Link assets to proceed";
                     }
                 }
             }
             doneButton.Click += (sender, e) =>
             {
-                foreach (var missingFamily in GlobalVariables.MissingDoorFamiliesCount)
-                {
-                    System.Diagnostics.Debug.WriteLine("Family: " + missingFamily.Key + "\nCount: " + missingFamily.Value.NumberOfElements + "\nCheck:" + missingFamily.Value.IsChecked + "\nPath: " + missingFamily.Value.path);
-                }
+                SkipAllFamilies = false;
+                newDialog.Close();
             };
             buttonAction.Click += OnButtonActionClick;
             footerPanel.Controls.Add(backButton);
