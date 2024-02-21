@@ -13,6 +13,7 @@ namespace TrudeImporter
         public static Autodesk.Revit.ApplicationServices.Application RvtApp;
 
         public static bool ForForge = false;
+        
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();

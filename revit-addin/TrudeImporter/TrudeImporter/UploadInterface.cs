@@ -29,6 +29,28 @@ namespace TrudeImporter
     internal class FamilyUploadForm : Form
     {
         public static bool SkipAllFamilies { get; private set; } = false;
+        public static bool UploadViaFolder { get; private set; } = false;
+
+        public static string MissingFamiliesFolderPath = "";
+
+        public int CountLinkedFamilies() {
+            int linkedFamilies = 0;
+            foreach (var item in missingDoorFamiliesCount)
+            {
+                if (item.Value.IsChecked && !string.IsNullOrEmpty(item.Value.path))
+                {
+                    linkedFamilies++;
+                }
+            }
+            foreach (var item in missingWindowFamiliesCount)
+            {
+                if (item.Value.IsChecked && !string.IsNullOrEmpty(item.Value.path))
+                {
+                    linkedFamilies++;
+                }
+            }
+            return linkedFamilies;
+        }
 
         public Form SelectFamiliesForm { get; private set; }
 
@@ -253,6 +275,16 @@ namespace TrudeImporter
 
         private void UploadFamilies()
         {
+            for (int i = 0; i < missingDoorFamiliesCount.Count; i++)
+            {
+                var item = missingDoorFamiliesCount.ElementAt(i);
+                missingDoorFamiliesCount[item.Key] = (item.Value.IsChecked, item.Value.NumberOfElements, "");
+            }
+            for (int i = 0; i < missingWindowFamiliesCount.Count; i++)
+            {
+                var item = missingWindowFamiliesCount.ElementAt(i);
+                missingWindowFamiliesCount[item.Key] = (item.Value.IsChecked, item.Value.NumberOfElements, "");
+            }
             Form newDialog = new Form
             {
                 Text = "Assets Not Found",
@@ -276,6 +308,13 @@ namespace TrudeImporter
                 Font = new Font(Font.FontFamily, 15)
             };
 
+            Button selectFolder = new Button
+            {
+                Text = "Select Folder",
+                Location = new Point(newDialog.Width - 150, 30),
+                Size = new Size(100, 30)
+            };
+
             Label mainContentLabel = new Label
             {
                 MaximumSize = new Size(this.ClientSize.Width - 20, 0),
@@ -292,6 +331,7 @@ namespace TrudeImporter
             };
 
             newDialog.Controls.Add(mainInstructionLabel);
+            newDialog.Controls.Add(selectFolder);
             newDialog.Controls.Add(mainContentLabel);
             newDialog.Controls.Add(separatorPanel);
 
@@ -310,7 +350,7 @@ namespace TrudeImporter
                 Location = new Point(5, 5),
                 BackColor = Color.LightGray
             };
-            var linkedFiles = 0;
+            var linkedFiles = CountLinkedFamilies();
             var filesToLink = 0;
             foreach (var item in missingDoorFamiliesCount)
             {
@@ -339,7 +379,6 @@ namespace TrudeImporter
             customHeaderPanel.Controls.Add(headerCheckBox);
             customHeaderPanel.Controls.Add(totalCountLabel);
 
-
             ListView familyList = new ListView();
             familyList.Bounds = new Rectangle(new Point(1, 1), new Size(this.ClientSize.Width - 20, 280));
             familyList.View = View.Details;
@@ -356,7 +395,6 @@ namespace TrudeImporter
             ListViewButtonColumn buttonAction = new ListViewButtonColumn(1);
             buttonAction.FixedWidth = true;
             
-
             extender.AddColumn(buttonAction);
 
             string familyName = "";
@@ -423,7 +461,21 @@ namespace TrudeImporter
                 Size = new Size(100, 30),
                 Enabled = false
             };
-            
+
+            selectFolder.Click += (sender, e) =>
+            {
+                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+                folderBrowserDialog.Description = "Select Folder Containing RFAs";
+                folderBrowserDialog.ShowNewFolderButton = false;
+                DialogResult result = folderBrowserDialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    MissingFamiliesFolderPath = folderBrowserDialog.SelectedPath;
+                    UploadViaFolder = true;
+                    AutomaticLinking();
+                }
+            };
+
             void OnButtonActionClick(object sender, ListViewColumnMouseEventArgs e)
             {
                 familyName = e.Item.Text;
@@ -446,9 +498,9 @@ namespace TrudeImporter
                         if (e.SubItem.Text != "Uploaded")
                         {
                             e.SubItem.Text = "Uploaded";
-                            linkedFiles++;
+                            
                         }
-
+                        linkedFiles = CountLinkedFamilies();
                         totalCountLabel.Text =
                             $"Linked {linkedFiles} of {filesToLink}";
 
@@ -464,9 +516,8 @@ namespace TrudeImporter
                         if (e.SubItem.Text != "Uploaded")
                         {
                             e.SubItem.Text = "Uploaded";
-                            linkedFiles++;
                         }
-
+                        linkedFiles = CountLinkedFamilies();
                         totalCountLabel.Text =
                             $"Linked {linkedFiles} of {filesToLink}";
 
@@ -493,7 +544,82 @@ namespace TrudeImporter
             {
                 DialogResult result = newDialog.ShowDialog();
             }
+
+            void TryLinkFamilyFiles(IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> familyDict)
+            {
+                string folderPath = MissingFamiliesFolderPath;
+                List<string> keysToUpdate = new List<string>();
+
+                foreach (var item in familyDict)
+                {
+                    if (!item.Value.IsChecked) continue; // Skip unchecked items
+
+                    string expectedFileName = item.Key + ".rfa";
+                    string fullPath = Path.Combine(folderPath, expectedFileName);
+
+                    if (File.Exists(fullPath))
+                    {
+                        keysToUpdate.Add(item.Key);
+                        linkedFiles++;
+                    }
+                }
+
+                // Update dictionary entries with found paths
+                foreach (var key in keysToUpdate)
+                {
+                    var value = familyDict[key];
+                    familyDict[key] = (value.IsChecked, value.NumberOfElements, Path.Combine(folderPath, key + ".rfa"));
+                }
+            }
+
+             void AutomaticLinking()
+            {
+                System.Diagnostics.Debug.WriteLine("Automatic Linking");
+                TryLinkFamilyFiles(missingDoorFamiliesCount);
+                TryLinkFamilyFiles(missingWindowFamiliesCount);
+                linkedFiles = CountLinkedFamilies();
+                if (linkedFiles > 0)
+                {
+                    totalCountLabel.Text = $"Linked {linkedFiles} of {filesToLink}";
+
+                    linkMessage.Text = "Some assets were automatically linked";
+                    foreach (ListViewItem item in familyList.Items)
+                    {
+                        if (missingDoorFamiliesCount.ContainsKey(item.Text) && missingDoorFamiliesCount[item.Text].IsChecked)
+                        {
+                            if (!string.IsNullOrEmpty(missingDoorFamiliesCount[item.Text].path))
+                            {
+                                item.SubItems[1].Text = "Uploaded";
+                            }
+                        }
+                        if (missingWindowFamiliesCount.ContainsKey(item.Text) && missingWindowFamiliesCount[item.Text].IsChecked)
+                        {
+                            if (!string.IsNullOrEmpty(missingWindowFamiliesCount[item.Text].path))
+                            {
+                                item.SubItems[1].Text = "Uploaded";
+                            }
+                        }
+                    }
+
+                }
+                if (linkedFiles.Equals(filesToLink))
+                {
+                    doneButton.Enabled = true;
+                    linkMessage.Text = "All assets linked";
+                }
+                for (int i = 0; i < missingDoorFamiliesCount.Count; i++)
+                {
+                    System.Diagnostics.Debug.WriteLine(missingDoorFamiliesCount.ElementAt(i));
+                }
+                for (int i = 0; i < missingWindowFamiliesCount.Count; i++)
+                {
+                    System.Diagnostics.Debug.WriteLine(missingWindowFamiliesCount.ElementAt(i));
+                }
+            }
+
+
         }
+
     }
 }
 
