@@ -108,7 +108,7 @@ const Home = () => {
 
   const isUserLoggedIn = async() => {
     const response = await snaptrudeService.checkIfUserLoggedIn();
-    if(response === null){
+    if(!response){
       flushUserData();
     }
   }
@@ -126,7 +126,7 @@ const Home = () => {
     if(isLoggedIn){
       setIsLoading(true);
       isUserLoggedIn().then(()=>{
-        const userData = sessionData.getUserData()
+        const userData = sessionData.getUserData();
         const isLoggedIn = !!userData.accessToken;
         const currentState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
         setButtons(currentState);

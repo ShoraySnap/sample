@@ -220,10 +220,23 @@ const snaptrudeService = (function () {
   };
 
   const checkIfUserLoggedIn = async function (){
-    // TODO: need better way to check if refresh token is expired for now checking if user is pro or not.
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    return response
+    const accessToken = sessionData.getUserData()["accessToken"];
+    const refreshToken = sessionData.getUserData()["refreshToken"];
+
+    const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
+    const response = await axios.post(DJANGO_URL + "/refreshAccessToken/", {
+      accessToken,
+      refreshToken,
+    });
+
+    console.log("response is: ", response);
+
+    if (response?.data?.accessToken) {
+      sessionData.getUserData()["accessToken"] = response.data.accessToken;
+      window.electronAPI.updateUserData(sessionData.getUserData());
+      return true;
+    }
+    return false;
   }
 
   const checkPersonalWorkspaces = async function () {
