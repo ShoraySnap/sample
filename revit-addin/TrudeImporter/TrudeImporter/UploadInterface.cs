@@ -35,6 +35,7 @@ namespace TrudeImporter
         public Form UploadFamiliesForm { get; private set; }
 
         public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = GlobalVariables.MissingDoorFamiliesCount;
+        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingWindowFamiliesCount = GlobalVariables.MissingWindowFamiliesCount;
 
         public FamilyUploadForm()
         {
@@ -109,11 +110,10 @@ namespace TrudeImporter
                 Checked = true
             };
 
-            
 
             Label totalCountLabel = new Label
             {
-                Text = $"Total Missing Families: {missingDoorFamiliesCount.Count}",
+                Text = $"Total Missing Families: {missingDoorFamiliesCount.Count+missingWindowFamiliesCount.Count}",
                 AutoSize = true,
                 Parent = customHeaderPanel,
                 Location = new Point(customHeaderPanel.Width - 195, 5),
@@ -128,6 +128,15 @@ namespace TrudeImporter
                 cell.SubItems.Add(item.Value.NumberOfElements.ToString());
                 cell.Checked = item.Value.IsChecked;
                 cell.Tag =item.Key;
+                familyList.Items.Add(cell);
+            }
+            foreach (var item in missingWindowFamiliesCount)
+            {
+                familyName = $"{item.Key}";
+                ListViewItem cell = new ListViewItem(familyName);
+                cell.SubItems.Add(item.Value.NumberOfElements.ToString());
+                cell.Checked = item.Value.IsChecked;
+                cell.Tag = item.Key;
                 familyList.Items.Add(cell);
             }
 
@@ -211,6 +220,12 @@ namespace TrudeImporter
                         var path = GlobalVariables.MissingDoorFamiliesCount[familyName].path;
                         GlobalVariables.MissingDoorFamiliesCount[familyName] = (isChecked, count, path);
                     }
+                    if (GlobalVariables.MissingWindowFamiliesCount.ContainsKey(familyName))
+                    {
+                        var count = GlobalVariables.MissingWindowFamiliesCount[familyName].NumberOfElements;
+                        var path = GlobalVariables.MissingWindowFamiliesCount[familyName].path;
+                        GlobalVariables.MissingWindowFamiliesCount[familyName] = (isChecked, count, path);
+                    }
                 }
 
                 int checkedItemsCount = familyList.CheckedItems.Count;
@@ -225,7 +240,7 @@ namespace TrudeImporter
                     nextButton.Enabled = false;
                 }
                 headerCheckBox.Checked = false;
-                if (checkedItemsCount == missingDoorFamiliesCount.Count)
+                if (checkedItemsCount == missingDoorFamiliesCount.Count + missingWindowFamiliesCount.Count)
                 {
                     checkedCountLabel.Text = "All Families Selected";
                     nextButton.Enabled = true;
@@ -304,6 +319,13 @@ namespace TrudeImporter
                     filesToLink++;
                 }
             }
+            foreach (var item in missingWindowFamiliesCount)
+            {
+                if (item.Value.IsChecked)
+                {
+                    filesToLink++;
+                }
+            }
             Label totalCountLabel = new Label
             {
                 Text = $"Linked {linkedFiles} of {filesToLink}",
@@ -339,6 +361,17 @@ namespace TrudeImporter
 
             string familyName = "";
             foreach (var item in missingDoorFamiliesCount)
+            {
+                if (item.Value.IsChecked)
+                {
+                    familyName = $"{item.Key}";
+                    ListViewItem cell = new ListViewItem(familyName);
+                    cell.SubItems.Add("Upload");
+                    cell.Tag = item.Key;
+                    familyList.Items.Add(cell);
+                }
+            }
+            foreach (var item in missingWindowFamiliesCount)
             {
                 if (item.Value.IsChecked)
                 {
@@ -408,6 +441,24 @@ namespace TrudeImporter
                         var isCheck = GlobalVariables.MissingDoorFamiliesCount[familyName].IsChecked;
                         var count = GlobalVariables.MissingDoorFamiliesCount[familyName].NumberOfElements;
                         GlobalVariables.MissingDoorFamiliesCount[familyName] =
+                            (isCheck, count, sourcePath);
+                        
+                        if (e.SubItem.Text != "Uploaded")
+                        {
+                            e.SubItem.Text = "Uploaded";
+                            linkedFiles++;
+                        }
+
+                        totalCountLabel.Text =
+                            $"Linked {linkedFiles} of {filesToLink}";
+
+                        CheckAllUploaded();
+                    }
+                    if (GlobalVariables.MissingWindowFamiliesCount.ContainsKey(familyName) && !string.IsNullOrEmpty(sourcePath))
+                    {
+                        var isCheck = GlobalVariables.MissingWindowFamiliesCount[familyName].IsChecked;
+                        var count = GlobalVariables.MissingWindowFamiliesCount[familyName].NumberOfElements;
+                        GlobalVariables.MissingWindowFamiliesCount[familyName] =
                             (isCheck, count, sourcePath);
                         
                         if (e.SubItem.Text != "Uploaded")

@@ -65,6 +65,60 @@ namespace TrudeImporter.TrudeImporter.Model
             }
         }
 
+        public static void ImportMissingWindows(List<WindowProperties> windowProps)
+        {
+            if (GlobalVariables.MissingWindowFamiliesCount.Count == 0) return;
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string directoryPath = GlobalVariables.ForForge
+                ? "resourceFile/Windows"
+                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows");
+            foreach (var missingFamily in GlobalVariables.MissingWindowFamiliesCount)
+            {
+                bool isChecked = missingFamily.Value.IsChecked;
+                string sourcePath = missingFamily.Value.path;
+                string destinationPath = Path.Combine(directoryPath, missingFamily.Key + ".rfa");
+
+                if (isChecked)
+                {
+                    if (File.Exists(sourcePath))
+                    {
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        File.Copy(sourcePath, destinationPath, true);
+                        System.Diagnostics.Debug.WriteLine("Family: " + missingFamily.Key + " Copied to: " + destinationPath);
+                    }
+                }
+            }
+
+            foreach (var index in GlobalVariables.MissingWindowIndexes)
+            {
+                WindowProperties window = windowProps[index];
+                string windowName = window.Name.RemoveIns();
+                if (GlobalVariables.MissingWindowFamiliesCount[windowName].IsChecked)
+                {
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    {
+                        t.Start();
+                        deleteOld(window.ExistingElementId);
+                        try
+                        {
+                            new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
+                            if (t.Commit() != TransactionStatus.Committed)
+                            {
+                                t.RollBack();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
+                            t.RollBack();
+                        }
+                    }
+                }
+            }
+        }
 
         //public static void ImportMissingWindows(WindowProperties window)
         //{

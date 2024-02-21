@@ -15,7 +15,7 @@ namespace TrudeImporter
         float height = 0;
         public static WindowTypeStore TypeStore = new WindowTypeStore();
 
-        public TrudeWindow(WindowProperties windowProps, ElementId levelId)
+        public TrudeWindow(WindowProperties windowProps, ElementId levelId, int index)
         {
             XYZ direction = windowProps.Direction == null
                                 ? XYZ.Zero
@@ -51,6 +51,9 @@ namespace TrudeImporter
                         var family = FamilyLoader.LoadCustomWindowFamily(doorFamilyName);
                         if (family is null)
                         {
+                            GlobalVariables.MissingWindowFamiliesCount[doorFamilyName] = GlobalVariables.MissingWindowFamiliesCount.ContainsKey(doorFamilyName) ?
+                                (true, GlobalVariables.MissingWindowFamiliesCount[doorFamilyName].NumberOfElements + 1, "") : (true, 1, "");
+                            GlobalVariables.MissingWindowIndexes.Add(index);
                             System.Diagnostics.Debug.WriteLine("couln't find window family");
                             return;
                         }

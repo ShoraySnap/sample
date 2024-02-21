@@ -17,6 +17,8 @@ namespace TrudeImporter
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingDoorFamiliesCount = new Dictionary<string, (bool, int, string)>();
+        public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingWindowFamiliesCount = new Dictionary<string, (bool, int, string)>();
+
 
         public static JArray materials;
         public static JArray multiMaterials;
@@ -25,6 +27,8 @@ namespace TrudeImporter
         public static Dictionary<String, FamilySymbol> idToFamilySymbol = new Dictionary<String, FamilySymbol>();
 
         public static List<int> MissingDoorIndexes = new List<int>();
+        public static List<int> MissingWindowIndexes = new List<int>();
+
 
         public static void cleanGlobalVariables()
         {

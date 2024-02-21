@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace TrudeImporter
 {
@@ -12,7 +13,11 @@ namespace TrudeImporter
         public static void Import(TrudeProperties trudeProperties)
         {
             GlobalVariables.MissingDoorFamiliesCount.Clear();
+            GlobalVariables.MissingWindowFamiliesCount.Clear();
+
             GlobalVariables.MissingDoorIndexes.Clear();
+            GlobalVariables.MissingWindowIndexes.Clear();
+
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
@@ -26,7 +31,7 @@ namespace TrudeImporter
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
-            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                 ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
         }
 
@@ -409,7 +414,7 @@ namespace TrudeImporter
 
         private static void ImportWindows(List<WindowProperties> propsList)
         {
-            foreach (var window in propsList)
+            foreach (var (window,index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -417,7 +422,7 @@ namespace TrudeImporter
                     deleteOld(window.ExistingElementId);
                     try
                     {
-                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey]);
+                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey],index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -514,11 +519,15 @@ namespace TrudeImporter
                     DialogResult result = uploadForm.ShowDialog();
                     if (FamilyUploadForm.SkipAllFamilies)
                         {
-                            System.Diagnostics.Debug.WriteLine("Skipping Importing Missing Doors");
+                            System.Diagnostics.Debug.WriteLine("Skipping Importing Missing Families");
                         }
                     else
                         {
+                            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
                             TrudeMissing.ImportMissingDoors(propsListDoors);
+
+                            if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                            TrudeMissing.ImportMissingWindows(propsListWindows);
                         }
                     if (t.Commit() != TransactionStatus.Committed)
                     {
