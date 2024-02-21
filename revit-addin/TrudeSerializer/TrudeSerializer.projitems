@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -31,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)utils\CurveUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Dimensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TransformObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversion.cs" />

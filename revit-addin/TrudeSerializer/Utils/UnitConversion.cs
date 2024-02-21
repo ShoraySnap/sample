@@ -56,5 +56,10 @@ namespace TrudeSerializer.Utils
         {
             return ConvertToSnaptrudeUnits(value, UnitTypeId.Feet);
         }
+
+        public static double ConvertToSnaptrudeAreaUnits(double areaValue)
+        {
+            return areaValue * 1.44;
+        }
     }
 }

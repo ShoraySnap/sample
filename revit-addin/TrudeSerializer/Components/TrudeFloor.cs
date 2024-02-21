@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB.IFC;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using TrudeImporter;
 using TrudeSerializer.Importer;
@@ -49,102 +50,20 @@ namespace TrudeSerializer.Components
             TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, false, true, outline, voids);
             serializedFloor.SetIsParametric(isDifferentCurve);
 
+            var areaParam = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
+            if(areaParam != null && areaParam.HasValue)
+            {
+                serializedFloor.area = UnitConversion.ConvertToSnaptrudeAreaUnits(areaParam.AsDouble());
+            }
+            else
+            {
+                serializedFloor.area = 0;
+            }
+
             return serializedFloor;
         }
 
-        static private List<XYZ> GetPointsListFromCurveLoop(CurveLoop curveLoop, out bool isDifferentCurve, bool voidLoop = false)
-        {
-            isDifferentCurve = false;
-            CurveLoopIterator itr = curveLoop.GetCurveLoopIterator();
-            List<XYZ> curvePoints = new List<XYZ>();
-            if (!itr.IsValidObject) return curvePoints;
-            while (itr.MoveNext())
-            {
-                var curve = itr.Current;
-                if (curve is Arc || curve is NurbSpline)
-                {
-                    IList<XYZ> points = curve.Tessellate();
-                    foreach (var p in points)
-                    {
-                        curvePoints.Add(p);
-                    }
-                }
-                else if (curve is Line)
-                {
-                    XYZ endPoint = curve.GetEndPoint(0);
-                    curvePoints.Add(endPoint);
-                }
-                else
-                {
-                    isDifferentCurve = true;
-                }
-            }
 
-            return curvePoints;
-        }
-
-        static List<XYZ> GetPointsInProperUnits(List<XYZ> dataList)
-        {
-            var convertedPoints = new List<XYZ>();
-            foreach (XYZ point in dataList)
-            {
-                float multiplier = (float)UnitConversion.ConvertToMillimeterForRevit2021AndAbove(1.0, UnitTypeId.Feet);
-                convertedPoints.Add(point.Multiply(multiplier));
-            }
-
-            return convertedPoints;
-        }
-
-        static private string GetCurveKeyFromPointsList(List<XYZ> curvePoints, string elementID)
-        {
-            if (curvePoints.Count <= 0) return "";
-            StringBuilder keyBuilder = new StringBuilder();
-            keyBuilder.Append("[");
-            foreach (XYZ curvePoint in curvePoints)
-            {
-                keyBuilder.Append("[" + Math.Round(curvePoint.X).ToString() + ", " + Math.Round(curvePoint.Y) + "]");
-                if (curvePoints.IndexOf(curvePoint) != curvePoints.Count - 1) keyBuilder.Append(", ");
-            }
-
-            keyBuilder.Append("]");
-            keyBuilder.Append(elementID);
-            return keyBuilder.ToString();
-        }
-
-        static private double[][] TransformPointsListToDoubleArray(List<XYZ> pointList)
-        {
-            double[][] dataArrays = new double[pointList.Count][];
-            foreach (var point in pointList)
-            {
-                dataArrays[pointList.IndexOf(point)] = new double[] { point.X, point.Y, point.Z };
-            }
-            return dataArrays;
-        }
-
-        static private Dictionary<string, double[][]> GetPointsDataDict(List<string> keys, List<List<XYZ>> values, out bool isDifferentCurve)
-        {
-            isDifferentCurve = false;
-            if (keys.Count != values.Count)
-            {
-                throw new Exception("Points data invalid!");
-            }
-            var dataDict = new Dictionary<string, double[][]>();
-            List<double[][]> data = new List<double[][]>();
-            foreach (var plist in values)
-            {
-                data.Add(TransformPointsListToDoubleArray(GetPointsInProperUnits(plist)));
-            }
-            for (int i = 0; i < keys.Count; i++)
-            {
-                dataDict.Add(keys[i], data[i]);
-            }
-
-            if (values.Count > 600)
-            {
-                isDifferentCurve = true;
-            }
-            return dataDict;
-        }
 
         static (Dictionary<string, double[][]>, Dictionary<string, Dictionary<string, double[][]>>, bool) GetOutline(Element element)
         {
@@ -199,8 +118,8 @@ namespace TrudeSerializer.Components
                                 {
                                     var curveLoop = sortedLists[0]; // Take the outer curve
                                     bool isOuterCurveDifferent = false;
-                                    var curveDataPoint = GetPointsListFromCurveLoop(curveLoop, out isOuterCurveDifferent);
-                                    var curveKey = GetCurveKeyFromPointsList(curveDataPoint, element.Id.ToString());
+                                    var curveDataPoint = CurveUtils.GetPointsListFromCurveLoop(curveLoop, out isOuterCurveDifferent);
+                                    var curveKey = CurveUtils.GetCurveKeyFromPointsList(curveDataPoint, element.Id.ToString());
                                     curveKeys.Add(curveKey);
                                     curveData.Add(curveDataPoint);
                                     var voidKeys = new List<string>();
@@ -212,12 +131,12 @@ namespace TrudeSerializer.Components
                                         for (var i = 1; i < sortedLists.Count; i++)
                                         {
                                             var voidCurve = sortedLists[i];
-                                            var voidDataPoint = GetPointsListFromCurveLoop(voidCurve, out isInnerCurveDifferent, true);
-                                            voidKeys.Add(GetCurveKeyFromPointsList(voidDataPoint, element.Id.ToString()));
+                                            var voidDataPoint = CurveUtils.GetPointsListFromCurveLoop(voidCurve, out isInnerCurveDifferent, true);
+                                            voidKeys.Add(CurveUtils.GetCurveKeyFromPointsList(voidDataPoint, element.Id.ToString()));
                                             voidData.Add(voidDataPoint);
                                         }
 
-                                        Dictionary<string, double[][]> voidsDict = GetPointsDataDict(voidKeys, voidData, out isInnerCurveDifferent);
+                                        Dictionary<string, double[][]> voidsDict = CurveUtils.GetPointsDataDict(voidKeys, voidData, out isInnerCurveDifferent);
 
                                         outlinesToVoidsMap.Add(curveKey, voidsDict);
 
@@ -233,7 +152,7 @@ namespace TrudeSerializer.Components
             }
 
             bool tooManyPoints = false;
-            var outlineDict = GetPointsDataDict(curveKeys, curveData, out tooManyPoints);
+            var outlineDict = CurveUtils.GetPointsDataDict(curveKeys, curveData, out tooManyPoints);
             isDifferentCurve = isDifferentCurve || tooManyPoints;
 
             return (outlineDict, outlinesToVoidsMap, isDifferentCurve);
