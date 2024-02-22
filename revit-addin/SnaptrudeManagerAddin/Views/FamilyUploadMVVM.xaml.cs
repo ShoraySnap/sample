@@ -23,20 +23,112 @@ namespace SnaptrudeManagerAddin
 {
     public partial class FamilyUploadMVVM : Window, IDisposable
     {
+        private bool _isAllChecked = true;
         public ObservableCollection<MissingFamilyViewModel> MissingFamilyViewModels { get; set; } = new ObservableCollection<MissingFamilyViewModel>();
+
+        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = TrudeImporter.GlobalVariables.MissingDoorFamiliesCount;
+        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingWindowFamiliesCount = TrudeImporter.GlobalVariables.MissingWindowFamiliesCount;
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public FamilyUploadMVVM()
         {
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 2", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 3", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 4", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 5", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 6", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 7", IsChecked = true });
-            MissingFamilyViewModels.Add(new MissingFamilyViewModel() { FamilyName = "Teste 8", IsChecked = true });
-            InitializeCommands();
+            DataContext = this;
             InitializeComponent();
+            //InitializeCommands();
+
+            // Initialize your ViewModel collection here based on actual missing families from Revit.
+            LoadMissingFamilies();
         }
+
+        public void LoadMissingFamilies()
+        {
+            MissingFamilyViewModels.Clear();
+            foreach (var item in missingDoorFamiliesCount)
+            {
+                MissingFamilyViewModels.Add(new MissingFamilyViewModel
+                {
+                    FamilyName = item.Key,
+                    FamilyPath = item.Value.path,
+                    IsChecked = item.Value.IsChecked
+                });
+            }
+
+            foreach (var item in missingWindowFamiliesCount)
+            {
+                MissingFamilyViewModels.Add(new MissingFamilyViewModel
+                {
+                    FamilyName = item.Key,
+                    FamilyPath = item.Value.path,
+                    IsChecked = item.Value.IsChecked
+                });
+            }
+            OnPropertyChanged(nameof(TotalMissing));
+        }
+
+        //Update the Number of missing families
+        public int TotalMissing
+        {
+            get { return missingDoorFamiliesCount.Values.Count(x => x.IsChecked) + missingWindowFamiliesCount.Values.Count(x => x.IsChecked); }
+        }
+
+        public bool IsAllChecked
+        {
+            get { return _isAllChecked; }
+            set
+            {
+                if (_isAllChecked != value)
+                {
+                    _isAllChecked = value;
+                    OnPropertyChanged(nameof(IsAllChecked));
+                    System.Diagnostics.Debug.WriteLine("IsAllChecked: " + _isAllChecked);
+                    UpdateCheckStateForAll(_isAllChecked);
+                }
+            }
+        }
+
+        private void UpdateCheckStateForAll(bool isChecked)
+        {
+            foreach (var key in missingDoorFamiliesCount.Keys.ToList())
+            {
+                var item = missingDoorFamiliesCount[key];
+                missingDoorFamiliesCount[key] = (isChecked, item.NumberOfElements, item.path);
+            }
+
+            foreach (var key in missingWindowFamiliesCount.Keys.ToList())
+            {
+                var item = missingWindowFamiliesCount[key];
+                missingWindowFamiliesCount[key] = (isChecked, item.NumberOfElements, item.path);
+            }
+
+            // This will refresh the UI for each individual checkbox.
+            OnPropertyChanged(nameof(missingDoorFamiliesCount));
+            OnPropertyChanged(nameof(missingWindowFamiliesCount));
+
+            // Ensure TotalMissing is also updated.
+            OnPropertyChanged(nameof(TotalMissing));
+        }
+
+        public void IndividualCheckboxChanged()
+        {
+            var allDoorsAreSameState = missingDoorFamiliesCount.Values.All(x => x.IsChecked == _isAllChecked);
+            var allWindowsAreSameState = missingWindowFamiliesCount.Values.All(x => x.IsChecked == _isAllChecked);
+
+            if (!allDoorsAreSameState || !allWindowsAreSameState)
+            {
+                _isAllChecked = false;
+                OnPropertyChanged(nameof(IsAllChecked));
+            }
+            else if (allDoorsAreSameState && allWindowsAreSameState && !_isAllChecked) // If everything is manually checked but top isn't updated yet.
+            {
+                _isAllChecked = true;
+                OnPropertyChanged(nameof(IsAllChecked));
+            }
+        }
+
         private void InitializeCommands()
         {
             this.ShowInTaskbar = true;
@@ -83,46 +175,39 @@ namespace SnaptrudeManagerAddin
 
     public class MissingFamilyViewModel : INotifyPropertyChanged
     {
-        private string familyName;
+        private string _familyName;
+        private string _familyPath;
+        private bool _isChecked;
+
         public string FamilyName
         {
-            get { return familyName; }
-            set
-            {
-                familyName = value;
-                OnPropertyChanged();
-            }
+            get => _familyName;
+            set { _familyName = value; OnPropertyChanged(); }
         }
 
-        private string familyPath;
         public string FamilyPath
         {
-            get { return familyPath; }
-            set
-            {
-                familyPath = value;
-                OnPropertyChanged();
-            }
+            get => _familyPath;
+            set { _familyPath = value; OnPropertyChanged(); }
         }
 
-        private bool isChecked;
         public bool IsChecked
         {
-            get { return isChecked; }
-            set
-            {
-                isChecked = value;
+            get => _isChecked;
+            set { 
+                _isChecked = value; 
                 OnPropertyChanged();
+                System.Diagnostics.Debug.WriteLine("IsChecked: " + _isChecked);
             }
         }
 
-        public string MissingFamilyString = "Missing from model";
-
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
+
 
 }

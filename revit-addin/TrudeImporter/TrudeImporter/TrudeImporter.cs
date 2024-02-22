@@ -5,6 +5,7 @@ using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 using System.Windows.Forms;
 using System.Reflection;
+using SnaptrudeManagerAddin;
 
 namespace TrudeImporter
 {
@@ -515,8 +516,8 @@ namespace TrudeImporter
                 t.Start();
                 try
                 {
-                    FamilyUploadForm uploadForm = new FamilyUploadForm();
-                    DialogResult result = uploadForm.ShowDialog();
+                    FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
+                    familyUploadMVVM.Show();
                     if (FamilyUploadForm.SkipAllFamilies)
                         {
                             System.Diagnostics.Debug.WriteLine("Skipping Importing Missing Families");
