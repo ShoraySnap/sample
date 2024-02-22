@@ -197,7 +197,7 @@ const electronCommunicator = (function () {
     }
   };
 
-  const uploadToSnaptrude = async function () {
+  const uploadToSnaptrude = async function (event, data) {
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
       return;
@@ -205,7 +205,7 @@ const electronCommunicator = (function () {
 
     logger.log("Uploading to Snaptrude");
 
-    const snaptrudeProject = await snaptrudeService.createProject();
+    const snaptrudeProject = await snaptrudeService.createProject(data[0], data[1]);
     if (!snaptrudeProject) {
       logger.log("Error creating Snaptrude project");
       return;

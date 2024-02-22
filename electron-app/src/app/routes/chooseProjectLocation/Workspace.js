@@ -129,7 +129,7 @@ const Workspace = ({
     // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     setIsLoading(false);
-    window.electronAPI.uploadToSnaptrude();
+    window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
     const projectLink = sessionData.getUserData()["modelLink"];
 
     console.log("projectLink", projectLink);
@@ -140,7 +140,7 @@ const Workspace = ({
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
-    goHome();
+    navigate(ROUTES.loading);
   };
 
   const onSubmitGoToPayment = async () => {
