@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Components\InstanceUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)components\TrudeCeiling.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFloor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFurniture.cs" />
@@ -25,12 +26,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Importer\ComponentHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\FamilyElement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)types\TrudeCeilingType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeFloorType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\CurrentLink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)utils\CurveUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Dimensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TransformObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversion.cs" />

@@ -1,29 +1,31 @@
-﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-using TrudeImporter;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
+using System.Collections.Generic;
+using TrudeImporter;
+using System;
+using System.Text;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
-    internal class TrudeFloor : TrudeComponent
+    internal class TrudeCeiling : TrudeComponent
     {
         public Dictionary<string, double[][]> outline;
         public double area;
         public Dictionary<string, Dictionary<string, double[][]>> voids;
         public string type;
 
-        private TrudeFloor(string elementId,
+        public double heightOffsetFromLevel = 0;
+
+        private TrudeCeiling(string elementId,
             string level, string family, string type,
             bool isInstance, bool isParametric,
             Dictionary<string, double[][]> outline,
-            Dictionary<string, Dictionary<string, double[][]>> voids
-            ) : base(elementId, "Floors", family, level)
+            Dictionary<string, Dictionary<string, double[][]>> voids,
+            double heightOffset
+            ) : base(elementId, "Ceilings", family, level)
         {
             this.elementId = elementId;
             this.level = level;
@@ -32,35 +34,34 @@ namespace TrudeSerializer.Components
             this.isInstance = isInstance;
             this.isParametric = isParametric;
             this.voids = voids;
-
             this.outline = outline;
+            this.heightOffsetFromLevel = heightOffset;
         }
 
-        static public TrudeFloor GetSerializedComponent(SerializedTrudeData importData, Element element)
+        static public TrudeCeiling GetSerializedComponent(SerializedTrudeData importData, Element element)
         {
-            Floor floor = element as Floor;
+            Ceiling ceiling = element as Ceiling;
 
             string elementId = element.Id.ToString();
             string levelName = TrudeLevel.GetLevelName(element);
-            string family = floor.FloorType.FamilyName;
+            var elemType = GlobalVariables.Document.GetElement(element.GetTypeId()) as CeilingType;
+            string family = elemType.FamilyName;
             string floorType = element.Name;
 
+            Parameter heightOffsetParam = ceiling.LookupParameter("Height Offset From Level");
+            double heightOffset = 0;
+            if(heightOffsetParam.HasValue)
+            {
+                heightOffset = heightOffsetParam.AsDouble();
+                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, heightOffsetParam.GetUnitTypeId());
+            }
             var (outline, voids, isDifferentCurve) = GetOutline(element);
-            SetFloorType(importData, floor);
-            TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, false, true, outline, voids);
-            serializedFloor.SetIsParametric(isDifferentCurve);
+            SetCeilingType(importData, ceiling);
+            TrudeCeiling serializedCeiling = new TrudeCeiling(elementId, levelName, family, floorType, false, true, outline, voids, heightOffset);
+            serializedCeiling.SetIsParametric(isDifferentCurve);
 
-            var areaParam = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
-            if(areaParam != null && areaParam.HasValue)
-            {
-                serializedFloor.area = UnitConversion.ConvertToSnaptrudeAreaUnits(areaParam.AsDouble());
-            }
-            else
-            {
-                serializedFloor.area = 0;
-            }
 
-            return serializedFloor;
+            return serializedCeiling;
         }
 
 
@@ -159,13 +160,14 @@ namespace TrudeSerializer.Components
         }
 
 
-        static public void SetFloorType(SerializedTrudeData importData, Floor floor)
+        static public void SetCeilingType(SerializedTrudeData importData, Ceiling ceiling)
         {
-            string name = floor.FloorType.Name;
-            if (importData.FamilyTypes.HasFloorType(name)) return;
+            var elemType = GlobalVariables.Document.GetElement(ceiling.GetTypeId()) as CeilingType;
+            string name = elemType.Name;
+            if (importData.FamilyTypes.HasCeilingType(name)) return;
 
-            TrudeFloorType snaptrudeFloorType = TrudeFloorType.GetLayersData(floor);
-            importData.FamilyTypes.AddFloorType(name, snaptrudeFloorType);
+            TrudeCeilingType snaptrudeFloorType = TrudeCeilingType.GetLayersData(ceiling);
+            importData.FamilyTypes.AddCeilingType(name, snaptrudeFloorType);
         }
 
         private void SetIsParametric(bool isDifferentCurve)

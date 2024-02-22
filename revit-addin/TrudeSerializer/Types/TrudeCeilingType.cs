@@ -5,21 +5,22 @@ using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Types
 {
-    internal class TrudeFloorType
+    internal class TrudeCeilingType
     {
         public List<TrudeLayer> layersData;
 
-        public TrudeFloorType(List<TrudeLayer> layersData)
+        public TrudeCeilingType(List<TrudeLayer> layersData)
         {
             this.layersData = layersData;
         }
 
-        static public TrudeFloorType GetLayersData(Floor floor)
+        static public TrudeCeilingType GetLayersData(Ceiling ceiling)
         {
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
-            CompoundStructure compoundStructure = floor.FloorType.GetCompoundStructure();
-            if (compoundStructure == null) return new TrudeFloorType(layersData);
+            var elemType = document.GetElement(ceiling.GetTypeId()) as CeilingType;
+            CompoundStructure compoundStructure = elemType?.GetCompoundStructure();
+            if (elemType == null || compoundStructure == null) return new TrudeCeilingType(layersData);
             IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
             foreach (CompoundStructureLayer layer in layers)
             {
@@ -34,7 +35,7 @@ namespace TrudeSerializer.Types
 
                 layersData.Add(Snaptrudelayer);
             }
-            return new TrudeFloorType(layersData);
+            return new TrudeCeilingType(layersData);
         }
     }
 }
