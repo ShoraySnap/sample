@@ -12,6 +12,8 @@ import {useNavigate} from "react-router-dom";
 import urls from "../../services/urls";
 import snaptrudeService from "../../services/snaptrude.service";
 import LoadingScreen from "../../components/Loader";
+import logger from "../../services/logger";
+
 
 const openLoginPageInBrowser = () => {
   const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=true";
@@ -40,7 +42,7 @@ const Home = () => {
     title: "Upload to Snaptrude",
     icon: upload,
     onClick: () => {
-      window.electronAPI.uploadToSnaptrude();
+      navigate(ROUTES.chooseProjectLocation);
       // navigate(ROUTES.loading);
       // backend has to initiate the loading page provided everything has worked properly
     }

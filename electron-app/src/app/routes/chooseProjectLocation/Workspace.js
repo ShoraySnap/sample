@@ -20,7 +20,7 @@ import urls from "../../services/urls";
 import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
 import { Tooltip } from "antd";
-
+import { RouteStore } from "../routeStore";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -129,14 +129,13 @@ const Workspace = ({
     // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     setIsLoading(false);
-
+    window.electronAPI.uploadToSnaptrude();
     const projectLink = sessionData.getUserData()["modelLink"];
 
     console.log("projectLink", projectLink);
 
     if (projectLink) {
-      window.electronAPI.openPageInDefaultBrowser(projectLink);
-      window.electronAPI.operationSucceeded();
+      RouteStore.set("projectLink", projectLink);
     } else {
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
@@ -149,6 +148,7 @@ const Workspace = ({
       urls.get("snaptrudeReactUrl") + "/dashboard/profile/plans";
 
     if (upgradePlanLink) {
+      // MAKE CHANGES HERE TOO
       window.electronAPI.openPageInDefaultBrowser(upgradePlanLink);
       window.electronAPI.operationSucceeded();
     } else {

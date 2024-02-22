@@ -17,7 +17,7 @@ const electronCommunicator = (function () {
   const REVIT_PIPE_MSG_BEGIN_IMPORT = "beginImport"; // 11 characters
   const REVIT_PIPE_MSG_BEGIN_EXPORT = "beginExport"; // 11 characters
   const REVIT_PIPE_MSG_STOP = "stopWaiting"; // 11 characters
-  const REVIT_WAIT_THRESHOLD = 60 * 1e3;
+  const REVIT_WAIT_THRESHOLD = 120 * 1e3;
   const REVIT_PIPE_MEG_FINISH_IMPORT = "done-Import"; // 11 characters
 
   const PIPE_NAME = "snaptrudeRevitPipe";

@@ -4,6 +4,8 @@ import ProgressBar from "../../components/ProgressBar";
 import styled from "styled-components";
 import {useNavigate} from "react-router-dom";
 import {ROUTES} from "../constants";
+import { RouteStore } from "../routeStore";
+import logger from "../../services/logger";
 
 const Container = styled.div`
   display: flex;
@@ -66,8 +68,8 @@ const Loading = (props) => {
   
   useEffect(() => {
     window.electronAPI.handleSuccessfulSpeckleUpload(async () => {
-      // navigate(ROUTES.chooseProjectLocation,{ state: {workspaces: workspaces}});
-      navigate(ROUTES.chooseProjectLocation);
+      window.electronAPI.openPageInDefaultBrowser(RouteStore.get("projectLink"));
+      window.electronAPI.operationSucceeded();
     });
     
     return window.electronAPI.removeSuccessfulSpeckleUploadHandler;
