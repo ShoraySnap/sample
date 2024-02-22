@@ -86,10 +86,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\Checkbox.png" />
-    <Content Include="Resources\EmptyCheckbox.png" />
+    <Resource Include="Views\Fonts\Inter.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\FamilyUploadMVVM.xaml">
