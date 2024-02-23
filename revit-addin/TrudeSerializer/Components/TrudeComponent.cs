@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Autodesk.Revit.DB;
+using System.Collections.Generic;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -77,6 +78,14 @@ namespace TrudeSerializer.Components
         static public void ClearCurrentFamily()
         {
             CurrentFamily = null;
+        }
+
+        static public double GetHeightFromBoundingBox(Element element)
+        {
+            BoundingBoxXYZ boundingBox = element.get_BoundingBox(null);
+            double height = boundingBox.Max.Z - boundingBox.Min.Z;
+            height = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(height);
+            return height;
         }
     }
 }

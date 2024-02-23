@@ -121,8 +121,7 @@ namespace TrudeSerializer.Components
 
         public void SetFacingOrientation(Element element)
         {
-            FamilyInstance familyInstance = element as FamilyInstance;
-            if (familyInstance == null)
+            if (!(element is FamilyInstance familyInstance))
             {
                 return;
             }

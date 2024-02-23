@@ -402,7 +402,7 @@ namespace TrudeSerializer.Components
             {
                 if (element is FamilyInstance familyInstance)
                 {
-                    hostId = familyInstance.Host.Id.ToString();
+                    hostId = familyInstance.Host != null ? familyInstance.Host.Id.ToString() : "";
                 }
             }
             catch (Exception e)

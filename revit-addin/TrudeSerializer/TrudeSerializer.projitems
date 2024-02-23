@@ -12,9 +12,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFamily.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudePlanViewIndicator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Uploader\Compressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\FamilyInstanceUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\InstanceUtility.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\InstanceUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)components\TrudeCeiling.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFloor.cs" />

@@ -29,9 +29,12 @@ namespace TrudeSerializer.Components
             { "Clear", new double[] { 0, 0, 0, 0.2 } }
         };
 
-        private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80 / 255, 80 / 255, 80 / 255, 1 };
+        private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 };
 
-        public TrudeMaterial() { }
+        public TrudeMaterial()
+        {
+            this.diffuseColor = DEFAULT_DIFFUSE_COLOR;
+        }
 
         public TrudeMaterial(double[] diffuseColor, String name)
         {
@@ -51,7 +54,7 @@ namespace TrudeSerializer.Components
             {
                 return GetDefaultMaterial();
             }
-            Document document = GlobalVariables.Document;
+            Document document = GlobalVariables.CurrentDocument;
 
             TrudeMaterial trudeMaterial = new TrudeMaterial();
 
@@ -88,7 +91,7 @@ namespace TrudeSerializer.Components
 
         private void SetConsistentColor(Material mat)
         {
-            double[] color = { mat.Color.Red / 255, mat.Color.Green / 255, mat.Color.Blue / 255, 1 - mat.Transparency / 100 };
+            double[] color = { mat.Color.Red / 255.0, mat.Color.Green / 255.0, mat.Color.Blue / 255.0, (1 - mat.Transparency) / 100.0 };
             String name = mat.Id.ToString();
             this.diffuseColor = color;
             this.name = name;
@@ -198,19 +201,12 @@ namespace TrudeSerializer.Components
             if (!(mainAsset is Asset textureAsset) || !(connectTextureAsset is AssetPropertyString connectTextureString))
                 return;
 
-            String texturePath = RemoveInvalidChars(connectTextureString.Value);
-            Console.WriteLine(texturePath);
-            this.texturePath = Path.GetFileName(texturePath);
-            this.texturePath = "";
+            string[] texturePath = connectTextureString.Value.Split('|');
+            this.texturePath = texturePath.Length == 0 ? "" : Path.GetFileName(texturePath[0]);
 
             SetTextureScales(textureAsset);
             SetTextureOffset(textureAsset);
             SetTextureAngle(textureAsset);
-        }
-
-        private string RemoveInvalidChars(string filename)
-        {
-            return string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
         }
 
         private void SetTextureScales(Asset textureAsset)

@@ -2,22 +2,22 @@
 using System;
 using System.Collections.Generic;
 using TrudeSerializer.Types;
+using Newtonsoft.Json;
+using System.Reflection;
 
 namespace TrudeSerializer.Importer
 {
     internal class SerializedTrudeData
     {
-        public ProjectProperties ProjectProperties;
-        public Dictionary<string, TrudeWall> Walls;
-        public TrudeObject<TrudeFurniture> Furniture;
-        public TrudeObject<TrudeDoor> Doors;
-        public Dictionary<string, TrudeFloor> Floors;
-        public Dictionary<string, TrudeCeiling> Ceilings;
-        public TrudeFurnitureObject Furniture;
-        public Dictionary<string, TrudeMass> Masses;
-        public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks;
-
-        public FamilyTypes FamilyTypes;
+        public ProjectProperties ProjectProperties { get; set; }
+        public Dictionary<string, TrudeWall> Walls { get; set; }
+        public TrudeObject<TrudeFurniture> Furniture { get; set; }
+        public TrudeObject<TrudeDoor> Doors { get; set; }
+        public Dictionary<string, TrudeFloor> Floors { get; set; }
+        public Dictionary<string, TrudeMass> Masses { get; set; }
+        public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks { get; set; }
+        public FamilyTypes FamilyTypes { get; set; }
+        public Dictionary<string, TrudeCeiling> Ceilings { get; set; }
 
         public SerializedTrudeData()
         {
@@ -27,12 +27,10 @@ namespace TrudeSerializer.Importer
             this.Doors = new TrudeObject<TrudeDoor>();
             this.Floors = new Dictionary<string, TrudeFloor>();
             this.Ceilings = new Dictionary<string, TrudeCeiling>();
-            this.Furniture = new TrudeFurnitureObject();
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
         }
-
         public void AddWall(TrudeWall wall)
         {
             if (this.Walls.ContainsKey(wall.elementId)) return;
@@ -52,11 +50,11 @@ namespace TrudeSerializer.Importer
 
         public void AddFloor(TrudeFloor trudeFloor)
         {
-            if(this.Floors.ContainsKey(trudeFloor.elementId)) return; 
+            if (this.Floors.ContainsKey(trudeFloor.elementId)) return;
             this.Floors.Add(trudeFloor.elementId, trudeFloor);
         }
-        
-        internal void AddCeiling(TrudeCeiling trudeCeiling)
+
+        public void AddCeiling(TrudeCeiling trudeCeiling)
         {
             if (this.Ceilings.ContainsKey(trudeCeiling.elementId)) return;
             this.Ceilings.Add(trudeCeiling.elementId, trudeCeiling);
@@ -71,6 +69,7 @@ namespace TrudeSerializer.Importer
         {
             this.Furniture.AddFamily(familyName, family);
         }
+
         public void AddFurnitureInstance(string instanceId, TrudeFurniture instance)
         {
             this.Furniture.AddInstance(instanceId, instance);
@@ -85,9 +84,35 @@ namespace TrudeSerializer.Importer
         {
             this.Doors.AddInstance(instanceId, instance);
         }
+
+        public string SerializeProjectProperties()
+        {
+            string projectProperties = JsonConvert.SerializeObject(this.ProjectProperties);
+            return projectProperties;
+        }
+
+        public Dictionary<string, string> GetSerializedObject()
+        {
+            Dictionary<string, string> serializedData = new Dictionary<string, string>();
+            PropertyInfo[] properties = this.GetType().GetProperties();
+
+            foreach (PropertyInfo property in properties)
+            {
+                string propertyName = property.Name;
+                object propertyValue = property.GetValue(this);
+
+                if (propertyValue != null)
+                {
+                    string serializedValue = JsonConvert.SerializeObject(propertyValue);
+                    serializedData.Add(propertyName, serializedValue);
+                }
+            }
+
+            return serializedData;
+        }
     }
 
-    class FamilyTypes
+    internal class FamilyTypes
     {
         public Dictionary<String, TrudeWallType> WallTypes;
         public Dictionary<String, TrudeFloorType> FloorTypes;
@@ -99,7 +124,6 @@ namespace TrudeSerializer.Importer
             this.FloorTypes = new Dictionary<String, TrudeFloorType>();
             this.CeilingTypes = new Dictionary<String, TrudeCeilingType>();
         }
-
 
         public bool HasFloorType(String floorTypeName)
         {
@@ -135,7 +159,7 @@ namespace TrudeSerializer.Importer
 
     }
 
-    class ProjectProperties
+    internal class ProjectProperties
     {
         public Dictionary<string, TrudeLevel> Levels;
         public string ProjectUnit;
@@ -157,7 +181,7 @@ namespace TrudeSerializer.Importer
         }
     }
 
-     class TrudeObject<TFamily>
+    internal class TrudeObject<TFamily>
     {
         public Dictionary<string, TrudeFamily> Families;
         public Dictionary<string, TFamily> Instances;
@@ -184,6 +208,4 @@ namespace TrudeSerializer.Importer
             this.Instances.Add(instanceId, instance);
         }
     }
-
 }
-
