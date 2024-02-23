@@ -90,7 +90,7 @@ const snaptrudeService = function () {
       });
   };
 
-  const createProject = async function () {
+  const createProject = async function (teamId, folderId) {
     logger.log("Creating Snaptrude project");
     const REACT_URL = urls.get("snaptrudeReactUrl");
 
@@ -102,6 +102,8 @@ const snaptrudeService = function () {
     const data = {
       project_name: sessionData.getRevitModelName(),
       stream_id: "test",
+      team_id: teamId,
+      folder_id: folderId,
     }
 
     const response = await _callApi(endPoint, RequestType.POST, data);

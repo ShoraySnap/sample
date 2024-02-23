@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openPageInDefaultBrowser: (url) => ipcRenderer.send('openPageInDefaultBrowser', [url]),
     flushUserData: () => ipcRenderer.send('flushUserData'),
     updateUserData: (data) => ipcRenderer.send('updateUserData', [data]),
-    uploadToSnaptrude: () => ipcRenderer.send('uploadToSnaptrude'),
+    uploadToSnaptrude: (data) => ipcRenderer.send('uploadToSnaptrude', [data]),
     importFromSnaptrude: () => ipcRenderer.send('importFromSnaptrude'),
     log: (messages) => ipcRenderer.send('log', [messages]),
     operationSucceeded: () => ipcRenderer.send('operationSucceeded'),

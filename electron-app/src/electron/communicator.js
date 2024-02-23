@@ -17,7 +17,7 @@ const electronCommunicator = (function () {
   const REVIT_PIPE_MSG_BEGIN_IMPORT = "beginImport"; // 11 characters
   const REVIT_PIPE_MSG_BEGIN_EXPORT = "beginExport"; // 11 characters
   const REVIT_PIPE_MSG_STOP = "stopWaiting"; // 11 characters
-  const REVIT_WAIT_THRESHOLD = 60 * 1e3;
+  const REVIT_WAIT_THRESHOLD = 120 * 1e3;
   const REVIT_PIPE_MEG_FINISH_IMPORT = "done-Import"; // 11 characters
 
   const PIPE_NAME = "snaptrudeRevitPipe";
@@ -197,7 +197,7 @@ const electronCommunicator = (function () {
     }
   };
 
-  const uploadToSnaptrude = async function () {
+  const uploadToSnaptrude = async function ({workspaceId, folderId}) {
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
       return;
@@ -205,7 +205,7 @@ const electronCommunicator = (function () {
 
     logger.log("Uploading to Snaptrude");
 
-    const snaptrudeProject = await snaptrudeService.createProject();
+    const snaptrudeProject = await snaptrudeService.createProject(workspaceId, folderId);
     if (!snaptrudeProject) {
       logger.log("Error creating Snaptrude project");
       return;

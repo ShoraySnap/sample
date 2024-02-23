@@ -1,9 +1,9 @@
-import {colors} from "../../themes/constant";
-import {useEffect, useRef, useState} from "react";
-import ProgressBar from "../../components/ProgressBar";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import {useNavigate} from "react-router-dom";
-import {ROUTES} from "../constants";
+import ProgressBar from "../../components/ProgressBar";
+import sessionData from "../../services/sessionData";
+import { colors } from "../../themes/constant";
 
 const Container = styled.div`
   display: flex;
@@ -66,8 +66,8 @@ const Loading = (props) => {
   
   useEffect(() => {
     window.electronAPI.handleSuccessfulSpeckleUpload(async () => {
-      // navigate(ROUTES.chooseProjectLocation,{ state: {workspaces: workspaces}});
-      navigate(ROUTES.chooseProjectLocation);
+      window.electronAPI.openPageInDefaultBrowser(sessionData.getUserData().modelLink);
+      window.electronAPI.operationSucceeded();
     });
     
     return window.electronAPI.removeSuccessfulSpeckleUploadHandler;

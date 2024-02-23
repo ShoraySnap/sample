@@ -12,6 +12,8 @@ import {useNavigate} from "react-router-dom";
 import urls from "../../services/urls";
 import snaptrudeService from "../../services/snaptrude.service";
 import LoadingScreen from "../../components/Loader";
+import logger from "../../services/logger";
+
 
 const openLoginPageInBrowser = () => {
   const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=true";
@@ -40,7 +42,7 @@ const Home = () => {
     title: "Upload to Snaptrude",
     icon: upload,
     onClick: () => {
-      window.electronAPI.uploadToSnaptrude();
+      navigate(ROUTES.chooseProjectLocation);
       // navigate(ROUTES.loading);
       // backend has to initiate the loading page provided everything has worked properly
     }
@@ -108,9 +110,14 @@ const Home = () => {
 
   const isUserLoggedIn = async() => {
     const response = await snaptrudeService.checkIfUserLoggedIn();
-    if(response === null){
+    if(!response){
       flushUserData();
     }
+  }
+
+  let checkIfProUser = async() => {
+    const isProUser = await snaptrudeService.checkIfProUser();
+    setIsProUser(isProUser);
   }
   
   const isLoggedIn = !!userData.accessToken;
@@ -121,18 +128,21 @@ const Home = () => {
   const [buttons, setButtons] = useState(initState);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isProUser, setIsProUser] = useState(false);
   
   useEffect(() => {
     if(isLoggedIn){
       setIsLoading(true);
       isUserLoggedIn().then(()=>{
-        const userData = sessionData.getUserData()
+        const userData = sessionData.getUserData();
         const isLoggedIn = !!userData.accessToken;
         const currentState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
         setButtons(currentState);
         if (isLoggedIn) updateTemplatesWithUserData();
         setIsLoading(false);
       })
+
+      checkIfProUser().then(() => {});
     }
     
     window.electronAPI.handleSuccessfulLogin((event) => {
@@ -141,7 +151,7 @@ const Home = () => {
     });
     
     return window.electronAPI.removeSuccessfulLoginHandler;
-  }, []);
+  }, [userData]);
   
   return (
     <Column>
@@ -150,8 +160,8 @@ const Home = () => {
         {buttons.map((button, i) => {
           
           let isDisabled = false;
-          if (!isLoggedIn){
-            if (button.id !== BUTTONS.login) isDisabled = true;
+          if (!isLoggedIn || !isProUser){
+            if (button.id === BUTTONS.upload || button.id === BUTTONS.reconcile) isDisabled = true;
           }
           
           return (

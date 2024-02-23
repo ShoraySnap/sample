@@ -12,6 +12,8 @@ namespace TrudeSerializer.Importer
         public TrudeObject<TrudeFurniture> Furniture;
         public TrudeObject<TrudeDoor> Doors;
         public Dictionary<string, TrudeFloor> Floors;
+        public Dictionary<string, TrudeCeiling> Ceilings;
+        public TrudeFurnitureObject Furniture;
         public Dictionary<string, TrudeMass> Masses;
         public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks;
 
@@ -24,6 +26,8 @@ namespace TrudeSerializer.Importer
             this.Furniture = new TrudeObject<TrudeFurniture>();
             this.Doors = new TrudeObject<TrudeDoor>();
             this.Floors = new Dictionary<string, TrudeFloor>();
+            this.Ceilings = new Dictionary<string, TrudeCeiling>();
+            this.Furniture = new TrudeFurnitureObject();
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
@@ -51,6 +55,13 @@ namespace TrudeSerializer.Importer
             if(this.Floors.ContainsKey(trudeFloor.elementId)) return; 
             this.Floors.Add(trudeFloor.elementId, trudeFloor);
         }
+        
+        internal void AddCeiling(TrudeCeiling trudeCeiling)
+        {
+            if (this.Ceilings.ContainsKey(trudeCeiling.elementId)) return;
+            this.Ceilings.Add(trudeCeiling.elementId, trudeCeiling);
+        }
+
         public void SetProjectUnit(string unit)
         {
             ProjectProperties.SetProjectUnit(unit);
@@ -79,12 +90,14 @@ namespace TrudeSerializer.Importer
     class FamilyTypes
     {
         public Dictionary<String, TrudeWallType> WallTypes;
-        public Dictionary<string, TrudeFloorType> FloorTypes;
+        public Dictionary<String, TrudeFloorType> FloorTypes;
+        public Dictionary<String, TrudeCeilingType> CeilingTypes;
 
         public FamilyTypes()
         {
             this.WallTypes = new Dictionary<String, TrudeWallType>();
             this.FloorTypes = new Dictionary<String, TrudeFloorType>();
+            this.CeilingTypes = new Dictionary<String, TrudeCeilingType>();
         }
 
 
@@ -96,6 +109,10 @@ namespace TrudeSerializer.Importer
         public bool HasWallType(String wallTypeName)
         {
             return this.WallTypes.ContainsKey(wallTypeName);
+        }
+        public bool HasCeilingType(String ceilingTypeName)
+        {
+            return this.CeilingTypes.ContainsKey(ceilingTypeName);
         }
 
         public void AddFloorType(String floorTypeName, TrudeFloorType floorType)
@@ -109,6 +126,13 @@ namespace TrudeSerializer.Importer
             if (this.HasWallType(wallTypeName)) return;
             this.WallTypes.Add(wallTypeName, wallType);
         }
+
+        internal void AddCeilingType(String ceilingTypeName, TrudeCeilingType ceilingType)
+        {
+            if (this.HasCeilingType(ceilingTypeName)) return;
+            this.CeilingTypes.Add(ceilingTypeName, ceilingType);
+        }
+
     }
 
     class ProjectProperties

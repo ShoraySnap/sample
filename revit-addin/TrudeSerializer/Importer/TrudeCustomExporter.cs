@@ -175,6 +175,10 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddMass(component as TrudeMass);
             }
+            else if (component is TrudeCeiling)
+            {
+                serializedSnaptrudeData.AddCeiling(component as TrudeCeiling);
+            }
             else if(component is TrudeInstance)
             {
                 serializedSnaptrudeData.AddFurnitureInstance(component.elementId, component as TrudeFurniture);
