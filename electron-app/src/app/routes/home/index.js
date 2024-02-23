@@ -114,6 +114,11 @@ const Home = () => {
       flushUserData();
     }
   }
+
+  let checkIfProUser = async() => {
+    const isProUser = await snaptrudeService.checkIfProUser();
+    setIsProUser(isProUser);
+  }
   
   const isLoggedIn = !!userData.accessToken;
   const initState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
@@ -123,6 +128,7 @@ const Home = () => {
   const [buttons, setButtons] = useState(initState);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isProUser, setIsProUser] = useState(false);
   
   useEffect(() => {
     if(isLoggedIn){
@@ -135,6 +141,8 @@ const Home = () => {
         if (isLoggedIn) updateTemplatesWithUserData();
         setIsLoading(false);
       })
+
+      checkIfProUser().then(() => {});
     }
     
     window.electronAPI.handleSuccessfulLogin((event) => {
@@ -143,7 +151,7 @@ const Home = () => {
     });
     
     return window.electronAPI.removeSuccessfulLoginHandler;
-  }, []);
+  }, [userData]);
   
   return (
     <Column>
@@ -152,8 +160,8 @@ const Home = () => {
         {buttons.map((button, i) => {
           
           let isDisabled = false;
-          if (!isLoggedIn){
-            if (button.id !== BUTTONS.login) isDisabled = true;
+          if (!isLoggedIn || !isProUser){
+            if (button.id === BUTTONS.upload || button.id === BUTTONS.reconcile) isDisabled = true;
           }
           
           return (

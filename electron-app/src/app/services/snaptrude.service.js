@@ -253,6 +253,15 @@ const snaptrudeService = (function () {
     }
   };
 
+  const checkIfProUser = async function () {
+    const endPoint = "/payments/ispro";
+    const response = await _callApi(endPoint, RequestType.GET);
+    if (response) {
+      return response.data.isPro;
+    }
+    return false;
+  };
+
   const getProjectInPersonalWorkSpace = async () => {
     const endPoint = "/getprojects/";
     const data = {
@@ -328,6 +337,7 @@ const snaptrudeService = (function () {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
+    checkIfProUser,
     getFolders,
     checkIfUserLoggedIn
   };

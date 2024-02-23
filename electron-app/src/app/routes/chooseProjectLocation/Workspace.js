@@ -215,6 +215,11 @@ const Workspace = ({
     }
   };
 
+  const isUserPro = async () => {
+    const isProUser = await snaptrudeService.checkIfProUser();
+    setIsProUser(isProUser);
+  }
+
   const getFolders = async () => {
     let folders = await snaptrudeService.getFolders(
       selectedWorkspaceId,
@@ -289,6 +294,7 @@ const Workspace = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [isWorkSpaceLoading, setIsWorkSpaceLoading] = useState(true);
+  const [isProUser, setIsProUser] = useState(false);
 
   const [entries, setEntries] = useState([]);
   const [selectedEntryId, setSelectedEntryId] = useState(
@@ -316,10 +322,12 @@ const Workspace = ({
         setSelectedEntryId(currentFolderId);
       }
     });
+
+    isUserPro().then(() => { });
   }, [selectedWorkspaceId, foldersArray, parentFolderId]);
 
   if (isWorkSpaceLoading) return <LoadingScreen />;
-  if (!entries.length)
+  if (!entries.length || !isProUser)
     return (
     <UpgradePlan closeApplication = {closeApplication} onSubmitGoToPayment = {onSubmitGoToPayment}/>
     );
