@@ -12,7 +12,6 @@ import {useNavigate} from "react-router-dom";
 import urls from "../../services/urls";
 import snaptrudeService from "../../services/snaptrude.service";
 import LoadingScreen from "../../components/Loader";
-import logger from "../../services/logger";
 
 
 const openLoginPageInBrowser = () => {
@@ -114,11 +113,6 @@ const Home = () => {
       flushUserData();
     }
   }
-
-  let checkIfProUser = async() => {
-    const isProUser = await snaptrudeService.checkIfProUser();
-    setIsProUser(isProUser);
-  }
   
   const isLoggedIn = !!userData.accessToken;
   const initState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
@@ -128,7 +122,6 @@ const Home = () => {
   const [buttons, setButtons] = useState(initState);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isProUser, setIsProUser] = useState(false);
   
   useEffect(() => {
     if(isLoggedIn){
@@ -141,8 +134,6 @@ const Home = () => {
         if (isLoggedIn) updateTemplatesWithUserData();
         setIsLoading(false);
       })
-
-      checkIfProUser().then(() => {});
     }
     
     window.electronAPI.handleSuccessfulLogin((event) => {
@@ -160,7 +151,7 @@ const Home = () => {
         {buttons.map((button, i) => {
           
           let isDisabled = false;
-          if (!isLoggedIn || !isProUser){
+          if (!isLoggedIn){
             if (button.id === BUTTONS.upload || button.id === BUTTONS.reconcile) isDisabled = true;
           }
           

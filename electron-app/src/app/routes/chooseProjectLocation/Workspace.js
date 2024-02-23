@@ -129,7 +129,7 @@ const Workspace = ({
     // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     setIsLoading(false);
-    window.electronAPI.uploadToSnaptrude({workspaceId, folderId});
+    window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
     const floorKey = sessionData.getUserData()["floorkey"];
     const projectLink = urls.get("snaptrudeReactUrl") + "/model/" + floorKey;
 

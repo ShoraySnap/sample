@@ -205,7 +205,7 @@ const electronCommunicator = (function () {
 
     logger.log("Uploading to Snaptrude");
 
-    const snaptrudeProject = await snaptrudeService.createProject(workspaceId, folderId);
+    const snaptrudeProject = await snaptrudeService.createProject(teamId, folderId);
     if (!snaptrudeProject) {
       logger.log("Error creating Snaptrude project");
       return;

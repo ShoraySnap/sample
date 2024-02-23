@@ -31,11 +31,11 @@ const ModalFooter = styled.div`
 `;
 
 const progressTexts = [
-  "Opening Dynamo",
   "Uploading model",
   "Converting data",
   "Recreating objects",
   "Getting your 3D model ready",
+  "Almost there..."
 ];
 
 function useInterval(callback, delay) {
