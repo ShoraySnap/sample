@@ -69,9 +69,9 @@ const parseProtocolArgs = async function (argv){
   } else if(deepLinkingUrl.includes("finish")){
     const REACT_URL = urls.get("snaptrudeReactUrl");
     store.set("modelLink", REACT_URL + "/model/" + store.get("floorkey"));
+    store.save();
     electronCommunicator.syncSessionData();
     electronCommunicator.revitImportDone();
-
   }
 };
 
@@ -125,7 +125,7 @@ const enableEventListeners = function () {
       store.flush();
     });
     ipcMain.on('updateUserData', (event, [data]) => store.setAllAndSave(data));
-    ipcMain.on('uploadToSnaptrude', electronCommunicator.uploadToSnaptrude);
+    ipcMain.on('uploadToSnaptrude',(event, [data]) => electronCommunicator.uploadToSnaptrude(data));
     ipcMain.on('importFromSnaptrude', electronCommunicator.importFromSnaptrude);
     ipcMain.on('log', (event, [messages]) => logger.log(...messages));
     ipcMain.on('operationSucceeded', electronCommunicator.operationSucceeded);
