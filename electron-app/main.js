@@ -59,7 +59,6 @@ const parseProtocolArgs = async function (argv){
     const userData = JSON.parse(queryParamsObject.data);
     store.setAllAndSave(userData);
     
-    electronCommunicator.writeAccountInfoForSpeckleConnector();
     electronCommunicator.syncSessionData();
     electronCommunicator.updateUIAfterLogin();
     // updates UI

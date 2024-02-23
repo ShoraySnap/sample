@@ -1,6 +1,5 @@
 const net = require("net");
 const { shell, app } = require("electron");
-const speckleService = require("./services/speckle.service");
 const store = require("./store");
 const logger = require("../electron/services/logger");
 const fs = require("fs");
@@ -138,38 +137,6 @@ const electronCommunicator = (function () {
     timeoutId = setTimeout(sendPipeCommandToStopWaiting, REVIT_WAIT_THRESHOLD);
   };
 
-  const sendStreamIdToDynamoForExport = function (streamId) {
-    const PIPE_NAME = "snaptrudeDynamoPipe";
-    const PIPE_PATH = "\\\\.\\pipe\\"; // The format is \\.\pipe\<name>
-
-    let server;
-
-    try {
-      server = net.createServer();
-
-      // server.listen(path.join(PIPE_PATH, process.cwd(), PIPE_NAME));
-      server.listen(PIPE_PATH + PIPE_NAME);
-
-      server.on("data", (data) => {
-        logger.log(data.toString());
-      });
-
-      server.on("connection", (socket) => {
-        logger.log("someone connected to server");
-
-        socket.write(streamId);
-        server.close();
-      });
-
-      server.on("end", () => {
-        logger.log("closed server");
-      });
-    } catch (e) {
-      logger.log("No pipe server");
-      logger.log(e);
-    }
-  };
-
   const importFromSnaptrude = async function () {
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
@@ -177,24 +144,6 @@ const electronCommunicator = (function () {
     }
 
     sendPipeCommandForImport();
-  };
-
-  const uploadToSnaptrudeDeprecated = async function () {
-    if (!isRevitWaiting) {
-      logger.log("Upload clicked but Revit is not waiting for a command");
-      return;
-    }
-
-    logger.log("Uploading to Snaptrude");
-    const streamId = await electronCommunicator.generateStreamID();
-
-    if (streamId) {
-      logger.log("Generated stream ID", streamId);
-      syncSessionData();
-      sendPipeCommandForExport();
-      updateUIShowLoadingPage();
-      await startPollingForStreamUploadCompletion();
-    }
   };
 
   const uploadToSnaptrude = async function ({workspaceId, folderId}) {
@@ -221,87 +170,24 @@ const electronCommunicator = (function () {
     updateUIShowLoadingPage();
   };
 
-  const generateStreamID = async function () {
-    const streamId = await speckleService.generateStreamId();
-    // const streamId = "02adcc3b10";
-
-    // write to a file that'll be used by the .dyn script
-    // sendStreamIdToDynamoForExport(streamId);
-
-    if (streamId) {
-      store.set("streamId", streamId);
-      store.set("revitProjectName", sessionData.getRevitModelName());
-      store.save();
-    }
-
-    return streamId;
-  };
-
-  const ensureDirectoryExistence = function (filePath) {
-    const dirname = path.dirname(filePath);
-    if (fs.existsSync(dirname)) {
-      return true;
-    }
-    logger.log("Creating directory for Speckle/Accounts/account.json");
-    fs.mkdirSync(dirname);
-  };
-
-  const writeAccountInfoForSpeckleConnector = function () {
-    const data = {
-      token: store.get("speckleApiToken"),
-      serverInfo: {
-        name: "Speckle",
-        company: "Speckle",
-        url: urls.get("speckleUrl"),
-      },
-      userInfo: {
-        id: "userid",
-        name: "Speckle User",
-        email: "speckle@user.com",
-      },
-    };
-
-    const appDataSnaptrudeManagerPath = electron.app.getPath("userData");
-    const fileName = "Speckle/Accounts/account.json";
-
-    const filePath = path.join(appDataSnaptrudeManagerPath, "../", fileName);
-
-    try {
-      ensureDirectoryExistence(filePath);
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    } catch (error) {
-      logger.log(error);
-    }
-  };
+  // store.set("revitProjectName", sessionData.getRevitModelName());
 
   const updateUIAfterLogin = function () {
     mainWindow.webContents.send("handleSuccessfulLogin");
   };
 
-  const updateUIAfterSpeckleUpload = function () {
-    mainWindow.webContents.send("handleSuccessfulSpeckleUpload");
+  const updateUIAfterS3Upload = function () {
+    mainWindow.webContents.send("handleSuccessfulUpload");
   };
 
   const updateUIShowLoadingPage = function () {
     mainWindow.webContents.send("showLoadingPage");
   };
 
-  const startPollingForStreamUploadCompletion = async function () {
-    const uploadDone = await speckleService.startPolling();
-
-    if (uploadDone) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-      updateUIAfterSpeckleUpload();
-    } else {
-      // updateUIErrorPage();
-    }
-  };
-
   const revitImportDone = async function () {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
-    updateUIAfterSpeckleUpload();
+    updateUIAfterS3Upload();
   };
 
   const operationSucceeded = function () {
@@ -355,15 +241,12 @@ const electronCommunicator = (function () {
     sendPipeCommandForDoneImport,
     init,
     openPageInDefaultBrowser,
-    generateStreamID,
-    startPollingForStreamUploadCompletion,
     revitImportDone,
     uploadToSnaptrude,
     importFromSnaptrude,
     operationSucceeded,
     operationFailed,
     revitIsWaiting,
-    writeAccountInfoForSpeckleConnector,
     setUrls,
     openDevtools,
 
