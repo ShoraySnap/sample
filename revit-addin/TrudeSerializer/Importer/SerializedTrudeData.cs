@@ -2,33 +2,35 @@
 using System;
 using System.Collections.Generic;
 using TrudeSerializer.Types;
+using Newtonsoft.Json;
+using System.Reflection;
 
 namespace TrudeSerializer.Importer
 {
     internal class SerializedTrudeData
     {
-        public ProjectProperties ProjectProperties;
-        public Dictionary<string, TrudeWall> Walls;
-        public Dictionary<string, TrudeFloor> Floors;
-        public Dictionary<string, TrudeCeiling> Ceilings;
-        public TrudeFurnitureObject Furniture;
-        public Dictionary<string, TrudeMass> Masses;
-        public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks;
-
-        public FamilyTypes FamilyTypes;
+        public ProjectProperties ProjectProperties { get; set; }
+        public Dictionary<string, TrudeWall> Walls { get; set; }
+        public TrudeObject<TrudeFurniture> Furniture { get; set; }
+        public TrudeObject<TrudeDoor> Doors { get; set; }
+        public Dictionary<string, TrudeFloor> Floors { get; set; }
+        public Dictionary<string, TrudeMass> Masses { get; set; }
+        public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks { get; set; }
+        public FamilyTypes FamilyTypes { get; set; }
+        public Dictionary<string, TrudeCeiling> Ceilings { get; set; }
 
         public SerializedTrudeData()
         {
             this.FamilyTypes = new FamilyTypes();
             this.Walls = new Dictionary<string, TrudeWall>();
+            this.Furniture = new TrudeObject<TrudeFurniture>();
+            this.Doors = new TrudeObject<TrudeDoor>();
             this.Floors = new Dictionary<string, TrudeFloor>();
             this.Ceilings = new Dictionary<string, TrudeCeiling>();
-            this.Furniture = new TrudeFurnitureObject();
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
         }
-
         public void AddWall(TrudeWall wall)
         {
             if (this.Walls.ContainsKey(wall.elementId)) return;
@@ -48,11 +50,11 @@ namespace TrudeSerializer.Importer
 
         public void AddFloor(TrudeFloor trudeFloor)
         {
-            if(this.Floors.ContainsKey(trudeFloor.elementId)) return; 
+            if (this.Floors.ContainsKey(trudeFloor.elementId)) return;
             this.Floors.Add(trudeFloor.elementId, trudeFloor);
         }
-        
-        internal void AddCeiling(TrudeCeiling trudeCeiling)
+
+        public void AddCeiling(TrudeCeiling trudeCeiling)
         {
             if (this.Ceilings.ContainsKey(trudeCeiling.elementId)) return;
             this.Ceilings.Add(trudeCeiling.elementId, trudeCeiling);
@@ -63,18 +65,54 @@ namespace TrudeSerializer.Importer
             ProjectProperties.SetProjectUnit(unit);
         }
 
-        public void AddFurnitureFamily(string familyName, TrudeFurniture family)
+        public void AddFurnitureFamily(string familyName, TrudeFamily family)
         {
             this.Furniture.AddFamily(familyName, family);
         }
-        public void AddFurnitureInstance(string instanceId, TrudeInstance instance)
+
+        public void AddFurnitureInstance(string instanceId, TrudeFurniture instance)
         {
             this.Furniture.AddInstance(instanceId, instance);
         }
 
+        public void AddDoorFamily(string familyName, TrudeFamily family)
+        {
+            this.Doors.AddFamily(familyName, family);
+        }
+
+        public void AddDoorInstance(string instanceId, TrudeDoor instance)
+        {
+            this.Doors.AddInstance(instanceId, instance);
+        }
+
+        public string SerializeProjectProperties()
+        {
+            string projectProperties = JsonConvert.SerializeObject(this.ProjectProperties);
+            return projectProperties;
+        }
+
+        public Dictionary<string, string> GetSerializedObject()
+        {
+            Dictionary<string, string> serializedData = new Dictionary<string, string>();
+            PropertyInfo[] properties = this.GetType().GetProperties();
+
+            foreach (PropertyInfo property in properties)
+            {
+                string propertyName = property.Name;
+                object propertyValue = property.GetValue(this);
+
+                if (propertyValue != null)
+                {
+                    string serializedValue = JsonConvert.SerializeObject(propertyValue);
+                    serializedData.Add(propertyName, serializedValue);
+                }
+            }
+
+            return serializedData;
+        }
     }
 
-    class FamilyTypes
+    internal class FamilyTypes
     {
         public Dictionary<String, TrudeWallType> WallTypes;
         public Dictionary<String, TrudeFloorType> FloorTypes;
@@ -86,7 +124,6 @@ namespace TrudeSerializer.Importer
             this.FloorTypes = new Dictionary<String, TrudeFloorType>();
             this.CeilingTypes = new Dictionary<String, TrudeCeilingType>();
         }
-
 
         public bool HasFloorType(String floorTypeName)
         {
@@ -122,7 +159,7 @@ namespace TrudeSerializer.Importer
 
     }
 
-    class ProjectProperties
+    internal class ProjectProperties
     {
         public Dictionary<string, TrudeLevel> Levels;
         public string ProjectUnit;
@@ -143,32 +180,32 @@ namespace TrudeSerializer.Importer
             this.ProjectUnit = unit;
         }
     }
-}
 
-class TrudeFurnitureObject
-{
-    public Dictionary<string, TrudeFurniture> Families;
-    public Dictionary<string, TrudeInstance> Instances;
-
-    public TrudeFurnitureObject()
+    internal class TrudeObject<TFamily>
     {
-        this.Families = new Dictionary<string, TrudeFurniture>();
-        this.Instances = new Dictionary<string, TrudeInstance>();
-    }
+        public Dictionary<string, TrudeFamily> Families;
+        public Dictionary<string, TFamily> Instances;
 
-    public bool HasFamily(string familyName)
-    {
-        return this.Families.ContainsKey(familyName);
-    }
+        public TrudeObject()
+        {
+            this.Families = new Dictionary<string, TrudeFamily>();
+            this.Instances = new Dictionary<string, TFamily>();
+        }
 
-    public void AddFamily(string familyName, TrudeFurniture family)
-    {
-        if (this.HasFamily(familyName)) return;
-        this.Families.Add(familyName, family);
-    }
+        public bool HasFamily(string familyName)
+        {
+            return this.Families.ContainsKey(familyName);
+        }
 
-    public void AddInstance(string instanceId, TrudeInstance instance)
-    {
-        this.Instances.Add(instanceId, instance);
+        public void AddFamily(string familyName, TrudeFamily family)
+        {
+            if (this.HasFamily(familyName)) return;
+            this.Families.Add(familyName, family);
+        }
+
+        public void AddInstance(string instanceId, TFamily instance)
+        {
+            this.Instances.Add(instanceId, instance);
+        }
     }
 }

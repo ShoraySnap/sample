@@ -29,9 +29,12 @@ namespace TrudeSerializer.Components
             { "Clear", new double[] { 0, 0, 0, 0.2 } }
         };
 
-        private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80 / 255, 80 / 255, 80 / 255, 1 };
+        private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 };
 
-        public TrudeMaterial() { }
+        public TrudeMaterial()
+        {
+            this.diffuseColor = DEFAULT_DIFFUSE_COLOR;
+        }
 
         public TrudeMaterial(double[] diffuseColor, String name)
         {
@@ -51,7 +54,7 @@ namespace TrudeSerializer.Components
             {
                 return GetDefaultMaterial();
             }
-            Document document = GlobalVariables.Document;
+            Document document = GlobalVariables.CurrentDocument;
 
             TrudeMaterial trudeMaterial = new TrudeMaterial();
 
@@ -75,7 +78,7 @@ namespace TrudeSerializer.Components
 
             trudeMaterial.type = materialClass;
 
-            if (IsGlassMaterial(trudeMaterial.type))
+            if (IsGlassMaterial(renderingAsset, material))
             {
                 trudeMaterial.SetGlassMaterial(renderingAsset);
                 return trudeMaterial;
@@ -88,15 +91,21 @@ namespace TrudeSerializer.Components
 
         private void SetConsistentColor(Material mat)
         {
-            double[] color = { mat.Color.Red / 255, mat.Color.Green / 255, mat.Color.Blue / 255, 1 - mat.Transparency / 100 };
+            double[] color = { mat.Color.Red / 255.0, mat.Color.Green / 255.0, mat.Color.Blue / 255.0, (1 - mat.Transparency) / 100.0 };
             String name = mat.Id.ToString();
             this.diffuseColor = color;
             this.name = name;
         }
 
-        private static bool IsGlassMaterial(String mterialType)
+        private static bool IsGlassMaterial(Asset renderingAsset, Material material)
         {
-            return mterialType == "Glass";
+            string materialClass = material.MaterialClass;
+            if (!(renderingAsset.FindByName("localname") is AssetPropertyString localNameAsset))
+            {
+                return materialClass == "Glass";
+            }
+
+            return localNameAsset.Value == "Glazing";
         }
 
         private void SetGlassMaterial(Asset renderingAsset)
@@ -159,7 +168,7 @@ namespace TrudeSerializer.Components
 
                 if (!IsValidAssetForDiffuseColor(currentAsset)) continue;
 
-               if(currentAsset is AssetPropertyDoubleArray4d)
+                if (currentAsset is AssetPropertyDoubleArray4d)
                 {
                     IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
                     if (color == null) continue;
@@ -192,8 +201,8 @@ namespace TrudeSerializer.Components
             if (!(mainAsset is Asset textureAsset) || !(connectTextureAsset is AssetPropertyString connectTextureString))
                 return;
 
-            String texturePath = connectTextureString.Value;
-            this.texturePath = Path.GetFileName(texturePath);
+            string[] texturePath = connectTextureString.Value.Split('|');
+            this.texturePath = texturePath.Length == 0 ? "" : Path.GetFileName(texturePath[0]);
 
             SetTextureScales(textureAsset);
             SetTextureOffset(textureAsset);

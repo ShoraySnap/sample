@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using System;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
+using System.Collections.Generic;
 
 namespace TrudeSerializer.Components
 {
@@ -30,9 +31,9 @@ namespace TrudeSerializer.Components
             string levelName = TrudeLevel.GetLevelName(element);
 
             string subCategory = element.GetType().Name;
-            double[] center = new Double[] { 0, 0, 0 };
+            List<double> center = InstanceUtility.GetCustomCenterPoint(element);
 
-            TransformObject transform = new TransformObject(center); 
+            TransformObject transform = new TransformObject(center);
 
             TrudeMass serializedMass = new TrudeMass(elementId, family, levelName, subCategory, transform);
             return serializedMass;

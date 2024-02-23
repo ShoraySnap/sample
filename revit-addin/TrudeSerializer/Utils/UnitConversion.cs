@@ -34,7 +34,7 @@ namespace TrudeSerializer.Utils
             }
             else if (unit.Equals(UnitTypeId.Feet))
             {
-                value *= (12/10);
+                value *= (1.2);
             }
             else if (unit.Equals(UnitTypeId.Meters))
             {
@@ -57,9 +57,21 @@ namespace TrudeSerializer.Utils
             return ConvertToSnaptrudeUnits(value, UnitTypeId.Feet);
         }
 
+        public static double[] ConvertToSnaptrudeUnitsFromFeet(double[] values)
+        {
+            return new double[] { ConvertToSnaptrudeUnits(values[0], UnitTypeId.Feet), ConvertToSnaptrudeUnits(values[1], UnitTypeId.Feet), ConvertToSnaptrudeUnits(values[2], UnitTypeId.Feet) };
+        }
+        
         public static double ConvertToSnaptrudeAreaUnits(double areaValue)
         {
             return areaValue * 1.44;
         }
+
+        public static double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value)
+        {
+            return new double[] { ConvertToSnaptrudeUnits(value.X, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Z, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Y, UnitTypeId.Feet) };
+        }
+
+
     }
 }

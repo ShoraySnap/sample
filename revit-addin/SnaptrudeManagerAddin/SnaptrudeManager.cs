@@ -10,7 +10,7 @@ namespace SnaptrudeManagerAddin
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    public class DynamoExport : IExternalCommand
+    public class SnaptrudeManager : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
