@@ -69,7 +69,7 @@
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="Command.cs" />
-    <Compile Include="DynamoExport.cs" />
+    <Compile Include="SnaptrudeManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

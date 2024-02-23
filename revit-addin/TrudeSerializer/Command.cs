@@ -54,6 +54,10 @@ namespace TrudeSerializer
                 File.WriteAllText(filePath, serializedObject); // for debugging
 
                 //Uploader.S3helper.UploadJSON(projectName, filePath);
+                Uploader.S3helper.UploadJSON(serializedData, floorKey);
+
+                serializedData = null;
+                serializedObject = null;
 
                 string requestURL = "snaptrude://finish?name=test";
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
@@ -78,7 +82,7 @@ namespace TrudeSerializer
             TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
             CustomExporter exporter = new CustomExporter(doc, exporterContext);
 
-            exporter.Export(view);
+            exporter.Export(view as View);
             return exporterContext.GetExportData();
         }
 
