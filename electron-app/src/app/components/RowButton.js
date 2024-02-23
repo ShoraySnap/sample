@@ -54,7 +54,7 @@ const RowButton = ({title, icon, onClick, isDisabled}) => {
   
   return (
     <Container>
-      <InnerContainer className={className} onClick={onClick}>
+      <InnerContainer className={className} onClick={isDisabled ? null : onClick}>
         <ButtonIcon  src={icon} alt={title} />
         <Text>{title}</Text>
       </InnerContainer>
