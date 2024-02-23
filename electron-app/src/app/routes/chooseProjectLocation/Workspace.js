@@ -20,7 +20,7 @@ import urls from "../../services/urls";
 import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
 import { Tooltip } from "antd";
-
+import { RouteStore } from "../routeStore";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -129,19 +129,17 @@ const Workspace = ({
     // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     setIsLoading(false);
-
-    const projectLink = sessionData.getUserData()["modelLink"];
-
-    console.log("projectLink", projectLink);
+    window.electronAPI.uploadToSnaptrude({workspaceId, folderId});
+    const floorKey = sessionData.getUserData()["floorkey"];
+    const projectLink = urls.get("snaptrudeReactUrl") + "/model/" + floorKey;
 
     if (projectLink) {
-      window.electronAPI.openPageInDefaultBrowser(projectLink);
-      window.electronAPI.operationSucceeded();
+      RouteStore.set("projectLink", projectLink);
     } else {
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
-    goHome();
+    navigate(ROUTES.loading);
   };
 
   const onSubmitGoToPayment = async () => {
@@ -149,6 +147,7 @@ const Workspace = ({
       urls.get("snaptrudeReactUrl") + "/dashboard/profile/plans";
 
     if (upgradePlanLink) {
+      // MAKE CHANGES HERE TOO
       window.electronAPI.openPageInDefaultBrowser(upgradePlanLink);
       window.electronAPI.operationSucceeded();
     } else {
@@ -215,6 +214,11 @@ const Workspace = ({
       }
     }
   };
+
+  const isUserPro = async () => {
+    const isProUser = await snaptrudeService.checkIfProUser();
+    setIsProUser(isProUser);
+  }
 
   const getFolders = async () => {
     let folders = await snaptrudeService.getFolders(
@@ -290,6 +294,7 @@ const Workspace = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [isWorkSpaceLoading, setIsWorkSpaceLoading] = useState(true);
+  const [isProUser, setIsProUser] = useState(false);
 
   const [entries, setEntries] = useState([]);
   const [selectedEntryId, setSelectedEntryId] = useState(
@@ -317,10 +322,12 @@ const Workspace = ({
         setSelectedEntryId(currentFolderId);
       }
     });
+
+    isUserPro().then(() => { });
   }, [selectedWorkspaceId, foldersArray, parentFolderId]);
 
   if (isWorkSpaceLoading) return <LoadingScreen />;
-  if (!entries.length)
+  if (!entries.length || !isProUser)
     return (
     <UpgradePlan closeApplication = {closeApplication} onSubmitGoToPayment = {onSubmitGoToPayment}/>
     );
