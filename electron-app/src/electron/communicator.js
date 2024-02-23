@@ -146,7 +146,7 @@ const electronCommunicator = (function () {
     sendPipeCommandForImport();
   };
 
-  const uploadToSnaptrude = async function ({workspaceId, folderId}) {
+  const uploadToSnaptrude = async function (teamId, folderId) {
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
       return;
