@@ -270,6 +270,7 @@
                 </Setter>
             </Style>
 
+        <CollectionViewSource x:Key="FilteredMissingFamilies" Source="{Binding MissingFamilyViewModels}" />
         </ResourceDictionary>
     </Window.Resources>
     <Border
@@ -307,7 +308,7 @@
                 <TabControl
                     x:Name="TabControl"
                     Background="Transparent"
-                    BorderThickness="0">
+                    BorderThickness="0" >
                     <TabItem x:Name="Missing_TabItem" Visibility="Collapsed">
                         <Grid>
                             <Border Padding="32,24,32,80">
@@ -334,7 +335,7 @@
                                                 FontSize="13"
                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                 LineHeight="18.72"
-                                                Text="{Binding TrudeFileName, StringFormat='Your project \'{0}\' uses assets that were not found while reconciling the Snaptrude file to Revit.  Please link the missing assets. Any unlinked assets will not show up in the resulting model in Revit.'}"
+                                                Text="{Binding TrudeFileName, StringFormat='Your project {0} uses assets that were not found while reconciling the Snaptrude file to Revit.  Please link the missing assets. Any unlinked assets will not show up in the resulting model in Revit.'}"
                                                 TextWrapping="Wrap" />
                                         </Border>
                                     </StackPanel>
@@ -420,7 +421,7 @@
                                                                         Padding="0,6"
                                                                         HorizontalAlignment="Left"
                                                                         VerticalAlignment="Center"
-                                                                        d:Text="hi"
+                                                                        d:Text="Family Name"
                                                                         FontSize="13"
                                                                         Foreground="{StaticResource Colors/Neutral/600}"
                                                                         Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
@@ -603,15 +604,15 @@
                                                 <DataGrid
                                                     Grid.Row="1"
                                                     VerticalContentAlignment="Center"
-                                                    d:ItemsSource="{d:SampleData ItemCount=4}"
                                                     AutoGenerateColumns="False"
+                                                    CanUserAddRows="False"
                                                     Background="White"
                                                     BorderBrush="Transparent"
                                                     BorderThickness="0"
                                                     CellStyle="{StaticResource TransparentCell}"
                                                     GridLinesVisibility="None"
                                                     HeadersVisibility="None"
-                                                    ItemsSource="{Binding MissingFamilyViewModels}"
+                                                    ItemsSource="{Binding Source={StaticResource FilteredMissingFamilies}}"
                                                     RowHeight="60"
                                                     RowStyle="{StaticResource TransparentRow}">
                                                     <DataGrid.OpacityMask>
@@ -724,6 +725,7 @@
                                                                                     HorizontalAlignment="Right"
                                                                                     VerticalAlignment="Center"
                                                                                     Content="Choose File"
+                                                                                    Click="Select_file"
                                                                                     FontSize="13"
                                                                                     Style="{StaticResource Button_Tertiary}" />
                                                                             </Grid>
@@ -800,7 +802,8 @@
                                             Style="{StaticResource Button_Secondary}" />
                                         <Button
                                             Content="Done"
-                                            IsEnabled="False"
+                                            IsEnabled="True"
+                                            Click="Done_Button_Click"
                                             Style="{StaticResource Button_Primary}" />
                                     </StackPanel>
                                 </Grid>

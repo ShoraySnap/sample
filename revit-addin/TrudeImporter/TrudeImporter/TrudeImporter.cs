@@ -511,37 +511,35 @@ namespace TrudeImporter
 
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
         {
-            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
+            var result = familyUploadMVVM.ShowDialog();
+            if (!FamilyUploadForm.SkipAllFamilies)
             {
-                t.Start();
-                try
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
-                    FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
-                    familyUploadMVVM.Show();
-                    if (FamilyUploadForm.SkipAllFamilies)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Skipping Importing Missing Families");
-                        }
-                    else
-                        {
-                            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+                    t.Start();
+                    try
+                    {
+                        if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
                             TrudeMissing.ImportMissingDoors(propsListDoors);
 
-                            if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                        if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                             TrudeMissing.ImportMissingWindows(propsListWindows);
+
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
                         }
-                    if (t.Commit() != TransactionStatus.Committed)
+                    }
+                    catch (Exception e)
                     {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Families: " + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
                 }
-                catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Doors, " + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
             }
         }
+
 
         /// <summary>
         /// This will appear on the Design Automation output
