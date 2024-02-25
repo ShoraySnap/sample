@@ -74,6 +74,15 @@ namespace SnaptrudeManagerAddin
         {
             get { return missingDoorFamiliesCount.Values.Count(x => x.IsChecked) + missingWindowFamiliesCount.Values.Count(x => x.IsChecked); }
         }
+        
+        public string TrudeFileName
+        {
+            get
+            {
+                return TrudeImporter.GlobalVariables.TrudeFileName;
+                
+            }
+        }
 
         public bool IsAllChecked
         {
@@ -88,6 +97,12 @@ namespace SnaptrudeManagerAddin
                     UpdateCheckStateForAll(_isAllChecked);
                 }
             }
+        }
+        
+        public void EvaluateIsAllChecked()
+        {
+            _isAllChecked = MissingFamilyViewModels.All(x => x.IsChecked);
+            OnPropertyChanged(nameof(IsAllChecked));
         }
 
         private void UpdateCheckStateForAll(bool isChecked)
@@ -104,9 +119,10 @@ namespace SnaptrudeManagerAddin
                 missingWindowFamiliesCount[key] = (isChecked, item.NumberOfElements, item.path);
             }
 
-            // This will refresh the UI for each individual checkbox.
-            OnPropertyChanged(nameof(missingDoorFamiliesCount));
-            OnPropertyChanged(nameof(missingWindowFamiliesCount));
+            foreach (var viewModel in MissingFamilyViewModels)
+            {
+                viewModel.IsChecked = isChecked;
+            }
 
             // Ensure TotalMissing is also updated.
             OnPropertyChanged(nameof(TotalMissing));
@@ -198,6 +214,7 @@ namespace SnaptrudeManagerAddin
                 _isChecked = value; 
                 OnPropertyChanged();
                 System.Diagnostics.Debug.WriteLine("IsChecked: " + _isChecked);
+                //FamilyUploadMVVM.EvaluateIsAllChecked();
             }
         }
 

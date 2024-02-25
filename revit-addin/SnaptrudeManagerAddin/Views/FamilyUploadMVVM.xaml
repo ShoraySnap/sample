@@ -334,7 +334,7 @@
                                                 FontSize="13"
                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                 LineHeight="18.72"
-                                                Text="Your project “Residence.trude” uses assets that were not found while reconciling the Snaptrude file to Revit.  Please link the missing assets. Any unlinked assets will not show up in the resulting model in Revit."
+                                                Text="{Binding TrudeFileName, StringFormat='Your project \'{0}\' uses assets that were not found while reconciling the Snaptrude file to Revit.  Please link the missing assets. Any unlinked assets will not show up in the resulting model in Revit.'}"
                                                 TextWrapping="Wrap" />
                                         </Border>
                                     </StackPanel>
@@ -513,6 +513,7 @@
                                         <Button
                                             Margin="0,0,10,0"
                                             Click="Close_Button_Click"
+                                            Content="Skip All"
                                             Style="{StaticResource Button_Secondary}" />
                                         <Button
                                             x:Name="Link_Button"

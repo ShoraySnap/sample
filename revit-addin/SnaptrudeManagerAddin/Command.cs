@@ -97,7 +97,7 @@ namespace SnaptrudeManagerAddin
             String path = ModelPathUtils.ConvertModelPathToUserVisiblePath(trudeFileOpenDialog.GetSelectedModelPath());
 
             JObject trudeData = JObject.Parse(File.ReadAllText(path));
-
+            GlobalVariables.TrudeFileName = Path.GetFileName(path);
             GlobalVariables.materials = trudeData["materials"] as JArray;
             GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
 
