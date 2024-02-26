@@ -553,6 +553,7 @@
                                                     Text="Link RFAs" />
                                                 <Button
                                                     HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
                                                     Click="Select_Folder_Click"
                                                     Content="Select folder"
                                                     Style="{StaticResource Button_Primary}" />
@@ -621,7 +622,8 @@
                                                     HeadersVisibility="None"
                                                     ItemsSource="{Binding FilteredMissingFamilies}"
                                                     RowHeight="60"
-                                                    RowStyle="{StaticResource TransparentRow}">
+                                                    RowStyle="{StaticResource TransparentRow}"
+                                                    HorizontalScrollBarVisibility="Disabled">
                                                     <DataGrid.OpacityMask>
                                                         <VisualBrush Visual="{Binding ElementName='Child_Border2'}" />
                                                     </DataGrid.OpacityMask>
