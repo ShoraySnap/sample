@@ -32,8 +32,8 @@ namespace TrudeImporter
             {
                 transaction.Start();
 
-                FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
-                FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
+                FamilyParameter depthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Depth");
+                FamilyParameter widthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Width");
                 fdoc.FamilyManager.Set(depthParam, depth);
                 fdoc.FamilyManager.Set(widthParam, width);
 
