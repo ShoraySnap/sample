@@ -195,6 +195,8 @@ namespace SnaptrudeManagerAddin
             MissingFamilyViewModels = new ObservableCollection<MissingFamilyViewModel>();
             FilteredMissingFamilies = new ListCollectionView(MissingFamilyViewModels);
             CompleteListMissingFamilyViewModels = new ListCollectionView(MissingFamilyViewModels);
+            FilteredMissingFamilies.SortDescriptions.Add(new SortDescription("FamilyName",ListSortDirection.Ascending));
+            CompleteListMissingFamilyViewModels.SortDescriptions.Add(new SortDescription("FamilyName", ListSortDirection.Ascending));
             LoadMissingFamilies();
             ApplyFilter(FilteredMissingFamilies);
         }
