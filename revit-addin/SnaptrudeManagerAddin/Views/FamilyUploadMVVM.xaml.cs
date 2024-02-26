@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -13,18 +14,22 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace SnaptrudeManagerAddin
 {
     public partial class FamilyUploadMVVM : Window, IDisposable
     {
         private bool _isAllChecked = true;
+        public bool _skipAll = false;
         public ObservableCollection<MissingFamilyViewModel> MissingFamilyViewModels { get; set; } = new ObservableCollection<MissingFamilyViewModel>();
+        public string MissingFamiliesFolderPath { get; set; }
 
         public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = TrudeImporter.GlobalVariables.MissingDoorFamiliesCount;
         public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingWindowFamiliesCount = TrudeImporter.GlobalVariables.MissingWindowFamiliesCount;
@@ -137,8 +142,9 @@ namespace SnaptrudeManagerAddin
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
         }
-        private void Close_Button_Click(object sender, RoutedEventArgs e)
+        private void Skip_Button_Click(object sender, RoutedEventArgs e)
         {
+            _skipAll = true;
             Dispose();
             Close();
         }
@@ -175,14 +181,12 @@ namespace SnaptrudeManagerAddin
         }
         private void Back_Button_Click(object sender, RoutedEventArgs e)
         {
-            //
             TabItem nextTabItem = TabControl.Items.GetItemAt(0) as TabItem;
             TabControl.SelectedItem = nextTabItem;
         }
-        private void Select_file(object sender, RoutedEventArgs e)
+        private void Select_File_Click(object sender, RoutedEventArgs e)
         {
-            //get name of the selected item
-            var button = sender as Button;
+            var button = sender as System.Windows.Controls.Button;
             var item = button.DataContext as MissingFamilyViewModel;
             var familyName = item.FamilyName;
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
@@ -203,24 +207,60 @@ namespace SnaptrudeManagerAddin
                 }
             }
         }   
+        private void Select_Folder_Click (object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.Description = "Select Folder Containing RFAs";
+            folderBrowserDialog.ShowNewFolderButton = false;
+            DialogResult result = folderBrowserDialog.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                MissingFamiliesFolderPath = folderBrowserDialog.SelectedPath;
+                AutomaticLinking();
+            }
+        }
         private void Done_Button_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var item in missingDoorFamiliesCount)
-            {
-                System.Diagnostics.Debug.WriteLine("missingDoorFamiliesCount: " + item.Key + " " + item.Value.IsChecked + " " + item.Value.NumberOfElements + " " + item.Value.path);
-            }
-            //print missingWindowFamiliesCount
-            foreach (var item in missingWindowFamiliesCount)
-            {
-                System.Diagnostics.Debug.WriteLine("missingWindowFamiliesCount: " + item.Key + " " + item.Value.IsChecked + " " + item.Value.NumberOfElements + " " + item.Value.path);
-            }
-
+            _skipAll = false;
             Dispose();
         }
         public void RefreshFilteredView()
         {
             var filteredView = this.Resources["FilteredMissingFamilies"] as CollectionViewSource;
             filteredView?.View.Refresh();
+        }
+
+        public void AutomaticLinking()
+        {
+            System.Diagnostics.Debug.WriteLine("Automatic Linking");
+            TryLinkFamilyFiles(missingDoorFamiliesCount);
+            TryLinkFamilyFiles(missingWindowFamiliesCount);
+        }
+
+        public void TryLinkFamilyFiles(IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> familyDict)
+        {
+            string folderPath = MissingFamiliesFolderPath;
+            List<string> keysToUpdate = new List<string>();
+
+            foreach (var item in familyDict)
+            {
+                if (!item.Value.IsChecked) continue; // Skip unchecked items
+
+                string expectedFileName = item.Key + ".rfa";
+                string fullPath = Path.Combine(folderPath, expectedFileName);
+
+                if (File.Exists(fullPath))
+                {
+                    keysToUpdate.Add(item.Key);
+                }
+            }
+
+            // Update dictionary entries with found paths
+            foreach (var key in keysToUpdate)
+            {
+                var value = familyDict[key];
+                familyDict[key] = (value.IsChecked, value.NumberOfElements, Path.Combine(folderPath, key + ".rfa"));
+            }
         }
     }
 

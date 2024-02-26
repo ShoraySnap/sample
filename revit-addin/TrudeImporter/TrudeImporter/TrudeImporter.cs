@@ -513,8 +513,8 @@ namespace TrudeImporter
         {
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
             var result = familyUploadMVVM.ShowDialog();
-            if (!FamilyUploadForm.SkipAllFamilies)
-            {
+            if (!familyUploadMVVM._skipAll)
+            {   System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();

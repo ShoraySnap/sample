@@ -513,7 +513,7 @@
                                         Orientation="Horizontal">
                                         <Button
                                             Margin="0,0,10,0"
-                                            Click="Close_Button_Click"
+                                            Click="Skip_Button_Click"
                                             Content="Skip All"
                                             Style="{StaticResource Button_Secondary}" />
                                         <Button
@@ -550,6 +550,7 @@
                                                 <Button
                                                     HorizontalAlignment="Right"
                                                     Content="Select folder"
+                                                    Click="Select_Folder_Click"
                                                     Style="{StaticResource Button_Primary}" />
                                             </Grid>
                                         </Border>
@@ -725,7 +726,7 @@
                                                                                     HorizontalAlignment="Right"
                                                                                     VerticalAlignment="Center"
                                                                                     Content="Choose File"
-                                                                                    Click="Select_file"
+                                                                                    Click="Select_File_Click"
                                                                                     FontSize="13"
                                                                                     Style="{StaticResource Button_Tertiary}" />
                                                                             </Grid>
