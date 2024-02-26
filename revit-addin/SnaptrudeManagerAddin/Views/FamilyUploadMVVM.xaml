@@ -11,7 +11,6 @@
     MaxHeight="600"
     AllowsTransparency="True"
     Background="{x:Null}"
-    DataContext="{Binding RelativeSource={RelativeSource Self}}"
     FontSize="13"
     Loaded="Window_Loaded"
     MouseDown="Window_MouseDown"
@@ -269,16 +268,12 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
-        <CollectionViewSource x:Key="FilteredMissingFamilies" Source="{Binding MissingFamilyViewModels}" />
         </ResourceDictionary>
     </Window.Resources>
     <Border
         Margin="20"
         Background="{StaticResource Colors/Neutral/0}"
         CornerRadius="12">
-
-
         <Border.Effect>
             <DropShadowEffect
                 BlurRadius="10"
@@ -308,7 +303,7 @@
                 <TabControl
                     x:Name="TabControl"
                     Background="Transparent"
-                    BorderThickness="0" >
+                    BorderThickness="0">
                     <TabItem x:Name="Missing_TabItem" Visibility="Collapsed">
                         <Grid>
                             <Border Padding="32,24,32,80">
@@ -371,6 +366,7 @@
                                                         <TextBlock
                                                             HorizontalAlignment="Right"
                                                             VerticalAlignment="Center"
+                                                            d:Text="Total missing: 15"
                                                             FontSize="13"
                                                             Foreground="{StaticResource Colors/Neutral/600}"
                                                             Text="{Binding TotalMissing, StringFormat='Total missing: {0}'}" />
@@ -394,7 +390,7 @@
                                                     CellStyle="{StaticResource TransparentCell}"
                                                     GridLinesVisibility="None"
                                                     HeadersVisibility="None"
-                                                    ItemsSource="{Binding MissingFamilyViewModels}"
+                                                    ItemsSource="{Binding CompleteListMissingFamilyViewModels}"
                                                     RowHeight="44"
                                                     RowStyle="{StaticResource TransparentRow}">
                                                     <DataGrid.OpacityMask>
@@ -408,8 +404,10 @@
                                                                         <CheckBox
                                                                             Margin="16,0"
                                                                             VerticalAlignment="Center"
+                                                                            Checked="CheckBox_Checked"
                                                                             IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                            Style="{StaticResource SVGCheckBox}" />
+                                                                            Style="{StaticResource SVGCheckBox}"
+                                                                            Unchecked="CheckBox_Checked" />
                                                                     </Grid>
                                                                 </DataTemplate>
                                                             </DataGridTemplateColumn.CellTemplate>
@@ -497,9 +495,10 @@
                                                 Margin="0,0,0,3"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Bottom"
+                                                d:Text="5"
                                                 FontWeight="Medium"
                                                 Foreground="{StaticResource Colors/Neutral/800}"
-                                                Text="4" />
+                                                Text="{Binding TotalSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         </Border>
                                         <TextBlock
                                             VerticalAlignment="Center"
@@ -519,6 +518,7 @@
                                         <Button
                                             x:Name="Link_Button"
                                             Click="Link_Button_Click"
+                                            IsEnabled="{Binding LinkButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                             Content="Link missing RFAs"
                                             Style="{StaticResource Button_Primary}" />
                                     </StackPanel>
@@ -549,8 +549,8 @@
                                                     Text="Link RFAs" />
                                                 <Button
                                                     HorizontalAlignment="Right"
-                                                    Content="Select folder"
                                                     Click="Select_Folder_Click"
+                                                    Content="Select folder"
                                                     Style="{StaticResource Button_Primary}" />
                                             </Grid>
                                         </Border>
@@ -591,9 +591,10 @@
                                                         <TextBlock
                                                             HorizontalAlignment="Right"
                                                             VerticalAlignment="Center"
+                                                            d:Text="Linked 2 of 4"
                                                             FontSize="13"
                                                             Foreground="{StaticResource Colors/Neutral/600}"
-                                                            Text="Linked 1 of 4" />
+                                                            Text="{Binding MissingString, UpdateSourceTrigger=PropertyChanged}" />
                                                     </Grid>
                                                 </Border>
                                                 <Border
@@ -605,15 +606,16 @@
                                                 <DataGrid
                                                     Grid.Row="1"
                                                     VerticalContentAlignment="Center"
+                                                    d:ItemsSource="{d:SampleData ItemCount=4}"
                                                     AutoGenerateColumns="False"
-                                                    CanUserAddRows="False"
                                                     Background="White"
                                                     BorderBrush="Transparent"
                                                     BorderThickness="0"
+                                                    CanUserAddRows="False"
                                                     CellStyle="{StaticResource TransparentCell}"
                                                     GridLinesVisibility="None"
                                                     HeadersVisibility="None"
-                                                    ItemsSource="{Binding Source={StaticResource FilteredMissingFamilies}}"
+                                                    ItemsSource="{Binding FilteredMissingFamilies}"
                                                     RowHeight="60"
                                                     RowStyle="{StaticResource TransparentRow}">
                                                     <DataGrid.OpacityMask>
@@ -643,7 +645,7 @@
                                                                                                 <Style TargetType="{x:Type Grid}">
                                                                                                     <Setter Property="Visibility" Value="Hidden" />
                                                                                                     <Style.Triggers>
-                                                                                                        <DataTrigger Binding="{Binding IsLinked}" Value="True">
+                                                                                                        <DataTrigger Binding="{Binding IsLinked, UpdateSourceTrigger=PropertyChanged}" Value="True">
                                                                                                             <Setter Property="Visibility" Value="Visible" />
                                                                                                         </DataTrigger>
                                                                                                     </Style.Triggers>
@@ -725,8 +727,8 @@
                                                                                     Margin="0,0,16,0"
                                                                                     HorizontalAlignment="Right"
                                                                                     VerticalAlignment="Center"
-                                                                                    Content="Choose File"
                                                                                     Click="Select_File_Click"
+                                                                                    Content="Choose File"
                                                                                     FontSize="13"
                                                                                     Style="{StaticResource Button_Tertiary}" />
                                                                             </Grid>
@@ -802,9 +804,9 @@
                                             Content="Back"
                                             Style="{StaticResource Button_Secondary}" />
                                         <Button
-                                            Content="Done"
-                                            IsEnabled="True"
                                             Click="Done_Button_Click"
+                                            Content="Done"
+                                            IsEnabled="{Binding DoneButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                             Style="{StaticResource Button_Primary}" />
                                     </StackPanel>
                                 </Grid>

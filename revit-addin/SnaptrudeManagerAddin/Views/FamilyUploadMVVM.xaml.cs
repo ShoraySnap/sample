@@ -26,117 +26,17 @@ namespace SnaptrudeManagerAddin
 {
     public partial class FamilyUploadMVVM : Window, IDisposable
     {
-        private bool _isAllChecked = true;
-        public bool _skipAll = false;
-        public ObservableCollection<MissingFamilyViewModel> MissingFamilyViewModels { get; set; } = new ObservableCollection<MissingFamilyViewModel>();
-        public string MissingFamiliesFolderPath { get; set; }
 
-        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = TrudeImporter.GlobalVariables.MissingDoorFamiliesCount;
-        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingWindowFamiliesCount = TrudeImporter.GlobalVariables.MissingWindowFamiliesCount;
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
+        public WindowViewModel WindowViewModel;
+        
         public FamilyUploadMVVM()
         {
-            DataContext = this;
             InitializeComponent();
-            //InitializeCommands();
-            LoadMissingFamilies();
-            // Setup filtered view source from resources
-            var filteredViewSource = this.Resources["FilteredMissingFamilies"] as CollectionViewSource;
 
-            // Apply filter
-            if (filteredViewSource != null)
-            {
-                filteredViewSource.Filter += (s, e) =>
-                {
-                    if (e.Item is MissingFamilyViewModel item)
-                    {
-                        e.Accepted = item.IsChecked;
-                    }
-                };
-
-                // Optionally refresh to immediately apply
-                filteredViewSource.View.Refresh();
-            }
+            WindowViewModel = new WindowViewModel();
+            DataContext = WindowViewModel;
         }
 
-        public void LoadMissingFamilies()
-        {
-            MissingFamilyViewModels.Clear();
-            foreach (var item in missingDoorFamiliesCount)
-            {
-                var viewModel = new MissingFamilyViewModel
-                {
-                    FamilyName = item.Key,
-                    FamilyPath = item.Value.path,
-                    IsChecked = item.Value.IsChecked
-                };
-
-                MissingFamilyViewModels.Add(viewModel);
-            }
-
-            foreach (var item in missingWindowFamiliesCount)
-            {
-                var viewModel = new MissingFamilyViewModel
-                {
-                    FamilyName = item.Key,
-                    FamilyPath = item.Value.path,
-                    IsChecked = item.Value.IsChecked
-                };
-
-                MissingFamilyViewModels.Add(viewModel);
-            }
-            OnPropertyChanged(nameof(TotalMissing));
-        }
-        public int TotalMissing
-        {
-            get { return missingDoorFamiliesCount.Values.Count(x => x.IsChecked) + missingWindowFamiliesCount.Values.Count(x => x.IsChecked); }
-        }
-        public string TrudeFileName
-        {
-            get
-            {
-                return TrudeImporter.GlobalVariables.TrudeFileName;
-                
-            }
-        }
-        public bool IsAllChecked
-        {
-            get { return _isAllChecked; }
-            set
-            {
-                if (_isAllChecked != value)
-                {
-                    _isAllChecked = value;
-                    OnPropertyChanged(nameof(IsAllChecked));
-                    System.Diagnostics.Debug.WriteLine("IsAllChecked: " + _isAllChecked);
-                    UpdateCheckStateForAll(_isAllChecked);
-                }
-            }
-        }
-        private void UpdateCheckStateForAll(bool isChecked)
-        {
-            foreach (var viewModel in MissingFamilyViewModels)
-            {
-                viewModel.IsChecked = isChecked;
-            }
-
-            // Ensure TotalMissing is also updated.
-            OnPropertyChanged(nameof(TotalMissing));
-        }
-        private void InitializeCommands()
-        {
-            this.ShowInTaskbar = true;
-            this.Topmost = true;
-            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            this.SizeToContent = SizeToContent.WidthAndHeight;
-            this.ResizeMode = ResizeMode.NoResize;
-            this.WindowStyle = WindowStyle.None;
-        }
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -144,7 +44,7 @@ namespace SnaptrudeManagerAddin
         }
         private void Skip_Button_Click(object sender, RoutedEventArgs e)
         {
-            _skipAll = true;
+            WindowViewModel._skipAll = true;
             Dispose();
             Close();
         }
@@ -163,21 +63,7 @@ namespace SnaptrudeManagerAddin
         {
             TabItem nextTabItem = TabControl.Items.GetItemAt(1) as TabItem;
             TabControl.SelectedItem = nextTabItem;
-
-            foreach (var item in MissingFamilyViewModels)
-            {
-
-                System.Diagnostics.Debug.WriteLine("MissingFamilyViewModels: " + item.FamilyName + " " + item.IsChecked + " " + item.FamilyPath);
-                if (missingDoorFamiliesCount.ContainsKey(item.FamilyName))
-                {
-                    missingDoorFamiliesCount[item.FamilyName] = (item.IsChecked, missingDoorFamiliesCount[item.FamilyName].NumberOfElements, "");
-                }
-                if (missingWindowFamiliesCount.ContainsKey(item.FamilyName))
-                {
-                    missingWindowFamiliesCount[item.FamilyName] = (item.IsChecked, missingWindowFamiliesCount[item.FamilyName].NumberOfElements, "");
-                }
-            }
-            RefreshFilteredView();
+            WindowViewModel.RefreshFilteredView();
         }
         private void Back_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -187,47 +73,168 @@ namespace SnaptrudeManagerAddin
         private void Select_File_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as System.Windows.Controls.Button;
-            var item = button.DataContext as MissingFamilyViewModel;
-            var familyName = item.FamilyName;
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
-            openFileDialog.Title = "Select Family File For " + familyName;
-            openFileDialog.Filter = "Revit Families (*.rfa)|*.rfa";
-            openFileDialog.RestoreDirectory = true;
-            bool? uploadResult = openFileDialog.ShowDialog();
-            if (uploadResult == true)
-            {
-                string sourcePath = openFileDialog.FileName;
-                if (missingDoorFamiliesCount.ContainsKey(familyName))
-                {
-                    missingDoorFamiliesCount[familyName] = (true, missingDoorFamiliesCount[familyName].NumberOfElements, sourcePath);
-                }
-                if (missingWindowFamiliesCount.ContainsKey(familyName))
-                {
-                    missingWindowFamiliesCount[familyName] = (true, missingWindowFamiliesCount[familyName].NumberOfElements, sourcePath);
-                }
-            }
-        }   
-        private void Select_Folder_Click (object sender, RoutedEventArgs e)
+            WindowViewModel.ChooseFile(button.DataContext as MissingFamilyViewModel);
+        }
+        private void Select_Folder_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-            folderBrowserDialog.Description = "Select Folder Containing RFAs";
-            folderBrowserDialog.ShowNewFolderButton = false;
-            DialogResult result = folderBrowserDialog.ShowDialog();
-            if (result == System.Windows.Forms.DialogResult.OK)
-            {
-                MissingFamiliesFolderPath = folderBrowserDialog.SelectedPath;
-                AutomaticLinking();
-            }
+            WindowViewModel.LinkFolder();
         }
         private void Done_Button_Click(object sender, RoutedEventArgs e)
         {
-            _skipAll = false;
+            WindowViewModel._skipAll = false;
             Dispose();
         }
+        
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            WindowViewModel.UpdateSelectedCount();
+        }
+    }
+
+
+
+    public class ViewModelBase : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class WindowViewModel : ViewModelBase
+    {
+
+        public ListCollectionView FilteredMissingFamilies { get; set; }
+        public ListCollectionView CompleteListMissingFamilyViewModels { get; set; }
+        public ObservableCollection<MissingFamilyViewModel> MissingFamilyViewModels { get; set; }
+
+        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = TrudeImporter.GlobalVariables.MissingDoorFamiliesCount;
+        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingWindowFamiliesCount = TrudeImporter.GlobalVariables.MissingWindowFamiliesCount;
+
+        private bool _isAllChecked = true;
+        public bool _skipAll = false;
+        public string MissingFamiliesFolderPath { get; set; }
+
+        public bool DoneButtonIsEnabled
+        {
+            get => TotalSelected == LinkedCount;
+        }
+
+        public bool LinkButtonIsEnabled
+        {
+            get => TotalSelected != 0;
+        }
+
+        public int TotalMissing
+        {
+            get => (missingDoorFamiliesCount.Values.Count(x => x.IsChecked) + missingWindowFamiliesCount.Values.Count(x => x.IsChecked));
+        }
+
+        private int totalSelected;
+        public int TotalSelected
+        {
+            get { return totalSelected; }
+            set 
+            { 
+                totalSelected = value; 
+                OnPropertyChanged(nameof(TotalSelected));
+                OnPropertyChanged(nameof(MissingString));
+                OnPropertyChanged(nameof(LinkButtonIsEnabled));
+            }
+        }
+
+        public int LinkedCount
+        {
+            get => MissingFamilyViewModels.Where(vm => vm.IsChecked).Count(vm => vm.IsLinked);
+        }
+
+        public string MissingString
+        {
+            get => $"Linked {LinkedCount} of {TotalSelected}";
+        }
+
+
+        public string TrudeFileName
+        {
+            get
+            {
+                return TrudeImporter.GlobalVariables.TrudeFileName;
+            }
+        }
+
+        public bool IsAllChecked
+        {
+            get { return _isAllChecked; }
+            set
+            {
+                if (_isAllChecked != value)
+                {
+                    _isAllChecked = value;
+                    OnPropertyChanged(nameof(IsAllChecked));
+                    System.Diagnostics.Debug.WriteLine("IsAllChecked: " + _isAllChecked);
+                    UpdateCheckStateForAll(_isAllChecked);
+                }
+            }
+        }
+
+        public WindowViewModel()
+        {
+            MissingFamilyViewModels = new ObservableCollection<MissingFamilyViewModel>();
+            FilteredMissingFamilies = new ListCollectionView(MissingFamilyViewModels);
+            CompleteListMissingFamilyViewModels = new ListCollectionView(MissingFamilyViewModels);
+            LoadMissingFamilies();
+            ApplyFilter(FilteredMissingFamilies);
+        }
+
+        private void ApplyFilter(ICollectionView listCollectionView)
+        {
+            // Apply filter
+            if (listCollectionView != null)
+            {
+                listCollectionView.Filter += (e) =>
+                {
+                    if (e is MissingFamilyViewModel item)
+                    {
+                        if (item.IsChecked) return true;
+                        else return false;
+                    }
+                    else return false;
+                };
+                // Optionally refresh to immediately apply
+                listCollectionView.Refresh();
+            }
+        }
+
         public void RefreshFilteredView()
         {
-            var filteredView = this.Resources["FilteredMissingFamilies"] as CollectionViewSource;
-            filteredView?.View.Refresh();
+            foreach (var item in MissingFamilyViewModels)
+            {
+                if (missingDoorFamiliesCount.ContainsKey(item.FamilyName))
+                {
+                    missingDoorFamiliesCount[item.FamilyName] = (item.IsChecked, missingDoorFamiliesCount[item.FamilyName].NumberOfElements, "");
+                }
+                if (missingWindowFamiliesCount.ContainsKey(item.FamilyName))
+                {
+                    missingWindowFamiliesCount[item.FamilyName] = (item.IsChecked, missingWindowFamiliesCount[item.FamilyName].NumberOfElements, "");
+                }
+                System.Diagnostics.Debug.WriteLine("MissingFamilyViewModels: " + item.FamilyName + " " + item.IsChecked + " " + item.FamilyPath);
+            }
+            FilteredMissingFamilies?.Refresh();
+            OnPropertyChanged(nameof(DoneButtonIsEnabled));
+        }
+        public void UpdateCheckStateForAll(bool isChecked)
+        {
+            foreach (var viewModel in MissingFamilyViewModels)
+            {
+                viewModel.IsChecked = isChecked;
+            }
+        }
+
+        public void UpdateSelectedCount()
+        {
+            TotalSelected = MissingFamilyViewModels.Count(x => x.IsChecked);
         }
 
         public void AutomaticLinking()
@@ -262,9 +269,77 @@ namespace SnaptrudeManagerAddin
                 familyDict[key] = (value.IsChecked, value.NumberOfElements, Path.Combine(folderPath, key + ".rfa"));
             }
         }
+        public void LinkFolder()
+        {
+            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.Description = "Select Folder Containing RFAs";
+            folderBrowserDialog.ShowNewFolderButton = false;
+            DialogResult result = folderBrowserDialog.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                MissingFamiliesFolderPath = folderBrowserDialog.SelectedPath;
+                AutomaticLinking();
+            }
+            OnPropertyChanged(nameof(MissingString));
+            OnPropertyChanged(nameof(DoneButtonIsEnabled));
+        }
+
+        public void LoadMissingFamilies()
+        {
+            MissingFamilyViewModels.Clear();
+            foreach (var item in missingDoorFamiliesCount)
+            {
+                var viewModel = new MissingFamilyViewModel
+                {
+                    FamilyName = item.Key,
+                    FamilyPath = item.Value.path,
+                    IsChecked = item.Value.IsChecked
+                };
+
+                MissingFamilyViewModels.Add(viewModel);
+            }
+
+            foreach (var item in missingWindowFamiliesCount)
+            {
+                var viewModel = new MissingFamilyViewModel
+                {
+                    FamilyName = item.Key,
+                    FamilyPath = item.Value.path,
+                    IsChecked = item.Value.IsChecked
+                };
+
+                MissingFamilyViewModels.Add(viewModel);
+            }
+            OnPropertyChanged(nameof(TotalMissing));
+        }
+
+        public void ChooseFile(MissingFamilyViewModel missingFamilyViewModel)
+        {
+            var familyName = missingFamilyViewModel.FamilyName;
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
+            openFileDialog.Title = "Select Family File For " + familyName;
+            openFileDialog.Filter = "Revit Families (*.rfa)|*.rfa";
+            openFileDialog.RestoreDirectory = true;
+            bool? uploadResult = openFileDialog.ShowDialog();
+            if (uploadResult == true)
+            {
+                string sourcePath = openFileDialog.FileName;
+                missingFamilyViewModel.FamilyPath = sourcePath;
+                if (missingDoorFamiliesCount.ContainsKey(familyName))
+                {
+                    missingDoorFamiliesCount[familyName] = (true, missingDoorFamiliesCount[familyName].NumberOfElements, sourcePath);
+                }
+                if (missingWindowFamiliesCount.ContainsKey(familyName))
+                {
+                    missingWindowFamiliesCount[familyName] = (true, missingWindowFamiliesCount[familyName].NumberOfElements, sourcePath);
+                }
+            }
+            OnPropertyChanged(nameof(MissingString));
+            OnPropertyChanged(nameof(DoneButtonIsEnabled));
+        }
     }
 
-    public class MissingFamilyViewModel : INotifyPropertyChanged
+    public class MissingFamilyViewModel : ViewModelBase
     {
         private string _familyName;
         private string _familyPath;
@@ -278,13 +353,14 @@ namespace SnaptrudeManagerAddin
         public string FamilyPath
         {
             get => _familyPath;
-            set { _familyPath = value; OnPropertyChanged(); }
+            set { _familyPath = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsLinked)); }
         }
 
         public bool IsChecked
         {
             get => _isChecked;
-            set {
+            set
+            {
                 if (_isChecked != value)
                 {
                     _isChecked = value;
@@ -298,12 +374,6 @@ namespace SnaptrudeManagerAddin
             get => !string.IsNullOrEmpty(FamilyPath);
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
 }
