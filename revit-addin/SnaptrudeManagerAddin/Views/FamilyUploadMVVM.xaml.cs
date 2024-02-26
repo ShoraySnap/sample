@@ -35,6 +35,16 @@ namespace SnaptrudeManagerAddin
 
             WindowViewModel = new WindowViewModel();
             DataContext = WindowViewModel;
+            InitializeCommands();
+        }
+        private void InitializeCommands()
+        {
+            this.ShowInTaskbar = true;
+            this.Topmost = true;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            this.SizeToContent = SizeToContent.WidthAndHeight;
+            this.ResizeMode = ResizeMode.NoResize;
+            this.WindowStyle = WindowStyle.None;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -173,11 +183,14 @@ namespace SnaptrudeManagerAddin
                 {
                     _isAllChecked = value;
                     OnPropertyChanged(nameof(IsAllChecked));
-                    System.Diagnostics.Debug.WriteLine("IsAllChecked: " + _isAllChecked);
-                    UpdateCheckStateForAll(_isAllChecked);
+
+                    // Prevent recursive update when setting IsAllChecked programmatically.
+                    if (!_updatingCheckState)
+                        UpdateCheckStateForAll(_isAllChecked);
                 }
             }
         }
+        private bool _updatingCheckState = false;
 
         public WindowViewModel()
         {
@@ -230,11 +243,18 @@ namespace SnaptrudeManagerAddin
             {
                 viewModel.IsChecked = isChecked;
             }
+            UpdateSelectedCount();
         }
 
         public void UpdateSelectedCount()
         {
             TotalSelected = MissingFamilyViewModels.Count(x => x.IsChecked);
+
+            // Check if all items are checked and update IsAllChecked accordingly.
+            var areAllItemsChecked = MissingFamilyViewModels.All(vm => vm.IsChecked);
+            _updatingCheckState = true; // Prevent recursion
+            IsAllChecked = areAllItemsChecked;
+            _updatingCheckState = false;
         }
 
         public void AutomaticLinking()
