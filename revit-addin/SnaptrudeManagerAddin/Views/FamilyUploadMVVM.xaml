@@ -422,7 +422,11 @@
                                                                         d:Text="Family Name"
                                                                         FontSize="13"
                                                                         Foreground="{StaticResource Colors/Neutral/600}"
-                                                                        Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                                                                        Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                                        TextTrimming="CharacterEllipsis"
+                                                                        ToolTip="{Binding FamilyName}"
+                                                                        MaxWidth="420"
+                                                                        />
                                                                 </DataTemplate>
                                                             </DataGridTemplateColumn.CellTemplate>
                                                         </DataGridTemplateColumn>
@@ -622,7 +626,7 @@
                                                         <VisualBrush Visual="{Binding ElementName='Child_Border2'}" />
                                                     </DataGrid.OpacityMask>
                                                     <DataGrid.Columns>
-                                                        <DataGridTemplateColumn Width="*">
+                                                        <DataGridTemplateColumn Width="560">
                                                             <DataGridTemplateColumn.CellTemplate>
                                                                 <DataTemplate>
                                                                     <Border
@@ -721,7 +725,11 @@
                                                                                         d:Text="1200 x 1400 2 Shutter Wood Frame"
                                                                                         FontSize="13"
                                                                                         Foreground="{StaticResource Colors/Neutral/600}"
-                                                                                        Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                                                                                        Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                                                        TextTrimming="CharacterEllipsis"
+                                                                                        ToolTip="{Binding FamilyName}"
+                                                                                        MaxWidth="420"
+                                                                                        />
                                                                                 </StackPanel>
                                                                                 <Button
                                                                                     Margin="0,0,16,0"
@@ -736,10 +744,15 @@
                                                                                 <TextBlock
                                                                                     Padding="56,0,0,0"
                                                                                     VerticalAlignment="Center"
+                                                                                    HorizontalAlignment="Left"
                                                                                     d:Text="C:/Users/ROG/Desktop/E16RFAs"
                                                                                     FontSize="13"
                                                                                     Foreground="{StaticResource Colors/Neutral/500}"
-                                                                                    Text="{Binding FamilyPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                                                                                    Text="{Binding FamilyPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                                                    TextTrimming="CharacterEllipsis"
+                                                                                    ToolTip="{Binding FamilyPath}"
+                                                                                    MaxWidth="440"
+                                                                                    />
                                                                             </Grid>
                                                                         </Grid>
                                                                     </Border>

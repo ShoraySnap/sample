@@ -101,8 +101,6 @@ namespace SnaptrudeManagerAddin
         }
     }
 
-
-
     public class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -115,7 +113,6 @@ namespace SnaptrudeManagerAddin
 
     public class WindowViewModel : ViewModelBase
     {
-
         public ListCollectionView FilteredMissingFamilies { get; set; }
         public ListCollectionView CompleteListMissingFamilyViewModels { get; set; }
         public ObservableCollection<MissingFamilyViewModel> MissingFamilyViewModels { get; set; }
