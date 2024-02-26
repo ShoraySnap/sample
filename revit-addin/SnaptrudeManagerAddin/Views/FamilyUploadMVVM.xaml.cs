@@ -266,6 +266,7 @@ namespace SnaptrudeManagerAddin
             foreach (var key in keysToUpdate)
             {
                 var value = familyDict[key];
+                MissingFamilyViewModels.First(x => x.FamilyName == key).FamilyPath = Path.Combine(folderPath, key + ".rfa");
                 familyDict[key] = (value.IsChecked, value.NumberOfElements, Path.Combine(folderPath, key + ".rfa"));
             }
         }
