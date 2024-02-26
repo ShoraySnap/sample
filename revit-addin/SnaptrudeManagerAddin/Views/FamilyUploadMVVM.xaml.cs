@@ -91,6 +91,7 @@ namespace SnaptrudeManagerAddin
         }
         private void Done_Button_Click(object sender, RoutedEventArgs e)
         {
+            WindowViewModel.UpdateFamilyDictionary();
             WindowViewModel._skipAll = false;
             Dispose();
         }
@@ -217,23 +218,28 @@ namespace SnaptrudeManagerAddin
             }
         }
 
-        public void RefreshFilteredView()
+        public void UpdateFamilyDictionary()
         {
             foreach (var item in MissingFamilyViewModels)
             {
                 if (missingDoorFamiliesCount.ContainsKey(item.FamilyName))
                 {
-                    missingDoorFamiliesCount[item.FamilyName] = (item.IsChecked, missingDoorFamiliesCount[item.FamilyName].NumberOfElements, "");
+                    missingDoorFamiliesCount[item.FamilyName] = (item.IsChecked, missingDoorFamiliesCount[item.FamilyName].NumberOfElements, item.FamilyPath);
                 }
                 if (missingWindowFamiliesCount.ContainsKey(item.FamilyName))
                 {
-                    missingWindowFamiliesCount[item.FamilyName] = (item.IsChecked, missingWindowFamiliesCount[item.FamilyName].NumberOfElements, "");
+                    missingWindowFamiliesCount[item.FamilyName] = (item.IsChecked, missingWindowFamiliesCount[item.FamilyName].NumberOfElements, item.FamilyPath);
                 }
                 System.Diagnostics.Debug.WriteLine("MissingFamilyViewModels: " + item.FamilyName + " " + item.IsChecked + " " + item.FamilyPath);
             }
+        }
+
+        public void RefreshFilteredView()
+        {
             FilteredMissingFamilies?.Refresh();
             OnPropertyChanged(nameof(DoneButtonIsEnabled));
         }
+
         public void UpdateCheckStateForAll(bool isChecked)
         {
             foreach (var viewModel in MissingFamilyViewModels)
@@ -260,7 +266,6 @@ namespace SnaptrudeManagerAddin
             TryLinkFamilyFiles(missingDoorFamiliesCount);
             TryLinkFamilyFiles(missingWindowFamiliesCount);
         }
-
         public void TryLinkFamilyFiles(IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> familyDict)
         {
             string folderPath = MissingFamiliesFolderPath;
@@ -301,7 +306,6 @@ namespace SnaptrudeManagerAddin
             OnPropertyChanged(nameof(MissingString));
             OnPropertyChanged(nameof(DoneButtonIsEnabled));
         }
-
         public void LoadMissingFamilies()
         {
             MissingFamilyViewModels.Clear();
@@ -343,14 +347,6 @@ namespace SnaptrudeManagerAddin
             {
                 string sourcePath = openFileDialog.FileName;
                 missingFamilyViewModel.FamilyPath = sourcePath;
-                if (missingDoorFamiliesCount.ContainsKey(familyName))
-                {
-                    missingDoorFamiliesCount[familyName] = (true, missingDoorFamiliesCount[familyName].NumberOfElements, sourcePath);
-                }
-                if (missingWindowFamiliesCount.ContainsKey(familyName))
-                {
-                    missingWindowFamiliesCount[familyName] = (true, missingWindowFamiliesCount[familyName].NumberOfElements, sourcePath);
-                }
             }
             OnPropertyChanged(nameof(MissingString));
             OnPropertyChanged(nameof(DoneButtonIsEnabled));
