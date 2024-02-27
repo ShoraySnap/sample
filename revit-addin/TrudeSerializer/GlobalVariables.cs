@@ -5,7 +5,9 @@ namespace TrudeSerializer
 {
     public static class GlobalVariables
     {
+        // Document of revit project
         public static Document Document;
+        // Current document of revit project (used in TrudeCustomExporter)
         public static Document CurrentDocument;
         public static Application RvtApp;
 
@@ -13,6 +15,7 @@ namespace TrudeSerializer
         {
             Document = null;
             RvtApp = null;
+            CurrentDocument = null;
         }
     }
 }

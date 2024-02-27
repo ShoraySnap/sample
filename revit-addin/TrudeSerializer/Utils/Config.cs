@@ -16,7 +16,6 @@ namespace TrudeSerializer.Utils
             string snaptrudeManagerPath = "snaptrude-manager";
             string configFileName = "config.json";
 
-
             string configPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 snaptrudeManagerPath,

@@ -2,11 +2,10 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
+using System;
+using System.Linq;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace TrudeSerializer
 {

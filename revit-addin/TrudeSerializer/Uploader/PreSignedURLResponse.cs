@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace TrudeSerializer.Uploader
 {
@@ -8,7 +6,5 @@ namespace TrudeSerializer.Uploader
     {
         public string url { get; set; }
         public Dictionary<string, string> fields { get; set; }
-        
     }
-
 }

@@ -1,8 +1,7 @@
 using Autodesk.Revit.DB;
-using System;
+using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
-using System.Collections.Generic;
 
 namespace TrudeSerializer.Components
 {

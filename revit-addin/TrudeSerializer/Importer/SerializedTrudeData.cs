@@ -1,9 +1,9 @@
-﻿using TrudeSerializer.Components;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using TrudeSerializer.Types;
-using Newtonsoft.Json;
 using System.Reflection;
+using TrudeSerializer.Components;
+using TrudeSerializer.Types;
 
 namespace TrudeSerializer.Importer
 {
@@ -156,7 +156,6 @@ namespace TrudeSerializer.Importer
             if (this.HasCeilingType(ceilingTypeName)) return;
             this.CeilingTypes.Add(ceilingTypeName, ceilingType);
         }
-
     }
 
     internal class ProjectProperties

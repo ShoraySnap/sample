@@ -11,8 +11,7 @@ namespace TrudeSerializer.Utils
             if (!URLsConfig.IsLocalENV()) return;
 
             string snaptrudeManagerPath = "snaptrude-manager";
-            string fileName = "serializedTrudeData.json"; 
-
+            string fileName = "serializedTrudeData.json";
 
             string filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -20,8 +19,7 @@ namespace TrudeSerializer.Utils
                 fileName
             );
 
-
-            File.WriteAllText(filePath, serializedObject); 
+            File.WriteAllText(filePath, serializedObject);
         }
     }
 }
