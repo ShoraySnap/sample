@@ -31,11 +31,11 @@ const ModalFooter = styled.div`
 `;
 
 const progressTexts = [
-  "Opening Dynamo",
   "Uploading model",
   "Converting data",
   "Recreating objects",
   "Getting your 3D model ready",
+  "Almost there..."
 ];
 
 function useInterval(callback, delay) {
@@ -65,12 +65,12 @@ const Loading = (props) => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    window.electronAPI.handleSuccessfulSpeckleUpload(async () => {
+    window.electronAPI.handleSuccessfulUpload(async () => {
       window.electronAPI.openPageInDefaultBrowser(sessionData.getUserData().modelLink);
       window.electronAPI.operationSucceeded();
     });
     
-    return window.electronAPI.removeSuccessfulSpeckleUploadHandler;
+    return window.electronAPI.removeSuccessfulUploadHandler;
   }, []);
   
   
@@ -92,7 +92,7 @@ const Loading = (props) => {
     }
     else {
       // will be stuck at 90
-      // cleared when handleSuccessfulSpeckleUpload is called
+      // cleared when handleSuccessfulUpload is called
     }
     
   }, delay);
