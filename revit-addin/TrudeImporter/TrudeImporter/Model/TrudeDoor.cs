@@ -49,7 +49,7 @@ namespace TrudeImporter
                 {
                     if (doorProps.RevitFamilyName == null)
                     {
-                        var family = FamilyLoader.LoadCustomDoorFamily(doorFamilyName);
+                        var family = FamilyLoader.LoadCustomFamily(doorFamilyName, FamilyLoader.FamilyFolder.Doors);
                         if (family is null)
                         {
                             GlobalVariables.MissingDoorFamiliesCount[doorFamilyName] = GlobalVariables.MissingDoorFamiliesCount.ContainsKey(doorFamilyName) ? 

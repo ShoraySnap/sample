@@ -5,7 +5,9 @@ using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 using System.Windows.Forms;
 using System.Reflection;
+#if !FORGE
 using SnaptrudeManagerAddin;
+#endif
 
 namespace TrudeImporter
 {
@@ -24,10 +26,11 @@ namespace TrudeImporter
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+#if REVIT2019 || REVIT2020|| REVIT2021
                 ImportFloors(trudeProperties.Ceilings);
-            else
+#else
                 ImportCeilings(trudeProperties.Ceilings);
+#endif
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
@@ -188,6 +191,9 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
+            GlobalVariables.Transaction.Start();
+            TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
@@ -211,7 +217,7 @@ namespace TrudeImporter
                         }
                         else
                         {
-                            TrudeWall trudeWall = new TrudeWall(props);
+                            TrudeWall trudeWall = new TrudeWall(props, false);
                         }
                         deleteOld(props.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)
@@ -227,8 +233,20 @@ namespace TrudeImporter
                 }
             }
 
+            GlobalVariables.Transaction.Commit();
+
+            GlobalVariables.Transaction.Start();
+            foreach (var wallIdToRecreate in GlobalVariables.WallElementIdsToRecreate)
+            {
+                int matchUniqueId = GlobalVariables.UniqueIdToElementId.First(x => x.Value == wallIdToRecreate).Key;
+                WallProperties props = propsList.First(p => matchUniqueId == p.UniqueId);
+                TrudeWall trudeWall = new TrudeWall(props, true);
+            }
+            GlobalVariables.Transaction.Commit();
+
             TrudeWall.TypeStore.Clear();
             LogTrace("Finished Walls");
+            GlobalVariables.Transaction.Start(); // Temporary start before complete refactor of transactions
         }
 
         private static void ImportBeams(List<BeamProperties> propsList)
@@ -511,6 +529,7 @@ namespace TrudeImporter
 
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
         {
+#if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
             var result = familyUploadMVVM.ShowDialog();
             if (!familyUploadMVVM.WindowViewModel._skipAll)
@@ -538,6 +557,7 @@ namespace TrudeImporter
                     }
                 }
             }
+#endif
         }
 
 
@@ -558,7 +578,11 @@ namespace TrudeImporter
                 return;
             if (elementId != null)
             {
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                 ElementId id = new ElementId((int)elementId);
+#else
+                ElementId id = new ElementId((Int64)elementId);
+#endif
                 Element element = GlobalVariables.Document.GetElement(id);
                 if (element != null)
                 {
