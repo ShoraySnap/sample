@@ -2,6 +2,12 @@ using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using TrudeImporter.TrudeImporter.Model;
+using System.Windows.Forms;
+using System.Reflection;
+#if !FORGE
+using SnaptrudeManagerAddin;
+#endif
 
 namespace TrudeImporter
 {
@@ -9,19 +15,28 @@ namespace TrudeImporter
     {
         public static void Import(TrudeProperties trudeProperties)
         {
+            GlobalVariables.MissingDoorFamiliesCount.Clear();
+            GlobalVariables.MissingWindowFamiliesCount.Clear();
+
+            GlobalVariables.MissingDoorIndexes.Clear();
+            GlobalVariables.MissingWindowIndexes.Clear();
+
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
-            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+#if REVIT2019 || REVIT2020|| REVIT2021
                 ImportFloors(trudeProperties.Ceilings);
-            else
+#else
                 ImportCeilings(trudeProperties.Ceilings);
+#endif
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
+            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
         }
 
         private static void ImportStories(List<StoreyProperties> propsList)
@@ -393,7 +408,7 @@ namespace TrudeImporter
 
         private static void ImportDoors(List<DoorProperties> propsList)
         {
-            foreach (var door in propsList)
+            foreach (var (door,index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -401,7 +416,7 @@ namespace TrudeImporter
                     deleteOld(door.ExistingElementId);
                     try
                     {
-                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey]);
+                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey],index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -418,7 +433,7 @@ namespace TrudeImporter
 
         private static void ImportWindows(List<WindowProperties> propsList)
         {
-            foreach (var window in propsList)
+            foreach (var (window,index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -426,7 +441,7 @@ namespace TrudeImporter
                     deleteOld(window.ExistingElementId);
                     try
                     {
-                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey]);
+                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey],index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -478,6 +493,7 @@ namespace TrudeImporter
                 }
             }
         }
+
         private static void ImportMasses(List<MassProperties> propsList)
         {
             foreach (var mass in propsList)
@@ -511,6 +527,40 @@ namespace TrudeImporter
             }
         }
 
+        private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
+        {
+#if !FORGE
+            FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
+            var result = familyUploadMVVM.ShowDialog();
+            if (!familyUploadMVVM.WindowViewModel._skipAll)
+            {   System.Diagnostics.Debug.WriteLine("Importing Missing Families");
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    try
+                    {
+                        if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+                            TrudeMissing.ImportMissingDoors(propsListDoors);
+
+                        if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                            TrudeMissing.ImportMissingWindows(propsListWindows);
+
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Families: " + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            }
+#endif
+        }
+
+
         /// <summary>
         /// This will appear on the Design Automation output
         /// </summary>
@@ -528,7 +578,11 @@ namespace TrudeImporter
                 return;
             if (elementId != null)
             {
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                 ElementId id = new ElementId((int)elementId);
+#else
+                ElementId id = new ElementId((Int64)elementId);
+#endif
                 Element element = GlobalVariables.Document.GetElement(id);
                 if (element != null)
                 {
@@ -539,7 +593,6 @@ namespace TrudeImporter
                 }
             }
         }
-
         public static void deleteIfInGroup(Element element)
         {
             if (GlobalVariables.ForForge)
@@ -561,5 +614,11 @@ namespace TrudeImporter
                 }
             }
         }
+
+    }
+    public static class IEnumerableExtensions
+    {
+        public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> self)
+           => self.Select((item, index) => (item, index));
     }
 }

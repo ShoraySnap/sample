@@ -1,0 +1,835 @@
+﻿<Window
+    x:Class="SnaptrudeManagerAddin.FamilyUploadMVVM"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SnaptrudeManagerAddin"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    MinWidth="680"
+    MinHeight="600"
+    MaxWidth="680"
+    MaxHeight="600"
+    AllowsTransparency="True"
+    Background="{x:Null}"
+    FontSize="13"
+    Loaded="Window_Loaded"
+    MouseDown="Window_MouseDown"
+    ResizeMode="NoResize"
+    WindowStyle="None"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <ResourceDictionary
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:local="clr-namespace:SnaptrudeManagerAddin"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+            <SolidColorBrush x:Key="Colors/Neutral/900" Color="#2d2e37" />
+            <SolidColorBrush x:Key="Colors/Neutral/800" Color="#484B5B" />
+            <SolidColorBrush x:Key="Colors/Neutral/600" Color="#767B93" />
+            <SolidColorBrush x:Key="Colors/Neutral/500" Color="#AFB2C0" />
+            <SolidColorBrush x:Key="Colors/Neutral/300" Color="#DDDEE4" />
+            <SolidColorBrush x:Key="Colors/Neutral/200" Color="#E8E9ED" />
+            <SolidColorBrush x:Key="Colors/Neutral/100" Color="#F4F4F6" />
+            <SolidColorBrush x:Key="Colors/Neutral/0" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070" />
+            <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD" />
+            <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1" />
+            <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6" />
+            <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B" />
+            <FontFamily x:Key="Inter">/Views/Fonts/#Inter</FontFamily>
+            <Style x:Key="Button_Primary" TargetType="{x:Type Button}">
+                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/0}" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="Medium" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="border"
+                                Background="{StaticResource Colors/Neutral/900}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="Button_Secondary" TargetType="{x:Type Button}">
+                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="Medium" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="border"
+                                Background="Transparent"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="Button_Tertiary" TargetType="{x:Type Button}">
+                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="Medium" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="border"
+                                BorderBrush="{StaticResource Colors/Neutral/300}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="HeaderStyle/500" TargetType="{x:Type DataGridColumnHeader}">
+                <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />
+                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
+                <Setter Property="SeparatorVisibility" Value="Hidden" />
+                <Setter Property="FontWeight" Value="Medium" />
+                <Setter Property="Height" Value="40" />
+            </Style>
+            <Style x:Key="HeaderStyle/400" TargetType="{x:Type DataGridColumnHeader}">
+                <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />
+                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
+                <Setter Property="SeparatorVisibility" Value="Hidden" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="Height" Value="40" />
+            </Style>
+            <Style x:Key="TransparentCell" TargetType="{x:Type DataGridCell}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="TransparentRow" TargetType="{x:Type DataGridRow}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="SVGCheckBox" TargetType="CheckBox">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type CheckBox}">
+                            <Grid
+                                Width="24"
+                                Height="24"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                                <Grid x:Name="CheckedMark">
+                                    <Path
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="M15.417 17.25H2.583C1.57 17.25 0.75 16.429 0.75 15.417V2.583C0.75 1.57 1.571 0.75 2.583 0.75H15.416C16.429 0.75 17.249 1.571 17.249 2.583V15.416C17.25 16.429 16.429 17.25 15.417 17.25Z"
+                                        Fill="#484B5B"
+                                        Stroke="#484B5B"
+                                        StrokeEndLineCap="round"
+                                        StrokeLineJoin="round"
+                                        StrokeStartLineCap="round"
+                                        StrokeThickness="1.5" />
+                                    <Path
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="M1 3.75L4.5 7.25L11 0.75"
+                                        Stroke="white"
+                                        StrokeEndLineCap="round"
+                                        StrokeLineJoin="round"
+                                        StrokeStartLineCap="round"
+                                        StrokeThickness="1.5" />
+                                </Grid>
+                                <Grid x:Name="UnCheckedMark">
+                                    <Border Background="Transparent">
+                                        <Path
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Data="M15.417 17.25H2.583C1.57 17.25 0.75 16.429 0.75 15.417V2.583C0.75 1.57 1.571 0.75 2.583 0.75H15.416C16.429 0.75 17.249 1.571 17.249 2.583V15.416C17.25 16.429 16.429 17.25 15.417 17.25Z"
+                                            Stroke="#C6C8D2"
+                                            StrokeEndLineCap="round"
+                                            StrokeLineJoin="round"
+                                            StrokeStartLineCap="round"
+                                            StrokeThickness="1.5" />
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="CheckedMark" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="UnCheckedMark" Property="Visibility" Value="Hidden" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="False">
+                                    <Setter TargetName="UnCheckedMark" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="CheckedMark" Property="Visibility" Value="Hidden" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border
+        Margin="20"
+        Background="{StaticResource Colors/Neutral/0}"
+        CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect
+                BlurRadius="10"
+                Direction="-90"
+                RenderingBias="Quality"
+                ShadowDepth="2"
+                Color="LightGray" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Border BorderBrush="{StaticResource Colors/Neutral/200}" BorderThickness="0,0,0,1" />
+            <Grid Margin="8">
+                <Grid Margin="8,0" HorizontalAlignment="Left">
+                    <TextBlock
+                        Width="Auto"
+                        VerticalAlignment="Center"
+                        FontSize="13"
+                        FontWeight="Medium"
+                        Foreground="#767B93"
+                        Text="Assets not found" />
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="1">
+                <TabControl
+                    x:Name="TabControl"
+                    Background="Transparent"
+                    BorderThickness="0">
+                    <TabItem x:Name="Missing_TabItem" Visibility="Collapsed">
+                        <Grid>
+                            <Border Padding="32,24,32,80">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,40">
+                                        <Border
+                                            Height="32"
+                                            Margin="0,0,0,12"
+                                            Padding="24,0,40,0">
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="20"
+                                                FontWeight="Medium"
+                                                Foreground="{StaticResource Colors/Neutral/800}"
+                                                Text="Missing RFAs" />
+                                        </Border>
+                                        <Border Padding="24,0,40,0">
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{StaticResource Colors/Neutral/600}"
+                                                LineHeight="18.72"
+                                                Text="{Binding TrudeFileName, StringFormat='Your project {0} uses assets that were not found while reconciling the Snaptrude file to Revit.  Please link the missing assets. Any unlinked assets will not show up in the resulting model in Revit.'}"
+                                                TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                    <Border
+                                        Grid.Row="1"
+                                        BorderBrush="{StaticResource Colors/Neutral/200}"
+                                        BorderThickness="1"
+                                        CornerRadius="8">
+                                        <Grid>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="40" />
+                                                    <RowDefinition />
+                                                </Grid.RowDefinitions>
+                                                <Border
+                                                    Padding="17,0,24,0"
+                                                    Background="{StaticResource Colors/Neutral/100}"
+                                                    CornerRadius="8,8,0,0">
+                                                    <Grid>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <CheckBox
+                                                                Margin="0,0,17,0"
+                                                                VerticalAlignment="Center"
+                                                                IsChecked="{Binding IsAllChecked}"
+                                                                Style="{StaticResource SVGCheckBox}" />
+                                                            <TextBlock
+                                                                VerticalAlignment="Center"
+                                                                FontSize="13"
+                                                                FontWeight="Medium"
+                                                                Foreground="{StaticResource Colors/Neutral/600}"
+                                                                Text="RFA name" />
+                                                        </StackPanel>
+                                                        <TextBlock
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center"
+                                                            d:Text="Total missing: 15"
+                                                            FontSize="13"
+                                                            Foreground="{StaticResource Colors/Neutral/600}"
+                                                            Text="{Binding TotalMissing, StringFormat='Total missing: {0}'}" />
+                                                    </Grid>
+                                                </Border>
+                                                <Border
+                                                    x:Name="Child_Border"
+                                                    Grid.Row="1"
+                                                    Background="White"
+                                                    BorderThickness="0"
+                                                    CornerRadius="0,0,8,8" />
+                                                <DataGrid
+                                                    Grid.Row="1"
+                                                    VerticalContentAlignment="Center"
+                                                    d:ItemsSource="{d:SampleData ItemCount=5}"
+                                                    AutoGenerateColumns="False"
+                                                    Background="White"
+                                                    BorderBrush="Transparent"
+                                                    BorderThickness="0"
+                                                    CanUserAddRows="False"
+                                                    CellStyle="{StaticResource TransparentCell}"
+                                                    GridLinesVisibility="None"
+                                                    HeadersVisibility="None"
+                                                    ItemsSource="{Binding CompleteListMissingFamilyViewModels}"
+                                                    RowHeight="44"
+                                                    RowStyle="{StaticResource TransparentRow}">
+                                                    <DataGrid.OpacityMask>
+                                                        <VisualBrush Visual="{Binding ElementName='Child_Border'}" />
+                                                    </DataGrid.OpacityMask>
+                                                    <DataGrid.Columns>
+                                                        <DataGridTemplateColumn Width="Auto">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid>
+                                                                        <CheckBox
+                                                                            Margin="16,0"
+                                                                            VerticalAlignment="Center"
+                                                                            Checked="CheckBox_Checked"
+                                                                            IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                            Style="{StaticResource SVGCheckBox}"
+                                                                            Unchecked="CheckBox_Checked" />
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Width="*">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock
+                                                                        Padding="0,6"
+                                                                        HorizontalAlignment="Left"
+                                                                        VerticalAlignment="Center"
+                                                                        d:Text="Family Name"
+                                                                        FontSize="13"
+                                                                        Foreground="{StaticResource Colors/Neutral/600}"
+                                                                        Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                                        TextTrimming="CharacterEllipsis"
+                                                                        ToolTip="{Binding FamilyName}"
+                                                                        MaxWidth="420"
+                                                                        />
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn Width="Auto">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="0,0,24,0" Orientation="Horizontal">
+                                                                        <Grid
+                                                                            Width="16"
+                                                                            Height="16"
+                                                                            Margin="0,0,4,0">
+                                                                            <Path
+                                                                                Data="M8.00002 8.47425L8.88505 7.98254C9.32674 7.73719 9.60069 7.27166 9.60069 6.7664C9.54837 5.92619 8.8278 5.28568 7.98725 5.33222C7.23619 5.30104 6.56925 5.80874 6.39935 6.54099"
+                                                                                Stroke="#323232"
+                                                                                StrokeEndLineCap="round"
+                                                                                StrokeLineJoin="round"
+                                                                                StrokeStartLineCap="round" />
+                                                                            <Path
+                                                                                Stroke="#323232"
+                                                                                StrokeEndLineCap="round"
+                                                                                StrokeLineJoin="round"
+                                                                                StrokeStartLineCap="round">
+                                                                                <Path.Data>
+                                                                                    <EllipseGeometry
+                                                                                        Center="8,8"
+                                                                                        RadiusX="6.0025"
+                                                                                        RadiusY="6.0025" />
+                                                                                </Path.Data>
+                                                                            </Path>
+                                                                            <Path
+                                                                                Data="M8.06679 10.6012C8.06674 10.638 8.03688 10.6678 8.00007 10.6678C7.96326 10.6678 7.93342 10.6379 7.9334 10.6011C7.93339 10.5643 7.9632 10.5344 8.00001 10.5344C8.01773 10.5344 8.03473 10.5414 8.04726 10.5539C8.05979 10.5664 8.06682 10.5834 8.06679 10.6012"
+                                                                                Stroke="#323232"
+                                                                                StrokeEndLineCap="round"
+                                                                                StrokeLineJoin="round"
+                                                                                StrokeStartLineCap="round" />
+                                                                        </Grid>
+                                                                        <TextBlock
+                                                                            VerticalAlignment="Center"
+                                                                            FontSize="13"
+                                                                            Foreground="{StaticResource Colors/Neutral/800}"
+                                                                            Text="Missing from model" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                    </DataGrid.Columns>
+                                                </DataGrid>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                            <Border
+                                Grid.Row="1"
+                                Height="56"
+                                Padding="20,0,12,0"
+                                VerticalAlignment="Bottom">
+                                <Grid>
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <Border
+                                            Width="21"
+                                            Height="21"
+                                            Margin="0,0,8,0"
+                                            Background="#F4F4F6"
+                                            CornerRadius="4">
+                                            <TextBlock
+                                                Margin="0,0,0,3"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Bottom"
+                                                d:Text="5"
+                                                FontWeight="Medium"
+                                                Foreground="{StaticResource Colors/Neutral/800}"
+                                                Text="{Binding TotalSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </Border>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="13"
+                                            Foreground="{StaticResource Colors/Neutral/600}"
+                                            Text="Selected" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <Button
+                                            Margin="0,0,10,0"
+                                            Click="Skip_Button_Click"
+                                            Content="Skip All"
+                                            Style="{StaticResource Button_Secondary}" />
+                                        <Button
+                                            x:Name="Link_Button"
+                                            Click="Link_Button_Click"
+                                            IsEnabled="{Binding LinkButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
+                                            Content="Link missing RFAs"
+                                            Style="{StaticResource Button_Primary}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                    <TabItem x:Name="Link_TabItem" Visibility="Collapsed">
+                        <Grid>
+                            <Border Padding="32,24,32,80">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,40">
+                                        <Border
+                                            Height="32"
+                                            Margin="0,0,0,12"
+                                            Padding="24,0,0,0">
+                                            <Grid>
+                                                <TextBlock
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="20"
+                                                    FontWeight="Medium"
+                                                    Foreground="{StaticResource Colors/Neutral/800}"
+                                                    Text="Link RFAs" />
+                                                <Button
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Click="Select_Folder_Click"
+                                                    Content="Select folder"
+                                                    Style="{StaticResource Button_Primary}" />
+                                            </Grid>
+                                        </Border>
+                                        <Border Padding="24,0,40,0">
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{StaticResource Colors/Neutral/600}"
+                                                Text="Select folder containing RFA files OR link them manually below."
+                                                TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                    <Border
+                                        Grid.Row="1"
+                                        BorderBrush="{StaticResource Colors/Neutral/200}"
+                                        BorderThickness="1"
+                                        CornerRadius="8">
+                                        <Grid>
+
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="40" />
+                                                    <RowDefinition />
+                                                </Grid.RowDefinitions>
+                                                <Border
+                                                    Padding="24,0,24,0"
+                                                    Background="{StaticResource Colors/Neutral/100}"
+                                                    CornerRadius="8,8,0,0">
+                                                    <Grid>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock
+                                                                VerticalAlignment="Center"
+                                                                FontSize="13"
+                                                                FontWeight="Medium"
+                                                                Foreground="{StaticResource Colors/Neutral/600}"
+                                                                Text="RFA name" />
+                                                        </StackPanel>
+                                                        <TextBlock
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center"
+                                                            d:Text="Linked 2 of 4"
+                                                            FontSize="13"
+                                                            Foreground="{StaticResource Colors/Neutral/600}"
+                                                            Text="{Binding MissingString, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </Grid>
+                                                </Border>
+                                                <Border
+                                                    x:Name="Child_Border2"
+                                                    Grid.Row="1"
+                                                    Background="White"
+                                                    BorderThickness="0"
+                                                    CornerRadius="0,0,8,8" />
+                                                <DataGrid
+                                                    Grid.Row="1"
+                                                    VerticalContentAlignment="Center"
+                                                    d:ItemsSource="{d:SampleData ItemCount=4}"
+                                                    AutoGenerateColumns="False"
+                                                    Background="White"
+                                                    BorderBrush="Transparent"
+                                                    BorderThickness="0"
+                                                    CanUserAddRows="False"
+                                                    CellStyle="{StaticResource TransparentCell}"
+                                                    GridLinesVisibility="None"
+                                                    HeadersVisibility="None"
+                                                    ItemsSource="{Binding FilteredMissingFamilies}"
+                                                    RowHeight="60"
+                                                    RowStyle="{StaticResource TransparentRow}"
+                                                    HorizontalScrollBarVisibility="Disabled">
+                                                    <DataGrid.OpacityMask>
+                                                        <VisualBrush Visual="{Binding ElementName='Child_Border2'}" />
+                                                    </DataGrid.OpacityMask>
+                                                    <DataGrid.Columns>
+                                                        <DataGridTemplateColumn Width="560">
+                                                            <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <Border
+                                                                        Height="60"
+                                                                        Margin="0,8,0,0"
+                                                                        Padding="0,8,0,0"
+                                                                        VerticalAlignment="Center">
+                                                                        <Grid>
+                                                                            <Grid Height="32" VerticalAlignment="Top">
+                                                                                <StackPanel Orientation="Horizontal">
+                                                                                    <Grid
+                                                                                        Width="24"
+                                                                                        Height="24"
+                                                                                        Margin="16,0">
+                                                                                        <Grid
+                                                                                            x:Name="Linked"
+                                                                                            HorizontalAlignment="Center"
+                                                                                            VerticalAlignment="Center">
+                                                                                            <Grid.Style>
+                                                                                                <Style TargetType="{x:Type Grid}">
+                                                                                                    <Setter Property="Visibility" Value="Hidden" />
+                                                                                                    <Style.Triggers>
+                                                                                                        <DataTrigger Binding="{Binding IsLinked, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                                        </DataTrigger>
+                                                                                                    </Style.Triggers>
+                                                                                                </Style>
+                                                                                            </Grid.Style>
+                                                                                            <Path
+                                                                                                Data="M15 6H11C10.448 6 10 5.552 10 5V1"
+                                                                                                Stroke="#767B93"
+                                                                                                StrokeEndLineCap="round"
+                                                                                                StrokeLineJoin="round"
+                                                                                                StrokeStartLineCap="round"
+                                                                                                StrokeThickness="1.25" />
+                                                                                            <Path
+                                                                                                Data="M14.414 4.414L11.586 1.586C11.211 1.211 10.702 1 10.172 1H3C1.895 1 1 1.895 1 3V17C1 18.105 1.895 19 3 19H13C14.105 19 15 18.105 15 17V5.828C15 5.298 14.789 4.789 14.414 4.414V4.414Z"
+                                                                                                Stroke="#767B93"
+                                                                                                StrokeEndLineCap="round"
+                                                                                                StrokeLineJoin="round"
+                                                                                                StrokeStartLineCap="round"
+                                                                                                StrokeThickness="1.25" />
+                                                                                        </Grid>
+                                                                                        <Grid x:Name="Missing">
+                                                                                            <Grid.Style>
+                                                                                                <Style TargetType="{x:Type Grid}">
+                                                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                                                    <Style.Triggers>
+                                                                                                        <DataTrigger Binding="{Binding IsLinked}" Value="True">
+                                                                                                            <Setter Property="Visibility" Value="Hidden" />
+                                                                                                        </DataTrigger>
+                                                                                                    </Style.Triggers>
+                                                                                                </Style>
+                                                                                            </Grid.Style>
+                                                                                            <Path
+                                                                                                Data="M19 8H15C14.448 8 14 7.552 14 7V3"
+                                                                                                Stroke="#767B93"
+                                                                                                StrokeEndLineCap="round"
+                                                                                                StrokeLineJoin="round"
+                                                                                                StrokeStartLineCap="round"
+                                                                                                StrokeThickness="1.25" />
+                                                                                            <Path
+                                                                                                Data="M18.414 6.414L15.586 3.586C15.211 3.211 14.702 3 14.172 3H7C5.895 3 5 3.895 5 5V19C5 20.105 5.895 21 7 21H17C18.105 21 19 20.105 19 19V7.828C19 7.298 18.789 6.789 18.414 6.414V6.414Z"
+                                                                                                Stroke="#767B93"
+                                                                                                StrokeEndLineCap="round"
+                                                                                                StrokeLineJoin="round"
+                                                                                                StrokeStartLineCap="round"
+                                                                                                StrokeThickness="1.25" />
+                                                                                            <Path
+                                                                                                HorizontalAlignment="Center"
+                                                                                                VerticalAlignment="Center"
+                                                                                                Stroke="#767B93"
+                                                                                                StrokeEndLineCap="round"
+                                                                                                StrokeLineJoin="round"
+                                                                                                StrokeStartLineCap="round"
+                                                                                                StrokeThickness="1.25">
+                                                                                                <Path.Data>
+                                                                                                    <EllipseGeometry
+                                                                                                        Center="1 11"
+                                                                                                        RadiusX="0.4"
+                                                                                                        RadiusY=".4" />
+                                                                                                </Path.Data>
+                                                                                            </Path>
+                                                                                            <Path
+                                                                                                Data="M12 14V11"
+                                                                                                Stroke="#767B93"
+                                                                                                StrokeEndLineCap="round"
+                                                                                                StrokeLineJoin="round"
+                                                                                                StrokeStartLineCap="round"
+                                                                                                StrokeThickness="1.25" />
+                                                                                        </Grid>
+                                                                                    </Grid>
+                                                                                    <TextBlock
+                                                                                        Padding="0,6"
+                                                                                        VerticalAlignment="Center"
+                                                                                        d:Text="1200 x 1400 2 Shutter Wood Frame"
+                                                                                        FontSize="13"
+                                                                                        Foreground="{StaticResource Colors/Neutral/600}"
+                                                                                        Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                                                        TextTrimming="CharacterEllipsis"
+                                                                                        ToolTip="{Binding FamilyName}"
+                                                                                        MaxWidth="420"
+                                                                                        />
+                                                                                </StackPanel>
+                                                                                <Button
+                                                                                    Margin="0,0,16,0"
+                                                                                    HorizontalAlignment="Right"
+                                                                                    VerticalAlignment="Center"
+                                                                                    Click="Select_File_Click"
+                                                                                    Content="Choose File"
+                                                                                    FontSize="13"
+                                                                                    Style="{StaticResource Button_Tertiary}" />
+                                                                            </Grid>
+                                                                            <Grid Height="32" VerticalAlignment="Bottom">
+                                                                                <TextBlock
+                                                                                    Padding="56,0,0,0"
+                                                                                    VerticalAlignment="Center"
+                                                                                    HorizontalAlignment="Left"
+                                                                                    d:Text="C:/Users/ROG/Desktop/E16RFAs"
+                                                                                    FontSize="13"
+                                                                                    Foreground="{StaticResource Colors/Neutral/500}"
+                                                                                    Text="{Binding FamilyPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                                                    TextTrimming="CharacterEllipsis"
+                                                                                    ToolTip="{Binding FamilyPath}"
+                                                                                    MaxWidth="440"
+                                                                                    />
+                                                                            </Grid>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </DataGridTemplateColumn.CellTemplate>
+                                                        </DataGridTemplateColumn>
+                                                    </DataGrid.Columns>
+                                                </DataGrid>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                            <Border
+                                Grid.Row="1"
+                                Height="56"
+                                Padding="20,0,12,0"
+                                VerticalAlignment="Bottom">
+                                <Grid>
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <Grid
+                                            Width="21"
+                                            Height="22"
+                                            Margin="0,0,8,0">
+                                            <Path
+                                                Data="M10.5 11.7467V9.25336"
+                                                Stroke="#767B93"
+                                                StrokeEndLineCap="Round"
+                                                StrokeLineJoin="Round"
+                                                StrokeStartLineCap="Round" />
+                                            <Path
+                                                Data="M10.4993 13.75C10.4073 13.75 10.3327 13.8246 10.3333 13.9166C10.3333 14.0086 10.408 14.0833 10.5 14.0833C10.592 14.0833 10.6667 14.0086 10.6667 13.9166C10.6667 13.8246 10.592 13.75 10.4993 13.75"
+                                                Stroke="#767B93"
+                                                StrokeEndLineCap="Round"
+                                                StrokeLineJoin="Round"
+                                                StrokeStartLineCap="Round" />
+                                            <Path
+                                                Data="M11.8527 5.75932L16.9587 14.6953C17.552 15.734 16.802 17.0266 15.606 17.0266H5.394C4.19734 17.0266 3.44734 15.734 4.04134 14.6953L9.14734 5.75932C9.74534 4.71198 11.2547 4.71198 11.8527 5.75932Z"
+                                                Stroke="#767B93"
+                                                StrokeEndLineCap="Round"
+                                                StrokeLineJoin="Round"
+                                                StrokeStartLineCap="Round" />
+                                        </Grid>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="13"
+                                            Foreground="{StaticResource Colors/Neutral/600}">
+                                            Link assets to proceed
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <Button
+                                            x:Name="Back_Button"
+                                            Margin="0,0,10,0"
+                                            Click="Back_Button_Click"
+                                            Content="Back"
+                                            Style="{StaticResource Button_Secondary}" />
+                                        <Button
+                                            Click="Done_Button_Click"
+                                            Content="Done"
+                                            IsEnabled="{Binding DoneButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource Button_Primary}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

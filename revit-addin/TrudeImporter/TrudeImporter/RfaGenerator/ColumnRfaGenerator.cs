@@ -12,7 +12,8 @@ namespace TrudeImporter
     {
         private const string BASE_DIRECTORY = "tmp_columns";
         static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        static string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Column.rft";
+        static string TEMPLATE_FILE_NAME = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Column.rft";
+
         //const string TEMPLATE_FILE_NAME = "resourceFile/Metric Column.rft";
 
         public static void DeleteAll()
