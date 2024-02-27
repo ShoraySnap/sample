@@ -30,7 +30,7 @@ namespace TrudeSerializer
                 View3D view = Get3dView(doc);
                 SetDetailViewToFine(doc, view);
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
-
+                CleanSerializedData(serializedData);
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
                 string snaptrudeManagerPath = "snaptrude-manager";
                 string configFileName = "config.json";
@@ -74,6 +74,31 @@ namespace TrudeSerializer
             {
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
                 GlobalVariables.CleanGlobalVariables();
+            }
+        }
+
+        private void CleanSerializedData(SerializedTrudeData serializedData)
+        {
+            foreach (var key in serializedData.Masses.Keys.ToList())
+            {
+                if (serializedData.Masses[key].geometries.Count == 0)
+                {
+                    serializedData.Masses.Remove(key);
+                }
+            }
+            foreach (var revitLinkKey in serializedData.RevitLinks.Keys.ToList())
+            {
+                foreach (var trudeMassKey in serializedData.RevitLinks[revitLinkKey].Keys.ToList())
+                {
+                    if (serializedData.RevitLinks[revitLinkKey][trudeMassKey].geometries.Count == 0)
+                    {
+                        serializedData.RevitLinks[revitLinkKey].Remove(trudeMassKey);
+                    }
+                }
+                if (serializedData.RevitLinks[revitLinkKey].Count == 0)
+                {
+                    serializedData.RevitLinks.Remove(revitLinkKey);
+                }
             }
         }
 
