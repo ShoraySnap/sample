@@ -202,6 +202,10 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddDoorInstance(component.elementId, component as TrudeDoor);
             }
+            else if (component is TrudeWindow)
+            {
+                serializedSnaptrudeData.AddWindowInstance(component.elementId, component as TrudeWindow);
+            }
         }
 
         void IExportContext.OnElementEnd(ElementId elementId)
@@ -266,7 +270,7 @@ namespace TrudeSerializer
             {
                 XYZ point = node.GetPoint(i);
                 XYZ transformedPoint = CurrentTransform.OfPoint(point);
-                if (component.category == "Doors")
+                if (component.category == "Doors" || component.category == "Windows")
                 {
                     component.SetVertices(materialId, point.X, point.Z, point.Y);
                 }

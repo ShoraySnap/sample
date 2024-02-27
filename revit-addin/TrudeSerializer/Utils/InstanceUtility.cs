@@ -193,7 +193,7 @@ namespace TrudeSerializer.Components
                 return positionPoint;
             }
 
-            if (element.Category.Name == "Doors")
+            if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
             {
                 XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
                 List<double> positionPoint = new List<double>{ position.X, position.Z, position.Y };
@@ -237,7 +237,7 @@ namespace TrudeSerializer.Components
                         rotation += identity.BasisZ.AngleTo(transform.BasisZ);
                     }
 
-                    if (element.Category.Name == "Doors")
+                    if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
                     {
                         if (element.Location is LocationPoint location)
                         {
