@@ -196,7 +196,7 @@ namespace TrudeSerializer.Components
             if (element.Category.Name == "Doors")
             {
                 XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
-                List<double> positionPoint = new List<double>{ position.X, position.Z, position.Y };
+                List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
@@ -305,13 +305,12 @@ namespace TrudeSerializer.Components
             BoundingBoxXYZ bbox = element.get_BoundingBox(view);
             if (bbox == null)
             {
-                return new List<double>() { 0,0,0};
+                return new List<double>() { 0, 0, 0 };
             }
 
             XYZ center = (bbox.Max + bbox.Min) / 2;
 
             return new List<double> { center.X, center.Z, center.Y };
-
         }
 
         static public List<double> GetCenterForModelGroups(Element element)
