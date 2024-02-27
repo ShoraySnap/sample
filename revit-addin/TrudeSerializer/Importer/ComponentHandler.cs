@@ -1,5 +1,13 @@
 ﻿using Autodesk.Revit.DB;
+using System;
+using TrudeImporter;
 using TrudeSerializer.Components;
+using TrudeCeiling = TrudeSerializer.Components.TrudeCeiling;
+using TrudeColumn = TrudeSerializer.Components.TrudeColumn;
+using TrudeDoor = TrudeSerializer.Components.TrudeDoor;
+using TrudeFloor = TrudeSerializer.Components.TrudeFloor;
+using TrudeMass = TrudeSerializer.Components.TrudeMass;
+using TrudeWall = TrudeSerializer.Components.TrudeWall;
 
 namespace TrudeSerializer.Importer
 {
@@ -35,6 +43,10 @@ namespace TrudeSerializer.Importer
             else if(element is Ceiling)
             {
                 return TrudeCeiling.GetSerializedComponent(serializedData, element);
+            }
+            else if(TrudeColumn.IsColumnCategory(element))
+            {
+                return TrudeColumn.GetSerializedComponent(serializedData, element);
             }
             else if (TrudeFurniture.IsFurnitureCategory(element))
             {

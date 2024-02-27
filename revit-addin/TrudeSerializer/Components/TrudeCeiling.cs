@@ -53,7 +53,7 @@ namespace TrudeSerializer.Components
             if(heightOffsetParam.HasValue)
             {
                 heightOffset = heightOffsetParam.AsDouble();
-                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, heightOffsetParam.GetUnitTypeId());
+                heightOffset = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(heightOffset);
             }
             var (outline, voids, isDifferentCurve) = GetOutline(element);
             SetCeilingType(importData, ceiling);

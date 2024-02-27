@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using System.Collections.Generic;
 
 namespace TrudeSerializer.Utils
 {
@@ -70,6 +71,30 @@ namespace TrudeSerializer.Utils
         public static double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value)
         {
             return new double[] { ConvertToSnaptrudeUnits(value.X, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Z, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Y, UnitTypeId.Feet) };
+        }
+
+        public static List<XYZ> ConvertToMilimeterUnits(List<XYZ> values)
+        {
+            var newList = new List<XYZ>();
+
+            foreach(var value in values)
+            {
+                newList.Add(value.Multiply(304.8));
+            }
+
+            return newList;
+        }
+
+        public static List<double> ConvertToMilimeterUnits(List<double> values)
+        {
+            var newList = new List<double>();
+
+            foreach(var value in values)
+            {
+                newList.Add(value * 304.8);
+            }
+
+            return newList;
         }
 
 
