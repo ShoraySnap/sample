@@ -1,11 +1,5 @@
-﻿using Amazon;
-using Amazon.Runtime;
-using Amazon.S3;
-using Microsoft.SqlServer.Server;
-using Newtonsoft.Json;
-using System;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TrudeSerializer.Importer;
@@ -35,13 +29,12 @@ namespace TrudeSerializer.Uploader
                 var presignedUrlResponse = await GetPresignedURL(path, config);
                 var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
                 PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-                //await UploadUsingPresignedURL(compressedString, presignedURL);
                 uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
             }
 
             await Task.WhenAll(uploadTasks);
 
-            string requestURL = "snaptrude://finish?name="+projectFloorKey;
+            string requestURL = "snaptrude://finish?name=" + projectFloorKey;
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
         }
 
@@ -68,7 +61,7 @@ namespace TrudeSerializer.Uploader
         public static async Task<HttpResponseMessage> GetPresignedURL(string fileName, Config config)
         {
             var client = new HttpClient();
-          
+
             string snaptrudeDjangoUrl = URLsConfig.GetSnaptrudeDjangoUrl();
 
             string url = snaptrudeDjangoUrl + GET_PRESIGNED_URL;
