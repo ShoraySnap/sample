@@ -16,7 +16,7 @@ namespace TrudeImporter.TrudeImporter.Model
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Doors"
-                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors");
+                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Doors");
             foreach (var missingFamily in GlobalVariables.MissingDoorFamiliesCount)
             {
                 bool isChecked = missingFamily.Value.IsChecked;
@@ -71,7 +71,7 @@ namespace TrudeImporter.TrudeImporter.Model
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Windows"
-                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows");
+                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Windows");
             foreach (var missingFamily in GlobalVariables.MissingWindowFamiliesCount)
             {
                 bool isChecked = missingFamily.Value.IsChecked;
