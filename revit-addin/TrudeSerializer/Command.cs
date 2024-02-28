@@ -2,11 +2,10 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
+using System;
+using System.Linq;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace TrudeSerializer
 {
@@ -32,35 +31,10 @@ namespace TrudeSerializer
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 CleanSerializedData(serializedData);
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
-                string snaptrudeManagerPath = "snaptrude-manager";
-                string configFileName = "config.json";
-                string fileName = "serializedData.json"; // for debugging
 
-                string configPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    snaptrudeManagerPath,
-                    configFileName
-                );
-                string filePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    snaptrudeManagerPath,
-                    fileName
-                );
+                TrudeDebug.StoreSerializedData(serializedObject);
 
-                string config = File.ReadAllText(configPath);
-                Config configObject = JsonConvert.DeserializeObject<Config>(config);
-                string floorKey = configObject.floorKey;
-                string projectName = floorKey + ".json";
-                File.WriteAllText(filePath, serializedObject); // for debugging
-
-                //Uploader.S3helper.UploadJSON(projectName, filePath);
-                Uploader.S3helper.UploadJSON(serializedData, floorKey);
-
-                serializedData = null;
-                serializedObject = null;
-
-                string requestURL = "snaptrude://finish?name=test";
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
+                Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
 
                 return Result.Succeeded;
             }
