@@ -1,8 +1,8 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
-using TrudeSerializer.Importer;
 using TrudeSerializer.Components;
+using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 
 namespace TrudeSerializer
@@ -15,11 +15,10 @@ namespace TrudeSerializer
 
         private Document doc;
         private Stack<Transform> transforms = new Stack<Transform>();
-  
+
         private String currentMaterialId;
         private CurrentElement currentElement;
         public SerializedTrudeData serializedSnaptrudeData;
-        
 
         public SerializedTrudeData GetExportData()
         {
@@ -42,8 +41,6 @@ namespace TrudeSerializer
             this.doc = doc;
             GlobalVariables.CurrentDocument = doc;
         }
-
-        
 
         public TrudeCustomExporter(Document doc)
         {
@@ -140,11 +137,12 @@ namespace TrudeSerializer
                 try
                 {
                     component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
-                }catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     return RenderNodeAction.Skip;
                 }
-                
+
                 if (component?.elementId == "-1")
                 {
                     return RenderNodeAction.Skip;
@@ -201,6 +199,10 @@ namespace TrudeSerializer
             else if (component is TrudeDoor)
             {
                 serializedSnaptrudeData.AddDoorInstance(component.elementId, component as TrudeDoor);
+            }
+            else if (component is TrudeWindow)
+            {
+                serializedSnaptrudeData.AddWindowInstance(component.elementId, component as TrudeWindow);
             }
 
             else if(component is TrudeRoof)
@@ -271,7 +273,7 @@ namespace TrudeSerializer
             {
                 XYZ point = node.GetPoint(i);
                 XYZ transformedPoint = CurrentTransform.OfPoint(point);
-                if (component.category == "Doors")
+                if (component.category == "Doors" || component.category == "Windows")
                 {
                     component.SetVertices(materialId, point.X, point.Z, point.Y);
                 }

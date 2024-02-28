@@ -1,9 +1,10 @@
-﻿using TrudeSerializer.Components;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using TrudeSerializer.Types;
-using Newtonsoft.Json;
+using System.Linq;
 using System.Reflection;
+using TrudeSerializer.Components;
+using TrudeSerializer.Types;
 
 namespace TrudeSerializer.Importer
 {
@@ -13,6 +14,7 @@ namespace TrudeSerializer.Importer
         public Dictionary<string, TrudeWall> Walls { get; set; }
         public TrudeObject<TrudeFurniture> Furniture { get; set; }
         public TrudeObject<TrudeDoor> Doors { get; set; }
+        public TrudeObject<TrudeWindow> Windows { get; set; }
         public Dictionary<string, TrudeFloor> Floors { get; set; }
         public Dictionary<string, TrudeMass> Masses { get; set; }
         public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks { get; set; }
@@ -27,6 +29,7 @@ namespace TrudeSerializer.Importer
             this.Walls = new Dictionary<string, TrudeWall>();
             this.Furniture = new TrudeObject<TrudeFurniture>();
             this.Doors = new TrudeObject<TrudeDoor>();
+            this.Windows = new TrudeObject<TrudeWindow>();
             this.Floors = new Dictionary<string, TrudeFloor>();
             this.Ceilings = new Dictionary<string, TrudeCeiling>();
             this.Masses = new Dictionary<string, TrudeMass>();
@@ -34,6 +37,31 @@ namespace TrudeSerializer.Importer
             this.ProjectProperties = new ProjectProperties();
 
             this.Roofs = new Dictionary<string, TrudeRoof>();
+        }
+
+        public void CleanSerializedData()
+        {
+            foreach (var key in this.Masses.Keys.ToList())
+            {
+                if (this.Masses[key].geometries.Count == 0)
+                {
+                    this.Masses.Remove(key);
+                }
+            }
+            foreach (var revitLinkKey in this.RevitLinks.Keys.ToList())
+            {
+                foreach (var trudeMassKey in this.RevitLinks[revitLinkKey].Keys.ToList())
+                {
+                    if (this.RevitLinks[revitLinkKey][trudeMassKey].geometries.Count == 0)
+                    {
+                        this.RevitLinks[revitLinkKey].Remove(trudeMassKey);
+                    }
+                }
+                if (this.RevitLinks[revitLinkKey].Count == 0)
+                {
+                    this.RevitLinks.Remove(revitLinkKey);
+                }
+            }
         }
         public void AddWall(TrudeWall wall)
         {
@@ -93,6 +121,16 @@ namespace TrudeSerializer.Importer
         public void AddDoorInstance(string instanceId, TrudeDoor instance)
         {
             this.Doors.AddInstance(instanceId, instance);
+        }
+
+        public void AddWindowFamily(string familyName, TrudeFamily family)
+        {
+            this.Windows.AddFamily(familyName, family);
+        }
+
+        public void AddWindowInstance(string instanceId, TrudeWindow instance)
+        {
+            this.Windows.AddInstance(instanceId, instance);
         }
 
         public string SerializeProjectProperties()

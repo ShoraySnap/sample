@@ -193,10 +193,10 @@ namespace TrudeSerializer.Components
                 return positionPoint;
             }
 
-            if (element.Category.Name == "Doors")
+            if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
             {
                 XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
-                List<double> positionPoint = new List<double>{ position.X, position.Z, position.Y };
+                List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
@@ -237,7 +237,7 @@ namespace TrudeSerializer.Components
                         rotation += identity.BasisZ.AngleTo(transform.BasisZ);
                     }
 
-                    if (element.Category.Name == "Doors")
+                    if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
                     {
                         if (element.Location is LocationPoint location)
                         {
@@ -305,13 +305,12 @@ namespace TrudeSerializer.Components
             BoundingBoxXYZ bbox = element.get_BoundingBox(view);
             if (bbox == null)
             {
-                return new List<double>() { 0,0,0};
+                return new List<double>() { 0, 0, 0 };
             }
 
             XYZ center = (bbox.Max + bbox.Min) / 2;
 
             return new List<double> { center.X, center.Z, center.Y };
-
         }
 
         static public List<double> GetCenterForModelGroups(Element element)

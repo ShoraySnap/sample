@@ -40,7 +40,7 @@ namespace TrudeSerializer.Utils
 
             IList<ElementId> dependantElements = element.GetDependentElements(null);
 
-            if (element is AssemblyInstance )
+            if (element is AssemblyInstance)
             {
                 if (dependantElements.Count > 0)
                 {
@@ -58,8 +58,6 @@ namespace TrudeSerializer.Utils
                 }
             }
 
-           
-
             ICollection<ElementId> subComponents = (element as FamilyInstance).GetSubComponentIds();
             if (subComponents.Count > 0)
             {
@@ -73,6 +71,5 @@ namespace TrudeSerializer.Utils
 
             return subComponentIds;
         }
-
     }
 }

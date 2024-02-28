@@ -28,11 +28,11 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeLevel.GetSerializedComponent(element);
             }
-            else if(element is Floor)
+            else if (element is Floor)
             {
                 return TrudeFloor.GetSerializedComponent(serializedData, element);
             }
-            else if(element is Ceiling)
+            else if (element is Ceiling)
             {
                 return TrudeCeiling.GetSerializedComponent(serializedData, element);
             }
@@ -43,6 +43,10 @@ namespace TrudeSerializer.Importer
             else if (TrudeDoor.IsDoor(element))
             {
                 return TrudeDoor.GetSerializedComponent(serializedData, element);
+            }
+            else if (TrudeWindow.IsWindow(element))
+            {
+                return TrudeWindow.GetSerializedComponent(serializedData, element);
             }
             else if(element is RoofBase)
             {

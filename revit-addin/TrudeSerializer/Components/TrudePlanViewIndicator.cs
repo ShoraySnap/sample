@@ -182,7 +182,7 @@ namespace TrudeSerializer.Components
 
         public static bool IsElementEligibleForPlanViewIndicator(Element element)
         {
-            return TrudeDoor.IsDoor(element);
+            return TrudeDoor.IsDoor(element) || TrudeWindow.IsWindow(element);
         }
     }
 }
