@@ -9,7 +9,7 @@ namespace TrudeSerializer.Uploader
 {
     internal class S3helper
     {
-        static readonly string GET_PRESIGNED_URL = "/get_presigned_url/";
+        static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
         public static async void UploadAndRedirectToSnaptrude(SerializedTrudeData serializedData)
         {
             Dictionary<string, string> jsonData = serializedData.GetSerializedObject();
