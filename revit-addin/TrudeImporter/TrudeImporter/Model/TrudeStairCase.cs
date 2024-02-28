@@ -26,9 +26,17 @@ namespace TrudeImporter
         public double BaseOffset { get; set; }
         public string StaircaseType { get; set; }
 
+        public Level topLevel = null;
+        public Level bottomLevel = null;
+
         public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
         public List<LayerProperties> Layers { get; set; }
         public Stairs CreatedStaircase { get; private set; }
+
+        public ElementId stairsId = null;
+        public StairsType stairsType = null;
+
+        public Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
 
         // Constructor to parse properties and create the staircase
         public TrudeStaircase(StairCaseProperties staircaseProps, ElementId levelId)
@@ -45,10 +53,7 @@ namespace TrudeImporter
             Steps = staircaseProps.Steps;
             BaseOffset = staircaseProps.BaseOffset;
             Name = staircaseProps.Name;
-            CenterPosition = staircaseProps.CenterPosition;
-            Type = staircaseProps.Type;
             StaircaseType = staircaseProps.StaircaseType;
-            StaircasePreset = staircaseProps.StaircasePreset;
             StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
 
@@ -66,13 +71,12 @@ namespace TrudeImporter
 
         private void CreateStaircase()
         {
-            Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
             int finalStorey = Storey + 1;
 
-            Level topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey])select lvl).First();
-            Level bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey])select lvl).First();
+            topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey])select lvl).First();
+            bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey])select lvl).First();
 
-            StairsType stairsType = new FilteredElementCollector(doc)
+            stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
                 .OfType<StairsType>()
                 .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase)); 
@@ -91,8 +95,6 @@ namespace TrudeImporter
                 }
             }
 
-            ElementId stairsId = null;
-
             GlobalVariables.Transaction.Commit();
             using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
             {
@@ -101,20 +103,20 @@ namespace TrudeImporter
                 using (Transaction trans = new Transaction(GlobalVariables.Document, "Create Stairs"))
                 {
                     trans.Start();
-                    StaircaseBlockProperties staircaseBlockProperties = StaircaseBlocks[0];
-
-                    XYZ p1 = ComputePoints(staircaseBlockProperties.StartPoint, staircaseBlockProperties.Translation, staircaseBlockProperties.Rotation);
-                    System.Diagnostics.Debug.WriteLine("p1: " + p1);
-                    XYZ p2 = ComputePoints(new XYZ(staircaseBlockProperties.StartPoint.X, staircaseBlockProperties.StartPoint.Y + Width, staircaseBlockProperties.StartPoint.Z), staircaseBlockProperties.Translation, staircaseBlockProperties.Rotation);
-                    System.Diagnostics.Debug.WriteLine("p2: " + p2);
-                    Line runLine = Line.CreateBound(p1, p2);
-                    StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, runLine, StairsRunJustification.Center);
                     
-                    stairsType.MinTreadDepth = Tread;
-                    stairsType.MaxRiserHeight = Riser;
-                    stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread);
-                    stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
-                    //stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_TREAD_THICKNESS).Set(StairThickness);
+                    //. loop over the staircase blocks and create the staircase
+                    foreach (StaircaseBlockProperties props in StaircaseBlocks)
+                    {
+                        switch (props.Type)
+                        {
+                            case "FlightLanding":
+                                RunCreator_FlighLanding(props);
+                                break;
+                            default:
+                                System.Diagnostics.Debug.WriteLine("Skipping staircase block: " + props.Type);
+                                break;
+                        }
+                    }
 
                     trans.Commit();
                 }
@@ -131,8 +133,7 @@ namespace TrudeImporter
             if (CreatedStaircase != null)
             {
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
-                CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
-                //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_ACTUAL_NUMBER_OF_RISERS).Set(Steps);
+                //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
                 //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_ACTUAL_NUMBER_OF_RISERS).Set(Steps);
             }
         }
@@ -140,11 +141,51 @@ namespace TrudeImporter
         private XYZ ComputePoints(XYZ startingPoint, double[] translation, double[] rotation)
         {
             XYZ currPoint = startingPoint;
-            //apply translation
             currPoint = new XYZ(currPoint.X + (double)translation.GetValue(0), currPoint.Y + (double)translation.GetValue(1), currPoint.Z + (double)translation.GetValue(2));
-            //apply rotation
             currPoint = new XYZ(currPoint.X * Math.Cos((double)rotation.GetValue(0)) - currPoint.Y * Math.Sin((double)rotation.GetValue(0)), currPoint.X * Math.Sin((double)rotation.GetValue(0)) + currPoint.Y * Math.Cos((double)rotation.GetValue(0)), currPoint.Z);
             return currPoint;
+        }
+
+        private void RunCreator_FlighLanding(StaircaseBlockProperties props)
+        {
+            IList<Curve> bdryCurves = new List<Curve>();
+            IList<Curve> riserCurves = new List<Curve>();
+            IList<Curve> pathCurves = new List<Curve>();
+
+            XYZ pathEnd0 = ComputePoints(props.StartPoint, props.Translation, props.Rotation); 
+            double pathLength = props.Steps * props.Riser;
+            XYZ pathEnd1 = new XYZ(pathEnd0.X + pathLength, pathEnd0.Y, pathEnd0.Z );
+            pathCurves.Add(Line.CreateBound(pathEnd0, pathEnd1));
+
+            XYZ pnt1 = new XYZ(pathEnd0.X, pathEnd0.Y-(Width/2), pathEnd0.Z);
+            XYZ pnt2 = new XYZ(pathEnd1.X, pathEnd0.Y- (Width / 2), pathEnd1.Z);
+            XYZ pnt3 = new XYZ(pathEnd0.X, pathEnd0.Y+ (Width / 2), pathEnd0.Z);
+            XYZ pnt4 = new XYZ(pathEnd1.X, pathEnd0.Y+ (Width / 2), pathEnd1.Z);
+
+            System.Diagnostics.Debug.WriteLine("pnt1: " + pnt1);
+            System.Diagnostics.Debug.WriteLine("pnt2: " + pnt2);
+            System.Diagnostics.Debug.WriteLine("pnt3: " + pnt3);
+            System.Diagnostics.Debug.WriteLine("pnt4: " + pnt4);
+
+            int riserNum = props.Steps;
+            for (int ii = 0; ii <= riserNum; ii++)
+            {
+                XYZ end0 = (pnt1 + pnt2) * ii / (double)riserNum;
+                XYZ end1 = (pnt3 + pnt4) * ii / (double)riserNum;
+                XYZ end2 = new XYZ(end1.X, 1, 0);
+                riserCurves.Add(Line.CreateBound(end0, end2));
+            }
+  
+            bdryCurves.Add(Line.CreateBound(pnt1, pnt2));
+            bdryCurves.Add(Line.CreateBound(pnt3, pnt4));
+
+            StairsRun stairsRun = StairsRun.CreateSketchedRun(doc, stairsId, bottomLevel.Elevation, bdryCurves, riserCurves, pathCurves);
+            stairsType.MinTreadDepth = props.Tread;
+            stairsType.MaxRiserHeight = props.Riser;
+            stairsType.MinRunWidth = props.Depth;
+            stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread);
+            stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
+
         }
     }
 }
