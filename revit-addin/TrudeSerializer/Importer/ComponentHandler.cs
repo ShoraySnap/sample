@@ -44,6 +44,10 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeDoor.GetSerializedComponent(serializedData, element);
             }
+            else if (TrudeWindow.IsWindow(element))
+            {
+                return TrudeWindow.GetSerializedComponent(serializedData, element);
+            }
 
             return TrudeMass.GetSerializedComponent(serializedData, element);
         }
