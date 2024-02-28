@@ -90,7 +90,7 @@
 		<Optimize>False</Optimize>
 		<DebugSymbols>true</DebugSymbols>
 		<OutputPath>bin\Debug\Forge$(RevitVersion)\</OutputPath>
-		<DefineConstants>DEBUG;TRACE;REVIT$(RevitVersion)</DefineConstants>
+		<DefineConstants>DEBUG;TRACE;REVIT$(RevitVersion);FORGE</DefineConstants>
 		<DebugType>Full</DebugType>
 	</PropertyGroup>
 

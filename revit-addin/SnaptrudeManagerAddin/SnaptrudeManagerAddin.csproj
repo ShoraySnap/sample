@@ -63,6 +63,7 @@
 	  <None Remove="Icons\logo16.png" />
 	  <None Remove="Icons\logo24.png" />
 	  <None Remove="Icons\logo32.png" />
+	  <None Remove="Views\FamilyUploadMVVM.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -91,6 +92,10 @@
 		</Reference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Include="Views\FamilyUploadMVVM.xaml" />
 	</ItemGroup>
 
 	<Target Name="CleanRevitAddin" BeforeTargets="CoreClean">

@@ -9,6 +9,7 @@
     <Import_RootNamespace>TrudeImporter</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ListViewExtender.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\MaterialOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\AWS\GetObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Configs.cs" />
@@ -43,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMissing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
