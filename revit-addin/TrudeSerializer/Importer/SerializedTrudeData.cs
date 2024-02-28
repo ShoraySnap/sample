@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using TrudeSerializer.Components;
 using TrudeSerializer.Types;
@@ -32,6 +33,31 @@ namespace TrudeSerializer.Importer
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
+        }
+
+        public void CleanSerializedData()
+        {
+            foreach (var key in this.Masses.Keys.ToList())
+            {
+                if (this.Masses[key].geometries.Count == 0)
+                {
+                    this.Masses.Remove(key);
+                }
+            }
+            foreach (var revitLinkKey in this.RevitLinks.Keys.ToList())
+            {
+                foreach (var trudeMassKey in this.RevitLinks[revitLinkKey].Keys.ToList())
+                {
+                    if (this.RevitLinks[revitLinkKey][trudeMassKey].geometries.Count == 0)
+                    {
+                        this.RevitLinks[revitLinkKey].Remove(trudeMassKey);
+                    }
+                }
+                if (this.RevitLinks[revitLinkKey].Count == 0)
+                {
+                    this.RevitLinks.Remove(revitLinkKey);
+                }
+            }
         }
         public void AddWall(TrudeWall wall)
         {
