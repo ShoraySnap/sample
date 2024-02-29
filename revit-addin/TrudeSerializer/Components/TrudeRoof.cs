@@ -13,7 +13,7 @@ namespace TrudeSerializer.Components
     internal class TrudeRoof : TrudeComponent
     {
         public Dictionary<string, double[][]> outline;
-        public double area;
+        public double area = 0;
         public Dictionary<string, Dictionary<string, double[][]>> voids;
         public string type;
 
@@ -24,7 +24,8 @@ namespace TrudeSerializer.Components
             bool isInstance, bool isParametric,
             Dictionary<string, double[][]> outline,
             Dictionary<string, Dictionary<string, double[][]>> voids,
-            double heightOffset
+            double heightOffset,
+            double area
             ) : base(elementId, "Roofs", family, level)
         {
             this.elementId = elementId;
@@ -36,6 +37,7 @@ namespace TrudeSerializer.Components
             this.voids = voids;
             this.outline = outline;
             this.heightOffsetFromLevel = heightOffset;
+            this.area = area;
         }
 
         static public TrudeRoof GetSerializedComponent(SerializedTrudeData importData, Element element)
@@ -47,8 +49,19 @@ namespace TrudeSerializer.Components
             string family = elemType.FamilyName;
             string floorType = element.Name;
 
+            var areaParam = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
+            double area = 0;
+            if(areaParam != null && areaParam.HasValue)
+            {
+                area = UnitConversion.ConvertToSnaptrudeAreaUnits(areaParam.AsDouble());
+            }
+            else
+            {
+                area = 0;
+            }
+
             var (outline, voids, isDifferentCurve) = GetOutline(element);
-            TrudeRoof serializedRoof = new TrudeRoof(elementId, levelName, family, floorType, false, true, outline, voids, 0f);
+            TrudeRoof serializedRoof = new TrudeRoof(elementId, levelName, family, floorType, false, true, outline, voids, 0f, area);
             serializedRoof.SetIsParametric(isDifferentCurve);
 
 
