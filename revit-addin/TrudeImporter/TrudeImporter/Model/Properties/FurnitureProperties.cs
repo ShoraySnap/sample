@@ -40,8 +40,8 @@ namespace TrudeImporter
         [JsonProperty("familyRotation")]
         public double? FamilyRotation { get; set; }
 
-        [JsonProperty("location")]
-        public XYZ Location { get; set; }
+        [JsonProperty("centerPosition")]
+        public XYZ CenterPosition { get; set; }
 
         [JsonProperty("offset")]
         public XYZ Offset { get; set; }
