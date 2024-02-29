@@ -35,6 +35,7 @@ namespace TrudeImporter
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
+            ReconcileFurniture(trudeProperties.Furniture);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                 ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
         }
@@ -453,6 +454,38 @@ namespace TrudeImporter
                         t.RollBack();
                     }
                 }
+            }
+        }
+
+        private static void ReconcileFurniture(List<FurnitureProperties> propsList)
+        {
+            List<ElementId> sourceIdsToDelete = new List<ElementId>();
+            foreach (var (furniture, index) in propsList.WithIndex())
+            {
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    deleteOld(furniture.ExistingElementId);
+                    try
+                    {
+                        new TrudeFurniture(furniture, sourceIdsToDelete);
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            }
+            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            {
+                t.Start();
+                GlobalVariables.Document.Delete(sourceIdsToDelete);
+                t.Commit();
             }
         }
 

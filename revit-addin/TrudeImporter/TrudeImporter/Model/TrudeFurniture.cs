@@ -1,6 +1,4 @@
-﻿// Add a user discretion for when a door or window is floating in the air, that will not get reconciled.
-
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
 using Newtonsoft.Json.Linq;
 using System;
@@ -14,34 +12,37 @@ namespace TrudeImporter
     {
         readonly FurnitureProperties FurnitureProps;
 
-        public TrudeFurniture(JToken furnitureData)
+        public TrudeFurniture(FurnitureProperties furnitureProps, List<ElementId> sourcesIdsToDelete)
         {
             double familyRotation = 0;
             bool isFacingFlip = false;
             string familyType = null;
-            string sourceElementId = null;
+            int sourceElementId = 0;
+            int? revitId = null;
 
             XYZ localOriginOffset = XYZ.Zero;
 
-            string revitFamilyName = (string)furnitureData["dsProps"]["revitMetaData"]["family"];
+            string revitFamilyName = furnitureProps.RevitFamilyName;
 
             try
             {
-                if (!furnitureData["dsProps"]["revitMetaData"]["offset"].IsNullOrEmpty())
-                    if (!furnitureData["dsProps"]["revitMetaData"]["offset"].First.IsNullOrEmpty())
-                        localOriginOffset = TrudeRepository.ArrayToXYZ(furnitureData["dsProps"]["revitMetaData"]["offset"]);
+                if (furnitureProps.Offset != null)
+                    localOriginOffset = furnitureProps.Offset;
 
-                if (!furnitureData["dsProps"]["revitMetaData"]["familyRotation"].IsNullOrEmpty())
-                    familyRotation = (double)furnitureData["dsProps"]["revitMetaData"]["familyRotation"];
+                if (furnitureProps.FamilyRotation != null)
+                    familyRotation = (double)furnitureProps.FamilyRotation;
 
-                if (!furnitureData["dsProps"]["revitMetaData"]["facingFlipped"].IsNullOrEmpty())
-                    isFacingFlip = (bool)furnitureData["dsProps"]["revitMetaData"]["facingFlipped"];
+                if (furnitureProps.FacingFlipped != null)
+                    isFacingFlip = (bool)furnitureProps.FacingFlipped;
 
-                if (!furnitureData["dsProps"]["revitMetaData"]["type"].IsNullOrEmpty())
-                    familyType = (string)furnitureData["dsProps"]["revitMetaData"]["type"];
+                if (furnitureProps.RevitFamilyType != null)
+                    familyType = (string)furnitureProps.RevitFamilyType;
 
-                if (!furnitureData["dsProps"]["revitMetaData"]["sourceElementId"].IsNullOrEmpty())
-                    sourceElementId = (string)furnitureData["dsProps"]["revitMetaData"]["sourceElementId"];
+                if (furnitureProps.SourceElementId != null)
+                    sourceElementId = (int)furnitureProps.SourceElementId;
+
+                if (furnitureProps.ExistingElementId != null)
+                    revitId = (int)furnitureProps.ExistingElementId;
             }
             catch
             {
@@ -51,34 +52,26 @@ namespace TrudeImporter
 
             try
             {
-                if (IsThrowAway(furnitureData)) continue;
-
-
-                string revitId = (string)furnitureData["dsProps"]["revitMetaData"]["elementId"];
                 bool isExistingFurniture = false;
                 FamilyInstance existingFamilyInstance = null;
                 AssemblyInstance existingAssemblyInstance = null;
                 Group existingGroup = null;
                 FamilySymbol existingFamilySymbol = null;
                 string existingFamilyType = "";
-
                 if (revitId == null)
                 {
                     revitId = sourceElementId;
                 }
-
-
-                if (revitId != null)
+                else
                 {
-                    using (SubTransaction trans = new SubTransaction(newDoc))
+                    using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                     {
                         trans.Start();
                         try
                         {
-                            Element e = newDoc.GetElement(new ElementId(int.Parse(revitId)));
-                            isExistingFurniture = idToElement.TryGetValue(revitId, out Element _e);
+                            Element e = GlobalVariables.Document.GetElement(new ElementId((int)revitId));
 
-                            if (isExistingFurniture || e.IsValidObject)
+                            if (e != null && e.IsValidObject)
                             {
                                 isExistingFurniture = true;
                                 if (e.GetType().Name == "AssemblyInstance")
@@ -94,7 +87,7 @@ namespace TrudeImporter
                                 else
                                 {
                                     existingFamilyInstance = (FamilyInstance)e;
-                                    existingFamilySymbol = idToFamilySymbol[revitId];
+                                    existingFamilySymbol = existingFamilyInstance.Symbol;
                                     existingFamilyType = existingFamilySymbol.Name;
 
                                     isFacingFlip = (existingFamilyInstance).FacingFlipped;
@@ -106,16 +99,16 @@ namespace TrudeImporter
                         }
                         catch (Exception e)
                         {
-                            LogTrace(e.Message);
+                            System.Diagnostics.Debug.WriteLine("Furniture creation ERROR", e.ToString());
                         }
                     }
                 }
-                using (SubTransaction trans = new SubTransaction(newDoc))
+                using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                 {
                     trans.Start();
 
                     // Creation ...................
-                    TrudeInterior st_interior = new TrudeInterior(furnitureData);
+                    TrudeInterior st_interior = new TrudeInterior(furnitureProps);
 
                     FamilySymbol familySymbol = null;
                     if (existingFamilySymbol != null && existingFamilySymbol.IsValidObject)
@@ -127,9 +120,9 @@ namespace TrudeImporter
 
                             XYZ existingInstanceCenter = (bbox.Max + bbox.Min).Divide(2);
 
-                            ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingFamilyInstance.Id, existingInstanceCenter.Multiply(-1)).First();
+                            ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingFamilyInstance.Id, existingInstanceCenter.Multiply(-1)).First();
 
-                            st_interior.element = newDoc.GetElement(newId);
+                            st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                             BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                             XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -137,22 +130,21 @@ namespace TrudeImporter
                             double originalRotation = ((LocationPoint)existingFamilyInstance.Location).Rotation;
 
                             LocationPoint pt = (LocationPoint)st_interior.element.Location;
-                            ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                            ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
 
-                            ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
+                            ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.Rotation.Z);
 
-                            ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                            ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
 
                             BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                             XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
 
                             if (isFacingFlip)
                             {
-
                                 XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                                 XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                                 Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                                var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                                var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                             }
 
                             if (st_interior.Scaling.Z < 0)
@@ -162,8 +154,8 @@ namespace TrudeImporter
                         }
                         else
                         {
-                            ElementId levelId = LevelIdByNumber[st_interior.levelNumber];
-                            Level level = (Level)newDoc.GetElement(levelId);
+                            ElementId levelId = GlobalVariables.LevelIdByNumber[st_interior.levelNumber];
+                            Level level = (Level)GlobalVariables.Document.GetElement(levelId);
                             st_interior.CreateWithFamilySymbol(existingFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                         }
                     }
@@ -177,9 +169,9 @@ namespace TrudeImporter
 
                             XYZ center = (bbox.Max + bbox.Min).Divide(2);
 
-                            ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingFamilyInstance.Id, center.Multiply(-1)).First();
+                            ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingFamilyInstance.Id, center.Multiply(-1)).First();
 
-                            st_interior.element = newDoc.GetElement(newId);
+                            st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                             BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                             XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -187,11 +179,11 @@ namespace TrudeImporter
                             double originalRotation = ((LocationPoint)existingFamilyInstance.Location).Rotation;
 
                             LocationPoint pt = (LocationPoint)st_interior.element.Location;
-                            ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                            ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
 
-                            ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
+                            ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.Rotation.Z);
 
-                            ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                            ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
 
                             BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                             XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
@@ -202,7 +194,7 @@ namespace TrudeImporter
                                 XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                                 XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                                 Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                                var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                                var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                             }
 
                             if (st_interior.Scaling.Z < 0)
@@ -212,18 +204,18 @@ namespace TrudeImporter
                         }
                         else
                         {
-                            FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, revitFamilyName, familyType);
+                            FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, revitFamilyName, familyType);
                             if (defaultFamilySymbol is null)
                             {
-                                defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, revitFamilyName);
+                                defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, revitFamilyName);
                             }
                             if (!defaultFamilySymbol.IsActive)
                             {
                                 defaultFamilySymbol.Activate();
-                                newDoc.Regenerate();
+                                GlobalVariables.Document.Regenerate();
                             }
-                            ElementId levelId = LevelIdByNumber[st_interior.levelNumber];
-                            Level level = (Level)newDoc.GetElement(levelId);
+                            ElementId levelId = GlobalVariables.LevelIdByNumber[st_interior.levelNumber];
+                            Level level = (Level)GlobalVariables.Document.GetElement(levelId);
 
                             st_interior.CreateWithFamilySymbol(defaultFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                         }
@@ -237,9 +229,9 @@ namespace TrudeImporter
                         //XYZ center = (bbox.Max + bbox.Min).Divide(2);
                         XYZ center = ((LocationPoint)existingAssemblyInstance.Location).Point;
 
-                        ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingAssemblyInstance.Id, center.Multiply(-1)).First();
+                        ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingAssemblyInstance.Id, center.Multiply(-1)).First();
 
-                        st_interior.element = newDoc.GetElement(newId);
+                        st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                         BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                         //XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -248,11 +240,11 @@ namespace TrudeImporter
 
                         LocationPoint pt = (LocationPoint)st_interior.element.Location;
                         XYZ centerNew = pt.Point;
-                        //ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                        //ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
 
-                        ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.eulerAngles.heading);
+                        ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -st_interior.Rotation.Z);
 
-                        ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position);
+                        ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
 
                         BoundingBoxXYZ bboxAfterMove = st_interior.element.get_BoundingBox(null);
                         //XYZ centerAfterMove = (bboxAfterMove.Max + bboxAfterMove.Min).Divide(2);
@@ -264,7 +256,7 @@ namespace TrudeImporter
                             XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                             XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                             Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                            var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                            var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                         }
 
                         if (st_interior.Scaling.Z < 0)
@@ -281,9 +273,9 @@ namespace TrudeImporter
                         //XYZ center = (bbox.Max + bbox.Min).Divide(2);
                         XYZ center = ((LocationPoint)existingGroup.Location).Point;
 
-                        ElementId newId = ElementTransformUtils.CopyElement(newDoc, existingGroup.Id, center.Multiply(-1)).First();
+                        ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingGroup.Id, center.Multiply(-1)).First();
 
-                        st_interior.element = newDoc.GetElement(newId);
+                        st_interior.element = GlobalVariables.Document.GetElement(newId);
 
                         BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                         //XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
@@ -292,27 +284,16 @@ namespace TrudeImporter
 
                         LocationPoint pt = (LocationPoint)st_interior.element.Location;
                         XYZ centerNew = pt.Point;
-                        //ElementTransformUtils.RotateElement(newDoc, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
-                        ElementTransformUtils.MoveElement(newDoc, newId, st_interior.Position - localOriginOffset);
+                        //ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
+                        ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position - localOriginOffset);
 
                         XYZ centerAfterMove = ((LocationPoint)st_interior.element.Location).Point;
 
-                        if (st_interior.Scaling.Z < 0)
-                        {
-                            ElementTransformUtils.RotateElement(
-                                newDoc,
+                        ElementTransformUtils.RotateElement(
+                                GlobalVariables.Document,
                                 newId,
                                 Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
-                                st_interior.eulerAngles.heading);
-                        }
-                        else
-                        {
-                            ElementTransformUtils.RotateElement(
-                                newDoc,
-                                newId,
-                                Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
-                                -st_interior.eulerAngles.heading);
-                        }
+                                -st_interior.Rotation.Z);
 
 
                         if (isFacingFlip)
@@ -320,7 +301,7 @@ namespace TrudeImporter
                             XYZ normal = (st_interior.element as FamilyInstance).FacingOrientation;
                             XYZ origin = (st_interior.element.Location as LocationPoint).Point;
                             Plane pl = Plane.CreateByNormalAndOrigin(normal, centerAfterMove);
-                            var ids = ElementTransformUtils.MirrorElements(newDoc, new List<ElementId>() { newId }, pl, false);
+                            var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { newId }, pl, false);
                         }
 
                         if (st_interior.Scaling.Z < 0)
@@ -334,35 +315,35 @@ namespace TrudeImporter
                         String familyName = st_interior.FamilyName;
                         if (familyName is null) familyName = st_interior.FamilyTypeName;
 
-                        FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
-                        //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(newDoc, "Casework Assembly", "Casework 044");
+                        FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
+                        //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(GlobalVariables.Document, "Casework Assembly", "Casework 044");
                         if (defaultFamilySymbol is null)
                         {
                             Family family = FamilyLoader.LoadCustomFamily(familyName);
-                            defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName);
+                            defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
                             if (defaultFamilySymbol == null)
                             {
-                                defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(newDoc, familyName.Replace("_", " "));
+                                defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName.Replace("_", " "));
                             }
                         }
 
                         if (!defaultFamilySymbol.IsActive)
                         {
                             defaultFamilySymbol.Activate();
-                            newDoc.Regenerate();
+                            GlobalVariables.Document.Regenerate();
                         }
                         ElementId levelId;
-                        if (LevelIdByNumber.ContainsKey(st_interior.levelNumber))
-                            levelId = LevelIdByNumber[st_interior.levelNumber];
+                        if (GlobalVariables.LevelIdByNumber.ContainsKey(st_interior.levelNumber))
+                            levelId = GlobalVariables.LevelIdByNumber[st_interior.levelNumber];
                         else
-                            levelId = LevelIdByNumber.First().Value;
-                        Level level = (Level)newDoc.GetElement(levelId);
+                            levelId = GlobalVariables.LevelIdByNumber.First().Value;
+                        Level level = (Level)GlobalVariables.Document.GetElement(levelId);
 
                         st_interior.CreateWithFamilySymbol(defaultFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                     }
                     if (st_interior.element is null)
                     {
-                        st_interior.CreateWithDirectShape(newDoc);
+                        st_interior.CreateWithDirectShape(GlobalVariables.Document);
                     }
 
                     try
@@ -370,7 +351,7 @@ namespace TrudeImporter
                         if (isExistingFurniture)
                         {
                             // delete original furniture
-                            //if (existingFamilyInstance.IsValidObject) newDoc.Delete(existingFamilyInstance.Id);
+                            //if (existingFamilyInstance.IsValidObject) GlobalVariables.Document.Delete(existingFamilyInstance.Id);
                             if (existingFamilyInstance != null) sourcesIdsToDelete.Add(existingFamilyInstance.Id);
                             if (existingAssemblyInstance != null) sourcesIdsToDelete.Add(existingAssemblyInstance.Id);
                             if (existingGroup != null) sourcesIdsToDelete.Add(existingGroup.Id);
@@ -382,18 +363,13 @@ namespace TrudeImporter
                     }
 
                     TransactionStatus tstatus = trans.Commit();
-                    LogTrace(tstatus.ToString());
+                    System.Diagnostics.Debug.WriteLine(tstatus.ToString());
                 }
-                LogTrace("furniture created");
-            }
-            catch (OutOfMemoryException e)
-            {
-                LogTrace("furniture creation ERROR - out of memeroy -", e.ToString());
-                break;
+                System.Diagnostics.Debug.WriteLine("furniture created");
             }
             catch (Exception e)
             {
-                LogTrace("furniture creation ERROR", e.ToString());
+                System.Diagnostics.Debug.WriteLine("Furniture creation ERROR", e.ToString());
             }
         }
     }

@@ -15,9 +15,6 @@ namespace TrudeImporter
         private int[] indices;
         private List<Point3D> verts = new List<Point3D>();
 
-        public EulerAngles eulerAngles;
-        bool HasRotationQuaternion;
-
         private static Dictionary<string, TessellatedShapeBuilder> ShapeBuilders = new Dictionary<string, TessellatedShapeBuilder>();
         private string ShapeBuildersKey;
 
@@ -25,50 +22,18 @@ namespace TrudeImporter
 
         public double localBaseZ = 0;
 
-        public XYZ worldCentroid;
-        public XYZ localCentroid;
-
         public String FamilyName;
         public String FamilyTypeName;
 
-        public TrudeInterior(JToken furnitureData)
+        public TrudeInterior(FurnitureProperties furnitureProperties)
         {
-            JToken furnitureMeshData = furnitureData["meshes"].First;
-            JToken furnitureGeometry = furnitureData["geometries"];
-            JToken materialsToken = furnitureData["materials"];
-            JToken multiMaterialsToken = furnitureData["multiMaterials"];
+            Name = furnitureProperties.Name.RemoveIns();
+            Position = furnitureProperties.Location;
+            levelNumber = furnitureProperties.Storey;
+            Rotation = new XYZ(0, 0, (double)furnitureProperties.Rotation);
 
-            Name = ((string)furnitureMeshData["name"]).RemoveIns();
-            Position = TrudeRepository.GetPosition(furnitureData);
-            Scaling = TrudeRepository.GetScaling(furnitureData);
-            Rotation = TrudeRepository.GetRotation(furnitureData);
-            HasRotationQuaternion = TrudeRepository.HasRotationQuaternion(furnitureData);
-            eulerAngles = TrudeRepository.GetEulerAnglesFromRotationQuaternion(furnitureData);
-            ShapeBuildersKey = Name + Scaling.Stringify() + Rotation.Stringify() + eulerAngles.Stringify();
-            levelNumber = TrudeRepository.GetLevelNumber(furnitureData);
-
-            FamilyName = TrudeRepository.GetFamilyName(furnitureData);
-            FamilyTypeName = TrudeRepository.GetFamilyTypeName(furnitureData);
-
-            XYZ localMinimum = TrudeRepository.ArrayToXYZ(furnitureMeshData["localBoundingBox"]["min"]);
-            localBaseZ = localMinimum.Z;
-
-            localCentroid = TrudeRepository.ArrayToXYZ(furnitureMeshData["localBoundingBox"]["center"]);
-            worldCentroid = TrudeRepository.ArrayToXYZ(furnitureMeshData["worldBoundingBox"]["center"]);
-
-            double[] positions = furnitureData["linesPositions"]
-                .Select(gv => UnitsAdapter.convertToRevit((double)gv))
-                .ToArray();
-            indices = furnitureData["linesIndices"].Select(jv => (int)jv).ToArray();
-
-            for (int i = 0; i < positions.Length; i += 3)
-            {
-                // 'Y' coord in Snaptrude = 'Z' coord in Revit
-                Point3D vector = new Point3D(positions[i] * Scaling.X,
-                                             positions[i + 2] * Scaling.Y,
-                                             positions[i + 1] * Scaling.Z);
-                verts.Add(vector);
-            }
+            FamilyName = furnitureProperties.RevitFamilyName;
+            FamilyTypeName = furnitureProperties.RevitFamilyType;
         }
 
         public Parameter GetOffsetParameter(FamilyInstance instance)
@@ -133,14 +98,7 @@ namespace TrudeImporter
 
             Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
 
-            if (HasRotationQuaternion)
-            {
-                instance.Location.Rotate(rotationAxis, -eulerAngles.heading);
-            }
-            else
-            {
-                instance.Location.Rotate(rotationAxis, -Rotation.Z);
-            }
+            instance.Location.Rotate(rotationAxis, -Rotation.Z);
 
             if (isSnaptrudeFlipped)
                 instance.Location.Rotate(rotationAxis, -familyRotation);
@@ -175,25 +133,7 @@ namespace TrudeImporter
 
         public void Rotate(Location position)
         {
-            if (HasRotationQuaternion)
-            {
-
-                LocationPoint pt = position as LocationPoint;
-
-                Line localXAxis = Line.CreateBound(pt.Point, pt.Point + new XYZ(1, 0, 0));
-                Line localYAxis = Line.CreateBound(pt.Point, pt.Point + new XYZ(0, 1, 0));
-                Line localZAxis = Line.CreateBound(pt.Point, pt.Point + new XYZ(0, 0, 1));
-
-                //position.Rotate(localXAxis, -eulerAngles.bank);
-                position.Rotate(localZAxis, -eulerAngles.heading);
-                //position.Rotate(localYAxis, -eulerAngles.attitude);
-            }
-            else
-            {
-                //position.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisX), -Rotation.X);
-                //position.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisY), -Rotation.Y);
-                position.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisZ), -Rotation.Z);
-            }
+            position.Rotate(Line.CreateBound(XYZ.Zero, XYZ.BasisZ), -Rotation.Z);
         }
 
         private ElementId CreateDirectShape(Document doc)
