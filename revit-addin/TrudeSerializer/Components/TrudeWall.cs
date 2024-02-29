@@ -97,11 +97,14 @@ namespace TrudeSerializer.Components
                 serializedWall.SetWallInserts(wallInserts);
             }
 
-            List<List<double>> wallBottomProfile = GetBottomProfile(element, endpoints, width);
-            if (wallBottomProfile.Count != 0)
-            {
-                serializedWall.SetBottomProfile(wallBottomProfile);
-            }
+            //List<List<double>> wallBottomProfile = GetBottomProfile(element, endpoints, width);
+            //if (wallBottomProfile.Count != 0)
+            //{
+            //serializedWall.SetBottomProfile(wallBottomProfile);
+
+            //}
+
+            serializedWall.SetBottomProfile(endpoints);
 
             GetSideProfileOfWall(element, height, out List<List<double>> sideProfile, out List<List<List<double>>> voidProfiles);
 
@@ -190,8 +193,7 @@ namespace TrudeSerializer.Components
             {
                 if (face.ComputeNormal(new UV(0.5, 0.5)).Z < 0)
                 {
-                    bottomVertices = GetFaceVerticesFromFace(face);
-                    break;
+                    bottomVertices.AddRange(GetFaceVerticesFromFace(face));
                 }
             }
             return bottomVertices;
@@ -230,6 +232,16 @@ namespace TrudeSerializer.Components
             return vertices;
         }
 
+        static XYZ MaxPoint(XYZ a, XYZ b, Func<XYZ, double> selector)
+        {
+            return selector(a) > selector(b) ? a : b;
+        }
+
+        static XYZ MinPoint(XYZ a, XYZ b, Func<XYZ, double> selector)
+        {
+            return selector(a) < selector(b) ? a : b;
+        }
+
         private static List<List<double>> GetCenterLineofWallFromBottomProfile(List<XYZ> bottomFaceVertices)
         {
             List<List<double>> centerLineInSnaptrudeUnits = new List<List<double>> { };
@@ -246,16 +258,29 @@ namespace TrudeSerializer.Components
 
             foreach (XYZ vertex in bottomFaceVertices)
             {
-                topRight = vertex.X + vertex.Y > topRight.X + topRight.Y ? vertex : topRight;
-                bottomLeft = vertex.X + vertex.Y < bottomLeft.X + bottomLeft.Y ? vertex : bottomLeft;
+                //topRight = vertex.X + vertex.Y > topRight.X + topRight.Y ? vertex : topRight;
+                //bottomLeft = vertex.X + vertex.Y < bottomLeft.X + bottomLeft.Y ? vertex : bottomLeft;
 
-                topLeft = (vertex.X - vertex.Y) < (topLeft.X - topLeft.Y) ? vertex : topLeft;
+                //topLeft = (vertex.X + maxY - vertex.Y) < (topLeft.X + maxY - topLeft.Y) ? vertex : topLeft;
 
-                bottomRight = (vertex.Y - vertex.X) < (bottomRight.Y - bottomRight.X) ? vertex : bottomRight;
+                //bottomRight = (maxX - vertex.X + vertex.Y) < (maxX - bottomRight.X + bottomRight.Y) ? vertex : bottomRight;
+
+                topRight = MaxPoint(vertex, topRight, (k) => k.X + k.Z);
+                bottomLeft = MinPoint(vertex, bottomLeft, (k) => k.X + k.Z);
+                topLeft = MinPoint(vertex, topLeft, (k) => k.X + maxY - k.Z);
+                bottomRight = MinPoint(vertex, bottomRight, (k) => maxX - k.X + k.Z);
+
+
             }
 
-            List<XYZ> endpoints = new List<XYZ> { topRight, topLeft, bottomRight, bottomLeft };
-            endpoints.Add(topRight);
+            List<XYZ> endpoints = new List<XYZ>
+            {
+                topRight,
+                topLeft,
+                bottomRight,
+                bottomLeft,
+                topRight
+            };
 
             List<XYZ> midPoints = new List<XYZ> { };
 
