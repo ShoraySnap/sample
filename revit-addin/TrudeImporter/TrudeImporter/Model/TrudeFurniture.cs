@@ -352,7 +352,8 @@ namespace TrudeImporter
                     }
                     if (st_interior.element is null)
                     {
-                        st_interior.CreateWithDirectShape(GlobalVariables.Document);
+
+                        //st_interior.CreateWithDirectShape(GlobalVariables.Document);
                     }
 
                     try
