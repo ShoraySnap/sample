@@ -113,9 +113,9 @@ namespace TrudeImporter
                             case "FlightLanding":
                                 RunCreator_FlightLanding(props);
                                 break;
-                            case "LandingFlightLanding":
-                                RunCreator_LandingFlightLanding(props);
-                                break;
+                            //case "LandingFlightLanding":
+                            //   RunCreator_LandingFlightLanding(props);
+                            //    break;
                             default:
                                 System.Diagnostics.Debug.WriteLine("Skipping staircase block: " + props.Type);
                                 break;
@@ -158,29 +158,24 @@ namespace TrudeImporter
 
             XYZ pathEnd0 = ComputePoints(props.StartPoint, props.Translation, props.Rotation); 
             double pathLength = props.Steps * props.Riser;
-            XYZ pathEnd1 = new XYZ(pathEnd0.X + pathLength, pathEnd0.Y, pathEnd0.Z );
+            double pathWidth = props.Steps * props.Tread;
+            XYZ pathEnd1 = new XYZ(pathEnd0.X + pathWidth, pathEnd0.Y + pathLength, pathEnd0.Z );
 
             System.Diagnostics.Debug.WriteLine("pathEnd0: " + pathEnd0);
             System.Diagnostics.Debug.WriteLine("pathEnd1: " + pathEnd1);
 
             pathCurves.Add(Line.CreateBound(pathEnd0, pathEnd1));
 
-            XYZ pnt1 = new XYZ(pathEnd0.X, pathEnd0.Y- (Width / 2), pathEnd0.Z);
-            XYZ pnt2 = new XYZ(pathEnd1.X, pathEnd0.Y- (Width / 2), pathEnd1.Z);
-            XYZ pnt3 = new XYZ(pathEnd0.X, pathEnd0.Y+ (Width / 2), pathEnd0.Z);
-            XYZ pnt4 = new XYZ(pathEnd1.X, pathEnd0.Y+ (Width / 2), pathEnd1.Z);
-
-            System.Diagnostics.Debug.WriteLine("pnt1: " + pnt1);
-            System.Diagnostics.Debug.WriteLine("pnt2: " + pnt2);
-            System.Diagnostics.Debug.WriteLine("pnt3: " + pnt3);
-            System.Diagnostics.Debug.WriteLine("pnt4: " + pnt4);
-
+            XYZ pnt1 = new XYZ(pathEnd0.X, pathEnd0.Y - (Width / 2), pathEnd0.Z);
+            XYZ pnt2 = new XYZ(pathEnd1.X, pathEnd1.Y - (Width / 2), pathEnd1.Z);
+            XYZ pnt3 = new XYZ(pathEnd0.X, pathEnd0.Y + (Width / 2), pathEnd0.Z);
+            XYZ pnt4 = new XYZ(pathEnd1.X, pathEnd1.Y + (Width / 2), pathEnd1.Z);
             int riserNum = props.Steps;
             for (int ii = 0; ii <= riserNum; ii++)
             {
                 XYZ end0 = (pnt1 + pnt2) * ii / (double)riserNum;
                 XYZ end1 = (pnt3 + pnt4) * ii / (double)riserNum;
-                XYZ end2 = new XYZ(end1.X, 1, 0);
+                XYZ end2 = new XYZ(end1.X, 10, 0);
                 riserCurves.Add(Line.CreateBound(end0, end2));
             }
   
@@ -204,22 +199,26 @@ namespace TrudeImporter
             IList<Curve> pathCurves = new List<Curve>();
             IList<Curve> riserCurves = new List<Curve>();
 
-            XYZ startPoint = ComputePoints(props.StartPoint, props.Translation, props.Rotation);
-            System.Diagnostics.Debug.WriteLine("Start point: " + startPoint);
-            double pathLength = props.Steps * Tread;
+            XYZ pathEnd0 = ComputePoints(props.StartPoint, props.Translation, props.Rotation);
+            System.Diagnostics.Debug.WriteLine("Start point: " + pathEnd0);
 
-            XYZ endPoint = startPoint + new XYZ(pathLength * Math.Cos(-1.309), pathLength * Math.Sin(-1.309), 0);
-            pathCurves.Add(Line.CreateBound(startPoint, endPoint));
-            XYZ widthDir = new XYZ(-Math.Sin(-1.309), Math.Cos(-1.309), 0); 
-            XYZ pnt1 = startPoint - (Width / 2) * widthDir;
-            XYZ pnt2 = endPoint - (Width / 2) * widthDir;
-            XYZ pnt3 = startPoint + (Width / 2) * widthDir;
-            XYZ pnt4 = endPoint + (Width / 2) * widthDir;
+            double pathLength = props.Steps * Tread;
+            double pathWidth = props.Steps * Riser;
+
+            XYZ pathEnd1 = ComputePoints(pathEnd0, new double[] { pathWidth, pathLength, 0 }, new double[] { 0, 0, 0 });
+
+            pathCurves.Add(Line.CreateBound(pathEnd0, pathEnd1));
+
+            XYZ pnt1 = new XYZ(pathEnd0.X, pathEnd0.Y - (Width / 2), pathEnd0.Z);
+            XYZ pnt2 = new XYZ(pathEnd1.X, pathEnd1.Y - (Width / 2), pathEnd1.Z);
+            XYZ pnt3 = new XYZ(pathEnd0.X, pathEnd0.Y + (Width / 2), pathEnd0.Z);
+            XYZ pnt4 = new XYZ(pathEnd1.X, pathEnd1.Y + (Width / 2), pathEnd1.Z);
 
             bdryCurves.Add(Line.CreateBound(pnt1, pnt2));
             bdryCurves.Add(Line.CreateBound(pnt3, pnt4));
+
             double stepLength = props.Tread;
-            XYZ pathDirection = (endPoint - startPoint).Normalize();
+            XYZ pathDirection = (pathEnd1 - pathEnd0).Normalize();
 
             for (int i = 0; i <= props.Steps; i++)
             {
