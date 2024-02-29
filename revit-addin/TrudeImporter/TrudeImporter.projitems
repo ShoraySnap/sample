@@ -44,8 +44,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeFurniture.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeFurniture2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeInterior2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeInterior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMass.cs" />
