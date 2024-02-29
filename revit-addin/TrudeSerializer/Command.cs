@@ -56,7 +56,7 @@ namespace TrudeSerializer
             TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
             CustomExporter exporter = new CustomExporter(doc, exporterContext);
 
-            exporter.Export(view as View);
+            exporter.Export(view);
             return exporterContext.GetExportData();
         }
 
