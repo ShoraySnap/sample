@@ -468,7 +468,7 @@ namespace TrudeImporter
                     deleteOld(furniture.ExistingElementId);
                     try
                     {
-                        new TrudeFurniture(furniture, sourceIdsToDelete);
+                        new TrudeFurniture(furniture, sourceIdsToDelete, index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();

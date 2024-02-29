@@ -12,7 +12,7 @@ namespace TrudeImporter
     {
         readonly FurnitureProperties FurnitureProps;
 
-        public TrudeFurniture(FurnitureProperties furnitureProps, List<ElementId> sourcesIdsToDelete)
+        public TrudeFurniture(FurnitureProperties furnitureProps, List<ElementId> sourcesIdsToDelete, int index)
         {
             double familyRotation = 0;
             bool isFacingFlip = false;
@@ -319,7 +319,16 @@ namespace TrudeImporter
                         //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(GlobalVariables.Document, "Casework Assembly", "Casework 044");
                         if (defaultFamilySymbol is null)
                         {
-                            Family family = FamilyLoader.LoadCustomFamily(familyName);
+                            Family family = FamilyLoader.LoadCustomFamily(familyName, FamilyLoader.FamilyFolder.Furniture);
+                            if (family == null)
+                            {
+                                GlobalVariables.MissingFurnitureFamiliesCount[familyName] = GlobalVariables.MissingFurnitureFamiliesCount.ContainsKey(familyName) ?
+                                    (true, GlobalVariables.MissingFurnitureFamiliesCount[familyName].NumberOfElements + 1, "") : (true, 1, "");
+                                GlobalVariables.MissingFurnitureIndexes.Add(index);
+                                System.Diagnostics.Debug.WriteLine("couln't find door family: " + familyName);
+                                return;
+                            }
+
                             defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
                             if (defaultFamilySymbol == null)
                             {

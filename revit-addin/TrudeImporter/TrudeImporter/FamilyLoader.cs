@@ -14,7 +14,8 @@ namespace TrudeImporter
             Doors,
             Windows,
             Beams,
-            Columns
+            Columns,
+            Furniture
         }
         public static Family LoadCustomFamily(string familyName, FamilyFolder folder)
         {

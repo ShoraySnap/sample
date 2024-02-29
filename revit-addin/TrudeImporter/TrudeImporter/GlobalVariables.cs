@@ -20,6 +20,7 @@ namespace TrudeImporter
         public static IDictionary<int, ElementId> UniqueIdToElementId = new Dictionary<int, ElementId>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingDoorFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingWindowFamiliesCount = new Dictionary<string, (bool, int, string)>();
+        public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingFurnitureFamiliesCount = new Dictionary<string, (bool, int, string)>();
 
         public static List<ElementId> WallElementIdsToRecreate = new List<ElementId>();
 
@@ -31,6 +32,7 @@ namespace TrudeImporter
 
         public static List<int> MissingDoorIndexes = new List<int>();
         public static List<int> MissingWindowIndexes = new List<int>();
+        public static List<int> MissingFurnitureIndexes = new List<int>();
 
 
         public static void cleanGlobalVariables()
