@@ -62,44 +62,44 @@ namespace TrudeImporter
                 {
                     revitId = sourceElementId;
                 }
-                    using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
+                using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
+                {
+                    trans.Start();
+                    try
                     {
-                        trans.Start();
-                        try
-                        {
-                            Element e = GlobalVariables.Document.GetElement(new ElementId((int)revitId));
+                        Element e = GlobalVariables.Document.GetElement(new ElementId((int)revitId));
 
-                            if (e != null && e.IsValidObject)
+                        if (e != null && e.IsValidObject)
+                        {
+                            isExistingFurniture = true;
+                            if (e.GetType().Name == "AssemblyInstance")
                             {
-                                isExistingFurniture = true;
-                                if (e.GetType().Name == "AssemblyInstance")
-                                {
-                                    existingAssemblyInstance = (AssemblyInstance)e;
-                                    existingFamilyType = existingAssemblyInstance.Name;
-                                }
-                                else if (e.GetType().Name == "Group")
-                                {
-                                    existingGroup = (Group)e;
-                                    existingFamilyType = existingGroup.Name;
-                                }
-                                else
-                                {
-                                    existingFamilyInstance = (FamilyInstance)e;
-                                    existingFamilySymbol = existingFamilyInstance.Symbol;
-                                    existingFamilyType = existingFamilySymbol.Name;
-
-                                    isFacingFlip = (existingFamilyInstance).FacingFlipped;
-                                }
-
-
-                                trans.Commit();
+                                existingAssemblyInstance = (AssemblyInstance)e;
+                                existingFamilyType = existingAssemblyInstance.Name;
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Furniture creation ERROR", e.ToString());
+                            else if (e.GetType().Name == "Group")
+                            {
+                                existingGroup = (Group)e;
+                                existingFamilyType = existingGroup.Name;
+                            }
+                            else
+                            {
+                                existingFamilyInstance = (FamilyInstance)e;
+                                existingFamilySymbol = existingFamilyInstance.Symbol;
+                                existingFamilyType = existingFamilySymbol.Name;
+
+                                isFacingFlip = (existingFamilyInstance).FacingFlipped;
+                            }
+
+
+                            trans.Commit();
                         }
                     }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Furniture creation ERROR", e.ToString());
+                    }
+                }
                 using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                 {
                     trans.Start();
@@ -267,29 +267,32 @@ namespace TrudeImporter
 
                         BoundingBoxXYZ bbox = existingGroup.get_BoundingBox(null);
 
-                        //XYZ center = (bbox.Max + bbox.Min).Divide(2);
-                        XYZ center = ((LocationPoint)existingGroup.Location).Point;
+                        XYZ center = (bbox.Max + bbox.Min).Divide(2);
+                        //XYZ center = ((LocationPoint)existingGroup.Location).Point;
 
                         ElementId newId = ElementTransformUtils.CopyElement(GlobalVariables.Document, existingGroup.Id, center.Multiply(-1)).First();
 
                         st_interior.element = GlobalVariables.Document.GetElement(newId);
 
-                        BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
+                        //BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
                         //XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
 
                         //double originalRotation = ((LocationPoint)existingAssemblyInstance.Location).Rotation;
 
-                        LocationPoint pt = (LocationPoint)st_interior.element.Location;
-                        XYZ centerNew = pt.Point;
+                        // LocationPoint pt = (LocationPoint)st_interior.element.Location;
+                        //XYZ centerNew = pt.Point;
                         //ElementTransformUtils.RotateElement(GlobalVariables.Document, newId, Line.CreateBound(centerNew, centerNew + XYZ.BasisZ), -originalRotation);
-                        ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position - localOriginOffset);
+                        ElementTransformUtils.MoveElement(GlobalVariables.Document, newId, st_interior.Position);
+                        GlobalVariables.Document.Regenerate();
+                        BoundingBoxXYZ bboxNew = st_interior.element.get_BoundingBox(null);
+                        XYZ centerNew = (bboxNew.Max + bboxNew.Min).Divide(2);
 
                         XYZ centerAfterMove = ((LocationPoint)st_interior.element.Location).Point;
 
                         ElementTransformUtils.RotateElement(
                                 GlobalVariables.Document,
                                 newId,
-                                Line.CreateBound(st_interior.Position, st_interior.Position + XYZ.BasisZ),
+                                Line.CreateBound(centerNew, centerNew + XYZ.BasisZ),
                                 -st_interior.Rotation.Z);
 
 
