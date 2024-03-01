@@ -402,6 +402,10 @@ namespace TrudeSerializer.Components
                 if (element is FamilyInstance familyInstance)
                 {
                     hostId = familyInstance.Host != null ? familyInstance.Host.Id.ToString() : "";
+                    if (familyInstance.Host is Wall wall && wall.IsStackedWallMember)
+                    {
+                        hostId = wall.StackedWallOwnerId.ToString();
+                    }
                 }
             }
             catch (Exception e)
