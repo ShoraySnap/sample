@@ -196,6 +196,10 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddFurnitureInstance(component.elementId, component as TrudeFurniture);
             }
+            else if (component is TrudeGenericModel)
+            {
+                serializedSnaptrudeData.AddGenericModelInstance(component.elementId, component as TrudeGenericModel);
+            }
             else if (component is TrudeDoor)
             {
                 serializedSnaptrudeData.AddDoorInstance(component.elementId, component as TrudeDoor);

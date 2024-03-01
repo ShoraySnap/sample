@@ -48,6 +48,10 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeWindow.GetSerializedComponent(serializedData, element);
             }
+            else if (TrudeGenericModel.isGenericModel(element))
+            {
+                return TrudeGenericModel.GetSerializedComponent(serializedData, element);
+            }
 
             return TrudeMass.GetSerializedComponent(serializedData, element);
         }
