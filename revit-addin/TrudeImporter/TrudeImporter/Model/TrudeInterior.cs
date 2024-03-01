@@ -24,11 +24,13 @@ namespace TrudeImporter
 
         public String FamilyName;
         public String FamilyTypeName;
+        public XYZ CenterPosition;
 
         public TrudeInterior(FurnitureProperties furnitureProperties)
         {
             Name = furnitureProperties.Name.RemoveIns();
-            Position = furnitureProperties.CenterPosition;
+            Position = furnitureProperties.Position;
+            CenterPosition = furnitureProperties.CenterPosition;
             levelNumber = furnitureProperties.Storey;
             Rotation = furnitureProperties.Rotation;
             Scaling = furnitureProperties.Scaling;
@@ -85,6 +87,7 @@ namespace TrudeImporter
             bool isSnaptrudeFlipped = Scaling.Z < 0;
 
             FamilyInstance instance = GlobalVariables.Document.Create.NewFamilyInstance(XYZ.Zero, familySymbol, level, level, Autodesk.Revit.DB.Structure.StructuralType.UnknownFraming);
+            instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
 
             if (isFacingFlip && instance.FacingFlipped == false) FlipFacing(instance);
             GlobalVariables.Document.Regenerate();
@@ -110,17 +113,20 @@ namespace TrudeImporter
             else
                 instance.Location.Rotate(rotationAxis, familyRotation);
 
-            XYZ positionRelativeToLevel = new XYZ(
-                Position.X - originOffset.X,
-                Position.Y - originOffset.Y,
-                Position.Z - level.ProjectElevation + localBaseZ);
+            //XYZ positionRelativeToLevel = new XYZ(
+            //    Position.X - originOffset.X,
+            //    Position.Y - originOffset.Y,
+            //    Position.Z - level.ProjectElevation + localBaseZ);
 
             GlobalVariables.Document.Regenerate();
             BoundingBoxXYZ rotatedBoundingBox = instance.get_BoundingBox(null);
             XYZ rotatedBoundingBoxCenter = (rotatedBoundingBox.Max + rotatedBoundingBox.Min) / 2;
 
             //instance.Location.Move(positionRelativeToLevel);
-            instance.Location.Move(Position - rotatedBoundingBoxCenter);
+            if (instance.Category.Name == "Casework")
+                instance.Location.Move(Position - boundingBoxCenter);
+            else
+                instance.Location.Move(CenterPosition - boundingBoxCenter);
 
             element = instance;
         }

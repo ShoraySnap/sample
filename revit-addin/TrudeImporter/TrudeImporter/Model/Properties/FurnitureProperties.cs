@@ -43,6 +43,9 @@ namespace TrudeImporter
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
 
+        [JsonProperty("position")]
+        public XYZ Position { get; set; }
+
         [JsonProperty("offset")]
         public XYZ Offset { get; set; }
 
