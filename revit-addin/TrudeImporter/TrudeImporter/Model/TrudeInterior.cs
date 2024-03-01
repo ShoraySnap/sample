@@ -31,7 +31,7 @@ namespace TrudeImporter
             Position = furnitureProperties.Location;
             levelNumber = furnitureProperties.Storey;
             Rotation = new XYZ(0, 0, (double)furnitureProperties.Rotation);
-
+            Scaling = furnitureProperties.Scaling;
             FamilyName = furnitureProperties.RevitFamilyName;
             FamilyTypeName = furnitureProperties.RevitFamilyType;
         }

@@ -46,6 +46,9 @@ namespace TrudeImporter
         [JsonProperty("offset")]
         public XYZ Offset { get; set; }
 
+        [JsonProperty("scaling")]
+        public XYZ Scaling { get; set; }
+
         [JsonProperty("revitOffset")]
         public double? RevitOffset { get; set; }
 
