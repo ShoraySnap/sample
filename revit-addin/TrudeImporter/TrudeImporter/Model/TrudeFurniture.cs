@@ -62,8 +62,6 @@ namespace TrudeImporter
                 {
                     revitId = sourceElementId;
                 }
-                else
-                {
                     using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                     {
                         trans.Start();
@@ -102,7 +100,6 @@ namespace TrudeImporter
                             System.Diagnostics.Debug.WriteLine("Furniture creation ERROR", e.ToString());
                         }
                     }
-                }
                 using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
                 {
                     trans.Start();

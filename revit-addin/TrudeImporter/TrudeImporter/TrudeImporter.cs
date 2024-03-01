@@ -465,7 +465,6 @@ namespace TrudeImporter
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();
-                    deleteOld(furniture.ExistingElementId);
                     try
                     {
                         new TrudeFurniture(furniture, sourceIdsToDelete, index);
