@@ -52,8 +52,11 @@ namespace TrudeImporter
         [JsonProperty("revitOffset")]
         public double? RevitOffset { get; set; }
 
+        [JsonProperty("worldBoundingBoxMin")]
+        public XYZ WorldBoundingBoxMin { get; set; }
+
         [JsonProperty("rotation")]
-        public double? Rotation { get; set; }
+        public XYZ Rotation { get; set; }
 
         [JsonProperty("type")]
         public string RevitFamilyType { get; set; }

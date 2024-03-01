@@ -28,12 +28,13 @@ namespace TrudeImporter
         public TrudeInterior(FurnitureProperties furnitureProperties)
         {
             Name = furnitureProperties.Name.RemoveIns();
-            Position = furnitureProperties.Location;
+            Position = furnitureProperties.CenterPosition;
             levelNumber = furnitureProperties.Storey;
-            Rotation = new XYZ(0, 0, (double)furnitureProperties.Rotation);
+            Rotation = furnitureProperties.Rotation;
             Scaling = furnitureProperties.Scaling;
             FamilyName = furnitureProperties.RevitFamilyName;
             FamilyTypeName = furnitureProperties.RevitFamilyType;
+            localBaseZ = furnitureProperties.WorldBoundingBoxMin.Z - furnitureProperties.CenterPosition.Z;
         }
 
         public Parameter GetOffsetParameter(FamilyInstance instance)
