@@ -36,8 +36,8 @@ namespace TrudeImporter
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
             ReconcileFurniture(trudeProperties.Furniture);
-            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0)
-                ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
+            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture);
         }
 
         private static void ImportStories(List<StoreyProperties> propsList)
@@ -559,7 +559,7 @@ namespace TrudeImporter
             }
         }
 
-        private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
+        private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
@@ -576,6 +576,9 @@ namespace TrudeImporter
 
                         if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                             TrudeMissing.ImportMissingWindows(propsListWindows);
+
+                        if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                            TrudeMissing.ImportMissingFurniture(propsListFurniture);
 
                         if (t.Commit() != TransactionStatus.Committed)
                         {

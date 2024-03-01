@@ -34,7 +34,7 @@ namespace TrudeImporter
         [JsonProperty("facingFlipped")]
         public bool? FacingFlipped { get; set; }
 
-        [JsonProperty("family")]
+        [JsonProperty("revitFamilyName")]
         public string RevitFamilyName { get; set; }
 
         [JsonProperty("familyRotation")]

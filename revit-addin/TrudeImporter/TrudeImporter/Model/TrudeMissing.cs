@@ -152,12 +152,11 @@ namespace TrudeImporter.TrudeImporter.Model
             {
                 FurnitureProperties furniture = furnitureProps[index];
                 string furnitureName = furniture.Name.RemoveIns();
-                if (GlobalVariables.MissingWindowFamiliesCount[furnitureName].IsChecked)
+                if (GlobalVariables.MissingFurnitureFamiliesCount[furnitureName].IsChecked)
                 {
                     using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                     {
                         t.Start();
-                        deleteOld(furniture.ExistingElementId);
                         try
                         {
                             new TrudeFurniture(furniture, sourceIdsToDelete, index);

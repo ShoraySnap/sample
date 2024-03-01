@@ -120,6 +120,7 @@ namespace SnaptrudeManagerAddin
 
         public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingDoorFamiliesCount = TrudeImporter.GlobalVariables.MissingDoorFamiliesCount;
         public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingWindowFamiliesCount = TrudeImporter.GlobalVariables.MissingWindowFamiliesCount;
+        public IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> missingFurnitureFamiliesCount = TrudeImporter.GlobalVariables.MissingFurnitureFamiliesCount;
 
         private bool _isAllChecked = true;
         public bool _skipAll = false;
@@ -137,7 +138,7 @@ namespace SnaptrudeManagerAddin
 
         public int TotalMissing
         {
-            get => (missingDoorFamiliesCount.Values.Count(x => x.IsChecked) + missingWindowFamiliesCount.Values.Count(x => x.IsChecked));
+            get => (missingDoorFamiliesCount.Values.Count(x => x.IsChecked) + missingWindowFamiliesCount.Values.Count(x => x.IsChecked) + missingFurnitureFamiliesCount.Values.Count(x => x.IsChecked));
         }
 
         private int totalSelected;
@@ -232,6 +233,10 @@ namespace SnaptrudeManagerAddin
                 {
                     missingWindowFamiliesCount[item.FamilyName] = (item.IsChecked, missingWindowFamiliesCount[item.FamilyName].NumberOfElements, item.FamilyPath);
                 }
+                if (missingFurnitureFamiliesCount.ContainsKey(item.FamilyName))
+                {
+                    missingFurnitureFamiliesCount[item.FamilyName] = (item.IsChecked, missingFurnitureFamiliesCount[item.FamilyName].NumberOfElements, item.FamilyPath);
+                }
                 System.Diagnostics.Debug.WriteLine("MissingFamilyViewModels: " + item.FamilyName + " " + item.IsChecked + " " + item.FamilyPath);
             }
         }
@@ -267,6 +272,7 @@ namespace SnaptrudeManagerAddin
             System.Diagnostics.Debug.WriteLine("Automatic Linking");
             TryLinkFamilyFiles(missingDoorFamiliesCount);
             TryLinkFamilyFiles(missingWindowFamiliesCount);
+            TryLinkFamilyFiles(missingFurnitureFamiliesCount);
         }
         public void TryLinkFamilyFiles(IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> familyDict)
         {
@@ -324,6 +330,18 @@ namespace SnaptrudeManagerAddin
             }
 
             foreach (var item in missingWindowFamiliesCount)
+            {
+                var viewModel = new MissingFamilyViewModel
+                {
+                    FamilyName = item.Key,
+                    FamilyPath = item.Value.path,
+                    IsChecked = item.Value.IsChecked
+                };
+
+                MissingFamilyViewModels.Add(viewModel);
+            }
+
+            foreach(var item in missingFurnitureFamiliesCount)
             {
                 var viewModel = new MissingFamilyViewModel
                 {

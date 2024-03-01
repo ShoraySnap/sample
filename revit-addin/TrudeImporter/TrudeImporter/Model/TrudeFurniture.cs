@@ -23,6 +23,19 @@ namespace TrudeImporter
             XYZ localOriginOffset = XYZ.Zero;
 
             string revitFamilyName = furnitureProps.RevitFamilyName;
+            Family family = new FilteredElementCollector(GlobalVariables.Document)
+                .OfClass(typeof(Family))
+                .Cast<Family>()
+                .FirstOrDefault(f => f.Name == furnitureProps.RevitFamilyName);
+            FamilySymbol familySymbol = null;
+            if (family != null)
+            {
+                familySymbol = new FilteredElementCollector(GlobalVariables.Document)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .Where(f => f.FamilyName == furnitureProps.RevitFamilyName)
+                    .FirstOrDefault(f => f.Name == furnitureProps.RevitFamilyType);
+            }
 
             try
             {
@@ -56,8 +69,6 @@ namespace TrudeImporter
                 FamilyInstance existingFamilyInstance = null;
                 AssemblyInstance existingAssemblyInstance = null;
                 Group existingGroup = null;
-                FamilySymbol existingFamilySymbol = null;
-                string existingFamilyType = "";
                 if (revitId == null)
                 {
                     revitId = sourceElementId;
@@ -75,22 +86,16 @@ namespace TrudeImporter
                             if (e.GetType().Name == "AssemblyInstance")
                             {
                                 existingAssemblyInstance = (AssemblyInstance)e;
-                                existingFamilyType = existingAssemblyInstance.Name;
                             }
                             else if (e.GetType().Name == "Group")
                             {
                                 existingGroup = (Group)e;
-                                existingFamilyType = existingGroup.Name;
                             }
                             else
                             {
                                 existingFamilyInstance = (FamilyInstance)e;
-                                existingFamilySymbol = existingFamilyInstance.Symbol;
-                                existingFamilyType = existingFamilySymbol.Name;
-
                                 isFacingFlip = (existingFamilyInstance).FacingFlipped;
                             }
-
 
                             trans.Commit();
                         }
@@ -107,11 +112,10 @@ namespace TrudeImporter
                     // Creation ...................
                     TrudeInterior st_interior = new TrudeInterior(furnitureProps);
 
-                    FamilySymbol familySymbol = null;
-                    if (existingFamilySymbol != null && existingFamilySymbol.IsValidObject)
+                    if (familySymbol != null && familySymbol.IsValidObject)
                     {
                         Parameter offsetParam = st_interior.GetOffsetParameter(existingFamilyInstance);
-                        if (existingFamilySymbol.Category.Name == "Casework" && offsetParam == null)
+                        if (familySymbol.Category.Name == "Casework" && offsetParam == null)
                         {
                             BoundingBoxXYZ bbox = existingFamilyInstance.get_BoundingBox(null);
 
@@ -153,12 +157,12 @@ namespace TrudeImporter
                         {
                             ElementId levelId = GlobalVariables.LevelIdByNumber[st_interior.levelNumber];
                             Level level = (Level)GlobalVariables.Document.GetElement(levelId);
-                            st_interior.CreateWithFamilySymbol(existingFamilySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
+                            st_interior.CreateWithFamilySymbol(familySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
                         }
                     }
-                    else if (revitFamilyName != null)
+                    else if (family != null)
                     {
-                        if (existingFamilySymbol?.Category?.Name == "Casework")
+                        if (familySymbol?.Category?.Name == "Casework")
                         {
                             XYZ originalPoint = ((LocationPoint)existingFamilyInstance.Location).Point;
 
@@ -319,8 +323,8 @@ namespace TrudeImporter
                         //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(GlobalVariables.Document, "Casework Assembly", "Casework 044");
                         if (defaultFamilySymbol is null)
                         {
-                            Family family = FamilyLoader.LoadCustomFamily(familyName, FamilyLoader.FamilyFolder.Furniture);
-                            if (family == null)
+                            Family loadedFamily = FamilyLoader.LoadCustomFamily(familyName, FamilyLoader.FamilyFolder.Furniture);
+                            if (loadedFamily == null)
                             {
                                 GlobalVariables.MissingFurnitureFamiliesCount[familyName] = GlobalVariables.MissingFurnitureFamiliesCount.ContainsKey(familyName) ?
                                     (true, GlobalVariables.MissingFurnitureFamiliesCount[familyName].NumberOfElements + 1, "") : (true, 1, "");
