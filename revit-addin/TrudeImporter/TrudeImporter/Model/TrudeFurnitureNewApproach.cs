@@ -189,14 +189,14 @@ namespace TrudeImporter
             else
                 instance.Location.Rotate(rotationAxis, familyRotation);
 
-            XYZ positionRelativeToLevel = new XYZ(
-                Position.X - originOffset.X,
-                Position.Y - originOffset.Y,
-                Position.Z - level.ProjectElevation + localBaseZ);
+            //XYZ positionRelativeToLevel = new XYZ(
+            //    Position.X - originOffset.X,
+            //    Position.Y - originOffset.Y,
+            //    Position.Z - level.ProjectElevation + localBaseZ);
 
-            instance.Location.Move(positionRelativeToLevel);
+            //instance.Location.Move(positionRelativeToLevel);
 
-            element = instance;
+            //element = instance;
         }
     }
 }
