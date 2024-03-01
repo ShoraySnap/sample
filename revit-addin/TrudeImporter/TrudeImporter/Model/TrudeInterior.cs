@@ -87,17 +87,21 @@ namespace TrudeImporter
             FamilyInstance instance = GlobalVariables.Document.Create.NewFamilyInstance(XYZ.Zero, familySymbol, level, level, Autodesk.Revit.DB.Structure.StructuralType.UnknownFraming);
 
             if (isFacingFlip && instance.FacingFlipped == false) FlipFacing(instance);
+            GlobalVariables.Document.Regenerate();
+            BoundingBoxXYZ boundingBox = instance.get_BoundingBox(null);
+            XYZ boundingBoxCenter = (boundingBox.Max + boundingBox.Min)/2;
 
             if (isSnaptrudeFlipped) SnaptrudeFlip(instance);
 
             Transform offsetRotationTransform = Transform.CreateRotation(XYZ.BasisZ, familyRotation);
 
-            if (isSnaptrudeFlipped)
-                originOffset = offsetRotationTransform.OfPoint(originOffset);
-            else
-                originOffset = offsetRotationTransform.OfPoint(-originOffset);
+            //if (isSnaptrudeFlipped)
+            //    originOffset = offsetRotationTransform.OfPoint(originOffset);
+            //else
+            //    originOffset = offsetRotationTransform.OfPoint(-originOffset);
 
-            Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
+            //Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
+            Line rotationAxis = Line.CreateBound(boundingBoxCenter, boundingBoxCenter + XYZ.BasisZ);
 
             instance.Location.Rotate(rotationAxis, -Rotation.Z);
 
@@ -111,7 +115,12 @@ namespace TrudeImporter
                 Position.Y - originOffset.Y,
                 Position.Z - level.ProjectElevation + localBaseZ);
 
-            instance.Location.Move(positionRelativeToLevel);
+            GlobalVariables.Document.Regenerate();
+            BoundingBoxXYZ rotatedBoundingBox = instance.get_BoundingBox(null);
+            XYZ rotatedBoundingBoxCenter = (rotatedBoundingBox.Max + rotatedBoundingBox.Min) / 2;
+
+            //instance.Location.Move(positionRelativeToLevel);
+            instance.Location.Move(Position - rotatedBoundingBoxCenter);
 
             element = instance;
         }
