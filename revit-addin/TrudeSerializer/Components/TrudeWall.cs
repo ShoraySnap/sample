@@ -63,7 +63,9 @@ namespace TrudeSerializer.Components
 
         public static TrudeWall GetDefaultTrudeWall()
         {
-            return new TrudeWall("-1");
+            TrudeWall wall = new TrudeWall("-1");
+            wall.isParametric = false;
+            return wall;
         }
 
         public static TrudeWall GetSerializedComponent(SerializedTrudeData importData, Element element)
