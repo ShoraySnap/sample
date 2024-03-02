@@ -58,7 +58,14 @@ namespace TrudeSerializer.Utils
                 }
             }
 
-            ICollection<ElementId> subComponents = (element as FamilyInstance).GetSubComponentIds();
+            FamilyInstance familyInstance = element as FamilyInstance;
+
+            if (familyInstance == null)
+            {
+                return subComponentIds;
+            }
+
+            ICollection<ElementId> subComponents = familyInstance.GetSubComponentIds();
             if (subComponents.Count > 0)
             {
                 foreach (ElementId subComponent in subComponents)
