@@ -11,7 +11,11 @@ namespace TrudeSerializer.Components
     {
         public static bool IsDoor(Element element)
         {
-            string category = element.Category.Name;
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
             return category.Contains("Doors");
         }
 
