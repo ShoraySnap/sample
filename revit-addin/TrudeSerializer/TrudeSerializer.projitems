@@ -12,8 +12,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFamily.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudePlanViewIndicator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeRFAComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)components\TrudeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debug\TrudeLog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporterForRFA.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\Compressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\PreSignedURLResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\URLsConfig.cs" />

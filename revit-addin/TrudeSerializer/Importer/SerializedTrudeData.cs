@@ -21,6 +21,8 @@ namespace TrudeSerializer.Importer
         public FamilyTypes FamilyTypes { get; set; }
         public Dictionary<string, TrudeCeiling> Ceilings { get; set; }
 
+        public TrudeRFAComponent RFAComponent { get; set; }
+
         public SerializedTrudeData()
         {
             this.FamilyTypes = new FamilyTypes();
@@ -33,6 +35,7 @@ namespace TrudeSerializer.Importer
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
+            this.RFAComponent = null;
         }
 
         public void CleanSerializedData()
@@ -123,6 +126,11 @@ namespace TrudeSerializer.Importer
             this.Windows.AddInstance(instanceId, instance);
         }
 
+        public void AddRFAComponent(TrudeRFAComponent rfaComponent)
+        {
+            this.RFAComponent = rfaComponent;
+        }
+
         public string SerializeProjectProperties()
         {
             string projectProperties = JsonConvert.SerializeObject(this.ProjectProperties);
@@ -200,10 +208,13 @@ namespace TrudeSerializer.Importer
     {
         public Dictionary<string, TrudeLevel> Levels;
         public string ProjectUnit;
+        public bool isRFA;
 
         public ProjectProperties()
         {
             this.Levels = new Dictionary<string, TrudeLevel>();
+            this.ProjectUnit = "";
+            this.isRFA = false;
         }
 
         public void AddLevel(TrudeLevel level)
@@ -215,6 +226,11 @@ namespace TrudeSerializer.Importer
         public void SetProjectUnit(string unit)
         {
             this.ProjectUnit = unit;
+        }
+
+        public void SetRFA(bool isRFA)
+        {
+            this.isRFA = isRFA;
         }
     }
 
