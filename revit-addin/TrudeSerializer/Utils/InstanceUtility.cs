@@ -369,7 +369,8 @@ namespace TrudeSerializer.Components
                 return center;
             }
 
-            return new List<double> { 0, 0, 0 };
+            List<double> groupCenter = GetCenterFromBoundingBox(element);
+            return groupCenter;
         }
 
         static public Element CheckIfElementIsVisible(Element element)
