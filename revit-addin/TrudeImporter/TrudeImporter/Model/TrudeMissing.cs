@@ -125,7 +125,7 @@ namespace TrudeImporter.TrudeImporter.Model
             if (GlobalVariables.MissingFurnitureFamiliesCount.Count == 0) return;
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             string directoryPath = GlobalVariables.ForForge
-                ? "resourceFile/Windows"
+                ? "resourceFile/Furniture"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Furniture");
             foreach (var missingFamily in GlobalVariables.MissingFurnitureFamiliesCount)
             {
@@ -151,7 +151,7 @@ namespace TrudeImporter.TrudeImporter.Model
             foreach (var index in GlobalVariables.MissingFurnitureIndexes)
             {
                 FurnitureProperties furniture = furnitureProps[index];
-                string furnitureName = furniture.Name.RemoveIns();
+                string furnitureName = furniture.RevitFamilyName;
                 if (GlobalVariables.MissingFurnitureFamiliesCount[furnitureName].IsChecked)
                 {
                     using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
