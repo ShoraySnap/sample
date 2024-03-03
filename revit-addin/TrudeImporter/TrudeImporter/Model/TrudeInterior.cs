@@ -98,13 +98,14 @@ namespace TrudeImporter
 
             Transform offsetRotationTransform = Transform.CreateRotation(XYZ.BasisZ, familyRotation);
 
-            //if (isSnaptrudeFlipped)
-            //    originOffset = offsetRotationTransform.OfPoint(originOffset);
-            //else
-            //    originOffset = offsetRotationTransform.OfPoint(-originOffset);
+            if (isSnaptrudeFlipped)
+                originOffset = offsetRotationTransform.OfPoint(originOffset);
+            else
+                originOffset = offsetRotationTransform.OfPoint(-originOffset);
 
-            //Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
-            Line rotationAxis = Line.CreateBound(boundingBoxCenter, boundingBoxCenter + XYZ.BasisZ);
+            Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
+            if (instance.Category.Name == "Casework")
+                rotationAxis = Line.CreateBound(boundingBoxCenter, boundingBoxCenter + XYZ.BasisZ);
 
             instance.Location.Rotate(rotationAxis, -Rotation.Z);
 
@@ -113,20 +114,17 @@ namespace TrudeImporter
             else
                 instance.Location.Rotate(rotationAxis, familyRotation);
 
-            //XYZ positionRelativeToLevel = new XYZ(
-            //    Position.X - originOffset.X,
-            //    Position.Y - originOffset.Y,
-            //    Position.Z - level.ProjectElevation + localBaseZ);
+            XYZ positionRelativeToLevel = new XYZ(
+                Position.X - originOffset.X,
+                Position.Y - originOffset.Y,
+                Position.Z - level.ProjectElevation);
 
             GlobalVariables.Document.Regenerate();
-            BoundingBoxXYZ rotatedBoundingBox = instance.get_BoundingBox(null);
-            XYZ rotatedBoundingBoxCenter = (rotatedBoundingBox.Max + rotatedBoundingBox.Min) / 2;
 
-            //instance.Location.Move(positionRelativeToLevel);
             if (instance.Category.Name == "Casework")
                 instance.Location.Move(Position - boundingBoxCenter);
             else
-                instance.Location.Move(CenterPosition - boundingBoxCenter);
+                instance.Location.Move(positionRelativeToLevel);
 
             element = instance;
         }

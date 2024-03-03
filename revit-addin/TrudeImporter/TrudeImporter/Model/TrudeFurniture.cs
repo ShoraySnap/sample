@@ -155,6 +155,7 @@ namespace TrudeImporter
                         }
                         else
                         {
+                            st_interior.element = existingFamilyInstance;
                             ElementId levelId = GlobalVariables.LevelIdByNumber[st_interior.levelNumber];
                             Level level = (Level)GlobalVariables.Document.GetElement(levelId);
                             st_interior.CreateWithFamilySymbol(familySymbol, level, familyRotation, isFacingFlip, localOriginOffset);
