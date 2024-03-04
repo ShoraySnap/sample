@@ -163,6 +163,7 @@ const createWindow = async () => {
       // contextIsolation: false,
     },
     resizable: false,
+    icon: __dirname + '/public/favicon.ico',
   });
   
   // remote module not recommended by electron anymore

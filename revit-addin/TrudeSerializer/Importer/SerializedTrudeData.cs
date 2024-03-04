@@ -20,6 +20,7 @@ namespace TrudeSerializer.Importer
         public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks { get; set; }
         public FamilyTypes FamilyTypes { get; set; }
         public Dictionary<string, TrudeCeiling> Ceilings { get; set; }
+        public TrudeObject<TrudeGenericModel> GenericModel { get; set; }
 
         public Dictionary<string, TrudeRoof> Roofs { get; set; }
 
@@ -34,6 +35,7 @@ namespace TrudeSerializer.Importer
             this.Ceilings = new Dictionary<string, TrudeCeiling>();
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
+            this.GenericModel = new TrudeObject<TrudeGenericModel>();
             this.ProjectProperties = new ProjectProperties();
 
             this.Roofs = new Dictionary<string, TrudeRoof>();
@@ -111,6 +113,15 @@ namespace TrudeSerializer.Importer
         public void AddFurnitureInstance(string instanceId, TrudeFurniture instance)
         {
             this.Furniture.AddInstance(instanceId, instance);
+        }
+        public void AddGenericModelFamily(string familyName, TrudeFamily family)
+        {
+            this.GenericModel.AddFamily(familyName, family);
+        }
+
+        public void AddGenericModelInstance(string instanceId, TrudeGenericModel instance)
+        {
+            this.GenericModel.AddInstance(instanceId, instance);
         }
 
         public void AddDoorFamily(string familyName, TrudeFamily family)
