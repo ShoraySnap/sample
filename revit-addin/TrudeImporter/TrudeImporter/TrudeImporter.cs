@@ -35,8 +35,9 @@ namespace TrudeImporter
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
-            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0)
-                ImportMissing(trudeProperties.Doors, trudeProperties.Windows);
+            ReconcileFurniture(trudeProperties.Furniture);
+            if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture);
         }
 
         private static void ImportStories(List<StoreyProperties> propsList)
@@ -456,6 +457,37 @@ namespace TrudeImporter
             }
         }
 
+        private static void ReconcileFurniture(List<FurnitureProperties> propsList)
+        {
+            List<ElementId> sourceIdsToDelete = new List<ElementId>();
+            foreach (var (furniture, index) in propsList.WithIndex())
+            {
+                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                {
+                    t.Start();
+                    try
+                    {
+                        new TrudeFurniture(furniture, sourceIdsToDelete, index);
+                        if (t.Commit() != TransactionStatus.Committed)
+                        {
+                            t.RollBack();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
+                        t.RollBack();
+                    }
+                }
+            }
+            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            {
+                t.Start();
+                GlobalVariables.Document.Delete(sourceIdsToDelete);
+                t.Commit();
+            }
+        }
+
         private static void ImportCeilings(List<FloorProperties> propsList)
         {
             foreach (var ceiling in propsList)
@@ -527,7 +559,7 @@ namespace TrudeImporter
             }
         }
 
-        private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows)
+        private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
@@ -544,6 +576,9 @@ namespace TrudeImporter
 
                         if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                             TrudeMissing.ImportMissingWindows(propsListWindows);
+
+                        if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                            TrudeMissing.ImportMissingFurniture(propsListFurniture);
 
                         if (t.Commit() != TransactionStatus.Committed)
                         {

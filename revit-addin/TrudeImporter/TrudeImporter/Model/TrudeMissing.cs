@@ -120,6 +120,67 @@ namespace TrudeImporter.TrudeImporter.Model
             }
         }
 
+        public static void ImportMissingFurniture(List<FurnitureProperties> furnitureProps)
+        {
+            if (GlobalVariables.MissingFurnitureFamiliesCount.Count == 0) return;
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string directoryPath = GlobalVariables.ForForge
+                ? "resourceFile/Furniture"
+                : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Furniture");
+            foreach (var missingFamily in GlobalVariables.MissingFurnitureFamiliesCount)
+            {
+                bool isChecked = missingFamily.Value.IsChecked;
+                string sourcePath = missingFamily.Value.path;
+                string destinationPath = Path.Combine(directoryPath, missingFamily.Key + ".rfa");
+
+                if (isChecked)
+                {
+                    if (File.Exists(sourcePath))
+                    {
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        File.Copy(sourcePath, destinationPath, true);
+                        System.Diagnostics.Debug.WriteLine("Family: " + missingFamily.Key + " Copied to: " + destinationPath);
+                    }
+                }
+            }
+
+            List<ElementId> sourceIdsToDelete = new List<ElementId>();
+            foreach (var index in GlobalVariables.MissingFurnitureIndexes)
+            {
+                FurnitureProperties furniture = furnitureProps[index];
+                string furnitureName = furniture.RevitFamilyName;
+                if (GlobalVariables.MissingFurnitureFamiliesCount[furnitureName].IsChecked)
+                {
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    {
+                        t.Start();
+                        try
+                        {
+                            new TrudeFurniture(furniture, sourceIdsToDelete, index);
+                            if (t.Commit() != TransactionStatus.Committed)
+                            {
+                                t.RollBack();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
+                            t.RollBack();
+                        }
+                    }
+                }
+            }
+            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+            {
+                t.Start();
+                GlobalVariables.Document.Delete(sourceIdsToDelete);
+                t.Commit();
+            }
+        }
+
         //public static void ImportMissingWindows(WindowProperties window)
         //{
 
