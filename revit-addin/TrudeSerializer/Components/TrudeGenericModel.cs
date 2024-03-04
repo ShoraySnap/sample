@@ -31,7 +31,7 @@ namespace TrudeSerializer.Components
             this.hasParentElement = hasParentElement;
         }
 
-        public static TrudeComponent GetSerializedComponent(SerializedTrudeData serializedData, Element element)
+        public static TrudeGenericModel GetSerializedComponent(SerializedTrudeData serializedData, Element element)
         {
             ClearCurrentFamily();
             string elementId = element.Id.ToString();
