@@ -5,14 +5,14 @@ import loaderGif from "../../assets/loader.gif";
 const StyledButton = styled.button`
   border-radius: 0.3125rem;
   background-color: ${({ primary, theme, outline }) =>
-    primary ? theme.colors.brightRed : outline ? theme.colors.fullWhite : theme.colors.lightGrey};
+    primary ? theme.colors.black : outline ? theme.colors.fullWhite : theme.colors.lightGrey};
   font-style: normal;
   line-height: 1.125rem;
   letter-spacing: -0.0208rem;
   outline: 0;
   border-width: ${(props) => props.outline ? "1px" : "0"};
   cursor: ${(props) => props.disabled ? "not-allowed" : "pointer"};
-  color: ${(props) => props.outline ? props.theme.colors.borderRed : props.theme.colors.fullWhite};
+  color: ${(props) => props.outline ? props.theme.colors.black : props.theme.colors.fullWhite};
   width: 100%;
   text-align: center;
   display: flex;
@@ -21,7 +21,7 @@ const StyledButton = styled.button`
   align-items: center;
   padding: 0.69rem;
   min-height: 2.5rem;
-  border-color: ${(props) => props.outline ?  props.theme.colors.borderRed : props.theme.colors.transparent};
+  border-color: ${(props) => props.outline ?  props.theme.colors.black : props.theme.colors.transparent};
   border-style: solid;
   opacity: ${(props) => props.isLoading ? "0.5" : 1};
 `;
