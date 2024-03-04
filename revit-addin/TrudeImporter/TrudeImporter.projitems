@@ -51,7 +51,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeFurnitureNewApproach.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Repository\TrudeRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\BeamRfaGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\RfaGenerator\ColumnRfaGenerator.cs" />
