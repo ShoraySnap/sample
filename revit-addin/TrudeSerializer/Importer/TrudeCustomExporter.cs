@@ -208,6 +208,11 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddWindowInstance(component.elementId, component as TrudeWindow);
             }
+
+            else if(component is TrudeRoof)
+            {
+                serializedSnaptrudeData.AddRoof(component as TrudeRoof);
+            }
         }
 
         void IExportContext.OnElementEnd(ElementId elementId)

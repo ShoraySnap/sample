@@ -52,6 +52,11 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeGenericModel.GetSerializedComponent(serializedData, element);
             }
+            else if(element is RoofBase)
+            {
+                return TrudeRoof.GetSerializedComponent(serializedData, element);
+            }
+            
 
             return TrudeMass.GetSerializedComponent(serializedData, element);
         }
