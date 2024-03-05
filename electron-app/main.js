@@ -125,6 +125,7 @@ const enableEventListeners = function () {
     });
     ipcMain.on('updateUserData', (event, [data]) => store.setAllAndSave(data));
     ipcMain.on('uploadToSnaptrude',(event, [teamId, folderId]) => electronCommunicator.uploadToSnaptrude(teamId, folderId));
+    ipcMain.on('uploadToExistingProject',(event, [modelCode]) => electronCommunicator.uploadToExistingProject(modelCode));
     ipcMain.on('importFromSnaptrude', electronCommunicator.importFromSnaptrude);
     ipcMain.on('log', (event, [messages]) => logger.log(...messages));
     ipcMain.on('operationSucceeded', electronCommunicator.operationSucceeded);

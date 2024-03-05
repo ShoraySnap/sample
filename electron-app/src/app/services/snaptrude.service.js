@@ -110,6 +110,14 @@ const snaptrudeService = (function () {
       return REACT_URL + "/model/" + floorkey;
     }
   };
+
+  const checkModelUrl = async function (url) {
+    // check for two things:
+    // 1. if the model exists
+    // 2. if the model is accessible to the user
+    return false;
+  }
+
   const createProject = async function () {
     logger.log("Creating Snaptrude project");
     const REACT_URL = urls.get("snaptrudeReactUrl");
@@ -339,7 +347,8 @@ const snaptrudeService = (function () {
     checkPersonalWorkspaces,
     checkIfProUser,
     getFolders,
-    checkIfUserLoggedIn
+    checkIfUserLoggedIn,
+    checkModelUrl
   };
 })();
 

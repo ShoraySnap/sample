@@ -41,7 +41,7 @@ const Home = () => {
     title: "Upload to Snaptrude",
     icon: upload,
     onClick: () => {
-      navigate(ROUTES.chooseProjectLocation);
+      navigate(ROUTES.projectSelection);
       // navigate(ROUTES.loading);
       // backend has to initiate the loading page provided everything has worked properly
     }
