@@ -298,7 +298,7 @@ namespace TrudeSerializer.Components
             return center;
         }
 
-        static List<double> GetCenterFromBoundingBox(Element element)
+        static public List<double> GetCenterFromBoundingBox(Element element)
         {
             Document doc = GlobalVariables.Document;
             View view = doc.ActiveView;

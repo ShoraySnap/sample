@@ -21,7 +21,8 @@ namespace TrudeSerializer.Components
         public List<List<double>> sideProfile;
         public List<List<List<double>>> sideProfileVoids;
         public List<TrudeWallOpening> openings;
-        public List<string> wallInserts;
+        public List<List<string>> wallInserts;
+        public double[] center;
         private bool isCurvedWall;
 
         private TrudeWall(string elementId, string level, string wallType, double width, double height, string family, bool function, double[] orientation, List<List<double>> endpoints, bool isCurvedWall) : base(elementId, "Walls", family, level)
@@ -56,9 +57,14 @@ namespace TrudeSerializer.Components
             this.openings = openings;
         }
 
-        public void SetWallInserts(List<string> wallInserts)
+        public void SetWallInserts(List<List<string>> wallInserts)
         {
             this.wallInserts = wallInserts;
+        }
+
+        public void SetCenter(double[] center)
+        {
+            this.center = center;
         }
 
         public static TrudeWall GetDefaultTrudeWall()
@@ -68,10 +74,19 @@ namespace TrudeSerializer.Components
             return wall;
         }
 
+        public static bool IsNotValidWall(Element element)
+        {
+            if (!(element is Wall wall)) return true;
+            if (wall.CurtainGrid != null) return true;
+            if (wall.IsStackedWall) return true;
+            return false;
+        }
+
         public static TrudeWall GetSerializedComponent(SerializedTrudeData importData, Element element)
         {
-            if (!(element is Wall wall)) return GetDefaultTrudeWall();
-            if (wall.CurtainGrid != null) return GetDefaultTrudeWall();
+            if (IsNotValidWall(element)) return GetDefaultTrudeWall();
+
+            Wall wall = element as Wall;
 
             string elementId = element.Id.ToString();
             Curve baseLine = GetBaseLine(element);
@@ -80,20 +95,22 @@ namespace TrudeSerializer.Components
             double width = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(wall.Width);
             string family = wall.WallType.FamilyName;
             bool function = wall.WallType.Function == WallFunction.Exterior;
-            double[] orientation = new Double[] { wall.Orientation.X, wall.Orientation.Z, wall.Orientation.Y };
+            double[] orientation = new double[] { wall.Orientation.X, wall.Orientation.Z, wall.Orientation.Y };
             List<List<double>> endpoints = GetEndPoints(baseLine);
             bool isCurvedWall = baseLine is Arc;
             double height = GetWallHeight(element);
             SetWallType(importData, wall);
 
             TrudeWall serializedWall = new TrudeWall(elementId, levelName, wallType, width, height, family, function, orientation, endpoints, isCurvedWall);
-            serializedWall.SetIsParametric();
+            serializedWall.SetIsParametric(wall);
             if (!serializedWall.IsParametric())
             {
+                double[] center = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(GetCenterFromBoundingBox(element));
+                serializedWall.SetCenter(center);
                 return serializedWall;
             }
 
-            List<string> wallInserts = GetWallInserts(wall);
+            List<List<string>> wallInserts = GetWallInserts(wall);
             if (wallInserts.Count != 0)
             {
                 serializedWall.SetWallInserts(wallInserts);
@@ -152,9 +169,11 @@ namespace TrudeSerializer.Components
             return endPoints;
         }
 
-        private void SetIsParametric()
+        private void SetIsParametric(Wall wall)
         {
-            isParametric = !isCurvedWall;
+            WallCrossSection crossSection = wall.CrossSection;
+            bool isSupportedCrossSection = crossSection == WallCrossSection.Vertical;
+            isParametric = isSupportedCrossSection && !isCurvedWall;
         }
 
         public static void SetWallType(SerializedTrudeData importData, Wall wall)
@@ -529,9 +548,9 @@ namespace TrudeSerializer.Components
             height = GetHeightFromBoundingBox(element);
         }
 
-        private static List<string> GetWallInserts(Wall wall)
+        private static List<List<string>> GetWallInserts(Wall wall)
         {
-            List<string> inserts = new List<string> { };
+            List<List<string>> inserts = new List<List<string>> { };
             ICollection<ElementId> insertIds = wall.FindInserts(false, false, true, false);
 
             if (insertIds.Count == 0) return inserts;
@@ -539,6 +558,8 @@ namespace TrudeSerializer.Components
             foreach (ElementId insertId in insertIds)
             {
                 Element insert = GlobalVariables.Document.GetElement(insertId);
+                List<string> curtainWallInserts = new List<string> { };
+
                 if (insert == null) continue;
                 if (insert is Wall insertedWall)
                 {
@@ -550,8 +571,13 @@ namespace TrudeSerializer.Components
                             .ToList();
                     var panels = grid.GetPanelIds().Select(id => id.ToString()).ToList();
                     if (mullions.Count == 0 && panels.Count == 0) continue;
-                    inserts.AddRange(mullions);
-                    inserts.AddRange(panels);
+
+                    curtainWallInserts.AddRange(mullions);
+                    curtainWallInserts.AddRange(panels);
+                }
+                if(curtainWallInserts.Count != 0)
+                {
+                    inserts.Add(curtainWallInserts);
                 }
             }
 

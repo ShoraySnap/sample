@@ -21,6 +21,8 @@ namespace TrudeSerializer.Importer
         public FamilyTypes FamilyTypes { get; set; }
         public Dictionary<string, TrudeCeiling> Ceilings { get; set; }
 
+        public Dictionary<string, TrudeCurtainWall> CurtainWalls { get; set; }
+
         public SerializedTrudeData()
         {
             this.FamilyTypes = new FamilyTypes();
@@ -33,6 +35,7 @@ namespace TrudeSerializer.Importer
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.ProjectProperties = new ProjectProperties();
+            this.CurtainWalls = new Dictionary<string, TrudeCurtainWall>();
         }
 
         public void CleanSerializedData()
@@ -86,6 +89,12 @@ namespace TrudeSerializer.Importer
         {
             if (this.Ceilings.ContainsKey(trudeCeiling.elementId)) return;
             this.Ceilings.Add(trudeCeiling.elementId, trudeCeiling);
+        }
+
+        public void AddCurtainWall(TrudeCurtainWall trudeCurtainWall)
+        {
+            if (this.CurtainWalls.ContainsKey(trudeCurtainWall.elementId)) return;
+            this.CurtainWalls.Add(trudeCurtainWall.elementId, trudeCurtainWall);
         }
 
         public void SetProjectUnit(string unit)

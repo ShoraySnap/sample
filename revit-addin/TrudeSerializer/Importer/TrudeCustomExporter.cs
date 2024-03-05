@@ -203,6 +203,9 @@ namespace TrudeSerializer
             else if (component is TrudeWindow)
             {
                 serializedSnaptrudeData.AddWindowInstance(component.elementId, component as TrudeWindow);
+            }else if (component is TrudeCurtainWall)
+            {
+                serializedSnaptrudeData.AddCurtainWall(component as TrudeCurtainWall);
             }
         }
 

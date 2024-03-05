@@ -36,6 +36,10 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeCeiling.GetSerializedComponent(serializedData, element);
             }
+            else if(TrudeCurtainWall.IsCurtainWallComponent(element))
+            {
+                return TrudeCurtainWall.GetSerializedComponent(serializedData, element);
+            }
             else if (TrudeFurniture.IsFurnitureCategory(element))
             {
                 return TrudeFurniture.GetSerializedComponent(serializedData, element);

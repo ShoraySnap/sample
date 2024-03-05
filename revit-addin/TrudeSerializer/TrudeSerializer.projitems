@@ -9,6 +9,7 @@
     <Import_RootNamespace>TrudeSerializer</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeCurtainWall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFamily.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudePlanViewIndicator.cs" />
