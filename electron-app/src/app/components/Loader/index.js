@@ -16,7 +16,7 @@ const Wrapper = styled.div`
 function LoadingScreen({style, ...props}) {
     return ( 
         <Wrapper  style={style} {...props} >
-            <img src={loaderAnimation} alt="Loading"/>
+            <img src={loaderAnimation} alt="Loading"  style={{ width: "150px", height: "150px" }}/>
         </Wrapper>
      );
 }

@@ -20,6 +20,9 @@ namespace TrudeSerializer.Importer
         public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks { get; set; }
         public FamilyTypes FamilyTypes { get; set; }
         public Dictionary<string, TrudeCeiling> Ceilings { get; set; }
+        public TrudeObject<TrudeGenericModel> GenericModel { get; set; }
+
+        public Dictionary<string, TrudeRoof> Roofs { get; set; }
 
         public Dictionary<string, TrudeCurtainWall> CurtainWalls { get; set; }
 
@@ -34,8 +37,11 @@ namespace TrudeSerializer.Importer
             this.Ceilings = new Dictionary<string, TrudeCeiling>();
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
+            this.GenericModel = new TrudeObject<TrudeGenericModel>();
             this.ProjectProperties = new ProjectProperties();
             this.CurtainWalls = new Dictionary<string, TrudeCurtainWall>();
+
+            this.Roofs = new Dictionary<string, TrudeRoof>();
         }
 
         public void CleanSerializedData()
@@ -96,6 +102,12 @@ namespace TrudeSerializer.Importer
             if (this.CurtainWalls.ContainsKey(trudeCurtainWall.elementId)) return;
             this.CurtainWalls.Add(trudeCurtainWall.elementId, trudeCurtainWall);
         }
+        
+        public void AddRoof(TrudeRoof roof)
+        {
+            if(this.Roofs.ContainsKey(roof.elementId)) return;
+            this.Roofs.Add(roof.elementId, roof);
+        }
 
         public void SetProjectUnit(string unit)
         {
@@ -110,6 +122,15 @@ namespace TrudeSerializer.Importer
         public void AddFurnitureInstance(string instanceId, TrudeFurniture instance)
         {
             this.Furniture.AddInstance(instanceId, instance);
+        }
+        public void AddGenericModelFamily(string familyName, TrudeFamily family)
+        {
+            this.GenericModel.AddFamily(familyName, family);
+        }
+
+        public void AddGenericModelInstance(string instanceId, TrudeGenericModel instance)
+        {
+            this.GenericModel.AddInstance(instanceId, instance);
         }
 
         public void AddDoorFamily(string familyName, TrudeFamily family)
@@ -164,12 +185,14 @@ namespace TrudeSerializer.Importer
         public Dictionary<String, TrudeWallType> WallTypes;
         public Dictionary<String, TrudeFloorType> FloorTypes;
         public Dictionary<String, TrudeCeilingType> CeilingTypes;
+        public Dictionary<String, TrudeRoofType> RoofTypes;
 
         public FamilyTypes()
         {
             this.WallTypes = new Dictionary<String, TrudeWallType>();
             this.FloorTypes = new Dictionary<String, TrudeFloorType>();
             this.CeilingTypes = new Dictionary<String, TrudeCeilingType>();
+            this.RoofTypes = new Dictionary<string, TrudeRoofType>();
         }
 
         public bool HasFloorType(String floorTypeName)
@@ -184,6 +207,11 @@ namespace TrudeSerializer.Importer
         public bool HasCeilingType(String ceilingTypeName)
         {
             return this.CeilingTypes.ContainsKey(ceilingTypeName);
+        }
+
+        public bool HasRoofType(String roofTypeName)
+        {
+            return this.RoofTypes.ContainsKey(roofTypeName);
         }
 
         public void AddFloorType(String floorTypeName, TrudeFloorType floorType)
@@ -203,6 +231,12 @@ namespace TrudeSerializer.Importer
             if (this.HasCeilingType(ceilingTypeName)) return;
             this.CeilingTypes.Add(ceilingTypeName, ceilingType);
         }
+        internal void AddRoofType(String roofTypeName, TrudeRoofType roofType)
+        {
+            if (this.HasCeilingType(roofTypeName)) return;
+            this.RoofTypes.Add(roofTypeName, roofType);
+        }
+
     }
 
     internal class ProjectProperties

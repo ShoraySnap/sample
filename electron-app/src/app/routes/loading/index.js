@@ -103,7 +103,7 @@ const Loading = (props) => {
         Your Revit model is being uploaded to Snaptrude
       </Text>
       <ModalFooter>
-        <ProgressBar bgColor={colors.red} completed={progress} text={progressText}/>
+        <ProgressBar bgColor={colors.black} completed={progress} text={progressText}/>
       </ModalFooter>
     </Container>
   )
