@@ -154,12 +154,19 @@ const electronCommunicator = (function () {
 
     logger.log("Uploading to Snaptrude");
 
+    // TODO: ADD SOME FUNCTIONALITY TO UPLOAD TO EXISTING PROJECT 
     const snaptrudeProject = await snaptrudeService.createProject(teamId, folderId);
     if (!snaptrudeProject) {
       logger.log("Error creating Snaptrude project");
       return;
     }
 
+    const revit_import_state = await snaptrudeService.flagRevitImportState(snaptrudeProject, "NEW");
+    if(!revit_import_state) {
+      logger.log("Failed to flag revit import state!");
+      return;
+    }
+    store.set("revit_import_state", revit_import_state);
     store.set("floorkey", snaptrudeProject);
 
     store.save();

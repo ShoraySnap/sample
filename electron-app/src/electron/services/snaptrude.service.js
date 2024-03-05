@@ -115,6 +115,43 @@ const snaptrudeService = function () {
     }
   };
 
+  const flagRevitImportState = async function(floorKey, import_state) {
+    logger.log(`Flagging revit import state for ${floorKey} : ${import_state}`);
+    const endPoint = "/import/state";
+    const data = {
+      floorkey: `${floorKey}`,
+      revit_import_state: `${import_state}`
+    }
+
+    const response = await _callApi(endPoint, RequestType.POST, data);
+    if(response) {
+      const revit_import_state = response.data.project.import_states.revit_import_state;
+      console.log(response.data);
+      logger.log(`Flagged revit import state for ${floorKey} : ${revit_import_state}`);
+      return revit_import_state;
+    }
+    else {
+      logger.log(`Failed to flag revit import state for ${floorKey} : ${import_state}`);
+      return "INVALID";
+    }
+  }
+
+  const getRevitImportState = async function(floorKey) {
+    logger.log(`Getting revit import state for ${floorKey}`);
+    const endPoint = `/import/state/?floorkey=${floorKey}`;
+
+    const response = await _callApi(endPoint, RequestType.GET);
+    if(response) {
+      const revit_import_state = response.data.import_states.revit_import_state;
+      logger.log(`Received revit import state for ${floorKey} : ${revit_import_state}`);
+      return revit_import_state;
+    }
+    else {
+      logger.log(`Failed to get revit import state for ${floorKey}`);
+      return "INVALID";
+    }
+  }
+
   axios.interceptors.request.use(
     (request) => {
       const ignorePaths = [
@@ -172,7 +209,7 @@ const snaptrudeService = function () {
     }
   );
   return {
-    createProject,
+    createProject, getRevitImportState, flagRevitImportState
   };
 }();
 
