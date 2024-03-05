@@ -64,7 +64,6 @@ const ModelValidator = ({
   const rightButtonCallback = onSubmit;
 
   const heading = `Enter Model Link`;
-  let isUrlValid = false;
 
   const [errorMessage, setErrorMessage] = useState('\u3000');
   const [modelCode, setModelCode] = useState("");
@@ -87,16 +86,14 @@ const ModelValidator = ({
   };
 
   const checkUrl = async () => {
-    const url = urls.get("snaptrudeReactUrl") + "/model/" + modelCode;
-    isUrlValid = await snaptrudeService.checkModelUrl(url);
+    const isUrlValid = await snaptrudeService.checkModelUrl(modelCode);
+    return isUrlValid;
   }
 
   useEffect(() => {
-    checkUrl().then(() => {
-      setIsLoading(false);
-
-      if(modelCode.length != 6) return;
-
+    setIsLoading(false);
+    if(modelCode.length != 6) return;
+    checkUrl().then((isUrlValid) => {
       if (isUrlValid) {
         setIsDisabled(false);
       }

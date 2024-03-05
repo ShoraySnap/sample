@@ -111,11 +111,12 @@ const snaptrudeService = (function () {
     }
   };
 
-  const checkModelUrl = async function (url) {
-    // check for two things:
-    // 1. if the model exists
-    // 2. if the model is accessible to the user
-    return false;
+  const checkModelUrl = async function (floorkey) {
+    const data = {
+      floorkey
+    };
+    const response = await _callApi("/initproject/", RequestType.POST, data);
+    return (response?.status === 200);
   }
 
   const createProject = async function () {
