@@ -112,10 +112,13 @@ const snaptrudeService = (function () {
   };
 
   const checkModelUrl = async function (floorkey) {
+    const accessToken = sessionData.getUserData()["accessToken"];
     const data = {
-      floorkey
+      user: sessionData.getUserData(),
+      floorkey: floorkey,
+      jwt: accessToken,
     };
-    const response = await _callApi("/initproject/", RequestType.POST, data);
+    const response = await _callApi("/checkEditPermission/", RequestType.POST, data);
     return (response?.status === 200);
   }
 
