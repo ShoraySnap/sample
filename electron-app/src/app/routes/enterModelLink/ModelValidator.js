@@ -44,6 +44,22 @@ const ModelValidator = ({
 }) => {
   const navigate = useNavigate();
 
+  const onBack = () => {
+    navigate(ROUTES.projectSelection);
+  };
+
+  const onSubmit = async () => {
+    window.electronAPI.uploadToExistingProject(modelCode);
+
+    if (modelCode) {
+      RouteStore.set("projectLink", urls.get("snaptrudeReactUrl") + "/model/" + modelCode);
+    } else {
+      // logger.log("Operation failed");
+      window.electronAPI.operationFailed();
+    }
+    navigate(ROUTES.loading);
+  };
+
   const leftButtonCallback = onBack;
   const rightButtonCallback = onSubmit;
 
@@ -60,30 +76,14 @@ const ModelValidator = ({
     const newText = event.target.value;
     setErrorMessage('\u3000');
     setIsDisabled(true);
+    setModelCode(newText);
 
     if (newText.length == 6) {
-      setModelCode(newText);
       setIsLoading(true);
     }
     else {
       setIsLoading(false);
     }
-  };
-
-  const onBack = () => {
-    navigate(ROUTES.projectSelection);
-  };
-
-  const onSubmit = async () => {
-    window.electronAPI.uploadToExistingProject(modelCode);
-
-    if (modelCode) {
-      RouteStore.set("projectLink", urls.get("snaptrudeReactUrl") + "/model/" + modelCode);
-    } else {
-      // logger.log("Operation failed");
-      window.electronAPI.operationFailed();
-    }
-    navigate(ROUTES.loading);
   };
 
   const checkUrl = async () => {
