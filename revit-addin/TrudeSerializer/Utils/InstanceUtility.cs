@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -245,13 +246,6 @@ namespace TrudeSerializer.Components
                         }
                     }
                 }
-                else
-                {
-                    if (element.Location is LocationPoint location)
-                    {
-                        rotation = location.Rotation;
-                    }
-                }
             }
             catch
             {
@@ -260,6 +254,7 @@ namespace TrudeSerializer.Components
 
             return rotation;
         }
+
 
         static public List<double> GetCustomCenterPoint(Element element)
         {
@@ -380,6 +375,10 @@ namespace TrudeSerializer.Components
             FilterRule idRule = ParameterFilterRuleFactory.CreateEqualsRule(new ElementId(BuiltInParameter.ID_PARAM), element.Id);
             ElementParameterFilter idFilter = new ElementParameterFilter(idRule);
             Category cat = element.Category;
+            if (cat == null)
+            {
+                return null;
+            }
             ElementCategoryFilter catFilter = new ElementCategoryFilter(cat.Id);
             FilteredElementCollector collector = new FilteredElementCollector(doc, view.Id)
                 .WhereElementIsNotElementType()
