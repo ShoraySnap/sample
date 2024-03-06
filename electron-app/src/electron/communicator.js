@@ -46,6 +46,7 @@ const electronCommunicator = (function (){
         
         if (timeoutId) clearTimeout(timeoutId);
         isRevitWaiting = false;
+        mainWindow.close();
       });
       
       client.on('data', (data) => {
