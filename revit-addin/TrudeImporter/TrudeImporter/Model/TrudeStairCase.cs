@@ -89,11 +89,14 @@ namespace TrudeImporter
                 .OfClass(typeof(StairsType))
                 .OfType<StairsType>()
                 .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase)); 
-
+            
             if (stairsType == null)
             {
-                StairsType stairsTypeTemplate = new FilteredElementCollector(doc).OfClass(typeof(StairsType)).Cast<StairsType>().FirstOrDefault();
-
+                StairsType stairsTypeTemplate = new FilteredElementCollector(doc)
+                    .OfClass(typeof(StairsType))
+                    .OfType<StairsType>()
+                    .FirstOrDefault(st => st.Name.Equals("Precast_Stair", StringComparison.OrdinalIgnoreCase));
+                System.Diagnostics.Debug.WriteLine("StairsTypeTemplate: " + stairsTypeTemplate.Name);
                 if (stairsTypeTemplate != null)
                 {
                     stairsType = stairsTypeTemplate.Duplicate(StaircaseType) as StairsType;
@@ -102,6 +105,11 @@ namespace TrudeImporter
                 {
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SStairsType: " + StaircaseType);
+                System.Diagnostics.Debug.WriteLine("StairsType: " + stairsType.Name);
             }
 
             GlobalVariables.Transaction.Commit();
@@ -115,7 +123,6 @@ namespace TrudeImporter
                     
                     foreach (StaircaseBlockProperties props in StaircaseBlocks)
                     {
-                        
                         switch (props.Type)
                         {
                             case "FlightLanding":
@@ -154,7 +161,9 @@ namespace TrudeImporter
             if (CreatedStaircase != null)
             {
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
+                CreatedStaircase.ChangeTypeId(stairsType.Id);
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+
                 ElementTransformUtils.MoveElement(doc, stairsId, CenterPosition);
                 if (CreatedStaircase == null) return;
                 double w = RotationQuat[0];
@@ -237,26 +246,15 @@ namespace TrudeImporter
 
             pathCurves.Add(Line.CreateBound(pathEnd1, pathEnd0));
 
-            Line geomLine = Line.CreateBound(pathEnd1, pathEnd0);
-            SketchPlane sketchPlane = SketchPlane.Create(doc, Plane.CreateByNormalAndOrigin(XYZ.BasisZ, pathEnd0));
-            ModelCurve modelCurve = doc.Create.NewModelCurve(geomLine, sketchPlane);
-
             StairsRun stairsRun = StairsRun.CreateSketchedRun(doc, stairsId, bottomLevel.Elevation, bdryCurves, riserCurves, pathCurves);
             stairsRun.EndsWithRiser = false;
-
             stairsRun.BaseElevation = bottomLevel.Elevation + staircaseheight;
             stairsType.MinTreadDepth = props.Tread;
             stairsType.MaxRiserHeight = props.Riser;
             stairsType.MinRunWidth = props.Depth;
             System.Diagnostics.Debug.WriteLine("Risers: " + stairsRun.ActualRisersNumber);
             System.Diagnostics.Debug.WriteLine("Treads: " + stairsRun.ActualTreadsNumber);
-
-            stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread);
-            stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
             staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
-            // rotate the stairs using props.Rotation along all the 
-            
-            
         }
 
 
