@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnaptrudeForgeExport", "Sna
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TrudeImporter", "TrudeImporter\TrudeImporter.shproj", "{32CC7E8C-1571-4044-9EB7-4D662C104917}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TrudeSerializer", "TrudeSerializer\TrudeSerializer.shproj", "{8D197602-7456-410D-B7E9-A9069A7EAE81}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		2019|Any CPU = 2019|Any CPU
@@ -84,5 +86,7 @@ Global
 		TrudeImporter\TrudeImporter.projitems*{0a89a8dd-10c0-40d0-8225-12cae6df19b2}*SharedItemsImports = 5
 		TrudeImporter\TrudeImporter.projitems*{32cc7e8c-1571-4044-9eb7-4d662c104917}*SharedItemsImports = 13
 		TrudeImporter\TrudeImporter.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 5
+		TrudeSerializer\TrudeSerializer.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 4
+		TrudeSerializer\TrudeSerializer.projitems*{8d197602-7456-410d-b7e9-a9069a7eae81}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

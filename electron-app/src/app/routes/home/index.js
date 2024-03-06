@@ -13,8 +13,9 @@ import urls from "../../services/urls";
 import snaptrudeService from "../../services/snaptrude.service";
 import LoadingScreen from "../../components/Loader";
 
+
 const openLoginPageInBrowser = () => {
-  const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=true";
+  const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth='revit'";
   
   window.electronAPI.openPageInDefaultBrowser(logInUrl);
 }
@@ -40,7 +41,7 @@ const Home = () => {
     title: "Upload to Snaptrude",
     icon: upload,
     onClick: () => {
-      window.electronAPI.uploadToSnaptrude();
+      navigate(ROUTES.chooseProjectLocation);
       // navigate(ROUTES.loading);
       // backend has to initiate the loading page provided everything has worked properly
     }
@@ -108,7 +109,7 @@ const Home = () => {
 
   const isUserLoggedIn = async() => {
     const response = await snaptrudeService.checkIfUserLoggedIn();
-    if(response === null){
+    if(!response){
       flushUserData();
     }
   }
@@ -126,7 +127,7 @@ const Home = () => {
     if(isLoggedIn){
       setIsLoading(true);
       isUserLoggedIn().then(()=>{
-        const userData = sessionData.getUserData()
+        const userData = sessionData.getUserData();
         const isLoggedIn = !!userData.accessToken;
         const currentState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
         setButtons(currentState);
@@ -141,7 +142,7 @@ const Home = () => {
     });
     
     return window.electronAPI.removeSuccessfulLoginHandler;
-  }, []);
+  }, [userData]);
   
   return (
     <Column>
@@ -151,7 +152,7 @@ const Home = () => {
           
           let isDisabled = false;
           if (!isLoggedIn){
-            if (button.id !== BUTTONS.login) isDisabled = true;
+            if (button.id === BUTTONS.upload || button.id === BUTTONS.reconcile) isDisabled = true;
           }
           
           return (
