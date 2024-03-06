@@ -16,7 +16,11 @@ namespace TrudeSerializer.Components
         public List<string> subComponent;
         public static bool isGenericModel(Element element)
         {
-            string category = element.Category.Name;
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
             return category.Contains("Generic Models");
         }
 
