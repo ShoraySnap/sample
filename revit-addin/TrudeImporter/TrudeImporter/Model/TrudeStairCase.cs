@@ -96,7 +96,6 @@ namespace TrudeImporter
                     .OfClass(typeof(StairsType))
                     .OfType<StairsType>()
                     .FirstOrDefault(st => st.Name.Equals("Precast_Stair", StringComparison.OrdinalIgnoreCase));
-                System.Diagnostics.Debug.WriteLine("StairsTypeTemplate: " + stairsTypeTemplate.Name);
                 if (stairsTypeTemplate != null)
                 {
                     stairsType = stairsTypeTemplate.Duplicate(StaircaseType) as StairsType;
@@ -105,11 +104,6 @@ namespace TrudeImporter
                 {
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("SStairsType: " + StaircaseType);
-                System.Diagnostics.Debug.WriteLine("StairsType: " + stairsType.Name);
             }
 
             GlobalVariables.Transaction.Commit();
@@ -181,7 +175,6 @@ namespace TrudeImporter
                 startingPoint.X + translation[0], 
                 startingPoint.Y + translation[1], 
                 startingPoint.Z + translation[2] + bottomLevel.Elevation + staircaseheight);
-            System.Diagnostics.Debug.WriteLine("TranslatedPoint: " + translatedPoint);
 
             // Rotation angles in radians are directly used
             double rotX = rotation[0]; // Rotation around X-axis in radians
@@ -205,7 +198,6 @@ namespace TrudeImporter
                 afterRotY.X * Math.Cos(rotZ) - afterRotY.Y * Math.Sin(rotZ),
                 afterRotY.X * Math.Sin(rotZ) + afterRotY.Y * Math.Cos(rotZ),
                 afterRotY.Z);
-            System.Diagnostics.Debug.WriteLine("RotatedPoint: " + rotatedPoint);
 
             return rotatedPoint;
         }
@@ -217,7 +209,6 @@ namespace TrudeImporter
             double riserNum = props.Steps;
             double runWidth = Width;
             XYZ startPos = ComputePoints(props.StartPoint, props.Translation, props.Rotation);
-            System.Diagnostics.Debug.WriteLine("StartPos: " + startPos);
             startPos = new XYZ(startPos.X, 0, startPos.Z);
 
             IList<Curve> bdryCurves = new List<Curve>();
@@ -252,8 +243,6 @@ namespace TrudeImporter
             stairsType.MinTreadDepth = props.Tread;
             stairsType.MaxRiserHeight = props.Riser;
             stairsType.MinRunWidth = props.Depth;
-            System.Diagnostics.Debug.WriteLine("Risers: " + stairsRun.ActualRisersNumber);
-            System.Diagnostics.Debug.WriteLine("Treads: " + stairsRun.ActualTreadsNumber);
             staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
         }
 
