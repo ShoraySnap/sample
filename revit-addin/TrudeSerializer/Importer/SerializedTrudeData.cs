@@ -279,13 +279,12 @@ namespace TrudeSerializer.Importer
 
         public void AddFamily(string familyName, TrudeFamily family)
         {
-            if (this.HasFamily(familyName)) return;
-            this.Families.Add(familyName, family);
+            this.Families[familyName] = family;
         }
 
         public void AddInstance(string instanceId, TFamily instance)
         {
-            this.Instances.Add(instanceId, instance);
+            this.Instances[instanceId] = instance;
         }
     }
 }
