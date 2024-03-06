@@ -30,6 +30,8 @@ namespace TrudeImporter
         public Level topLevel = null;
         public Level bottomLevel = null;
         public double staircaseheight= 0;
+        public XYZ CenterPosition = new XYZ(0, 0, 0);
+        public List<double> RotationQuat;
 
         public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
         public List<LayerProperties> Layers { get; set; }
@@ -58,6 +60,11 @@ namespace TrudeImporter
             StaircaseType = staircaseProps.StaircaseType;
             StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
+            CenterPosition = staircaseProps.CenterPosition;
+            RotationQuat = staircaseProps.RotationQuaternion;
+            
+            System.Diagnostics.Debug.WriteLine("RotationQuat: " + RotationQuat[0] + RotationQuat[1] + RotationQuat[2] + RotationQuat[3] );
+            System.Diagnostics.Debug.WriteLine("CenterPosition: " + CenterPosition);
 
             CreateStaircase();
         }
@@ -147,18 +154,53 @@ namespace TrudeImporter
             if (CreatedStaircase != null)
             {
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
-                //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
-                //CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_ACTUAL_NUMBER_OF_RISERS).Set(Steps);
+                CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+                ElementTransformUtils.MoveElement(doc, stairsId, CenterPosition);
+                if (CreatedStaircase == null) return;
+                double w = RotationQuat[0];
+                double angleRadians = -2 * Math.Acos(w);
+                XYZ rotationAxis = XYZ.BasisZ;
+                Line rotationAxisLine= Line.CreateBound(CenterPosition , CenterPosition + rotationAxis);
+                ElementTransformUtils.RotateElement(doc, CreatedStaircase.Id, rotationAxisLine, angleRadians);
             }
         }
 
         private XYZ ComputePoints(XYZ startingPoint, double[] translation, double[] rotation)
         {
-            XYZ currPoint = startingPoint;
-            currPoint = new XYZ(currPoint.X + (double)translation.GetValue(0), currPoint.Y + (double)translation.GetValue(1), currPoint.Z + (double)translation.GetValue(2) + bottomLevel.Elevation + staircaseheight);
-            //currPoint = new XYZ(currPoint.X * Math.Cos((double)rotation.GetValue(0)) - currPoint.Y * Math.Sin((double)rotation.GetValue(0)), currPoint.X * Math.Sin((double)rotation.GetValue(0)) + currPoint.Y * Math.Cos((double)rotation.GetValue(0)), currPoint.Z);
-            return currPoint;
+            // Apply translation
+            XYZ translatedPoint = new XYZ(
+                startingPoint.X + translation[0], 
+                startingPoint.Y + translation[1], 
+                startingPoint.Z + translation[2] + bottomLevel.Elevation + staircaseheight);
+            System.Diagnostics.Debug.WriteLine("TranslatedPoint: " + translatedPoint);
+
+            // Rotation angles in radians are directly used
+            double rotX = rotation[0]; // Rotation around X-axis in radians
+            double rotY = rotation[1]; // Rotation around Y-axis in radians
+            double rotZ = rotation[2]; // Rotation around Z-axis in radians
+
+            // Apply rotation around X-axis
+            XYZ afterRotX = new XYZ(
+                translatedPoint.X,
+                translatedPoint.Y * Math.Cos(rotX) - translatedPoint.Z * Math.Sin(rotX),
+                translatedPoint.Y * Math.Sin(rotX) + translatedPoint.Z * Math.Cos(rotX));
+
+            // Apply rotation around Y-axis
+            XYZ afterRotY = new XYZ(
+                afterRotX.Z * Math.Sin(rotY) + afterRotX.X * Math.Cos(rotY),
+                afterRotX.Y,
+                afterRotX.Z * Math.Cos(rotY) - afterRotX.X * Math.Sin(rotY));
+
+            // Finally, apply rotation around Z-axis
+            XYZ rotatedPoint = new XYZ(
+                afterRotY.X * Math.Cos(rotZ) - afterRotY.Y * Math.Sin(rotZ),
+                afterRotY.X * Math.Sin(rotZ) + afterRotY.Y * Math.Cos(rotZ),
+                afterRotY.Z);
+            System.Diagnostics.Debug.WriteLine("RotatedPoint: " + rotatedPoint);
+
+            return rotatedPoint;
         }
+
 
         private void RunCreator_FlightLanding(StaircaseBlockProperties props)
         {
@@ -177,12 +219,6 @@ namespace TrudeImporter
             XYZ pnt2 = new XYZ(startPos[0] - riserNum * tread_depth, startPos[1], startPos[2]);
             XYZ pnt3 = new XYZ(startPos[0], startPos[1] - runWidth, startPos[2]);
             XYZ pnt4 = new XYZ(startPos[0] - riserNum * tread_depth, startPos[1] - runWidth, startPos[2]);
-
-            System.Diagnostics.Debug.WriteLine("pnt1: " + pnt1);
-            System.Diagnostics.Debug.WriteLine("pnt2: " + pnt2);
-            System.Diagnostics.Debug.WriteLine("pnt3: " + pnt3);
-            System.Diagnostics.Debug.WriteLine("pnt4: " + pnt4);
-
             // boundaries
             bdryCurves.Add(Line.CreateBound(pnt2, pnt1));
             bdryCurves.Add(Line.CreateBound(pnt4, pnt3));
@@ -218,8 +254,9 @@ namespace TrudeImporter
             stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread);
             stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
             staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
-            //rotate along z axis
-            //ElementTransformUtils.RotateElement(doc, stairsRun.Id, Line.CreateBound(new XYZ(0,0,0),new XYZ(0,0,1)), 1.309);
+            // rotate the stairs using props.Rotation along all the 
+            
+            
         }
 
 

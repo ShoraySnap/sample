@@ -42,6 +42,9 @@ namespace TrudeImporter
 
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
+        
+        [JsonProperty("rotationQuaternion")]
+        public List<double> RotationQuaternion { get; set; }
 
         [JsonProperty("type")]
         public string Type { get; set; }
