@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -179,28 +178,25 @@ namespace TrudeSerializer.Components
 
         static public List<double> GetPosition(Element element)
         {
-            List<double> center;
-            LocationPoint location = element.Location as LocationPoint;
+            if (element.Category.Name == "Doors")
+            {
+                XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
+                List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
+                for (int i = 0; i < 3; i++)
+                {
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(positionPoint[i]);
+                }
+                return positionPoint;
+            }
 
-            if (location != null)
+            if (element.Location is LocationPoint location)
             {
                 XYZ position = location.Point;
 
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
-                }
-                return positionPoint;
-            }
-
-            if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
-            {
-                XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
-                List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
-                for (int i = 0; i < 3; i++)
-                {
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(positionPoint[i]);
                 }
                 return positionPoint;
             }
@@ -254,7 +250,6 @@ namespace TrudeSerializer.Components
 
             return rotation;
         }
-
 
         static public List<double> GetCustomCenterPoint(Element element)
         {
@@ -402,10 +397,6 @@ namespace TrudeSerializer.Components
                 if (element is FamilyInstance familyInstance)
                 {
                     hostId = familyInstance.Host != null ? familyInstance.Host.Id.ToString() : "";
-                    if (familyInstance.Host is Wall wall && wall.IsStackedWallMember)
-                    {
-                        hostId = wall.StackedWallOwnerId.ToString();
-                    }
                 }
             }
             catch (Exception e)
