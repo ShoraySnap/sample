@@ -277,6 +277,16 @@ namespace TrudeSerializer.Importer
             return this.Families.ContainsKey(familyName);
         }
 
+        public TrudeFamily GetFamily(string familyName)
+        {
+            return this.Families[familyName];
+        }
+
+        public void RemoveFamily(string familyName)
+        {
+            this.Families.Remove(familyName);
+        }
+
         public void AddFamily(string familyName, TrudeFamily family)
         {
             this.Families[familyName] = family;
