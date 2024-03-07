@@ -2,7 +2,7 @@
 
 - Sanptrude Manager is used as Revit<>Snaptrude bi-directional link.
 - Allowing users to easily import and export models between Revit and Snaptrude.
-- This enables better design changes, client presentations, and sign offs to be completed through Snaptrude�s cloud-based collaborative platform.
+- This enables better design changes, client presentations, and sign offs to be completed through Snaptrude's cloud-based collaborative platform.
 - This ensures an efficient design workflow, with instant feedback and ease of use.
 
 ## Manager & Repo Setup:
