@@ -120,15 +120,15 @@ const snaptrudeService = function () {
     const endPoint = "/import/state";
     const data = {
       floorkey: `${floorKey}`,
-      revit_import_state: `${import_state}`
+      revitImportState: `${import_state}`
     }
 
     const response = await _callApi(endPoint, RequestType.POST, data);
     if(response) {
-      const revit_import_state = response.data.project.import_states.revit_import_state;
+      const revitImportState = response.data.project.importStates.revitImportState;
       console.log(response.data);
-      logger.log(`Flagged revit import state for ${floorKey} : ${revit_import_state}`);
-      return revit_import_state;
+      logger.log(`Flagged revit import state for ${floorKey} : ${revitImportState}`);
+      return revitImportState;
     }
     else {
       logger.log(`Failed to flag revit import state for ${floorKey} : ${import_state}`);
@@ -142,9 +142,9 @@ const snaptrudeService = function () {
 
     const response = await _callApi(endPoint, RequestType.GET);
     if(response) {
-      const revit_import_state = response.data.import_states.revit_import_state;
-      logger.log(`Received revit import state for ${floorKey} : ${revit_import_state}`);
-      return revit_import_state;
+      const revitImportState = response.data.importStates.revitImportState;
+      logger.log(`Received revit import state for ${floorKey} : ${revitImportState}`);
+      return revitImportState;
     }
     else {
       logger.log(`Failed to get revit import state for ${floorKey}`);

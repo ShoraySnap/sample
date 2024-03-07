@@ -161,12 +161,12 @@ const electronCommunicator = (function () {
       return;
     }
 
-    const revit_import_state = await snaptrudeService.flagRevitImportState(snaptrudeProject, "NEW");
-    if(!revit_import_state) {
+    const revitImportState = await snaptrudeService.flagRevitImportState(snaptrudeProject, "NEW");
+    if(!revitImportState) {
       logger.log("Failed to flag revit import state!");
       return;
     }
-    store.set("revit_import_state", revit_import_state);
+    store.set("revitImportState", revitImportState);
     store.set("floorkey", snaptrudeProject);
 
     store.save();
