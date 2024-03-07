@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using Grid = Autodesk.Revit.DB.Grid;
 using Material = Autodesk.Revit.DB.Material;
 
 namespace TrudeImporter
@@ -30,9 +31,7 @@ namespace TrudeImporter
         public Level topLevel = null;
         public Level bottomLevel = null;
         public double staircaseheight= 0;
-        public XYZ CenterPosition = new XYZ(0, 0, 0);
-        public List<double> RotationQuat;
-
+        public Dictionary<ElementId, Tuple<XYZ, XYZ>> runStartEndPoints = new Dictionary<ElementId, Tuple<XYZ, XYZ>>();
         public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
         public List<LayerProperties> Layers { get; set; }
         public Stairs CreatedStaircase { get; private set; }
@@ -62,11 +61,6 @@ namespace TrudeImporter
             StaircaseType = staircaseProps.StaircaseType;
             StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
-            CenterPosition = staircaseProps.CenterPosition;
-            RotationQuat = staircaseProps.RotationQuaternion;
-            
-            System.Diagnostics.Debug.WriteLine("RotationQuat: " + RotationQuat[0] + RotationQuat[1] + RotationQuat[2] + RotationQuat[3] );
-            System.Diagnostics.Debug.WriteLine("CenterPosition: " + CenterPosition);
 
             CreateStaircase();
         }
@@ -149,6 +143,8 @@ namespace TrudeImporter
                         }
                         catch (Exception)
                         {
+                            System.Diagnostics.Debug.WriteLine("Landing creation failed");
+                            CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
                         }
                     }
 
@@ -175,23 +171,7 @@ namespace TrudeImporter
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
                 CreatedStaircase.ChangeTypeId(stairsType.Id);
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
-
-                ElementTransformUtils.MoveElement(doc, stairsId, CenterPosition);
-                if (CreatedStaircase == null) return;
-                double w = RotationQuat[0];
-                double angleRadians = -2 * Math.Acos(w);
-                XYZ rotationAxis = XYZ.BasisZ;
-                Line rotationAxisLine= Line.CreateBound(CenterPosition , CenterPosition + rotationAxis);
-                ElementTransformUtils.RotateElement(doc, CreatedStaircase.Id, rotationAxisLine, angleRadians);
             }
-        }
-
-        private XYZ ComputePoints(XYZ startingPoint, double[] translation, double[] rotation)
-        {
-            XYZ currPoint = startingPoint;
-            currPoint = new XYZ(currPoint.X + (double)translation.GetValue(0), currPoint.Y + (double)translation.GetValue(1), currPoint.Z + (double)translation.GetValue(2) + bottomLevel.Elevation + staircaseheight);
-            //currPoint = new XYZ(currPoint.X * Math.Cos((double)rotation.GetValue(0)) - currPoint.Y * Math.Sin((double)rotation.GetValue(0)), currPoint.X * Math.Sin((double)rotation.GetValue(0)) + currPoint.Y * Math.Cos((double)rotation.GetValue(0)), currPoint.Z);
-            return currPoint;
         }
 
         private ElementId RunCreator_Simple(StaircaseBlockProperties props, StaircaseBlockProperties lastProps)
@@ -212,114 +192,67 @@ namespace TrudeImporter
             run.EndsWithRiser = false;
             double height = props.Steps * props.Riser;
             run.TopElevation = props.Translation.Z + height;
+            runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
             return run.Id;
         }
-        /*
-        private void RunCreator_FlightLanding(StaircaseBlockProperties props)
+
+        private void CreateManualLanding(ElementId runIdBefore, ElementId runIdAfter)
         {
-            double tread_depth = props.Tread;
-            double riserNum = props.Steps;
-            double runWidth = Width;
-            XYZ startPos = ComputePoints(props.StartPoint, props.Translation, props.Rotation);
-            startPos = new XYZ(startPos.X, 0, startPos.Z);
+            StairsRun runBefore = doc.GetElement(runIdBefore) as StairsRun;
+            StairsRun runAfter = doc.GetElement(runIdAfter) as StairsRun;
 
-            IList<Curve> bdryCurves = new List<Curve>();
-            IList<Curve> riserCurves = new List<Curve>();
-            IList<Curve> pathCurves = new List<Curve>();
+            if (runBefore == null || runAfter == null)
+                throw new InvalidOperationException("Invalid stair runs for manual landing.");
 
-            XYZ pnt1 = new XYZ(startPos[0], startPos[1], startPos[2]);
-            XYZ pnt2 = new XYZ(startPos[0] - riserNum * tread_depth, startPos[1], startPos[2]);
-            XYZ pnt3 = new XYZ(startPos[0], startPos[1] - runWidth, startPos[2]);
-            XYZ pnt4 = new XYZ(startPos[0] - riserNum * tread_depth, startPos[1] - runWidth, startPos[2]);
-            // boundaries
-            bdryCurves.Add(Line.CreateBound(pnt2, pnt1));
-            bdryCurves.Add(Line.CreateBound(pnt4, pnt3));
+            double elevation = Math.Min(runBefore.TopElevation, runAfter.TopElevation);
 
-            double interval = (pnt2.X - pnt1.X) / riserNum;
-            for (int ii = 0; ii <= riserNum; ii++)
-            {
-                XYZ end0 = new XYZ(pnt1.X + ii * interval, pnt1.Y, pnt1.Z);
-                XYZ end1 = new XYZ(pnt1.X + ii * interval, pnt3.Y, pnt3.Z);
-                riserCurves.Add(Line.CreateBound(end0, end1));
-            }
+            Level level = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
+                          .OrderBy(lvl => Math.Abs(elevation - lvl.Elevation))
+                          .FirstOrDefault();
 
-            //stairs path curves
-            XYZ pathEnd0 = (pnt1 + pnt3) / 2.0;
-            XYZ pathEnd1 = (pnt2 + pnt4) / 2.0;
+            if (level == null)
+                throw new InvalidOperationException("No suitable level found for landing creation.");
 
-            pathCurves.Add(Line.CreateBound(pathEnd1, pathEnd0));
+            XYZ startPoint = runStartEndPoints[runBefore.Id].Item2;
+            XYZ endPoint = runStartEndPoints[runAfter.Id].Item1;
+            startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
+            endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
 
-            StairsRun stairsRun = StairsRun.CreateSketchedRun(doc, stairsId, bottomLevel.Elevation, bdryCurves, riserCurves, pathCurves);
-            stairsRun.EndsWithRiser = false;
-            stairsRun.BaseElevation = bottomLevel.Elevation + staircaseheight;
-            stairsType.MinTreadDepth = props.Tread;
-            stairsType.MaxRiserHeight = props.Riser;
-            stairsType.MinRunWidth = props.Depth;
-            staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
-        }
+            XYZ direction = (endPoint - startPoint).Normalize();
+            Line geomLine = Line.CreateBound(startPoint, endPoint);
+            SketchPlane sketchPlane = SketchPlane.Create(doc, level.Id);
+            //ModelCurve modelCurve = doc.Create.NewModelCurve(geomLine, sketchPlane);
 
+            double width = this.Width;
+            double angleRadians = Math.PI / 4;
+            XYZ rotatedDirectionCW = new XYZ(
+                direction.X * Math.Cos(angleRadians) + direction.Y * Math.Sin(angleRadians),
+                -direction.X * Math.Sin(angleRadians) + direction.Y * Math.Cos(angleRadians),
+                0);
+            XYZ rotatedDirectionCCW = new XYZ(
+                direction.X * Math.Cos(angleRadians) - direction.Y * Math.Sin(angleRadians),
+                direction.X * Math.Sin(angleRadians) + direction.Y * Math.Cos(angleRadians),
+                0);
 
-        private void RunCreator_Landing(StaircaseBlockProperties props)
-        {
-            double tread_depth = props.Depth;
-            double runWidth = props.LandingWidth;
-            XYZ startPos = ComputePoints(props.StartPoint, props.Translation, props.Rotation);
-            System.Diagnostics.Debug.WriteLine("StartPos: " + startPos);
-            startPos = new XYZ(startPos.X, 0, startPos.Z);
+            XYZ offsetVectorCW = rotatedDirectionCW.Normalize() * width;
+            XYZ offsetVectorCCW = rotatedDirectionCCW.Normalize() * width;
 
+            XYZ corner1 = startPoint;
+            XYZ corner2 = startPoint + offsetVectorCCW; 
+            XYZ corner3 = endPoint;
+            XYZ corner4 = endPoint - offsetVectorCCW;
 
             CurveLoop landingLoop = new CurveLoop();
-            XYZ p1 = new XYZ(startPos[0], startPos[1], startPos[2]);
-            XYZ p2 = new XYZ(startPos[0] - runWidth, startPos[1], startPos[2]);
-            XYZ p3 = new XYZ(startPos[0] - runWidth, startPos[1] - tread_depth, startPos[2]);
-            XYZ p4 = new XYZ(startPos[0], startPos[1] - tread_depth, startPos[2]);
-            Line curve_1 = Line.CreateBound(p1, p2);
-            Line curve_2 = Line.CreateBound(p2, p3);
-            Line curve_3 = Line.CreateBound(p3, p4);
-            Line curve_4 = Line.CreateBound(p4, p1);
 
-            landingLoop.Append(curve_1);
-            landingLoop.Append(curve_2);
-            landingLoop.Append(curve_3);
-            landingLoop.Append(curve_4);
-            StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, landingLoop, bottomLevel.Elevation + staircaseheight);
-            //staircaseheight += 
+            landingLoop.Append(Line.CreateBound(corner1, corner4));
+            landingLoop.Append(Line.CreateBound(corner4, corner3));
+            landingLoop.Append(Line.CreateBound(corner3, corner2));
+            landingLoop.Append(Line.CreateBound(corner2, corner1));
+
+            StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, landingLoop, elevation);
 
         }
 
-
-        private void RunCreator_LandingFlightLanding(StaircaseBlockProperties props)
-        {
-            XYZ pathEnd0 = ComputePoints(props.StartPoint, props.Translation, props.Rotation);
-            pathEnd0 = new XYZ(pathEnd0.X, 0, pathEnd0.Z);
-            double horizontal = props.Steps * props.Tread;
-            XYZ pathEnd1 = new XYZ(pathEnd0.X + horizontal, 0, pathEnd0.Z);
-            Line locationLine = Line.CreateBound(pathEnd0, pathEnd1);
-
-            System.Diagnostics.Debug.WriteLine("pathEnd0: " + pathEnd0);
-            System.Diagnostics.Debug.WriteLine("pathEnd1: " + pathEnd1);
-
-            Line geomLine = Line.CreateBound(pathEnd0, pathEnd1);
-            SketchPlane sketchPlane = SketchPlane.Create(doc, Plane.CreateByNormalAndOrigin(XYZ.BasisZ, pathEnd1));
-            ModelCurve modelCurve = doc.Create.NewModelCurve(geomLine, sketchPlane);
-
-            StairsRun stairsRun = StairsRun.CreateStraightRun(doc, stairsId, locationLine, StairsRunJustification.Center);
-            //stairsRun.EndsWithRiser = false;
-            stairsRun.ActualRunWidth = Width;
-            stairsRun.TopElevation = topLevel.Elevation;
-
-            System.Diagnostics.Debug.WriteLine("Risers: " + stairsRun.ActualRisersNumber);
-            System.Diagnostics.Debug.WriteLine("Treads: " + stairsRun.ActualTreadsNumber);
-            stairsType.MinTreadDepth = props.Tread;
-            stairsType.MaxRiserHeight = props.Riser;
-            stairsType.MinRunWidth = props.Depth;
-
-            stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MINIMUM_TREAD_DEPTH).Set(Tread);
-            stairsType.get_Parameter(BuiltInParameter.STAIRS_ATTR_MAX_RISER_HEIGHT).Set(Riser);
-            staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
-
-        }
-        */
     }
 }
 
