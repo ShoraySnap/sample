@@ -48,6 +48,8 @@ namespace TrudeImporter
             // Parse the properties
             Storey = staircaseProps.Storey;
             UniqueId = staircaseProps.UniqueId;
+            Position = staircaseProps.Position;
+            Rotation = staircaseProps.Rotation;
             Height =  staircaseProps.Height;
             Width = staircaseProps.Width;
             Tread = staircaseProps.Tread;
@@ -88,14 +90,12 @@ namespace TrudeImporter
             stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
                 .OfType<StairsType>()
-                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase)); 
-            
+                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase));
+
             if (stairsType == null)
             {
-                StairsType stairsTypeTemplate = new FilteredElementCollector(doc)
-                    .OfClass(typeof(StairsType))
-                    .OfType<StairsType>()
-                    .FirstOrDefault(st => st.Name.Equals("Precast_Stair", StringComparison.OrdinalIgnoreCase));
+                StairsType stairsTypeTemplate = new FilteredElementCollector(doc).OfClass(typeof(StairsType)).Cast<StairsType>().FirstOrDefault(x => x.ConstructionMethod == StairsConstructionMethod.CastInPlace);
+
                 if (stairsTypeTemplate != null)
                 {
                     stairsType = stairsTypeTemplate.Duplicate(StaircaseType) as StairsType;
@@ -110,30 +110,47 @@ namespace TrudeImporter
             using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
             {
                 stairsId = stairsScope.Start(bottomLevel.Id, topLevel.Id);
-
+                CreatedStaircase = doc.GetElement(stairsId) as Stairs;
                 using (Transaction trans = new Transaction(GlobalVariables.Document, "Create Stairs"))
                 {
                     trans.Start();
-                    
-                    foreach (StaircaseBlockProperties props in StaircaseBlocks)
+                    CreatedStaircase.ChangeTypeId(stairsType.Id);
+                    CreatedStaircase.ActualTreadDepth = Tread;
+                    CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+                    trans.Commit();
+
+                    if (StaircaseType == "straight" && StaircaseBlocks.Count > 1)
                     {
-                        switch (props.Type)
+                        if (StaircaseBlocks.Sum(b => b.StartLandingWidth) == 0)
                         {
-                            case "FlightLanding":
-                                RunCreator_FlightLanding(props);
-                                break;
-                            case "Landing":
-                                RunCreator_Landing(props);
-                                break;
-                            case "LandingFlightLanding":
-                                RunCreator_FlightLanding(props);
-                                break;
-                            default:
-                                System.Diagnostics.Debug.WriteLine("Skipping staircase block: " + props.Type);
-                                break;
+                            StaircaseBlocks[0].Steps = StaircaseBlocks.Sum(b => b.Steps);
+                            StaircaseBlocks = new List<StaircaseBlockProperties> { StaircaseBlocks[0] };
                         }
                     }
 
+                    List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
+
+                    List<ElementId> createdRunIds = new List<ElementId>();
+
+                    trans.Start();
+                    for (int i = 0; i < StairRunBlocks.Count; i++)
+                    {
+                        StaircaseBlockProperties props = StairRunBlocks[i];
+                        string typeFromBlockBefore = i == 0 ? "" : StairRunBlocks[i - 1].Type;
+                        StaircaseBlockProperties lastBlockProps = i == 0 ? null : StairRunBlocks[i - 1];
+                        ElementId runId = RunCreator_Simple(props, lastBlockProps);
+                        createdRunIds.Add(runId);
+                    }
+                    for (int i = 1; i < createdRunIds.Count; i++)
+                    {
+                        try
+                        {
+                            StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
 
                     trans.Commit();
                 }
@@ -141,8 +158,9 @@ namespace TrudeImporter
             }
             GlobalVariables.Transaction.Start();
 
-            CreatedStaircase = doc.GetElement(stairsId) as Stairs;
             ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
+            ElementTransformUtils.RotateElement(GlobalVariables.Document, stairsId, Line.CreateBound(XYZ.Zero, XYZ.Zero + XYZ.BasisZ), -Rotation.Z);
+            ElementTransformUtils.MoveElement(GlobalVariables.Document, stairsId, Position);
             //ICollection<ElementId> supportIds = CreatedStaircase.GetStairsSupports();
             foreach (ElementId railingId in railingIds)
             {
@@ -170,39 +188,33 @@ namespace TrudeImporter
 
         private XYZ ComputePoints(XYZ startingPoint, double[] translation, double[] rotation)
         {
-            // Apply translation
-            XYZ translatedPoint = new XYZ(
-                startingPoint.X + translation[0], 
-                startingPoint.Y + translation[1], 
-                startingPoint.Z + translation[2] + bottomLevel.Elevation + staircaseheight);
-
-            // Rotation angles in radians are directly used
-            double rotX = rotation[0]; // Rotation around X-axis in radians
-            double rotY = rotation[1]; // Rotation around Y-axis in radians
-            double rotZ = rotation[2]; // Rotation around Z-axis in radians
-
-            // Apply rotation around X-axis
-            XYZ afterRotX = new XYZ(
-                translatedPoint.X,
-                translatedPoint.Y * Math.Cos(rotX) - translatedPoint.Z * Math.Sin(rotX),
-                translatedPoint.Y * Math.Sin(rotX) + translatedPoint.Z * Math.Cos(rotX));
-
-            // Apply rotation around Y-axis
-            XYZ afterRotY = new XYZ(
-                afterRotX.Z * Math.Sin(rotY) + afterRotX.X * Math.Cos(rotY),
-                afterRotX.Y,
-                afterRotX.Z * Math.Cos(rotY) - afterRotX.X * Math.Sin(rotY));
-
-            // Finally, apply rotation around Z-axis
-            XYZ rotatedPoint = new XYZ(
-                afterRotY.X * Math.Cos(rotZ) - afterRotY.Y * Math.Sin(rotZ),
-                afterRotY.X * Math.Sin(rotZ) + afterRotY.Y * Math.Cos(rotZ),
-                afterRotY.Z);
-
-            return rotatedPoint;
+            XYZ currPoint = startingPoint;
+            currPoint = new XYZ(currPoint.X + (double)translation.GetValue(0), currPoint.Y + (double)translation.GetValue(1), currPoint.Z + (double)translation.GetValue(2) + bottomLevel.Elevation + staircaseheight);
+            //currPoint = new XYZ(currPoint.X * Math.Cos((double)rotation.GetValue(0)) - currPoint.Y * Math.Sin((double)rotation.GetValue(0)), currPoint.X * Math.Sin((double)rotation.GetValue(0)) + currPoint.Y * Math.Cos((double)rotation.GetValue(0)), currPoint.Z);
+            return currPoint;
         }
 
-
+        private ElementId RunCreator_Simple(StaircaseBlockProperties props, StaircaseBlockProperties lastProps)
+        {
+            Transform transform = Transform.CreateRotation(XYZ.BasisZ, -props.Rotation.Z);
+            XYZ direction = transform.OfVector(new XYZ(-1, 0, 0));
+            XYZ startPoint = props.StartPoint - new XYZ(props.Translation.X, -props.Translation.Y, -props.Translation.Z);
+            startPoint += direction.CrossProduct(XYZ.BasisZ) * (3.28084 - Width) / 2;
+            if (props.StartLandingWidth != 0)
+            {
+                startPoint += direction * props.StartLandingWidth;
+            }
+            double blockLength = props.Steps * props.Tread;
+            XYZ endPoint = startPoint + blockLength * direction;
+            Line rightLine = Line.CreateBound(startPoint, endPoint);
+            StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
+            run.ActualRunWidth = Width;
+            run.EndsWithRiser = false;
+            double height = props.Steps * props.Riser;
+            run.TopElevation = props.Translation.Z + height;
+            return run.Id;
+        }
+        /*
         private void RunCreator_FlightLanding(StaircaseBlockProperties props)
         {
             double tread_depth = props.Tread;
@@ -307,7 +319,7 @@ namespace TrudeImporter
             staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
 
         }
-
+        */
     }
 }
 
