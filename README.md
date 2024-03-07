@@ -9,17 +9,17 @@
 
 1. Install Visual Studio.
 2. Clone SnaptrudeManager repo.
-3. Download [IFC.zip](https://drive.google.com/file/d/1IP67UnEYS3VAbzbpW4GEkl3b-Atf9dAL/view?usp=sharing) file. Extract and put the IFC folder in `<root-directory>/revit-addin/SnaptrudeManagerAddin/lib` (REQUIRED to compile Revit Plugin in Visual Studio)
 4. Download and install the latest Snaptrude manager.
 5. Install Required version of Revit.
 6. Run Revit and check if the Snaptrude manager add-in is installed.
 
 ## To use Snaptrude-manager through Visual Studio (development) follow the below steps:
 1. Checkout relevant branch.
-2. Build SnaptrudeManager.sln
-3. Open below file:
+2. Download [IFC.zip](https://drive.google.com/file/d/1IP67UnEYS3VAbzbpW4GEkl3b-Atf9dAL/view?usp=sharing) file. Extract and put the IFC folder in `<root-directory>/revit-addin/SnaptrudeManagerAddin/lib` (REQUIRED to compile Revit Plugin in Visual Studio)
+3. Build SnaptrudeManager.sln
+4. Open below file:
 `{users}\AppData\Roaming\Autodesk\Revit\Addins\{REVIT_VERSION}\SnaptrudeManagerAddin.addin`
-4. Replace the Assembly config with below value:
+5. Replace the Assembly config with below value:
     ```
     <Assembly>{repo-path}\revit-addin\SnaptrudeManagerAddin\bin\Debug\SnaptrudeManagerAddin.dll</Assembly>
     ```
