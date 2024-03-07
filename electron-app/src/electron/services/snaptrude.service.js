@@ -142,7 +142,7 @@ const snaptrudeService = function () {
 
     const response = await _callApi(endPoint, RequestType.GET);
     if(response) {
-      const revitImportState = response.data.importStates.revitImportState;
+      const revitImportState = response.data.project.importStates.revitImportState;
       logger.log(`Received revit import state for ${floorKey} : ${revitImportState}`);
       return revitImportState;
     }
