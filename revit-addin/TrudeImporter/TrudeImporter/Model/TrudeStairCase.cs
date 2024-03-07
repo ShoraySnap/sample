@@ -83,11 +83,11 @@ namespace TrudeImporter
             stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
                 .OfType<StairsType>()
-                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase)); 
+                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase));
 
             if (stairsType == null)
             {
-                StairsType stairsTypeTemplate = new FilteredElementCollector(doc).OfClass(typeof(StairsType)).Cast<StairsType>().FirstOrDefault();
+                StairsType stairsTypeTemplate = new FilteredElementCollector(doc).OfClass(typeof(StairsType)).Cast<StairsType>().FirstOrDefault(x => x.ConstructionMethod == StairsConstructionMethod.CastInPlace);
 
                 if (stairsTypeTemplate != null)
                 {
@@ -103,31 +103,47 @@ namespace TrudeImporter
             using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
             {
                 stairsId = stairsScope.Start(bottomLevel.Id, topLevel.Id);
-
+                CreatedStaircase = doc.GetElement(stairsId) as Stairs;
                 using (Transaction trans = new Transaction(GlobalVariables.Document, "Create Stairs"))
                 {
                     trans.Start();
-                    
-                    foreach (StaircaseBlockProperties props in StaircaseBlocks)
+                    CreatedStaircase.ChangeTypeId(stairsType.Id);
+                    CreatedStaircase.ActualTreadDepth = Tread;
+                    CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+                    trans.Commit();
+
+                    if (StaircaseType == "straight" && StaircaseBlocks.Count > 1)
                     {
-                        
-                        switch (props.Type)
+                        if (StaircaseBlocks.Sum(b => b.StartLandingWidth) == 0)
                         {
-                            case "FlightLanding":
-                                RunCreator_FlightLanding(props);
-                                break;
-                            case "Landing":
-                                RunCreator_Landing(props);
-                                break;
-                            case "LandingFlightLanding":
-                                RunCreator_FlightLanding(props);
-                                break;
-                            default:
-                                System.Diagnostics.Debug.WriteLine("Skipping staircase block: " + props.Type);
-                                break;
+                            StaircaseBlocks[0].Steps = StaircaseBlocks.Sum(b => b.Steps);
+                            StaircaseBlocks = new List<StaircaseBlockProperties> { StaircaseBlocks[0] };
                         }
                     }
 
+                    List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
+
+                    List<ElementId> createdRunIds = new List<ElementId>();
+
+                    trans.Start();
+                    for (int i = 0; i < StairRunBlocks.Count; i++)
+                    {
+                        StaircaseBlockProperties props = StairRunBlocks[i];
+                        string typeFromBlockBefore = i == 0 ? "" : StairRunBlocks[i - 1].Type;
+                        StaircaseBlockProperties lastBlockProps = i == 0 ? null : StairRunBlocks[i - 1];
+                        ElementId runId = RunCreator_Simple(props, lastBlockProps);
+                        createdRunIds.Add(runId);
+                    }
+                    for (int i = 1; i < createdRunIds.Count; i++)
+                    {
+                        try
+                        {
+                            StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
 
                     trans.Commit();
                 }
@@ -135,8 +151,9 @@ namespace TrudeImporter
             }
             GlobalVariables.Transaction.Start();
 
-            CreatedStaircase = doc.GetElement(stairsId) as Stairs;
             ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
+            ElementTransformUtils.RotateElement(GlobalVariables.Document, stairsId, Line.CreateBound(XYZ.Zero, XYZ.Zero + XYZ.BasisZ), -Rotation.Z);
+            ElementTransformUtils.MoveElement(GlobalVariables.Document, stairsId, Position);
             //ICollection<ElementId> supportIds = CreatedStaircase.GetStairsSupports();
             foreach (ElementId railingId in railingIds)
             {
@@ -162,6 +179,27 @@ namespace TrudeImporter
             return currPoint;
         }
 
+        private ElementId RunCreator_Simple(StaircaseBlockProperties props, StaircaseBlockProperties lastProps)
+        {
+            Transform transform = Transform.CreateRotation(XYZ.BasisZ, -props.Rotation.Z);
+            XYZ direction = transform.OfVector(new XYZ(-1, 0, 0));
+            XYZ startPoint = props.StartPoint - new XYZ(props.Translation.X, -props.Translation.Y, -props.Translation.Z);
+            startPoint += direction.CrossProduct(XYZ.BasisZ) * (3.28084 - Width) / 2;
+            if (props.StartLandingWidth != 0)
+            {
+                startPoint += direction * props.StartLandingWidth;
+            }
+            double blockLength = props.Steps * props.Tread;
+            XYZ endPoint = startPoint + blockLength * direction;
+            Line rightLine = Line.CreateBound(startPoint, endPoint);
+            StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
+            run.ActualRunWidth = Width;
+            run.EndsWithRiser = false;
+            double height = props.Steps * props.Riser;
+            run.TopElevation = props.Translation.Z + height;
+            return run.Id;
+        }
+        /*
         private void RunCreator_FlightLanding(StaircaseBlockProperties props)
         {
             double tread_depth = props.Tread;
@@ -285,7 +323,7 @@ namespace TrudeImporter
             staircaseheight += stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_HEIGHT).AsDouble();
 
         }
-
+        */
     }
 }
 
