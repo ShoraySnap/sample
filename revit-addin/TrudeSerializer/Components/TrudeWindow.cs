@@ -96,7 +96,7 @@ namespace TrudeSerializer.Components
             if (isFamilyPresent)
             {
                 window = serializedData.Windows.GetFamily(familyName);
-                shouldUpdateFamily = InstanceUtility.ShouldGetNewFamilyGeometry(element, window);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, window);
                 if (shouldUpdateFamily)
                 {
                     serializedData.Windows.RemoveFamily(familyName);

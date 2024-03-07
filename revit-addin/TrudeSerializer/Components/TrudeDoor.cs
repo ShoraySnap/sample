@@ -93,7 +93,7 @@ namespace TrudeSerializer.Components
             if (isFamilyPresent)
             {
                 door = serializedData.Doors.GetFamily(familyName);
-                shouldUpdateFamily = InstanceUtility.ShouldGetNewFamilyGeometry(element, door);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, door);
                 if (shouldUpdateFamily)
                 {
                     serializedData.Doors.RemoveFamily(familyName);

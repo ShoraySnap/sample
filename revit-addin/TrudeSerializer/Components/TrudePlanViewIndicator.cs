@@ -90,8 +90,16 @@ namespace TrudeSerializer.Components
 
             try
             {
-                viewId = (doc.GetElement(element.LevelId) as Level).FindAssociatedPlanViewId();
-                view = doc.GetElement(viewId) as View;
+                ElementId levelId = element.LevelId;
+                if (levelId == ElementId.InvalidElementId)
+                {
+                    view = doc.ActiveView;
+                }
+                else
+                {
+                    viewId = (doc.GetElement(element.LevelId) as Level).FindAssociatedPlanViewId();
+                    view = doc.GetElement(viewId) as View;
+                }
             }
             catch
             {

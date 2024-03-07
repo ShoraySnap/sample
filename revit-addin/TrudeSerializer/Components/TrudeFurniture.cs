@@ -94,7 +94,7 @@ namespace TrudeSerializer.Components
             if (isFamilyPresent)
             {
                 furniture = serializedData.Furniture.GetFamily(familyName);
-                shouldUpdateFamily = InstanceUtility.ShouldGetNewFamilyGeometry(element, furniture);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, furniture);
                 if (shouldUpdateFamily)
                 {
                     serializedData.Furniture.RemoveFamily(familyName);

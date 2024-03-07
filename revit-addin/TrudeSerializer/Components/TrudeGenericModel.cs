@@ -71,7 +71,7 @@ namespace TrudeSerializer.Components
             if (isFamilyPresent)
             {
                 genericModel = serializedData.GenericModel.GetFamily(familyName);
-                shouldUpdateFamily = InstanceUtility.ShouldGetNewFamilyGeometry(element, genericModel);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, genericModel);
                 if (shouldUpdateFamily)
                 {
                     serializedData.GenericModel.RemoveFamily(familyName);
