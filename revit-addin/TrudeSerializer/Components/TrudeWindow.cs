@@ -90,9 +90,19 @@ namespace TrudeSerializer.Components
             string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
             string hostId = InstanceUtility.GetHostId(element);
 
-            bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
+            bool isFamilyPresent = serializedData.Windows.HasFamily(familyName);
             TrudeFamily window;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                window = serializedData.Windows.GetFamily(familyName);
+                shouldUpdateFamily = InstanceUtility.ShouldGetNewFamilyGeometry(element, window);
+                if (shouldUpdateFamily)
+                {
+                    serializedData.Windows.RemoveFamily(familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 window = new TrudeFamily(elementId, "Windows", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = window;

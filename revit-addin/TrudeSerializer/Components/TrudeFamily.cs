@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using TrudeSerializer.Utils;
 
@@ -22,6 +23,12 @@ namespace TrudeSerializer.Components
             this.dimension = dimension;
             this.transform = transform;
             this.subComponents = subComponent;
+        }
+
+        public int GetTotalFaces()
+        {
+            var geometries = this.geometries.Values;
+            return geometries.Sum(geometry => geometry.indices.Count);
         }
     }
 }

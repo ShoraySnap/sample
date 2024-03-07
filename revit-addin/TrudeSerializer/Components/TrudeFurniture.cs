@@ -90,7 +90,17 @@ namespace TrudeSerializer.Components
 
             bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
             TrudeFamily furniture;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                furniture = serializedData.Furniture.GetFamily(familyName);
+                shouldUpdateFamily = InstanceUtility.ShouldGetNewFamilyGeometry(element, furniture);
+                if (shouldUpdateFamily)
+                {
+                    serializedData.Furniture.RemoveFamily(familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 furniture = new TrudeFamily(elementId, "Furniture", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = furniture;
