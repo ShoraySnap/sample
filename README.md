@@ -2,16 +2,14 @@
 
 - Sanptrude Manager is used as Revit<>Snaptrude bi-directional link.
 - Allowing users to easily import and export models between Revit and Snaptrude.
-- This enables better design changes, client presentations, and sign offs to be completed through Snaptrude’s cloud-based collaborative platform.
+- This enables better design changes, client presentations, and sign offs to be completed through Snaptrudeï¿½s cloud-based collaborative platform.
 - This ensures an efficient design workflow, with instant feedback and ease of use.
 
 ## Manager & Repo Setup:
 
 1. Install Visual Studio.
 2. Clone SnaptrudeManager repo.
-3. Add below `.dll` files inside folder `<root-directory>/revit-addin/SnaptrudeManagerAddin`
-    - [DynamoCore.dll](https://drive.google.com/file/d/1MXEI2x1jRIaxpha0q0SKobZvtjmEY5AD/view?usp=drive_link)
-    - [DynamoRevitDS.dll](https://drive.google.com/file/d/1wEVZMO3NSJndkoVB0hdcnAii8SsF5kGQ/view?usp=drive_link)
+3. Download [IFC.zip](https://drive.google.com/file/d/1IP67UnEYS3VAbzbpW4GEkl3b-Atf9dAL/view?usp=sharing) file. Extract and put the IFC folder in `<root-directory>/revit-addin/SnaptrudeManagerAddin/lib` (REQUIRED to compile Revit Plugin in Visual Studio)
 4. Download and install the latest Snaptrude manager.
 5. Install Required version of Revit.
 6. Run Revit and check if the Snaptrude manager add-in is installed.
