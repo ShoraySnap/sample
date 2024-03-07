@@ -99,6 +99,7 @@ namespace TrudeSerializer.Components
             List<List<double>> endpoints = GetEndPoints(baseLine);
             bool isCurvedWall = baseLine is Arc;
             double height = GetWallHeight(element);
+
             SetWallType(importData, wall);
 
             TrudeWall serializedWall = new TrudeWall(elementId, levelName, wallType, width, height, family, function, orientation, endpoints, isCurvedWall);
@@ -116,20 +117,26 @@ namespace TrudeSerializer.Components
                 serializedWall.SetWallInserts(wallInserts);
             }
 
-            //List<List<double>> wallBottomProfile = GetBottomProfile(element, endpoints, width);
-            //if (wallBottomProfile.Count != 0)
-            //{
-            //serializedWall.SetBottomProfile(wallBottomProfile);
-
-            //}
-
-            serializedWall.SetBottomProfile(endpoints);
+            List<List<double>> wallBottomProfile = GetBottomProfile(element, endpoints, width);
+            if (wallBottomProfile.Count != 0)
+            {
+                serializedWall.SetBottomProfile(wallBottomProfile);
+            }
 
             GetSideProfileOfWall(element, height, out List<List<double>> sideProfile, out List<List<List<double>>> voidProfiles);
 
             if (sideProfile.Count != 0)
             {
                 serializedWall.SetSideProfile(sideProfile, voidProfiles);
+                return serializedWall;
+            }
+
+            bool isNonParametric = MarkNonParametericBasedOnSideProfile(wall);
+            if (isNonParametric)
+            {
+                double[] center = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(GetCenterFromBoundingBox(element));
+                serializedWall.SetCenter(center);
+                serializedWall.isParametric = false;
                 return serializedWall;
             }
 
@@ -173,6 +180,7 @@ namespace TrudeSerializer.Components
         {
             WallCrossSection crossSection = wall.CrossSection;
             bool isSupportedCrossSection = crossSection == WallCrossSection.Vertical;
+
             isParametric = isSupportedCrossSection && !isCurvedWall;
         }
 
@@ -200,11 +208,60 @@ namespace TrudeSerializer.Components
                 bottomFaceVertices = GetBottomVerticesFromSolid(solid);
             }
 
-            List<List<double>> centerLine = GetCenterLineofWallFromBottomProfile(bottomFaceVertices);
+            List<List<double>> centerLine = GetCenterLineofWallFromProfile(bottomFaceVertices, true);
 
             centerLine = CorrectBottomProfile(centerLine, baseLine, width);
 
             return centerLine;
+        }
+
+        private static bool MarkNonParametericBasedOnSideProfile(Wall wall)
+        {
+            IList<Reference> sideFaceRef = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Exterior);
+            GeometryObject sideFaceProfile = wall.GetGeometryObjectFromReference(sideFaceRef[0]);
+            List<double> ZValues = new List<double> { };
+
+            Face sideFace = sideFaceProfile as Face;
+            if (sideFace == null) return false;
+            List<XYZ> sideFaceVertices = GetFaceVerticesFromFace(sideFace);
+
+            sideFaceVertices = RemoveCollinearPoints(sideFaceVertices);
+
+            foreach (XYZ vertex in sideFaceVertices)
+            {
+                ZValues.Add(vertex.Z);
+            }
+
+            double maxZ = ZValues.Max();
+
+            double countMaxZ = ZValues.Count(x => IsAlmostEqual(x, maxZ));
+
+            return countMaxZ == 1 || countMaxZ > 2;
+        }
+
+        private static List<XYZ> RemoveCollinearPoints(List<XYZ> vertices)
+        {
+            int i = 1;
+            while (i < vertices.Count)
+            {
+                XYZ v = vertices[(i - 1) % vertices.Count] - vertices[(i)];
+                XYZ w = vertices[(i)] - vertices[(i + 1) % vertices.Count];
+                double angle = v.AngleTo(w);
+                if (IsAlmostEqual(angle, 0))
+                {
+                    vertices.RemoveAt((i));
+                }
+                else if (IsAlmostEqual(angle, Math.PI))
+                {
+                    vertices.RemoveAt((i - 1) % vertices.Count);
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            return vertices;
         }
 
         private static List<XYZ> GetBottomVerticesFromSolid(Solid solid)
@@ -263,44 +320,31 @@ namespace TrudeSerializer.Components
             return selector(a) < selector(b) ? a : b;
         }
 
-        private static List<List<double>> GetCenterLineofWallFromBottomProfile(List<XYZ> bottomFaceVertices)
+        private static List<List<double>> GetCenterLineofWallFromProfile(List<XYZ> faceVertices, bool isBottomProfile)
         {
             List<List<double>> centerLineInSnaptrudeUnits = new List<List<double>> { };
 
-            double maxZ = GetMax(bottomFaceVertices, 2);
-            double minZ = GetMin(bottomFaceVertices, 2);
-            double maxX = GetMax(bottomFaceVertices, 0);
-            double maxY = GetMax(bottomFaceVertices, 1);
+            double maxZ = GetMax(faceVertices, 2);
+            double minZ = GetMin(faceVertices, 2);
+            double maxX = GetMax(faceVertices, 0);
+            double maxY = GetMax(faceVertices, 1);
 
-            XYZ topRight = bottomFaceVertices[0];
-            XYZ topLeft = bottomFaceVertices[0];
-            XYZ bottomRight = bottomFaceVertices[0];
-            XYZ bottomLeft = bottomFaceVertices[0];
+            XYZ topRight = faceVertices[0];
+            XYZ topLeft = faceVertices[0];
+            XYZ bottomRight = faceVertices[0];
+            XYZ bottomLeft = faceVertices[0];
 
-            foreach (XYZ vertex in bottomFaceVertices)
+            foreach (XYZ vertex in faceVertices)
             {
-                //topRight = vertex.X + vertex.Y > topRight.X + topRight.Y ? vertex : topRight;
-                //bottomLeft = vertex.X + vertex.Y < bottomLeft.X + bottomLeft.Y ? vertex : bottomLeft;
-
-                //topLeft = (vertex.X + maxY - vertex.Y) < (topLeft.X + maxY - topLeft.Y) ? vertex : topLeft;
-
-                //bottomRight = (maxX - vertex.X + vertex.Y) < (maxX - bottomRight.X + bottomRight.Y) ? vertex : bottomRight;
-
-                topRight = MaxPoint(vertex, topRight, (k) => k.X + k.Z);
-                bottomLeft = MinPoint(vertex, bottomLeft, (k) => k.X + k.Z);
-                topLeft = MinPoint(vertex, topLeft, (k) => k.X + maxY - k.Z);
-                bottomRight = MinPoint(vertex, bottomRight, (k) => maxX - k.X + k.Z);
-
-
+                topRight = MaxPoint(vertex, topRight, (k) => k.X + k.Y);
+                bottomLeft = MinPoint(vertex, bottomLeft, (k) => k.X + k.Y);
+                topLeft = MinPoint(vertex, topLeft, (k) => k.X + maxY - k.Y);
+                bottomRight = MinPoint(vertex, bottomRight, (k) => maxX - k.X + k.Y);
             }
 
             List<XYZ> endpoints = new List<XYZ>
             {
-                topRight,
-                topLeft,
-                bottomRight,
-                bottomLeft,
-                topRight
+                topLeft, topRight, bottomRight, bottomLeft, topLeft
             };
 
             List<XYZ> midPoints = new List<XYZ> { };
@@ -327,10 +371,10 @@ namespace TrudeSerializer.Components
                     maxDistance = distance;
                 }
             }
-
+            double yCoordinate = isBottomProfile ? minZ : maxZ;
             foreach (XYZ point in longestCenterLine)
             {
-                double[] pointList = { point.X, point.Z, point.Y };
+                double[] pointList = { point.X, yCoordinate, point.Y };
                 centerLineInSnaptrudeUnits.Add(UnitConversion.ConvertToSnaptrudeUnitsFromFeet(pointList).ToList());
             }
 
@@ -369,20 +413,24 @@ namespace TrudeSerializer.Components
         {
             if (IsAlmostEqual(bottomProfile[0], baseLine[0], width))
             {
-                bottomProfile[0] = baseLine[0];
+                bottomProfile[0][0] = baseLine[0][0];
+                bottomProfile[0][2] = baseLine[0][2];
             }
             else if (IsAlmostEqual(bottomProfile[0], baseLine[1], width))
             {
-                bottomProfile[0] = baseLine[1];
+                bottomProfile[0][0] = baseLine[1][0];
+                bottomProfile[0][2] = baseLine[1][2];
             }
 
             if (IsAlmostEqual(bottomProfile[1], baseLine[0], width))
             {
-                bottomProfile[1] = baseLine[0];
+                bottomProfile[1][0] = baseLine[0][0];
+                bottomProfile[1][2] = baseLine[0][2];
             }
             else if (IsAlmostEqual(bottomProfile[1], baseLine[1], width))
             {
-                bottomProfile[1] = baseLine[1];
+                bottomProfile[1][0] = baseLine[1][0];
+                bottomProfile[1][2] = baseLine[1][2];
             }
 
             return bottomProfile;
@@ -391,6 +439,11 @@ namespace TrudeSerializer.Components
         private static bool IsAlmostEqual(List<double> a, List<double> b, double tolerance)
         {
             return Math.Abs(a[0] - b[0]) < tolerance && Math.Abs(a[2] - b[2]) < tolerance;
+        }
+
+        private static bool IsAlmostEqual(double a, double b, double tolerance = 1e-4)
+        {
+            return Math.Abs(a - b) < tolerance;
         }
 
         private static void GetSideProfileOfWall(Element element, double height, out List<List<double>> sideProfile, out List<List<List<double>>> voidProfiles)
@@ -435,14 +488,14 @@ namespace TrudeSerializer.Components
 
             if (sideProfilePoints.Count == 4 && curveLoops.Count == 1 && heightOfProfile == height) return;
 
-            if (curveLoops.Count == 1) return;
-
-            List<List<XYZ>> voids = GetVoidProfileFromSideProfile(wall, curveLoops, mainLoopOrientation);
-
             foreach (XYZ point in sideProfilePoints)
             {
                 sideProfile.Add(UnitConversion.ConvertToSnaptrudeUnitsFromFeet(point).ToList());
             }
+
+            if (curveLoops.Count == 1) return;
+
+            List<List<XYZ>> voids = GetVoidProfileFromSideProfile(wall, curveLoops, mainLoopOrientation);
 
             foreach (List<XYZ> voidProfile in voids)
             {
@@ -513,7 +566,8 @@ namespace TrudeSerializer.Components
                         ICollection<ElementId> generatingElementIds = wall.GetGeneratingElementIds(face);
                         if (generatingElementIds.Count == 0) continue;
                         ElementId openingId = generatingElementIds.First();
-                        if (elements.Contains(openingId.ToString())) continue;
+                        if (openingId == element.Id) continue;
+                        //if (elements.Contains(openingId.ToString())) continue;
                         Element opening = doc.GetElement(openingId);
                         if (opening == null) continue;
                         GetOpening(opening, face, out List<XYZ> faceVerticesPoints, out double height);
@@ -540,6 +594,7 @@ namespace TrudeSerializer.Components
         {
             faceVertices = new List<XYZ> { };
             height = 0;
+            if (!(face.ComputeNormal(new UV(0.5, 0.5)).Z < 0)) return;
             string[] SUPPORTED_OPENING_CATEGORIES = { "Generic Models", "Rectangular Straight Wall Opening" };
             string category = element.Category?.Name;
             if (!SUPPORTED_OPENING_CATEGORIES.Contains(category)) return;
@@ -575,7 +630,7 @@ namespace TrudeSerializer.Components
                     curtainWallInserts.AddRange(mullions);
                     curtainWallInserts.AddRange(panels);
                 }
-                if(curtainWallInserts.Count != 0)
+                if (curtainWallInserts.Count != 0)
                 {
                     inserts.Add(curtainWallInserts);
                 }
