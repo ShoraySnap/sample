@@ -88,12 +88,11 @@ begin
   InstalledVersions := TStringList.Create;
   InstalledVersionsURLs := TStringList.Create;
   for I := 0 to High(AllVersions) do
-    if DirExists(ExpandConstant('{commonpf64}\Autodesk\Revit ' + AllVersions[I])) then
-      begin
-        InstalledVersions.Add(AllVersions[I]);
-        InstalledVersionsURLs.Add(AllFileURLs[I]);
-        CheckListBoxPage.Add('Revit ' + AllVersions[I]);
-      end;
+    begin
+      InstalledVersions.Add(AllVersions[I]);
+      InstalledVersionsURLs.Add(AllFileURLs[I]);
+      CheckListBoxPage.Add('Revit ' + AllVersions[I]);
+    end;
   // Create a download page
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
 end;
