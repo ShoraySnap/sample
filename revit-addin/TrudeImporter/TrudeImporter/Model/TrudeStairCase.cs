@@ -46,6 +46,8 @@ namespace TrudeImporter
             // Parse the properties
             Storey = staircaseProps.Storey;
             UniqueId = staircaseProps.UniqueId;
+            Position = staircaseProps.Position;
+            Rotation = staircaseProps.Rotation;
             Height =  staircaseProps.Height;
             Width = staircaseProps.Width;
             Tread = staircaseProps.Tread;

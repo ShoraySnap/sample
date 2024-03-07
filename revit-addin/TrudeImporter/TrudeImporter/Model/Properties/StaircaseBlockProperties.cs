@@ -9,10 +9,10 @@ namespace TrudeImporter
         public string Type { get; set; }
 
         [JsonProperty("translation")]
-        public double[] Translation { get; set; }
+        public XYZ Translation { get; set; }
 
         [JsonProperty("rotation")]
-        public double[] Rotation { get; set; }
+        public XYZ Rotation { get; set; }
 
         [JsonProperty("extrudeHeight")]
         public double ExtrudeHeight { get; set; }

@@ -40,6 +40,12 @@ namespace TrudeImporter
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("position")]
+        public XYZ Position { get; set; }
+
+        [JsonProperty("rotation")]
+        public XYZ Rotation { get; set; }
+
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
 
