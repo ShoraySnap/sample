@@ -52,7 +52,7 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeWindow.GetSerializedComponent(serializedData, element);
             }
-            else if (TrudeGenericModel.isGenericModel(element))
+            else if (TrudeGenericModel.IsGenericModel(element))
             {
                 return TrudeGenericModel.GetSerializedComponent(serializedData, element);
             }
