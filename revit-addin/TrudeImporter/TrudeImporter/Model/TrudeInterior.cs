@@ -121,10 +121,15 @@ namespace TrudeImporter
 
             GlobalVariables.Document.Regenerate();
 
-            if (instance.Category.Name == "Casework" || instance.Category.Name == "Furniture Systems")
+            if (instance.Category.Name == "Casework")
                 instance.Location.Move(Position - boundingBoxCenter);
+            else if (instance.Category.Name == "Furniture Systems")
+            {
+                XYZ position = Position - boundingBoxCenter;
+                instance.Location.Move(new XYZ(position.X, position.Y, 0));
+            }
             else
-                instance.Location.Move(positionRelativeToLevel);
+            instance.Location.Move(positionRelativeToLevel);
 
             element = instance;
         }
