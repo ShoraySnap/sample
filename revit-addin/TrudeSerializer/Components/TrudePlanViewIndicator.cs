@@ -106,6 +106,11 @@ namespace TrudeSerializer.Components
                 view = doc.ActiveView;
             }
 
+            if(view == null)
+            {
+                view = doc.ActiveView;
+            }
+
             Options options = new Options
             {
                 View = view
