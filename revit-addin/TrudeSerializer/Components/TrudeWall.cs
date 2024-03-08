@@ -25,7 +25,7 @@ namespace TrudeSerializer.Components
         public double[] center;
         private bool isCurvedWall;
 
-        private TrudeWall(string elementId, string level, string wallType, double width, double height, string family, bool function, double[] orientation, List<List<double>> endpoints, bool isCurvedWall) : base(elementId, "Walls", family, level)
+        private TrudeWall(string elementId, string level, string wallType, double width, double height, string family, bool function, double[] orientation, List<List<double>> endpoints, bool isCurvedWall) : base(elementId, "Wall", family, level)
         {
             this.type = wallType;
             this.width = width;
@@ -36,7 +36,7 @@ namespace TrudeSerializer.Components
             this.isCurvedWall = isCurvedWall;
         }
 
-        private TrudeWall(string elementId) : base(elementId, "Walls", "", "")
+        private TrudeWall(string elementId) : base(elementId, "Wall", "", "")
         {
             this.elementId = elementId;
         }
@@ -69,8 +69,10 @@ namespace TrudeSerializer.Components
 
         public static TrudeWall GetDefaultTrudeWall()
         {
-            TrudeWall wall = new TrudeWall("-1");
-            wall.isParametric = false;
+            TrudeWall wall = new TrudeWall("-1")
+            {
+                isParametric = false
+            };
             return wall;
         }
 
@@ -130,8 +132,16 @@ namespace TrudeSerializer.Components
                 serializedWall.SetSideProfile(sideProfile, voidProfiles);
                 return serializedWall;
             }
+            bool isNonParametric = false;
+            try
+            {
+                isNonParametric = MarkNonParametericBasedOnSideProfile(wall);
 
-            bool isNonParametric = MarkNonParametericBasedOnSideProfile(wall);
+            }
+            catch (Exception e)
+            {
+                isNonParametric = true;
+            }
             if (isNonParametric)
             {
                 double[] center = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(GetCenterFromBoundingBox(element));
@@ -565,12 +575,15 @@ namespace TrudeSerializer.Components
 
                         ICollection<ElementId> generatingElementIds = wall.GetGeneratingElementIds(face);
                         if (generatingElementIds.Count == 0) continue;
+
                         ElementId openingId = generatingElementIds.First();
+                        string openingIdString = openingId.ToString();
                         if (openingId == element.Id) continue;
-                        //if (elements.Contains(openingId.ToString())) continue;
+                        if (elements.Contains(openingIdString)) continue;
                         Element opening = doc.GetElement(openingId);
                         if (opening == null) continue;
-                        GetOpening(opening, face, out List<XYZ> faceVerticesPoints, out double height);
+
+                        GetOpening(opening, face, out List<XYZ> faceVerticesPoints);
                         if (faceVerticesPoints.Count == 0) continue;
 
                         bool orientation = face.ComputeNormal(new UV(0.5, 0.5)).Z > 0;
@@ -580,9 +593,22 @@ namespace TrudeSerializer.Components
                         {
                             faceVertices.Add(UnitConversion.ConvertToSnaptrudeUnitsFromFeet(point).ToList());
                         }
-                        elements.Add(openingId.ToString());
 
-                        trudeWallOpenings.Add(new TrudeWallOpening(faceVertices, UnitConversion.ConvertToSnaptrudeUnitsFromFeet(height), normal));
+                        int index = TrudeWallOpening.GetTrudeWallOpeningFromId(trudeWallOpenings, openingIdString);
+
+                        if (index != -1)
+                        {
+                            TrudeWallOpening trudeWallOpening = trudeWallOpenings[index];
+                            if (trudeWallOpening.normal != normal)
+                            {
+                                trudeWallOpening.CalculateHeight(faceVertices);
+                                elements.Add(openingIdString);
+                            }
+                        }
+                        else
+                        {
+                            trudeWallOpenings.Add(new TrudeWallOpening(openingIdString, faceVertices, normal));
+                        }
                     }
                 }
             }
@@ -590,17 +616,15 @@ namespace TrudeSerializer.Components
             return trudeWallOpenings;
         }
 
-        private static void GetOpening(Element element, Face face, out List<XYZ> faceVertices, out double height)
+        private static void GetOpening(Element element, Face face, out List<XYZ> faceVertices)
         {
             faceVertices = new List<XYZ> { };
-            height = 0;
-            if (!(face.ComputeNormal(new UV(0.5, 0.5)).Z < 0)) return;
+            if (!(face.ComputeNormal(new UV(0.5, 0.5)).Z < 0) || (face.ComputeNormal(new UV(0.5, 0.5)).Z > 0)) return;
             string[] SUPPORTED_OPENING_CATEGORIES = { "Generic Models", "Rectangular Straight Wall Opening" };
             string category = element.Category?.Name;
             if (!SUPPORTED_OPENING_CATEGORIES.Contains(category)) return;
 
             faceVertices = GetFaceVerticesFromFace(face);
-            height = GetHeightFromBoundingBox(element);
         }
 
         private static List<List<string>> GetWallInserts(Wall wall)
@@ -643,14 +667,28 @@ namespace TrudeSerializer.Components
     class TrudeWallOpening
     {
         public List<List<double>> faceVertices;
+        private string elementId;
         public double height;
         public List<double> normal;
 
-        public TrudeWallOpening(List<List<double>> faceVertices, double height, List<double> normal)
+        public TrudeWallOpening(string elementId, List<List<double>> faceVertices, List<double> normal)
         {
+            this.elementId = elementId;
             this.faceVertices = faceVertices;
-            this.height = height;
             this.normal = normal;
+        }
+
+        public static int GetTrudeWallOpeningFromId(List<TrudeWallOpening> openings, string elementId)
+        {
+            int index = openings.FindIndex(opening => opening.elementId == elementId);
+            return index;
+        }
+
+        public void CalculateHeight(List<List<double>> faceVertices)
+        {
+            double maxZ = faceVertices.Max(point => point[2]);
+            double maxZFromCurrentFaceVertices = this.faceVertices.Max(point => point[2]);
+            this.height = Math.Abs(maxZ - maxZFromCurrentFaceVertices);
         }
     }
 }
