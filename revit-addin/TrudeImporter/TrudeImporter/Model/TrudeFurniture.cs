@@ -319,6 +319,7 @@ namespace TrudeImporter
                         //String familyName = st_interior.Name.RemoveIns();
                         String familyName = st_interior.FamilyName;
                         if (familyName is null) familyName = st_interior.FamilyTypeName;
+                        if (familyName is null) familyName = furnitureProps.Name;
 
                         FamilySymbol defaultFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
                         //FamilySymbol defaultFamilySymbol = ST_Abstract.GetFamilySymbolByName(GlobalVariables.Document, "Casework Assembly", "Casework 044");

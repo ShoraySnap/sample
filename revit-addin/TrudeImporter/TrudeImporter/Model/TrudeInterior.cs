@@ -104,7 +104,7 @@ namespace TrudeImporter
                 originOffset = offsetRotationTransform.OfPoint(-originOffset);
 
             Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
-            if (instance.Category.Name == "Casework")
+            if (instance.Category.Name == "Casework" || instance.Category.Name == "Furniture Systems")
                 rotationAxis = Line.CreateBound(boundingBoxCenter, boundingBoxCenter + XYZ.BasisZ);
 
             instance.Location.Rotate(rotationAxis, -Rotation.Z);
@@ -123,8 +123,13 @@ namespace TrudeImporter
 
             if (instance.Category.Name == "Casework")
                 instance.Location.Move(Position - boundingBoxCenter);
+            else if (instance.Category.Name == "Furniture Systems")
+            {
+                XYZ position = Position - boundingBoxCenter;
+                instance.Location.Move(new XYZ(position.X, position.Y, 0));
+            }
             else
-                instance.Location.Move(positionRelativeToLevel);
+            instance.Location.Move(positionRelativeToLevel);
 
             element = instance;
         }
