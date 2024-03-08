@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using System.Linq;
 using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Importer
@@ -16,6 +17,22 @@ namespace TrudeSerializer.Importer
                     instance = new ComponentHandler();
                 }
                 return instance;
+            }
+        }
+
+        public void AddLevelsToSerializedData(SerializedTrudeData serializedData, Document doc)
+        {
+            foreach (Level level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>())
+            {
+                if(level == null)
+                {
+                    continue;
+                }
+                TrudeLevel levelComponent = TrudeLevel.GetSerializedComponent(level);
+                if(levelComponent.elementId != "-1")
+                {
+                    serializedData.AddLevel(levelComponent);
+                }
             }
         }
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)

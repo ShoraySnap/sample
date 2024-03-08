@@ -59,6 +59,7 @@ namespace TrudeSerializer
 
         void IExportContext.Finish()
         {
+            ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
 
