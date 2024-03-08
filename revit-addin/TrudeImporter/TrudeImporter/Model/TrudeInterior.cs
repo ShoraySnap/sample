@@ -114,22 +114,17 @@ namespace TrudeImporter
             else
                 instance.Location.Rotate(rotationAxis, familyRotation);
 
-            XYZ positionRelativeToLevel = new XYZ(
-                Position.X - originOffset.X,
-                Position.Y - originOffset.Y,
-                Position.Z - level.ProjectElevation);
+            XYZ positionRelativeToLevel = new XYZ(Position.X - originOffset.X, Position.Y - originOffset.Y, 0);
 
             GlobalVariables.Document.Regenerate();
 
-            if (instance.Category.Name == "Casework")
-                instance.Location.Move(Position - boundingBoxCenter);
-            else if (instance.Category.Name == "Furniture Systems")
+            if (instance.Category.Name == "Casework" || instance.Category.Name == "Furniture Systems")
             {
                 XYZ position = Position - boundingBoxCenter;
                 instance.Location.Move(new XYZ(position.X, position.Y, 0));
             }
             else
-            instance.Location.Move(positionRelativeToLevel);
+                instance.Location.Move(positionRelativeToLevel);
 
             element = instance;
         }
