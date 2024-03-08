@@ -20,6 +20,7 @@ namespace TrudeSerializer.Types
 
         static public TrudeCeilingType GetLayersData(Ceiling ceiling)
         {
+            string category = "Ceilings";
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
             var elemType = document.GetElement(ceiling.GetTypeId()) as CeilingType;
@@ -31,11 +32,11 @@ namespace TrudeSerializer.Types
                 ICollection<ElementId> materialIds = ceiling.GetMaterialIds(false);
                 if(materialIds.Count == 0)
                 {
-                    snaptrudeMaterial = TrudeMaterial.GetMaterial(null);
+                    snaptrudeMaterial = TrudeMaterial.GetMaterial(null, category);
                 }
                 else
                 {
-                    snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material);
+                    snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material, category);
                 }
 
                 TrudeLayer Snaptrudelayer = new TrudeLayer(DEFAULT_LAYER_WIDTH, DEFAULT_LAYER_FUNCTION, snaptrudeMaterial);
@@ -51,7 +52,7 @@ namespace TrudeSerializer.Types
 
                     Material material = document.GetElement(layer.MaterialId) as Material;
 
-                    TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material);
+                    TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, category);
 
                     TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 

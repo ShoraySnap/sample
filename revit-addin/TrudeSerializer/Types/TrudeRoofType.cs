@@ -16,6 +16,7 @@ namespace TrudeSerializer.Types
 
         static public TrudeRoofType GetLayersData(Element ceiling)
         {
+            string category = "Roofs";
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
             var elemType = document.GetElement(ceiling.GetTypeId()) as CeilingType;
@@ -29,7 +30,7 @@ namespace TrudeSerializer.Types
 
                 Material material = document.GetElement(layer.MaterialId) as Material;
 
-                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material);
+                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, category);
 
                 TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 
