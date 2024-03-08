@@ -59,12 +59,16 @@ namespace TrudeSerializer.Components
         static public double GetHeight(Element element)
         {
             double height = GetDimensionValue(element, BuiltInParameter.DOOR_HEIGHT, "WW-Height");
+            if (height == 0)
+            {
+                height = GetParameterValueOrDefault(element, "Height");
+            }
             return height;
         }
 
         static public double GetLength(Element element)
         {
-            double length = GetDimensionValue(element, "height", "WW-Height");
+            double length = GetDimensionValue(element, "Length", "WW-Length");
             return length;
         }
 
@@ -149,7 +153,7 @@ namespace TrudeSerializer.Components
             {
                 if (element is FamilyInstance familyInstance)
                 {
-                    family = familyInstance.Symbol.FamilyName;
+                    family = familyInstance?.Symbol?.FamilyName;
                 }
             }
             catch (Exception e)
@@ -178,7 +182,7 @@ namespace TrudeSerializer.Components
 
         static public List<double> GetPosition(Element element)
         {
-            if (element.Category.Name == "Doors")
+            if (TrudeDoor.IsDoor(element))
             {
                 XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
