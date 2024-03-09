@@ -50,6 +50,13 @@ namespace TrudeImporter
 
             idToElement = new Dictionary<String, Element>();
             idToFamilySymbol = new Dictionary<String, FamilySymbol>();
+
+            MissingDoorFamiliesCount = new Dictionary<string, (bool, int, string)>();
+            MissingWindowFamiliesCount = new Dictionary<string, (bool, int, string)>();
+            MissingFurnitureFamiliesCount = new Dictionary<string, (bool, int, string)>();
+            MissingDoorIndexes = new List<int>();
+            MissingWindowIndexes = new List<int>();
+            MissingFurnitureIndexes = new List<int>();
         }
 
         public static string sanitizeString(string str)
