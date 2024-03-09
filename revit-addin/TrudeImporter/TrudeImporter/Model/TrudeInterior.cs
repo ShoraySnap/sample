@@ -25,6 +25,7 @@ namespace TrudeImporter
         public String FamilyName;
         public String FamilyTypeName;
         public XYZ CenterPosition;
+        public XYZ WorldBoundingBoxMin;
 
         public TrudeInterior(FurnitureProperties furnitureProperties)
         {
@@ -37,6 +38,7 @@ namespace TrudeImporter
             FamilyName = furnitureProperties.RevitFamilyName;
             FamilyTypeName = furnitureProperties.RevitFamilyType;
             localBaseZ = furnitureProperties.WorldBoundingBoxMin.Z - furnitureProperties.CenterPosition.Z;
+            WorldBoundingBoxMin = furnitureProperties.WorldBoundingBoxMin;
         }
 
         public Parameter GetOffsetParameter(FamilyInstance instance)
@@ -114,14 +116,15 @@ namespace TrudeImporter
             else
                 instance.Location.Rotate(rotationAxis, familyRotation);
 
-            XYZ positionRelativeToLevel = new XYZ(Position.X - originOffset.X, Position.Y - originOffset.Y, 0);
+            double zValue = WorldBoundingBoxMin.Z - Position.Z < -0.5 ? WorldBoundingBoxMin.Z - level.ProjectElevation : Position.Z - level.ProjectElevation;
+            XYZ positionRelativeToLevel = new XYZ(Position.X - originOffset.X, Position.Y - originOffset.Y, zValue);
 
             GlobalVariables.Document.Regenerate();
 
             if (instance.Category.Name == "Casework" || instance.Category.Name == "Furniture Systems")
             {
                 XYZ position = Position - boundingBoxCenter;
-                instance.Location.Move(new XYZ(position.X, position.Y, 0));
+                instance.Location.Move(new XYZ(position.X, position.Y, zValue));
             }
             else
                 instance.Location.Move(positionRelativeToLevel);
