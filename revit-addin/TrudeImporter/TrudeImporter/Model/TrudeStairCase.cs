@@ -143,7 +143,8 @@ namespace TrudeImporter
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine( ex.ToString());
+                            //System.Diagnostics.Debug.WriteLine( ex.ToString());
+                            System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead.");
                             CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
                         }
                     }
@@ -218,13 +219,7 @@ namespace TrudeImporter
             startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
             endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
 
-            
-            
             XYZ direction = (endPoint - startPoint).Normalize();
-            Line geomLine = Line.CreateBound(startPoint, endPoint);
-            SketchPlane sketchPlane = SketchPlane.Create(doc, level.Id);
-            //ModelCurve modelCurve = doc.Create.NewModelCurve(geomLine, sketchPlane);
-
             double width = this.Width;
             double supportOffset = 0;
             double xDiff = Math.Abs(startPoint.X - endPoint.X);
@@ -238,7 +233,6 @@ namespace TrudeImporter
             {
                 supportOffset = xDiff%width;
             }
-            System.Diagnostics.Debug.WriteLine("supportOffset: " + supportOffset);
             double angleRadians = Math.PI / 4;
             XYZ rotatedDirectionCW = new XYZ(
                 direction.X * Math.Cos(angleRadians) + direction.Y * Math.Sin(angleRadians),
@@ -255,10 +249,6 @@ namespace TrudeImporter
             // straightDirection = new XYZ(Math.Round(rotatedDirectionCW.X, 2), Math.Round(rotatedDirectionCW.Y, 2), 0);
             // perpendicularDirection = new XYZ(Math.Round(rotatedDirectionCCW.X, 2), Math.Round(rotatedDirectionCCW.Y, 2), 0);
             
-            System.Diagnostics.Debug.WriteLine("rotatedDirectionCW: " + rotatedDirectionCW);
-            System.Diagnostics.Debug.WriteLine("rotatedDirectionCCW: " + rotatedDirectionCCW);
-
-            XYZ offsetVectorCW = straightDirection * width - new XYZ(0, supportOffset, 0);
             XYZ offsetVectorCCW = perpendicularDirection * width ;
 
             XYZ corner1 = startPoint;
@@ -270,10 +260,9 @@ namespace TrudeImporter
             XYZ adjustedCorner3 = corner3 - adjustmentVector;
             XYZ adjustedCorner4 = corner4 - adjustmentVector;
             
+            XYZ adjustmentVector2 = perpendicularDirection * supportOffset * 0.995;
             
-            XYZ adjustmentVector2 = perpendicularDirection * supportOffset;
-            
-            XYZ adjustedCorner2 = corner2 + adjustmentVector2;
+            XYZ adjustedCorner2 = corner2 + adjustmentVector2 ;
             XYZ adjustedCorner1 = corner1 + adjustmentVector2;
             
             CurveLoop landingLoop = new CurveLoop();
