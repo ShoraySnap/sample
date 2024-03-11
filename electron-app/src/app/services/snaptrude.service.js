@@ -113,14 +113,25 @@ const snaptrudeService = (function () {
 
   const checkModelUrl = async function (floorkey) {
     const accessToken = sessionData.getUserData()["accessToken"];
+    const userData = sessionData.getUserData();
     const data = {
-      user: sessionData.getUserData(),
+      user: {
+        id: userData.userId,
+        name: userData.fullname,
+        accessToken: userData.accessToken,
+        refreshToken: userData.refreshToken,
+        email: userData.email,
+      },
       floorkey: floorkey,
       jwt: accessToken,
     };
-    const response = await _callApi("/checkEditPermission/", RequestType.POST, data);
-    return (response?.status === 200);
-  }
+    const response = await _callApi(
+      "/checkEditPermission/",
+      RequestType.POST,
+      data
+    );
+    return response?.status === 200;
+  };
 
   const createProject = async function () {
     logger.log("Creating Snaptrude project");
@@ -231,7 +242,7 @@ const snaptrudeService = (function () {
     return validTeams;
   };
 
-  const checkIfUserLoggedIn = async function (){
+  const checkIfUserLoggedIn = async function () {
     const accessToken = sessionData.getUserData()["accessToken"];
     const refreshToken = sessionData.getUserData()["refreshToken"];
 
@@ -249,7 +260,7 @@ const snaptrudeService = (function () {
       return true;
     }
     return false;
-  }
+  };
 
   const checkPersonalWorkspaces = async function () {
     const endPoint = "/payments/ispro";
@@ -352,7 +363,7 @@ const snaptrudeService = (function () {
     checkIfProUser,
     getFolders,
     checkIfUserLoggedIn,
-    checkModelUrl
+    checkModelUrl,
   };
 })();
 
