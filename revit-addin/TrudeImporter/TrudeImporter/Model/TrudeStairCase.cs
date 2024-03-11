@@ -141,9 +141,9 @@ namespace TrudeImporter
                         {
                             StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine("Landing creation failed");
+                            System.Diagnostics.Debug.WriteLine( ex.ToString());
                             CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
                         }
                     }
@@ -218,12 +218,27 @@ namespace TrudeImporter
             startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
             endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
 
+            
+            
             XYZ direction = (endPoint - startPoint).Normalize();
             Line geomLine = Line.CreateBound(startPoint, endPoint);
             SketchPlane sketchPlane = SketchPlane.Create(doc, level.Id);
             //ModelCurve modelCurve = doc.Create.NewModelCurve(geomLine, sketchPlane);
 
             double width = this.Width;
+            double supportOffset = 0;
+            double xDiff = Math.Abs(startPoint.X - endPoint.X);
+            double yDiff = Math.Abs(startPoint.Y - endPoint.Y);
+            
+            if  (xDiff > yDiff)
+            {
+                supportOffset = yDiff%width;
+            }
+            else
+            {
+                supportOffset = xDiff%width;
+            }
+            System.Diagnostics.Debug.WriteLine("supportOffset: " + supportOffset);
             double angleRadians = Math.PI / 4;
             XYZ rotatedDirectionCW = new XYZ(
                 direction.X * Math.Cos(angleRadians) + direction.Y * Math.Sin(angleRadians),
@@ -234,11 +249,11 @@ namespace TrudeImporter
                 direction.X * Math.Sin(angleRadians) + direction.Y * Math.Cos(angleRadians),
                 0);
 
-            XYZ offsetVectorCW = rotatedDirectionCW.Normalize() * width;
-            XYZ offsetVectorCCW = rotatedDirectionCCW.Normalize() * width;
+            XYZ offsetVectorCW = rotatedDirectionCW.Normalize() * width- new XYZ(0, supportOffset, 0);
+            XYZ offsetVectorCCW = rotatedDirectionCCW.Normalize() * width - new XYZ(0, supportOffset, 0);
 
             XYZ corner1 = startPoint;
-            XYZ corner2 = startPoint + offsetVectorCCW; 
+            XYZ corner2 = startPoint + offsetVectorCCW ; 
             XYZ corner3 = endPoint;
             XYZ corner4 = endPoint - offsetVectorCCW;
 
