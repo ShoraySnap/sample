@@ -76,7 +76,7 @@
 		<Reference Include="PresentationCore" />
 		<Reference Include="PresentationFramework" />
 		<Reference Include="Revit.IFC.Export">
-		  <HintPath>lib\IFC\2024\Revit.IFC.Export.dll</HintPath>
+		  <HintPath>lib\IFC\$(RevitVersion)\Revit.IFC.Export.dll</HintPath>
 		</Reference>
 		<Reference Include="System" />
 		<Reference Include="System.Data" />
