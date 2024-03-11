@@ -36,7 +36,11 @@ namespace TrudeImporter
 
             foreach (Parameter parameter in instance.GetOrderedParameters())
             {
+#if REVIT2019 || REVIT2020 || REVIT2021
                 if (parameter.Definition.ParameterType != ParameterType.Length) continue;
+#else
+                if (parameter.Definition.GetDataType() != SpecTypeId.Length) continue;
+#endif
                 if (parameter.IsReadOnly) continue;
 
                 if (parameter.AsDouble().AlmostEquals(width, 0.5))

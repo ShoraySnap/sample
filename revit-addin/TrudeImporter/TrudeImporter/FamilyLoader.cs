@@ -9,72 +9,28 @@ namespace TrudeImporter
     public class FamilyLoader
     {
         public static Dictionary<string, Family> LoadedFamilies = new Dictionary<string, Family>();
-
-        public static Family LoadCustomFamily(String familyName)
+        public enum FamilyFolder
         {
-            if (LoadedFamilies.ContainsKey(familyName))
-            {
-                return LoadedFamilies[familyName];
-            }
-
-            try
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/{familyName}.rfa";
-
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
-
-                LoadedFamilies.Add(familyName, family);
-
-                return family;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
+            Doors,
+            Windows,
+            Beams,
+            Columns,
+            Furniture
         }
-        public static Family LoadCustomDoorFamily(String familyName)
+        public static Family LoadCustomFamily(string familyName, FamilyFolder folder)
         {
             if (LoadedFamilies.ContainsKey(familyName))
             {
                 return LoadedFamilies[familyName];
             }
-
             try
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
                 string filePath = GlobalVariables.ForForge
-                    ? $"resourceFile/Doors/{familyName}.rfa"
-                    : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Doors/{familyName}.rfa";
-
-                Utils.LogTrace(filePath);
-
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
-
-                LoadedFamilies.Add(familyName, family);
-
-                return family;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-        public static Family LoadCustomWindowFamily(String familyName)
-        {
-            if (LoadedFamilies.ContainsKey(familyName))
-            {
-                return LoadedFamilies[familyName];
-            }
-
-            try
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-                string filePath = GlobalVariables.ForForge 
                     ? $"resourceFile/Windows/{familyName}.rfa"
-                    : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/Windows/{familyName}.rfa";
+                    : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/{folder}/{familyName}.rfa";
 
-                GlobalVariables.Document.LoadFamily(filePath, out Family family);
+                GlobalVariables.Document.LoadFamily(filePath, new FamilyLoadOptions(), out Family family);
 
                 LoadedFamilies.Add(familyName, family);
 
@@ -85,6 +41,26 @@ namespace TrudeImporter
                 return null;
             }
         }
+        class FamilyLoadOptions : IFamilyLoadOptions
+        {
+            public bool OnFamilyFound(bool familyInUse,
+              out bool overwriteParameterValues)
+            {
+                overwriteParameterValues = true;
+                return true;
+            }
 
+            public bool OnSharedFamilyFound(
+              Family sharedFamily,
+              bool familyInUse,
+              out FamilySource source,
+              out bool overwriteParameterValues)
+            {
+                source = FamilySource.Family;
+                overwriteParameterValues = true;
+                return true;
+            }
+
+        }
     }
 }

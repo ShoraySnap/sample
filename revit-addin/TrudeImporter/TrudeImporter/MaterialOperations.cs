@@ -19,6 +19,8 @@ namespace MaterialOperations
             Dictionary<string, Material> materialsDict = new FilteredElementCollector(doc)
                 .OfClass(typeof(Material))
                 .Cast<Material>()
+                .GroupBy(x => x.Name)
+                .Select(x => x.First())
                 .ToDictionary(mat => mat.Name.ToLower(), mat => mat);
 
             if (materialsDict.TryGetValue(matname, out Material existingMaterial))
