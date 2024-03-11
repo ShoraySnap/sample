@@ -248,21 +248,40 @@ namespace TrudeImporter
                 direction.X * Math.Cos(angleRadians) - direction.Y * Math.Sin(angleRadians),
                 direction.X * Math.Sin(angleRadians) + direction.Y * Math.Cos(angleRadians),
                 0);
+            XYZ straightDirection = rotatedDirectionCW.Normalize() ;
+            XYZ perpendicularDirection = rotatedDirectionCCW.Normalize() ;
+            
+            
+            // straightDirection = new XYZ(Math.Round(rotatedDirectionCW.X, 2), Math.Round(rotatedDirectionCW.Y, 2), 0);
+            // perpendicularDirection = new XYZ(Math.Round(rotatedDirectionCCW.X, 2), Math.Round(rotatedDirectionCCW.Y, 2), 0);
+            
+            System.Diagnostics.Debug.WriteLine("rotatedDirectionCW: " + rotatedDirectionCW);
+            System.Diagnostics.Debug.WriteLine("rotatedDirectionCCW: " + rotatedDirectionCCW);
 
-            XYZ offsetVectorCW = rotatedDirectionCW.Normalize() * width- new XYZ(0, supportOffset, 0);
-            XYZ offsetVectorCCW = rotatedDirectionCCW.Normalize() * width - new XYZ(0, supportOffset, 0);
+            XYZ offsetVectorCW = straightDirection * width - new XYZ(0, supportOffset, 0);
+            XYZ offsetVectorCCW = perpendicularDirection * width ;
 
             XYZ corner1 = startPoint;
             XYZ corner2 = startPoint + offsetVectorCCW ; 
             XYZ corner3 = endPoint;
             XYZ corner4 = endPoint - offsetVectorCCW;
-
+            
+            XYZ adjustmentVector = straightDirection * supportOffset;
+            XYZ adjustedCorner3 = corner3 - adjustmentVector;
+            XYZ adjustedCorner4 = corner4 - adjustmentVector;
+            
+            
+            XYZ adjustmentVector2 = perpendicularDirection * supportOffset;
+            
+            XYZ adjustedCorner2 = corner2 + adjustmentVector2;
+            XYZ adjustedCorner1 = corner1 + adjustmentVector2;
+            
             CurveLoop landingLoop = new CurveLoop();
 
-            landingLoop.Append(Line.CreateBound(corner1, corner4));
-            landingLoop.Append(Line.CreateBound(corner4, corner3));
-            landingLoop.Append(Line.CreateBound(corner3, corner2));
-            landingLoop.Append(Line.CreateBound(corner2, corner1));
+            landingLoop.Append(Line.CreateBound(adjustedCorner1, adjustedCorner4));
+            landingLoop.Append(Line.CreateBound(adjustedCorner4, adjustedCorner3));
+            landingLoop.Append(Line.CreateBound(adjustedCorner3, adjustedCorner2));
+            landingLoop.Append(Line.CreateBound(adjustedCorner2, adjustedCorner1));
 
             StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, landingLoop, elevation);
 
