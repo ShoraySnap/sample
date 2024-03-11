@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import snaptrudeService from "../../services/snaptrude.service";
-import {
-  ROUTES,
-} from "../constants";
+import { ROUTES } from "../constants";
 import styled from "styled-components";
 import { colors } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
@@ -39,9 +37,7 @@ const WorkspacesGrid = styled.div`
   align-items: center;
 `;
 
-
-const ModelValidator = ({
-}) => {
+const ModelValidator = ({}) => {
   const navigate = useNavigate();
 
   const onBack = () => {
@@ -52,7 +48,10 @@ const ModelValidator = ({
     window.electronAPI.uploadToExistingProject(modelCode);
 
     if (modelCode) {
-      RouteStore.set("projectLink", urls.get("snaptrudeReactUrl") + "/model/" + modelCode);
+      RouteStore.set(
+        "projectLink",
+        urls.get("snaptrudeReactUrl") + "/model/" + modelCode
+      );
     } else {
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
@@ -65,7 +64,7 @@ const ModelValidator = ({
 
   const heading = `Enter Model Link`;
 
-  const [errorMessage, setErrorMessage] = useState('\u3000');
+  const [errorMessage, setErrorMessage] = useState("\u3000");
   const [modelCode, setModelCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
@@ -73,14 +72,13 @@ const ModelValidator = ({
   const handleInputChange = (event) => {
     event.target.value = event.target.value.toUpperCase();
     const newText = event.target.value;
-    setErrorMessage('\u3000');
+    setErrorMessage("\u3000");
     setIsDisabled(true);
     setModelCode(newText);
 
     if (newText.length == 6) {
       setIsLoading(true);
-    }
-    else {
+    } else {
       setIsLoading(false);
     }
   };
@@ -88,16 +86,15 @@ const ModelValidator = ({
   const checkUrl = async () => {
     const isUrlValid = await snaptrudeService.checkModelUrl(modelCode);
     return isUrlValid;
-  }
+  };
 
   useEffect(() => {
     setIsLoading(false);
-    if(modelCode.length != 6) return;
+    if (modelCode.length != 6) return;
     checkUrl().then((isUrlValid) => {
       if (isUrlValid) {
         setIsDisabled(false);
-      }
-      else {
+      } else {
         setErrorMessage("Invalid model link");
       }
     });
@@ -108,16 +105,16 @@ const ModelValidator = ({
       <div className="content">
         <p>{heading}</p>
         <WorkspacesGrid>
-          <div/>
-          <p>http://localhost:3000/model/</p>
-          <input 
-            style={{lineHeight:"1.6rem"}} 
+          <div />
+          <p>{urls.get("snaptrudeReactUrl")}/model/</p>
+          <input
+            style={{ lineHeight: "1.6rem" }}
             placeholder="ADV4T7"
             onChange={handleInputChange}
             maxLength="6"
           />
         </WorkspacesGrid>
-        <p style={{fontSize:"12px", color:"red"}}>{errorMessage}</p>
+        <p style={{ fontSize: "12px", color: "red" }}>{errorMessage}</p>
       </div>
       <footer>
         <div className="button-wrapper">
