@@ -111,7 +111,7 @@ namespace SnaptrudeManagerAddin
             };
             serializer.Converters.Add(new XyzConverter());
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
-            //_ = new FetchTextures.FetchTextures();
+            _ = new FetchTextures.FetchTextures();
             deleteRemovedElements(trudeProperties.DeletedElements);
 
             TrudeImporterMain.Import(trudeProperties);

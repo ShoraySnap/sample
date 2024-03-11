@@ -152,6 +152,7 @@ namespace TrudeImporter.TrudeImporter.Model
             {
                 FurnitureProperties furniture = furnitureProps[index];
                 string furnitureName = furniture.RevitFamilyName;
+                if (furnitureName == null) furnitureName = furniture.Name;
                 if (GlobalVariables.MissingFurnitureFamiliesCount[furnitureName].IsChecked)
                 {
                     using (SubTransaction t = new SubTransaction(GlobalVariables.Document))

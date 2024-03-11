@@ -1,4 +1,5 @@
 using Autodesk.Revit.UI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -270,34 +271,47 @@ namespace SnaptrudeManagerAddin
         public void AutomaticLinking()
         {
             System.Diagnostics.Debug.WriteLine("Automatic Linking");
-            TryLinkFamilyFiles(missingDoorFamiliesCount);
-            TryLinkFamilyFiles(missingWindowFamiliesCount);
-            TryLinkFamilyFiles(missingFurnitureFamiliesCount);
+            var filesInDirectory = Directory.EnumerateFiles(MissingFamiliesFolderPath, "*.rfa", SearchOption.AllDirectories)
+                .ToDictionary(fileName => fileName.Split('\\').Last().Replace("_", "").Replace("-", "").Replace(" ", ""));
+            TryLinkFamilyFiles(missingDoorFamiliesCount, filesInDirectory);
+            TryLinkFamilyFiles(missingWindowFamiliesCount, filesInDirectory);
+            TryLinkFamilyFiles(missingFurnitureFamiliesCount, filesInDirectory);
         }
-        public void TryLinkFamilyFiles(IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> familyDict)
+        public void TryLinkFamilyFiles(IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> familyDict, Dictionary<string, string> filesInDirectory)
         {
-            string folderPath = MissingFamiliesFolderPath;
-            List<string> keysToUpdate = new List<string>();
+            List<(string Key, string FileName)> keysToUpdate = new List<(string, string)>();
 
             foreach (var item in familyDict)
             {
                 if (!item.Value.IsChecked) continue; // Skip unchecked items
 
                 string expectedFileName = item.Key + ".rfa";
-                string fullPath = Path.Combine(folderPath, expectedFileName);
+                string fullPath = Path.Combine(MissingFamiliesFolderPath, expectedFileName);
 
                 if (File.Exists(fullPath))
                 {
-                    keysToUpdate.Add(item.Key);
+                    keysToUpdate.Add((item.Key, item.Key + ".rfa"));
+                }
+                else
+                {
+                    string expectedFileNameWithoutUnderscoreSpacesOrDashes = item.Key.Replace("_", "").Replace("-", "").Replace(" ", "") + ".rfa";
+
+                    var filesWithSameName = filesInDirectory
+                        .Where(dict => dict.Key == expectedFileNameWithoutUnderscoreSpacesOrDashes);
+
+                    if (filesWithSameName.Any())
+                    {
+                        keysToUpdate.Add((item.Key, filesWithSameName.First().Value));
+                    }
                 }
             }
 
             // Update dictionary entries with found paths
-            foreach (var key in keysToUpdate)
+            foreach ((string Key, string FileName) tuple in keysToUpdate)
             {
-                var value = familyDict[key];
-                MissingFamilyViewModels.First(x => x.FamilyName == key).FamilyPath = Path.Combine(folderPath, key + ".rfa");
-                familyDict[key] = (value.IsChecked, value.NumberOfElements, Path.Combine(folderPath, key + ".rfa"));
+                var value = familyDict[tuple.Key];
+                MissingFamilyViewModels.First(x => x.FamilyName == tuple.Key).FamilyPath = Path.Combine(MissingFamiliesFolderPath, tuple.FileName);
+                familyDict[tuple.Key] = (value.IsChecked, value.NumberOfElements, Path.Combine(MissingFamiliesFolderPath, tuple.FileName));
             }
         }
         public void LinkFolder()

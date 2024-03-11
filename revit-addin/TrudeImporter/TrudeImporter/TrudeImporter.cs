@@ -35,7 +35,7 @@ namespace TrudeImporter
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);
-            ReconcileFurniture(trudeProperties.Furniture);
+            ImportFurniture(trudeProperties.Furniture);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
                 ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture);
         }
@@ -192,6 +192,7 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
+            if (!propsList.Any()) return;
             GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
             GlobalVariables.Transaction.Start();
             TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
@@ -252,6 +253,7 @@ namespace TrudeImporter
 
         private static void ImportBeams(List<BeamProperties> propsList)
         {
+            if (!propsList.Any()) return;
             GlobalVariables.Transaction.Commit();
 
             foreach (var beam in propsList)
@@ -457,7 +459,7 @@ namespace TrudeImporter
             }
         }
 
-        private static void ReconcileFurniture(List<FurnitureProperties> propsList)
+        private static void ImportFurniture(List<FurnitureProperties> propsList)
         {
             List<ElementId> sourceIdsToDelete = new List<ElementId>();
             foreach (var (furniture, index) in propsList.WithIndex())
