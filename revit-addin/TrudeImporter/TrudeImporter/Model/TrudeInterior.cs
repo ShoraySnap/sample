@@ -65,14 +65,18 @@ namespace TrudeImporter
             }
         }
 
-        public void SnaptrudeFlip(Element element, XYZ origin = null)
+        public void SnaptrudeFlip(Element element, XYZ origin = null, bool isFamilyFromRevitImport = false)
         {
             Parameter offset = GetOffsetParameter(element as FamilyInstance);
 
             if (origin == null) origin = (element.Location as LocationPoint).Point;
 
             //XYZ normal = new XYZ(0, 0, 1);
-            XYZ normal = new XYZ(0, 1, 0);
+            XYZ normal = new XYZ(1, 0, 0);
+            if (isFamilyFromRevitImport)
+            {
+                normal = new XYZ(0, 1, 0);
+            }
 
             Plane pl = Plane.CreateByNormalAndOrigin(normal, origin);
 
@@ -86,48 +90,50 @@ namespace TrudeImporter
 
         public void CreateWithFamilySymbol(FamilySymbol familySymbol, Level level, double familyRotation, bool isFacingFlip, XYZ originOffset = null)
         {
-            bool isSnaptrudeFlipped = Scaling.Z < 0;
+            bool isFamilyFromRevitImport = FamilyTypeName != null;
 
+            bool isSnaptrudeFlipped = Scaling.Z < 0;
+            bool flip = (isSnaptrudeFlipped && !isFacingFlip) || (!isSnaptrudeFlipped && isFacingFlip);
             FamilyInstance instance = GlobalVariables.Document.Create.NewFamilyInstance(XYZ.Zero, familySymbol, level, level, Autodesk.Revit.DB.Structure.StructuralType.UnknownFraming);
             instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
 
-            if (isFacingFlip && instance.FacingFlipped == false) FlipFacing(instance);
             GlobalVariables.Document.Regenerate();
             BoundingBoxXYZ boundingBox = instance.get_BoundingBox(null);
             XYZ boundingBoxCenter = (boundingBox.Max + boundingBox.Min)/2;
-
-            if (isSnaptrudeFlipped) SnaptrudeFlip(instance);
+            if (flip) SnaptrudeFlip(instance, Position.IsAlmostEqualTo(CenterPosition) ? boundingBoxCenter : null, isFamilyFromRevitImport);
 
             Transform offsetRotationTransform = Transform.CreateRotation(XYZ.BasisZ, familyRotation);
 
-            if (isSnaptrudeFlipped)
+            if (flip)
                 originOffset = offsetRotationTransform.OfPoint(originOffset);
             else
                 originOffset = offsetRotationTransform.OfPoint(-originOffset);
 
             Line rotationAxis = Line.CreateBound(originOffset, originOffset + XYZ.BasisZ);
-            if (instance.Category.Name == "Casework" || instance.Category.Name == "Furniture Systems")
+            if (Position.IsAlmostEqualTo(CenterPosition))
+            {
                 rotationAxis = Line.CreateBound(boundingBoxCenter, boundingBoxCenter + XYZ.BasisZ);
+            }
+            //if (!flip)
+                instance.Location.Rotate(rotationAxis, -Rotation.Z);
 
-            instance.Location.Rotate(rotationAxis, -Rotation.Z);
 
-            if (isSnaptrudeFlipped)
-                instance.Location.Rotate(rotationAxis, -familyRotation);
-            else
-                instance.Location.Rotate(rotationAxis, familyRotation);
+            instance.Location.Rotate(rotationAxis, familyRotation);
 
             double zValue = WorldBoundingBoxMin.Z - Position.Z < -0.5 ? WorldBoundingBoxMin.Z - level.ProjectElevation : Position.Z - level.ProjectElevation;
             XYZ positionRelativeToLevel = new XYZ(Position.X - originOffset.X, Position.Y - originOffset.Y, zValue);
 
             GlobalVariables.Document.Regenerate();
 
-            if (instance.Category.Name == "Casework" || instance.Category.Name == "Furniture Systems")
+            if (Position.IsAlmostEqualTo(CenterPosition))
             {
                 XYZ position = Position - boundingBoxCenter;
                 instance.Location.Move(new XYZ(position.X, position.Y, zValue));
             }
             else
+            {
                 instance.Location.Move(positionRelativeToLevel);
+            }
 
             element = instance;
         }
