@@ -226,9 +226,13 @@ namespace TrudeSerializer.Components
                 double uScaleInRealWorld = uScaleProperty.Value;
                 double vScaleInRealWorld = vScaleProperty.Value;
 
+#if REVIT2019 || REVIT2020
+                DisplayUnitType uScaleUnit = uScaleProperty.DisplayUnitType;
+                DisplayUnitType vScaleUnit = vScaleProperty.DisplayUnitType;
+#else
                 ForgeTypeId uScaleUnit = uScaleProperty.GetUnitTypeId();
                 ForgeTypeId vScaleUnit = vScaleProperty.GetUnitTypeId();
-
+#endif
                 uScale = UnitConversion.ConvertToSnaptrudeUnits(uScaleInRealWorld, uScaleUnit);
                 vScale = UnitConversion.ConvertToSnaptrudeUnits(vScaleInRealWorld, vScaleUnit);
 

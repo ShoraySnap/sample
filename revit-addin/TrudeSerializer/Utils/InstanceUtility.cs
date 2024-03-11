@@ -188,7 +188,11 @@ namespace TrudeSerializer.Components
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
+#if REVIT2019 || REVIT2020
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
+#else
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+#endif
                 }
                 return positionPoint;
             }
@@ -199,7 +203,11 @@ namespace TrudeSerializer.Components
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
+#if REVIT2019 || REVIT2020
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
+#else
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+#endif
                 }
                 return positionPoint;
             }
@@ -293,7 +301,11 @@ namespace TrudeSerializer.Components
 
             for (int i = 0; i < 3; i++)
             {
+#if REVIT2019 || REVIT2020
+                center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], DisplayUnitType.DUT_DECIMAL_FEET);
+#else
                 center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], UnitTypeId.Feet);
+#endif
             }
             return center;
         }
