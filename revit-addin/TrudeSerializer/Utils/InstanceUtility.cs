@@ -182,7 +182,7 @@ namespace TrudeSerializer.Components
 
         static public List<double> GetPosition(Element element)
         {
-            if (TrudeDoor.IsDoor(element))
+            if (element is FamilyInstance && TrudeDoor.IsDoor(element))
             {
                 XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
