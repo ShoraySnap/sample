@@ -35,6 +35,9 @@ namespace TrudeImporter
         [JsonProperty("masses")]
         public List<MassProperties> Masses { get; set; }
 
+        [JsonProperty("furniture")]
+        public List<FurnitureProperties> Furniture { get; set; }
+
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
     }
