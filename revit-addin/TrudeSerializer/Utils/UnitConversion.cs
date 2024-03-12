@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
+using TrudeImporter;
 
 namespace TrudeSerializer.Utils
 {
@@ -64,6 +65,11 @@ namespace TrudeSerializer.Utils
         public static double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value)
         {
             return new double[] { ConvertToSnaptrudeUnits(value.X, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Z, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Y, DisplayUnitType.DUT_DECIMAL_FEET) };
+        }
+
+        public static List<double> ConvertSnaptrudeUnitsFromXYZFromFeet(XYZ value)
+        {
+            return new List<double> { ConvertToSnaptrudeUnits(value.X, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Z, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Y, DisplayUnitType.DUT_DECIMAL_FEET) };
         }
 
 #endif
@@ -132,6 +138,10 @@ namespace TrudeSerializer.Utils
         public static double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value)
         {
             return new double[] { ConvertToSnaptrudeUnits(value.X, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Z, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Y, UnitTypeId.Feet) };
+        }
+        public static List<double> ConvertSnaptrudeUnitsFromXYZFromFeet(XYZ value)
+        {
+            return new List<double> { ConvertToSnaptrudeUnits(value.X, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Z, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Y, UnitTypeId.Feet) };
         }
 #endif
     }

@@ -266,7 +266,7 @@ namespace TrudeSerializer.Components
         static public List<double> GetCustomCenterPoint(Element element)
         {
             string category = element.Category?.Name;
-            List<double> center;
+            List<double> center = new List<double> { };
             // todo: check and implement for other categories
 
             if (element is Group)
@@ -287,10 +287,11 @@ namespace TrudeSerializer.Components
                 {
                     center = new List<double> { locationPoint.Point.X, locationPoint.Point.Z, locationPoint.Point.Y };
                 }
-                else
-                {
-                    center = GetCenterFromBoundingBox(element);
-                }
+            }
+
+            if (center?.Count == 0 || IsPointZero(center))
+            {
+                center = GetCenterFromBoundingBox(element);
             }
 
             for (int i = 0; i < 3; i++)
@@ -302,6 +303,11 @@ namespace TrudeSerializer.Components
 #endif
             }
             return center;
+        }
+
+        private static bool IsPointZero(List<double> point)
+        {
+            return point[0] == 0 && point[1] == 0 && point[2] == 0;
         }
 
         public static List<double> GetCenterFromBoundingBox(Element element)

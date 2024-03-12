@@ -1,5 +1,7 @@
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using TrudeSerializer.Components;
 using TrudeSerializer.Utils;
@@ -9,6 +11,8 @@ namespace TrudeSerializer.Types
     internal class TrudeColumnType
     {
         public List<TrudeLayer> layersData;
+        static public double DEFAULT_WIDTH = 0.0;
+        static public string DEFAULT_FUNCTION = "Structure";
 
         public TrudeColumnType(List<TrudeLayer> layersData)
         {
@@ -19,23 +23,21 @@ namespace TrudeSerializer.Types
         {
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
-            var elemType = document.GetElement(column.GetTypeId()) as HostObjAttributes;
-            CompoundStructure compoundStructure = elemType?.GetCompoundStructure();
-            if (elemType == null || compoundStructure == null) return new TrudeColumnType(layersData);
-            IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
-            foreach (CompoundStructureLayer layer in layers)
+            TrudeMaterial snaptrudeMaterial;
+            string category = "Columns";
+
+            ICollection<ElementId> materialIds = column.GetMaterialIds(false);
+            if (materialIds.Count == 0)
             {
-                double width = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(layer.Width, UnitTypeId.Feet);
-                string function = layer.Function.ToString();
-
-                Material material = document.GetElement(layer.MaterialId) as Material;
-
-                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material);
-
-                TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
-
-                layersData.Add(Snaptrudelayer);
+                snaptrudeMaterial = TrudeMaterial.GetMaterial(null, category);
             }
+            else
+            {
+                snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material, category);
+            }
+
+            TrudeLayer Snaptrudelayer = new TrudeLayer(DEFAULT_WIDTH, DEFAULT_FUNCTION, snaptrudeMaterial);
+            layersData.Add(Snaptrudelayer);
             return new TrudeColumnType(layersData);
         }
     }
