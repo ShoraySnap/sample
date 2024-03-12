@@ -59,12 +59,16 @@ namespace TrudeSerializer.Components
         static public double GetHeight(Element element)
         {
             double height = GetDimensionValue(element, BuiltInParameter.DOOR_HEIGHT, "WW-Height");
+            if (height == 0)
+            {
+                height = GetParameterValueOrDefault(element, "Height");
+            }
             return height;
         }
 
         static public double GetLength(Element element)
         {
-            double length = GetDimensionValue(element, "height", "WW-Height");
+            double length = GetDimensionValue(element, "Length", "WW-Length");
             return length;
         }
 
@@ -149,7 +153,7 @@ namespace TrudeSerializer.Components
             {
                 if (element is FamilyInstance familyInstance)
                 {
-                    family = familyInstance.Symbol.FamilyName;
+                    family = familyInstance?.Symbol?.FamilyName;
                 }
             }
             catch (Exception e)
@@ -178,13 +182,9 @@ namespace TrudeSerializer.Components
 
         static public List<double> GetPosition(Element element)
         {
-            List<double> center;
-            LocationPoint location = element.Location as LocationPoint;
-
-            if (location != null)
+            if (element is FamilyInstance && TrudeDoor.IsDoor(element))
             {
-                XYZ position = location.Point;
-
+                XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
@@ -197,13 +197,14 @@ namespace TrudeSerializer.Components
                 return positionPoint;
             }
 
-            if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
+            if (element.Location is LocationPoint location)
             {
-                XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
+                XYZ position = location.Point;
+
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
-#if REVIT2019 || REVIT2020
+                    #if REVIT2019 || REVIT2020
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
 #else
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
@@ -253,13 +254,6 @@ namespace TrudeSerializer.Components
                         }
                     }
                 }
-                else
-                {
-                    if (element.Location is LocationPoint location)
-                    {
-                        rotation = location.Rotation;
-                    }
-                }
             }
             catch
             {
@@ -272,7 +266,7 @@ namespace TrudeSerializer.Components
         static public List<double> GetCustomCenterPoint(Element element)
         {
             string category = element.Category?.Name;
-            List<double> center;
+            List<double> center = new List<double> { };
             // todo: check and implement for other categories
 
             if (element is Group)
@@ -293,10 +287,11 @@ namespace TrudeSerializer.Components
                 {
                     center = new List<double> { locationPoint.Point.X, locationPoint.Point.Z, locationPoint.Point.Y };
                 }
-                else
-                {
-                    center = GetCenterFromBoundingBox(element);
-                }
+            }
+
+            if (center?.Count == 0 || IsPointZero(center))
+            {
+                center = GetCenterFromBoundingBox(element);
             }
 
             for (int i = 0; i < 3; i++)
@@ -310,7 +305,12 @@ namespace TrudeSerializer.Components
             return center;
         }
 
-        static List<double> GetCenterFromBoundingBox(Element element)
+        private static bool IsPointZero(List<double> point)
+        {
+            return point[0] == 0 && point[1] == 0 && point[2] == 0;
+        }
+
+        public static List<double> GetCenterFromBoundingBox(Element element)
         {
             Document doc = GlobalVariables.Document;
             View view = doc.ActiveView;
@@ -381,7 +381,8 @@ namespace TrudeSerializer.Components
                 return center;
             }
 
-            return new List<double> { 0, 0, 0 };
+            List<double> groupCenter = GetCenterFromBoundingBox(element);
+            return groupCenter;
         }
 
         static public Element CheckIfElementIsVisible(Element element)
@@ -391,6 +392,10 @@ namespace TrudeSerializer.Components
             FilterRule idRule = ParameterFilterRuleFactory.CreateEqualsRule(new ElementId(BuiltInParameter.ID_PARAM), element.Id);
             ElementParameterFilter idFilter = new ElementParameterFilter(idRule);
             Category cat = element.Category;
+            if (cat == null)
+            {
+                return null;
+            }
             ElementCategoryFilter catFilter = new ElementCategoryFilter(cat.Id);
             FilteredElementCollector collector = new FilteredElementCollector(doc, view.Id)
                 .WhereElementIsNotElementType()
@@ -414,10 +419,6 @@ namespace TrudeSerializer.Components
                 if (element is FamilyInstance familyInstance)
                 {
                     hostId = familyInstance.Host != null ? familyInstance.Host.Id.ToString() : "";
-                    if (familyInstance.Host is Wall wall && wall.IsStackedWallMember)
-                    {
-                        hostId = wall.StackedWallOwnerId.ToString();
-                    }
                 }
             }
             catch (Exception e)

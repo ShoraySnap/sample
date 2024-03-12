@@ -9,7 +9,11 @@ namespace TrudeSerializer.Components
     {
         public static bool IsWindow(Element element)
         {
-            string category = element.Category.Name;
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
             return category.Contains("Windows");
         }
 
@@ -79,16 +83,26 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
-            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
+            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element, true);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
 
             string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
             string hostId = InstanceUtility.GetHostId(element);
 
-            bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
+            bool isFamilyPresent = serializedData.Windows.HasFamily(familyName);
             TrudeFamily window;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                window = serializedData.Windows.GetFamily(familyName);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, window);
+                if (shouldUpdateFamily)
+                {
+                    serializedData.Windows.RemoveFamily(familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 window = new TrudeFamily(elementId, "Windows", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = window;

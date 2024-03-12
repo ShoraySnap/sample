@@ -31,6 +31,16 @@ namespace TrudeSerializer.Components
 
         private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 };
 
+        private static readonly Dictionary<string, double[]> DEFAULT_DIFFUSE_COLOR_MAP = new Dictionary<string, double[]>
+        {
+            { "Wall", new double[] { 1, 1, 1, 1 } },
+            { "Floor", new double[] { 0.5, 0.5, 0.5, 1 } },
+            { "Roof", new double[] { 0.4, 0.4, 0.4, 1 } },
+            { "Furniture", new double[] { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 } },
+            { "Columns", new double[] { 0.55, 0.55, 0.55, 1 } },
+            { "Default", new double[] { 0.3, 0.3, 0.3, 1 } },
+        };
+
         public TrudeMaterial()
         {
             diffuseColor = DEFAULT_DIFFUSE_COLOR;
@@ -42,17 +52,26 @@ namespace TrudeSerializer.Components
             this.name = name;
         }
 
-        public static TrudeMaterial GetDefaultMaterial()
+        public static TrudeMaterial GetDefaultMaterial(string category)
         {
-            String name = "default";
-            return new TrudeMaterial(DEFAULT_DIFFUSE_COLOR, name);
+            string name = "defaultMat-" + category;
+            double[] color;
+            if (DEFAULT_DIFFUSE_COLOR_MAP.ContainsKey(category))
+            {
+                color = DEFAULT_DIFFUSE_COLOR_MAP[category];
+            }
+            else
+            {
+                color = DEFAULT_DIFFUSE_COLOR_MAP["Default"];
+            }
+            return new TrudeMaterial(color, name);
         }
 
-        public static TrudeMaterial GetMaterial(Material material)
+        public static TrudeMaterial GetMaterial(Material material, string category = "Default")
         {
             if (material == null)
             {
-                return GetDefaultMaterial();
+                return GetDefaultMaterial(category);
             }
             Document document = GlobalVariables.CurrentDocument;
 

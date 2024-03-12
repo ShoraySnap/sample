@@ -31,7 +31,11 @@ namespace TrudeSerializer.Components
 
         public static bool IsFurnitureCategory(Element element)
         {
-            string category = element.Category.Name;
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
             return Array.Exists(funitureSubCategories, element.Category.Name.Contains);
         }
 
@@ -86,7 +90,17 @@ namespace TrudeSerializer.Components
 
             bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
             TrudeFamily furniture;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                furniture = serializedData.Furniture.GetFamily(familyName);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, furniture);
+                if (shouldUpdateFamily)
+                {
+                    serializedData.Furniture.RemoveFamily(familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 furniture = new TrudeFamily(elementId, "Furniture", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = furniture;

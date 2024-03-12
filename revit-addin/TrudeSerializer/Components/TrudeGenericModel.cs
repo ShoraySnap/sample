@@ -1,5 +1,4 @@
 using Autodesk.Revit.DB;
-using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
@@ -14,9 +13,13 @@ namespace TrudeSerializer.Components
         public string subCategory;
         public bool hasParentElement;
         public List<string> subComponent;
-        public static bool isGenericModel(Element element)
+        public static bool IsGenericModel(Element element)
         {
-            string category = element.Category.Name;
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
             return category.Contains("Generic Models");
         }
 
@@ -64,7 +67,17 @@ namespace TrudeSerializer.Components
 
             bool isFamilyPresent = serializedData.GenericModel.HasFamily(familyName);
             TrudeFamily genericModel;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                genericModel = serializedData.GenericModel.GetFamily(familyName);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, genericModel);
+                if (shouldUpdateFamily)
+                {
+                    serializedData.GenericModel.RemoveFamily(familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 genericModel = new TrudeFamily(elementId, "GenericModel", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = genericModel;

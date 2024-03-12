@@ -9,6 +9,8 @@
     <Import_RootNamespace>TrudeSerializer</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeCurtainWall.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeColumn.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFamily.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)components\TrudeGenericModel.cs" />
@@ -16,10 +18,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)components\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeRoofType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)components\TrudeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeDebug\TrudeLog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\Compressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\PreSignedURLResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\URLsConfig.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TrudeDebug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeDebug\TrudeDebug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\FamilyInstanceUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\InstanceUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)components\TrudeCeiling.cs" />
@@ -40,6 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeCeilingType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeFloorType.cs" />
+	<Compile Include="$(MSBuildThisFileDirectory)types\TrudeColumnType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\CurrentLink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />

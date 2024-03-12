@@ -24,7 +24,7 @@ namespace TrudeSerializer.Components
             Dictionary<string, double[][]> outline,
             Dictionary<string, Dictionary<string, double[][]>> voids,
             double heightOffset
-            ) : base(elementId, "Roofs", family, level)
+            ) : base(elementId, "Roof", family, level)
         {
             this.elementId = elementId;
             this.level = level;

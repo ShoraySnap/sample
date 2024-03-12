@@ -87,5 +87,20 @@ namespace TrudeSerializer.Components
             height = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(height);
             return height;
         }
+
+        static public XYZ GetCenterFromBoundingBox(Element element)
+        {
+            Document doc = GlobalVariables.Document;
+            View view = doc.ActiveView;
+            BoundingBoxXYZ bbox = element.get_BoundingBox(view);
+            if (bbox == null)
+            {
+                return XYZ.Zero;
+            }
+
+            XYZ center = (bbox.Max + bbox.Min) / 2;
+
+            return center;
+        }
     }
 }
