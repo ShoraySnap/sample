@@ -28,6 +28,12 @@ namespace TrudeSerializer.Types
             if (elemType == null || compoundStructure == null)
             {
                 TrudeMaterial snaptrudeMaterial;
+#if REVIT2019 || REVIT2020
+                double width = UnitConversion.ConvertToMillimeter(layer.Width, DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+                double width = UnitConversion.ConvertToMillimeter(layer.Width, UnitTypeId.Feet);
+#endif
+                string function = layer.Function.ToString();
 
                 ICollection<ElementId> materialIds = ceiling.GetMaterialIds(false);
                 if(materialIds.Count == 0)

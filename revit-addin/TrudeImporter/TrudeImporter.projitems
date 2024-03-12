@@ -9,6 +9,7 @@
     <Import_RootNamespace>TrudeImporter</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ListViewExtender.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\MaterialOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\AWS\GetObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Configs.cs" />
@@ -34,6 +35,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\properties\TextureProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\TrudeProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\WallProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\Properties\FurnitureProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\Properties\WindowProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeBeam.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeCeiling.cs" />
@@ -41,8 +43,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\model\TrudeDirectShape.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeFloor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeFurniture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\Model\TrudeInterior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMissing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
