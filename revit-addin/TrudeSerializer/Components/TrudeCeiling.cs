@@ -53,7 +53,11 @@ namespace TrudeSerializer.Components
             if(heightOffsetParam.HasValue)
             {
                 heightOffset = heightOffsetParam.AsDouble();
-                heightOffset = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(heightOffset);
+#if REVIT2019 || REVIT2020
+                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, heightOffsetParam.DisplayUnitType);
+#else
+                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, heightOffsetParam.GetUnitTypeId());
+#endif
             }
             var (outline, voids, isDifferentCurve) = GetOutline(element);
             SetCeilingType(importData, ceiling);

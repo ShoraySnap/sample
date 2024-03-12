@@ -1,8 +1,9 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
-using TrudeSerializer.Importer;
+using System.ComponentModel;
 using TrudeSerializer.Components;
+using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 
 namespace TrudeSerializer
@@ -15,11 +16,10 @@ namespace TrudeSerializer
 
         private Document doc;
         private Stack<Transform> transforms = new Stack<Transform>();
-  
+
         private String currentMaterialId;
         private CurrentElement currentElement;
         public SerializedTrudeData serializedSnaptrudeData;
-        
 
         public SerializedTrudeData GetExportData()
         {
@@ -43,8 +43,6 @@ namespace TrudeSerializer
             GlobalVariables.CurrentDocument = doc;
         }
 
-        
-
         public TrudeCustomExporter(Document doc)
         {
             this.doc = doc;
@@ -62,6 +60,7 @@ namespace TrudeSerializer
 
         void IExportContext.Finish()
         {
+            ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
 
@@ -82,7 +81,6 @@ namespace TrudeSerializer
 
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
-            // implement link part
             Document doc = node.GetDocument();
             ChangeCurrentDocument(doc);
             isRevitLink = true;
@@ -127,29 +125,28 @@ namespace TrudeSerializer
             TrudeComponent component = null;
             if (isRevitLink)
             {
-                TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
-                if (mass.elementId == "-1")
+                component = AddLinkedComponentToSerializedData(elementId, element);
+                if (component == null)
                 {
                     return RenderNodeAction.Skip;
                 }
-                serializedSnaptrudeData.RevitLinks[currentLink.name].Add(elementId.ToString(), mass);
-                component = mass;
             }
             else
             {
                 try
                 {
                     component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
-                }catch(Exception e)
+                    if (component?.elementId == "-1")
+                    {
+                        return RenderNodeAction.Skip;
+                    }
+
+                    AddComponentToSerializedData(component);
+                }
+                catch (Exception e)
                 {
                     return RenderNodeAction.Skip;
                 }
-                
-                if (component?.elementId == "-1")
-                {
-                    return RenderNodeAction.Skip;
-                }
-                AddComponentToSerializedData(component);
             }
 
             if (component.IsParametric())
@@ -162,6 +159,7 @@ namespace TrudeSerializer
             if (!component.isInstance) return RenderNodeAction.Proceed;
 
             TrudeComponent familyComponent = TrudeComponent.CurrentFamily;
+
             if (familyComponent == null)
             {
                 return RenderNodeAction.Skip;
@@ -170,6 +168,19 @@ namespace TrudeSerializer
             this.currentElement.component = familyComponent;
 
             return RenderNodeAction.Proceed;
+        }
+
+        private TrudeComponent AddLinkedComponentToSerializedData(ElementId elementId, Element element)
+        {
+            TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
+            if (mass.elementId == "-1")
+            {
+                return null;
+            }
+
+            serializedSnaptrudeData.RevitLinks[currentLink.name].Add(elementId.ToString(), mass);
+
+            return mass;
         }
 
         private void AddComponentToSerializedData(TrudeComponent component)
@@ -202,9 +213,25 @@ namespace TrudeSerializer
             {
                 serializedSnaptrudeData.AddFurnitureInstance(component.elementId, component as TrudeFurniture);
             }
+            else if (component is TrudeGenericModel)
+            {
+                serializedSnaptrudeData.AddGenericModelInstance(component.elementId, component as TrudeGenericModel);
+            }
             else if (component is TrudeDoor)
             {
                 serializedSnaptrudeData.AddDoorInstance(component.elementId, component as TrudeDoor);
+            }
+            else if (component is TrudeWindow)
+            {
+                serializedSnaptrudeData.AddWindowInstance(component.elementId, component as TrudeWindow);
+            }
+            else if (component is TrudeCurtainWall)
+            {
+                serializedSnaptrudeData.AddCurtainWall(component as TrudeCurtainWall);
+            }
+            else if (component is TrudeRoof)
+            {
+                serializedSnaptrudeData.AddRoof(component as TrudeRoof);
             }
         }
 
@@ -248,12 +275,13 @@ namespace TrudeSerializer
         {
             String materialId = node.MaterialId.ToString();
             this.currentMaterialId = materialId;
+            string category = CurrentElement.GetCategory(currentElement);
 
             if (this.currentElement.HasMaterial(materialId)) return;
 
             Element material = doc.GetElement(node.MaterialId);
 
-            TrudeMaterial trudeMaterial = TrudeMaterial.GetMaterial(material as Material);
+            TrudeMaterial trudeMaterial = TrudeMaterial.GetMaterial(material as Material, category);
             this.currentElement.AddMaterial(materialId);
             this.currentElement.component.SetMaterial(currentMaterialId, trudeMaterial);
 
@@ -270,7 +298,7 @@ namespace TrudeSerializer
             {
                 XYZ point = node.GetPoint(i);
                 XYZ transformedPoint = CurrentTransform.OfPoint(point);
-                if (component.category == "Doors")
+                if (component.category == "Doors" || component.category == "Windows")
                 {
                     component.SetVertices(materialId, point.X, point.Z, point.Y);
                 }

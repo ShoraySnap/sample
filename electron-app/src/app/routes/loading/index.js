@@ -65,12 +65,12 @@ const Loading = (props) => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    window.electronAPI.handleSuccessfulSpeckleUpload(async () => {
+    window.electronAPI.handleSuccessfulUpload(async () => {
       window.electronAPI.openPageInDefaultBrowser(sessionData.getUserData().modelLink);
       window.electronAPI.operationSucceeded();
     });
     
-    return window.electronAPI.removeSuccessfulSpeckleUploadHandler;
+    return window.electronAPI.removeSuccessfulUploadHandler;
   }, []);
   
   
@@ -92,7 +92,7 @@ const Loading = (props) => {
     }
     else {
       // will be stuck at 90
-      // cleared when handleSuccessfulSpeckleUpload is called
+      // cleared when handleSuccessfulUpload is called
     }
     
   }, delay);
@@ -103,7 +103,7 @@ const Loading = (props) => {
         Your Revit model is being uploaded to Snaptrude
       </Text>
       <ModalFooter>
-        <ProgressBar bgColor={colors.red} completed={progress} text={progressText}/>
+        <ProgressBar bgColor={colors.black} completed={progress} text={progressText}/>
       </ModalFooter>
     </Container>
   )

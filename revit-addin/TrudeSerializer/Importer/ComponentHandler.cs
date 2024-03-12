@@ -1,6 +1,5 @@
 ﻿using Autodesk.Revit.DB;
-using System;
-using TrudeImporter;
+using System.Linq;
 using TrudeSerializer.Components;
 using TrudeCeiling = TrudeSerializer.Components.TrudeCeiling;
 using TrudeColumn = TrudeSerializer.Components.TrudeColumn;
@@ -26,6 +25,22 @@ namespace TrudeSerializer.Importer
                 return instance;
             }
         }
+
+        public void AddLevelsToSerializedData(SerializedTrudeData serializedData, Document doc)
+        {
+            foreach (Level level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>())
+            {
+                if(level == null)
+                {
+                    continue;
+                }
+                TrudeLevel levelComponent = TrudeLevel.GetSerializedComponent(level);
+                if(levelComponent.elementId != "-1")
+                {
+                    serializedData.AddLevel(levelComponent);
+                }
+            }
+        }
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
             if (element is Wall)
@@ -36,17 +51,21 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeLevel.GetSerializedComponent(element);
             }
-            else if(element is Floor)
+            else if (element is Floor)
             {
                 return TrudeFloor.GetSerializedComponent(serializedData, element);
             }
-            else if(element is Ceiling)
+            else if (element is Ceiling)
             {
                 return TrudeCeiling.GetSerializedComponent(serializedData, element);
             }
             else if(TrudeColumn.IsColumnCategory(element))
             {
                 return TrudeColumn.GetSerializedComponent(serializedData, element);
+            }
+            else if(TrudeCurtainWall.IsCurtainWallComponent(element))
+            {
+                return TrudeCurtainWall.GetSerializedComponent(serializedData, element);
             }
             else if (TrudeFurniture.IsFurnitureCategory(element))
             {
@@ -56,6 +75,19 @@ namespace TrudeSerializer.Importer
             {
                 return TrudeDoor.GetSerializedComponent(serializedData, element);
             }
+            else if (TrudeWindow.IsWindow(element))
+            {
+                return TrudeWindow.GetSerializedComponent(serializedData, element);
+            }
+            else if (TrudeGenericModel.IsGenericModel(element))
+            {
+                return TrudeGenericModel.GetSerializedComponent(serializedData, element);
+            }
+            else if(element is RoofBase)
+            {
+                return TrudeRoof.GetSerializedComponent(serializedData, element);
+            }
+            
 
             return TrudeMass.GetSerializedComponent(serializedData, element);
         }

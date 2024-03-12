@@ -31,9 +31,19 @@ namespace TrudeSerializer.Components
 
         private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 };
 
+        private static readonly Dictionary<string, double[]> DEFAULT_DIFFUSE_COLOR_MAP = new Dictionary<string, double[]>
+        {
+            { "Wall", new double[] { 1, 1, 1, 1 } },
+            { "Floor", new double[] { 0.5, 0.5, 0.5, 1 } },
+            { "Roof", new double[] { 0.4, 0.4, 0.4, 1 } },
+            { "Furniture", new double[] { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 } },
+            { "Columns", new double[] { 0.55, 0.55, 0.55, 1 } },
+            { "Default", new double[] { 0.3, 0.3, 0.3, 1 } },
+        };
+
         public TrudeMaterial()
         {
-            this.diffuseColor = DEFAULT_DIFFUSE_COLOR;
+            diffuseColor = DEFAULT_DIFFUSE_COLOR;
         }
 
         public TrudeMaterial(double[] diffuseColor, String name)
@@ -42,17 +52,26 @@ namespace TrudeSerializer.Components
             this.name = name;
         }
 
-        public static TrudeMaterial GetDefaultMaterial()
+        public static TrudeMaterial GetDefaultMaterial(string category)
         {
-            String name = "default";
-            return new TrudeMaterial(DEFAULT_DIFFUSE_COLOR, name);
+            string name = "defaultMat-" + category;
+            double[] color;
+            if (DEFAULT_DIFFUSE_COLOR_MAP.ContainsKey(category))
+            {
+                color = DEFAULT_DIFFUSE_COLOR_MAP[category];
+            }
+            else
+            {
+                color = DEFAULT_DIFFUSE_COLOR_MAP["Default"];
+            }
+            return new TrudeMaterial(color, name);
         }
 
-        public static TrudeMaterial GetMaterial(Material material)
+        public static TrudeMaterial GetMaterial(Material material, string category = "Default")
         {
             if (material == null)
             {
-                return GetDefaultMaterial();
+                return GetDefaultMaterial(category);
             }
             Document document = GlobalVariables.CurrentDocument;
 
@@ -91,9 +110,9 @@ namespace TrudeSerializer.Components
 
         private void SetConsistentColor(Material mat)
         {
-            double[] color = { mat.Color.Red / 255.0, mat.Color.Green / 255.0, mat.Color.Blue / 255.0, (1 - mat.Transparency) / 100.0 };
+            double[] color = { mat.Color.Red / 255.0, mat.Color.Green / 255.0, mat.Color.Blue / 255.0, (100 - mat.Transparency) / 100.0 };
             String name = mat.Id.ToString();
-            this.diffuseColor = color;
+            diffuseColor = color;
             this.name = name;
         }
 
@@ -110,23 +129,31 @@ namespace TrudeSerializer.Components
 
         private void SetGlassMaterial(Asset renderingAsset)
         {
-            String[] GLAZING_COLOR = { "Clear", "Green", "Gray", "Blue", "Bluegreen", "Bronze", "Custom" };
+            string[] GLAZING_COLOR = { "Clear", "Green", "Gray", "Blue", "Bluegreen", "Bronze", "Custom" };
             AssetProperty colorMap = renderingAsset.FindByName("glazing_transmittance_color");
-            int index = (int)(colorMap as AssetPropertyInteger).Value;
+            int index = 0;
+            if (colorMap is AssetPropertyEnum)
+            {
+                index = (colorMap as AssetPropertyEnum).Value;
+            }
+            if (colorMap is AssetPropertyInteger)
+            {
+                index = (colorMap as AssetPropertyInteger).Value;
+            }
 
             String glassColorName = GLAZING_COLOR[Math.Min(index, GLAZING_COLOR.Length - 1)];
 
             SetGlassColor(renderingAsset, glassColorName);
 
-            this.name = "Glass";
-            this.type = "Glass";
+            name = "Glass";
+            type = "Glass";
         }
 
         private void SetGlassColor(Asset renderingAsset, string name)
         {
             if (GLASS_COLOR_MAP.ContainsKey(name))
             {
-                this.diffuseColor = GLASS_COLOR_MAP[name];
+                diffuseColor = GLASS_COLOR_MAP[name];
                 return;
             }
 
@@ -140,11 +167,11 @@ namespace TrudeSerializer.Components
             if (customColorProperty is AssetPropertyDoubleArray4d)
             {
                 IList<Double> customColor = (customColorProperty as AssetPropertyDoubleArray4d).GetValueAsDoubles();
-                this.diffuseColor = new double[] { customColor[0], customColor[1], customColor[2], 0.2 };
+                diffuseColor = new double[] { customColor[0], customColor[1], customColor[2], 0.2 };
             }
             else
             {
-                this.diffuseColor = new double[] { 0, 0, 0, 0.2 };
+                diffuseColor = new double[] { 0, 0, 0, 0.2 };
             }
         }
 
@@ -218,22 +245,26 @@ namespace TrudeSerializer.Components
                 double uScaleInRealWorld = uScaleProperty.Value;
                 double vScaleInRealWorld = vScaleProperty.Value;
 
+#if REVIT2019 || REVIT2020
+                DisplayUnitType uScaleUnit = uScaleProperty.DisplayUnitType;
+                DisplayUnitType vScaleUnit = vScaleProperty.DisplayUnitType;
+#else
                 ForgeTypeId uScaleUnit = uScaleProperty.GetUnitTypeId();
                 ForgeTypeId vScaleUnit = vScaleProperty.GetUnitTypeId();
-
-                this.uScale = UnitConversion.ConvertToSnaptrudeUnits(uScaleInRealWorld, uScaleUnit);
-                this.vScale = UnitConversion.ConvertToSnaptrudeUnits(vScaleInRealWorld, vScaleUnit);
+#endif
+                uScale = UnitConversion.ConvertToSnaptrudeUnits(uScaleInRealWorld, uScaleUnit);
+                vScale = UnitConversion.ConvertToSnaptrudeUnits(vScaleInRealWorld, vScaleUnit);
 
                 return;
             }
 
             if (textureAsset.FindByName("texture_UScale") != null)
             {
-                this.uScale = (textureAsset.FindByName("texture_UScale") as AssetPropertyDouble).Value;
+                uScale = (textureAsset.FindByName("texture_UScale") as AssetPropertyDouble).Value;
             }
             if (textureAsset.FindByName("texture_VScale") != null)
             {
-                this.vScale = (textureAsset.FindByName("texture_VScale") as AssetPropertyDouble).Value;
+                vScale = (textureAsset.FindByName("texture_VScale") as AssetPropertyDouble).Value;
             }
         }
 
@@ -241,11 +272,11 @@ namespace TrudeSerializer.Components
         {
             if (textureAsset.FindByName("texture_UOffset") != null)
             {
-                this.uOffset = (textureAsset.FindByName("texture_UOffset") as AssetPropertyDouble).Value;
+                uOffset = (textureAsset.FindByName("texture_UOffset") as AssetPropertyDouble).Value;
             }
             if (textureAsset.FindByName("texture_VOffset") != null)
             {
-                this.vOffset = (textureAsset.FindByName("texture_VOffset") as AssetPropertyDouble).Value;
+                vOffset = (textureAsset.FindByName("texture_VOffset") as AssetPropertyDouble).Value;
             }
         }
 
@@ -253,7 +284,7 @@ namespace TrudeSerializer.Components
         {
             if (textureAsset.FindByName("texture_WAngle") != null)
             {
-                this.wAng = (textureAsset.FindByName("texture_WAngle") as AssetPropertyDouble).Value;
+                wAng = (textureAsset.FindByName("texture_WAngle") as AssetPropertyDouble).Value;
             }
         }
 

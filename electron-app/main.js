@@ -59,7 +59,6 @@ const parseProtocolArgs = async function (argv){
     const userData = JSON.parse(queryParamsObject.data);
     store.setAllAndSave(userData);
     
-    electronCommunicator.writeAccountInfoForSpeckleConnector();
     electronCommunicator.syncSessionData();
     electronCommunicator.updateUIAfterLogin();
     // updates UI
@@ -164,6 +163,7 @@ const createWindow = async () => {
       // contextIsolation: false,
     },
     resizable: false,
+    icon: __dirname + '/public/favicon.ico',
   });
   
   // remote module not recommended by electron anymore

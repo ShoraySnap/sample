@@ -16,6 +16,7 @@ namespace TrudeSerializer.Types
 
         static public TrudeFloorType GetLayersData(Floor floor)
         {
+            string category = "Floors";
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
             CompoundStructure compoundStructure = floor.FloorType.GetCompoundStructure();
@@ -23,12 +24,16 @@ namespace TrudeSerializer.Types
             IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
             foreach (CompoundStructureLayer layer in layers)
             {
-                double width = UnitConversion.ConvertToMillimeterForRevit2021AndAbove(layer.Width, UnitTypeId.Feet);
+#if REVIT2019 || REVIT2020
+                double width = UnitConversion.ConvertToMillimeter(layer.Width, DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+                double width = UnitConversion.ConvertToMillimeter(layer.Width, UnitTypeId.Feet);
+#endif
                 string function = layer.Function.ToString();
 
                 Material material = document.GetElement(layer.MaterialId) as Material;
 
-                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material);
+                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, category);
 
                 TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 

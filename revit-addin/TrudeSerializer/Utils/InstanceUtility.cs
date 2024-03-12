@@ -59,12 +59,16 @@ namespace TrudeSerializer.Components
         static public double GetHeight(Element element)
         {
             double height = GetDimensionValue(element, BuiltInParameter.DOOR_HEIGHT, "WW-Height");
+            if (height == 0)
+            {
+                height = GetParameterValueOrDefault(element, "Height");
+            }
             return height;
         }
 
         static public double GetLength(Element element)
         {
-            double length = GetDimensionValue(element, "height", "WW-Height");
+            double length = GetDimensionValue(element, "Length", "WW-Length");
             return length;
         }
 
@@ -149,7 +153,7 @@ namespace TrudeSerializer.Components
             {
                 if (element is FamilyInstance familyInstance)
                 {
-                    family = familyInstance.Symbol.FamilyName;
+                    family = familyInstance?.Symbol?.FamilyName;
                 }
             }
             catch (Exception e)
@@ -178,28 +182,33 @@ namespace TrudeSerializer.Components
 
         static public List<double> GetPosition(Element element)
         {
-            List<double> center;
-            LocationPoint location = element.Location as LocationPoint;
+            if (element is FamilyInstance && TrudeDoor.IsDoor(element))
+            {
+                XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
+                List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
+                for (int i = 0; i < 3; i++)
+                {
+#if REVIT2019 || REVIT2020
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+#endif
+                }
+                return positionPoint;
+            }
 
-            if (location != null)
+            if (element.Location is LocationPoint location)
             {
                 XYZ position = location.Point;
 
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
+                    #if REVIT2019 || REVIT2020
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
+#else
                     positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
-                }
-                return positionPoint;
-            }
-
-            if (element.Category.Name == "Doors")
-            {
-                XYZ position = (element as FamilyInstance).GetTotalTransform().Origin;
-                List<double> positionPoint = new List<double>{ position.X, position.Z, position.Y };
-                for (int i = 0; i < 3; i++)
-                {
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
+#endif
                 }
                 return positionPoint;
             }
@@ -237,19 +246,12 @@ namespace TrudeSerializer.Components
                         rotation += identity.BasisZ.AngleTo(transform.BasisZ);
                     }
 
-                    if (element.Category.Name == "Doors")
+                    if (element.Category.Name == "Doors" || element.Category.Name == "Windows")
                     {
                         if (element.Location is LocationPoint location)
                         {
                             rotation = location.Rotation;
                         }
-                    }
-                }
-                else
-                {
-                    if (element.Location is LocationPoint location)
-                    {
-                        rotation = location.Rotation;
                     }
                 }
             }
@@ -293,7 +295,11 @@ namespace TrudeSerializer.Components
 
             for (int i = 0; i < 3; i++)
             {
+#if REVIT2019 || REVIT2020
+                center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], DisplayUnitType.DUT_DECIMAL_FEET);
+#else
                 center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], UnitTypeId.Feet);
+#endif
             }
             return center;
         }
@@ -305,13 +311,12 @@ namespace TrudeSerializer.Components
             BoundingBoxXYZ bbox = element.get_BoundingBox(view);
             if (bbox == null)
             {
-                return new List<double>() { 0,0,0};
+                return new List<double>() { 0, 0, 0 };
             }
 
             XYZ center = (bbox.Max + bbox.Min) / 2;
 
             return new List<double> { center.X, center.Z, center.Y };
-
         }
 
         static public List<double> GetCenterForModelGroups(Element element)
@@ -370,7 +375,8 @@ namespace TrudeSerializer.Components
                 return center;
             }
 
-            return new List<double> { 0, 0, 0 };
+            List<double> groupCenter = GetCenterFromBoundingBox(element);
+            return groupCenter;
         }
 
         static public Element CheckIfElementIsVisible(Element element)
@@ -380,6 +386,10 @@ namespace TrudeSerializer.Components
             FilterRule idRule = ParameterFilterRuleFactory.CreateEqualsRule(new ElementId(BuiltInParameter.ID_PARAM), element.Id);
             ElementParameterFilter idFilter = new ElementParameterFilter(idRule);
             Category cat = element.Category;
+            if (cat == null)
+            {
+                return null;
+            }
             ElementCategoryFilter catFilter = new ElementCategoryFilter(cat.Id);
             FilteredElementCollector collector = new FilteredElementCollector(doc, view.Id)
                 .WhereElementIsNotElementType()

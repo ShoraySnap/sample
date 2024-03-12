@@ -42,6 +42,16 @@ namespace TrudeSerializer.Importer
             return this.materials.Contains(subMaterialId);
         }
 
+        public static string GetCategory(CurrentElement currentElement)
+        {
+            string category = currentElement.component.category;
+            if (category == "Mass")
+            {
+                category = (currentElement.component as TrudeMass)?.subCategory;
+            }
+            return category;
+        }
+
         public static CurrentElement SetCurrentElement(TrudeComponent component)
         {
             CurrentElement currentElement = new CurrentElement();
