@@ -188,8 +188,13 @@ namespace TrudeSerializer.Components
 
         private void SetIsParametric(Wall wall)
         {
+#if REVIT2019 || REVIT2020
+             bool isSupportedCrossSection = true;
+#else
             WallCrossSection crossSection = wall.CrossSection;
             bool isSupportedCrossSection = crossSection == WallCrossSection.Vertical;
+#endif
+
 
             isParametric = isSupportedCrossSection && !isCurvedWall;
         }
