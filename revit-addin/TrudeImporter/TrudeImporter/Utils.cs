@@ -34,7 +34,7 @@ namespace TrudeImporter
             }
 
             String materialName = null;
-            
+
             foreach ( JToken eachMaterial in materials ){
 
                 if ( materialnameWithId == (String)eachMaterial["id"] )
@@ -61,9 +61,9 @@ namespace TrudeImporter
 
             return materialName;
         }
-        
-        
-        
+
+
+
         private static Random random = new Random();
         public static string RandomString(int length=5)
         {
@@ -84,7 +84,7 @@ namespace TrudeImporter
             }
             else
             {
-                return collector.OfClass(targetType).FirstOrDefault<Element>(e => e.Name.Equals(targetName));
+                return collector.OfClass(targetType).FirstOrDefault<Element>(e => e.Name.ToLower().Equals(targetName.ToLower()));
             }
         }
         public static FillPatternElement GetSolidFillPatternElement(Document Document)
@@ -105,6 +105,29 @@ namespace TrudeImporter
             FilteredElementCollector collector = new FilteredElementCollector(doc);
 
             return collector.OfClass(targetType).ToList<Element>();
+        }
+        public static CurveLoop GetProfileLoop(List<XYZ> vertices)
+        {
+            CurveLoop curves = new CurveLoop();
+
+            for (int i = 0; i < vertices.Count(); i++)
+            {
+                int currentIndex = i.Mod(vertices.Count());
+                int nextIndex = (i + 1).Mod(vertices.Count());
+
+                XYZ pt1 = vertices[currentIndex];
+                XYZ pt2 = vertices[nextIndex];
+
+                while (pt1.DistanceTo(pt2) <= GlobalVariables.RvtApp.ShortCurveTolerance)
+                {
+                    i++;
+                    if (i > vertices.Count() + 3) break;
+                    nextIndex = (i + 1).Mod(vertices.Count());
+                    pt2 = vertices[nextIndex];
+                }
+                curves.Append(Line.CreateBound(pt1, pt2));
+            }
+            return curves;
         }
     }
 }

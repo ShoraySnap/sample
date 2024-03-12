@@ -12,7 +12,8 @@ namespace TrudeImporter
     {
         private const string BASE_DIRECTORY = "tmp_columns";
         static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        static string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Column.rft";
+        static string TEMPLATE_FILE_NAME = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Column.rft";
+
         //const string TEMPLATE_FILE_NAME = "resourceFile/Metric Column.rft";
 
         public static void DeleteAll()
@@ -31,8 +32,8 @@ namespace TrudeImporter
             {
                 transaction.Start();
 
-                FamilyParameter depthParam = fdoc.FamilyManager.GetParameters()[0];
-                FamilyParameter widthParam = fdoc.FamilyManager.GetParameters()[1];
+                FamilyParameter depthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Depth");
+                FamilyParameter widthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Width");
                 fdoc.FamilyManager.Set(depthParam, depth);
                 fdoc.FamilyManager.Set(widthParam, width);
 

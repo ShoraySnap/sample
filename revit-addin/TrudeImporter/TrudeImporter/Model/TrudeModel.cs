@@ -73,6 +73,64 @@ namespace TrudeImporter
 
             return familySymbol;
         }
+        public static FamilySymbol GetFamilyByName(Document doc, string fsFamilyName, string fsName = null)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            var familySymbols = collector.OfClass(typeof(FamilySymbol)).Cast<FamilySymbol>();
+
+            /* FOR HELP IN DEBUGGING FAMILY SYBMOBLS */
+
+            //foreach (FamilySymbol symbq in familySymbols)
+            //{
+            //    System.Diagnostics.Debug.WriteLine(symbq.Name, );
+            //    System.Diagnostics.Debug.WriteLine(symbq.FamilyName);
+            //}
+            
+            FamilySymbol familySymbol = null;
+            try
+            {
+                if (fsName is null)
+                {
+                    familySymbol = (from fs in familySymbols
+                                    where (fs.Family.Name == fsFamilyName)
+                                    select fs)
+                           .FirstOrDefault();
+                }
+                else
+                {
+                    familySymbol = (from fs in familySymbols
+                                    where (fs.Family.Name == fsFamilyName && fs.Name == fsName)
+                                    select fs)
+                           .FirstOrDefault();
+                }
+
+                if (familySymbol == null)
+                {
+                    familySymbol = (from fs in familySymbols
+                                    where (fs.Name == fsFamilyName)
+                                    select fs)
+                           .FirstOrDefault();
+                }
+
+                if (familySymbol == null)
+                {
+                    familySymbol = (from fs in familySymbols
+                                    where (fs.Family.Name == fsFamilyName)
+                                    select fs)
+                           .FirstOrDefault();
+                }
+
+                if (familySymbol == null) return null;
+
+                if (!familySymbol.IsActive)
+                {
+                    familySymbol.Activate();
+                    doc.Regenerate();
+                }
+            } catch { }
+
+            return familySymbol;
+        }
 
         public static List<Element> GetAllElements(Document doc)
         {
