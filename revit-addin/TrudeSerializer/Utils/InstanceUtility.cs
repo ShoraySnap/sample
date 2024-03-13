@@ -338,8 +338,12 @@ namespace TrudeSerializer.Components
             foreach (ElementId subComponentId in subComponents)
             {
                 Element currentElement = doc.GetElement(subComponentId) as Element;
-                Category cat = currentElement.Category;
-                string catName = cat != null ? cat.Name : "";
+                if(currentElement == null)
+                {
+                    continue;
+                }
+                Category cat = currentElement?.Category;
+                string catName = cat != null ? cat?.Name : "";
 
                 if (catName == "Walls" || catName == "Floors")
                 {
@@ -353,12 +357,20 @@ namespace TrudeSerializer.Components
                 foreach (ElementId subComponentId in subComponents)
                 {
                     Element currentElement = doc.GetElement(subComponentId) as Element;
-                    Category cat = currentElement.Category;
-                    string catName = cat != null ? cat.Name : "";
+                    if (currentElement == null)
+                    {
+                        continue;
+                    }
+                    Category cat = currentElement?.Category;
+                    string catName = cat != null ? cat?.Name : "";
 
                     if (catName != null && CheckIfElementIsVisible(currentElement) != null)
                     {
                         BoundingBoxXYZ currentbb = currentElement.get_BoundingBox(view);
+                        if(currentbb == null)
+                        {
+                            continue;
+                        }
                         if (isFirstElement)
                         {
                             bb = currentbb;

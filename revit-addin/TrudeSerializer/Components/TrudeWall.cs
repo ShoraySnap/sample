@@ -188,7 +188,7 @@ namespace TrudeSerializer.Components
 
         private void SetIsParametric(Wall wall)
         {
-#if REVIT2019 || REVIT2020
+#if REVIT2019 || REVIT2020 || REVIT2021
              bool isSupportedCrossSection = true;
 #else
             WallCrossSection crossSection = wall.CrossSection;
