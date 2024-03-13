@@ -43,7 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeCeilingType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeFloorType.cs" />
-	<Compile Include="$(MSBuildThisFileDirectory)types\TrudeColumnType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)types\TrudeColumnType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\CurrentLink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />
