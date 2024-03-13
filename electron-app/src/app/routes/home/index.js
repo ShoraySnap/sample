@@ -15,7 +15,7 @@ import LoadingScreen from "../../components/Loader";
 
 
 const openLoginPageInBrowser = () => {
-  const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=true";
+  const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=revit";
   
   window.electronAPI.openPageInDefaultBrowser(logInUrl);
 }

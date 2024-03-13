@@ -6,6 +6,7 @@ export const colors = {
   primeBlack: "#2D2D2E",
   secondaryBlack: "#575758",
   brightRed: "#EC1C45",
+  black: "#000000",
   lightGrey: "#A5A5A5",
   transparent: "transparent",
   secondaryGrey: "#BDBBBB",

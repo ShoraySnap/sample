@@ -6,7 +6,7 @@ namespace TrudeSerializer.Utils
 {
     internal class FamilyInstanceUtils
     {
-        public static bool HasParentElement(Element element)
+        public static bool HasParentElement(Element element, bool ignoreModelGroupAndAssemblies = false)
         {
             bool hasParentElement = false;
 
@@ -16,6 +16,11 @@ namespace TrudeSerializer.Utils
                 if (superComponent != null)
                 {
                     hasParentElement = true;
+                }
+
+                if (ignoreModelGroupAndAssemblies)
+                {
+                    return hasParentElement;
                 }
 
                 ElementId assemblySuperComponent = familyInstance.AssemblyInstanceId;
@@ -40,6 +45,20 @@ namespace TrudeSerializer.Utils
 
             IList<ElementId> dependantElements = element.GetDependentElements(null);
 
+            if (element is FamilyInstance)
+            {
+                ICollection<ElementId> subComponents = (element as FamilyInstance).GetSubComponentIds();
+                if (subComponents.Count > 0)
+                {
+                    foreach (ElementId subComponent in subComponents)
+                    {
+                        subComponentIds.Add(subComponent.ToString());
+                    }
+
+                    return subComponentIds;
+                }
+            }
+
             if (element is AssemblyInstance)
             {
                 if (dependantElements.Count > 0)
@@ -56,17 +75,6 @@ namespace TrudeSerializer.Utils
                     subComponentIds = dependantElements.Select(dependantElement => dependantElement.ToString()).ToList();
                     return subComponentIds;
                 }
-            }
-
-            ICollection<ElementId> subComponents = (element as FamilyInstance).GetSubComponentIds();
-            if (subComponents.Count > 0)
-            {
-                foreach (ElementId subComponent in subComponents)
-                {
-                    subComponentIds.Add(subComponent.ToString());
-                }
-
-                return subComponentIds;
             }
 
             return subComponentIds;
