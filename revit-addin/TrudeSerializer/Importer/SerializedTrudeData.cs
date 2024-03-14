@@ -109,10 +109,10 @@ namespace TrudeSerializer.Importer
             if (this.CurtainWalls.ContainsKey(trudeCurtainWall.elementId)) return;
             this.CurtainWalls.Add(trudeCurtainWall.elementId, trudeCurtainWall);
         }
-        
+
         public void AddRoof(TrudeRoof roof)
         {
-            if(this.Roofs.ContainsKey(roof.elementId)) return;
+            if (this.Roofs.ContainsKey(roof.elementId)) return;
             this.Roofs.Add(roof.elementId, roof);
         }
 
@@ -250,9 +250,9 @@ namespace TrudeSerializer.Importer
             this.RoofTypes.Add(roofTypeName, roofType);
         }
 
-        public void AddColumnType(String  columnTypeName, TrudeColumnType type)
+        public void AddColumnType(String columnTypeName, TrudeColumnType type)
         {
-            if(this.HasColumnType(columnTypeName)) return;
+            if (this.HasColumnType(columnTypeName)) return;
             this.ColumnTypes.Add(columnTypeName, type);
         }
 
