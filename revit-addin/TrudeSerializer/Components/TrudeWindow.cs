@@ -99,14 +99,14 @@ namespace TrudeSerializer.Components
                 shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, window);
                 if (shouldUpdateFamily)
                 {
-                    serializedData.Windows.RemoveFamily(familyName);
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.Windows, familyName);
                 }
             }
             if (!isFamilyPresent || shouldUpdateFamily)
             {
                 window = new TrudeFamily(elementId, "Windows", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = window;
-                serializedData.Windows.AddFamily(familyName, window);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName, window);
             }
 
             TrudeWindow instance = new TrudeWindow(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, hostId);

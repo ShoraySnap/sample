@@ -97,14 +97,14 @@ namespace TrudeSerializer.Components
                 shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, furniture);
                 if (shouldUpdateFamily)
                 {
-                    serializedData.Furniture.RemoveFamily(familyName);
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName);
                 }
             }
             if (!isFamilyPresent || shouldUpdateFamily)
             {
                 furniture = new TrudeFamily(elementId, "Furniture", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = furniture;
-                serializedData.Furniture.AddFamily(familyName, furniture);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName, furniture);
             }
 
             TrudeFurniture instance = new TrudeFurniture(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);
