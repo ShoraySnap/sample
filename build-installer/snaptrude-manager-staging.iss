@@ -230,12 +230,12 @@ Source: "{tmp}\2024\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
-Source: "{#BaseInstallers}\*.exe"; DestDir: "{tmp}"; Flags: createallsubdirs recursesubdirs deleteafterinstall ignoreversion uninsremovereadonly; 
+Source: "{#BaseInstallers}\*.exe"; DestDir: "{commonappdata}"; Flags: createallsubdirs recursesubdirs deleteafterinstall ignoreversion uninsremovereadonly; 
 
 
 [Run]
 
-Filename: "{tmp}\snaptrude-manager-1.0.0 Setup.exe"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
+Filename: "{commonappdata}\snaptrude-manager-1.0.0 Setup.exe"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
