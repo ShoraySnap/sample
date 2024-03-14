@@ -49,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Types\TrudeWallType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utils\CurveUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Dimensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\TransformObject.cs" />
