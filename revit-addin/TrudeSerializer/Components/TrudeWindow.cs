@@ -106,7 +106,7 @@ namespace TrudeSerializer.Components
             {
                 window = new TrudeFamily(elementId, "Windows", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = window;
-                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName, window);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Windows, familyName, window);
             }
 
             TrudeWindow instance = new TrudeWindow(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, hostId);

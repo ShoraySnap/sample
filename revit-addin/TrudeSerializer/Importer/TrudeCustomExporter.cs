@@ -178,7 +178,6 @@ namespace TrudeSerializer
                 return null;
             }
 
-            // serializedSnaptrudeData.RevitLinks[currentLink.name].Add(elementId.ToString(), mass);
             ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, mass, currentLink.name, elementId.ToString());
 
             return mass;

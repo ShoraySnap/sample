@@ -81,7 +81,7 @@ namespace TrudeSerializer.Components
             {
                 genericModel = new TrudeFamily(elementId, "GenericModel", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = genericModel;
-                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName, genericModel);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.GenericModel, familyName, genericModel);
             }
 
             TrudeGenericModel instance = new TrudeGenericModel(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);

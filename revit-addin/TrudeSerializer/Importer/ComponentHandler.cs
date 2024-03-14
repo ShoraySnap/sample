@@ -18,7 +18,6 @@ namespace TrudeSerializer.Importer
             Windows,
             GenericModel,
             Furniture,
-            SerializedData,
         }
         private ComponentHandler() { }
         private static ComponentHandler instance = null;
