@@ -34,13 +34,13 @@ namespace TrudeSerializer.Uploader
         public static bool IsLocalEnv()
         {
             URLsConfig urlsConfig = GetURLObject();
-            return urlsConfig.snaptrudeDjangoUrl.Contains("localhost");
+            return urlsConfig.snaptrudeReactUrl.Contains("localhost");
         }
 
         public static bool IsPREnv()
         {
             URLsConfig urlsConfig = GetURLObject();
-            return urlsConfig.snaptrudeDjangoUrl.Contains("amplifyapp");
+            return urlsConfig.snaptrudeReactUrl.Contains("amplifyapp");
         }
 
         public static bool IsDevEnv()
