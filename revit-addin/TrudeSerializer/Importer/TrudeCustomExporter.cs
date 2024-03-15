@@ -141,7 +141,7 @@ namespace TrudeSerializer
                         return RenderNodeAction.Skip;
                     }
 
-                    AddComponentToSerializedData(component);
+                    ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component);
                 }
                 catch (Exception e)
                 {
@@ -181,11 +181,6 @@ namespace TrudeSerializer
             ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, mass, currentLink.name, elementId.ToString());
 
             return mass;
-        }
-
-        private void AddComponentToSerializedData(TrudeComponent component)
-        {
-            ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component);
         }
 
         void IExportContext.OnElementEnd(ElementId elementId)
