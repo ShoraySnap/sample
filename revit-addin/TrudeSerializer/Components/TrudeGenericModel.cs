@@ -74,14 +74,14 @@ namespace TrudeSerializer.Components
                 shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, genericModel);
                 if (shouldUpdateFamily)
                 {
-                    serializedData.GenericModel.RemoveFamily(familyName);
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.GenericModel, familyName);
                 }
             }
             if (!isFamilyPresent || shouldUpdateFamily)
             {
                 genericModel = new TrudeFamily(elementId, "GenericModel", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = genericModel;
-                serializedData.GenericModel.AddFamily(familyName, genericModel);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.GenericModel, familyName, genericModel);
             }
 
             TrudeGenericModel instance = new TrudeGenericModel(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);
