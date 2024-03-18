@@ -1,0 +1,31 @@
+{
+  "profiles": {
+    "SnaptrudeManagerAddin": {
+      "commandName": "Project"
+    },
+    "2019": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2019\\Revit.exe"
+    },
+    "2020": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2020\\Revit.exe"
+    },
+    "2021": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2021\\Revit.exe"
+    },
+    "2022": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2022\\Revit.exe"
+    },
+    "2023": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2023\\Revit.exe"
+    },
+    "2024": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2024\\Revit.exe"
+    }
+  }
+}

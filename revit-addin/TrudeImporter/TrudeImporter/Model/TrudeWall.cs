@@ -14,7 +14,7 @@ namespace TrudeImporter
         public Wall wall { get; set; }
         public static WallTypeStore TypeStore = new WallTypeStore();
 
-        public TrudeWall(WallProperties wallProps)
+        public TrudeWall(WallProperties wallProps, bool recreate)
         {
             try
             {
@@ -62,28 +62,6 @@ namespace TrudeImporter
                         this.levelNumber = (int)wallProps.Storey;
 
                         IList<Curve> profile = TrudeWall.GetProfile(wallProps.ProfilePoints);
-
-                        //TODO remove this loop after wall core layer thickness is fixed after doing freemove
-                        if (!wallProps.ThicknessInMm.IsNull())
-                        {
-                            bool coreIsFound = false;
-                            for (int i = 0; i < this.Layers.Length; i++)
-                            {
-                                if (this.Layers[i].IsCore)
-                                {
-                                    coreIsFound = true;
-                                    this.Layers[i].ThicknessInMm = (double)wallProps.ThicknessInMm;
-                                }
-                            }
-
-                            if (!coreIsFound)
-                            {
-                                int index = (int)(this.Layers.Length / 2);
-
-                                this.Layers[index].IsCore = true;
-                                this.Layers[index].ThicknessInMm = (double)wallProps.ThicknessInMm;
-                            }
-                        }
 
                         ElementId levelIdForWall;
                         levelIdForWall = GlobalVariables.LevelIdByNumber[this.levelNumber];
@@ -254,9 +232,11 @@ namespace TrudeImporter
 
                         WallType _wallType = this.wall.WallType;
 
-                        // Uncomment if you dont want to join walls
-                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
-                        //WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                        if (recreate)
+                        {
+                            WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                            WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                        }
 
                         TransactionStatus transactionStatus = trans.Commit();
 
@@ -277,9 +257,13 @@ namespace TrudeImporter
 
                         Utils.LogTrace("wall created");
 
-                        foreach (JToken childUID in wallProps.ChildrenUniqueIds)
+                        if (!recreate)
                         {
-                            GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            foreach (JToken childUID in wallProps.ChildrenUniqueIds)
+                            {
+                                GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                            }
+                            GlobalVariables.UniqueIdToElementId.Add((int)wallProps.UniqueId, wallId);
                         }
 
                         using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -291,7 +275,12 @@ namespace TrudeImporter
                                 Element element = GlobalVariables.Document.GetElement(wallProps.SourceElementId);
                                 if (element != null)
                                 {
-                                    GlobalVariables.Document.Delete(new ElementId(int.Parse(wallProps.SourceElementId)));
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                                    ElementId sourceElementId = new ElementId(int.Parse(wallProps.SourceElementId));
+#else
+                                    ElementId sourceElementId = new ElementId(Int64.Parse(wallProps.SourceElementId));
+#endif
+                                    GlobalVariables.Document.Delete(sourceElementId);
                                 }
                             }
 
@@ -433,7 +422,7 @@ namespace TrudeImporter
             IDictionary<String, Face> normalToRevitFace = new Dictionary<String, Face>();
 
             List<XYZ> revitFaceNormals = new List<XYZ>();
-            
+
             IEnumerator<GeometryObject> geoObjectItor = GetGeometryElement().GetEnumerator();
             while (geoObjectItor.MoveNext())
             {
@@ -632,6 +621,36 @@ namespace TrudeImporter
             catch (Exception e)
             {
                 return false;
+            }
+        }
+        public static void HandleWallWarnings(Transaction trans)
+        {
+            FailureHandlingOptions options = trans.GetFailureHandlingOptions();
+            WallsPreProcessor preproccessor = new WallsPreProcessor();
+            options.SetClearAfterRollback(true);
+            options.SetFailuresPreprocessor(preproccessor);
+            trans.SetFailureHandlingOptions(options);
+        }
+
+        class WallsPreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+                foreach (FailureMessageAccessor fma in fmas)
+                {
+                    if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
+                    {
+                        GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
+                        failuresAccessor.ResolveFailure(fma);
+
+                        return FailureProcessingResult.ProceedWithCommit;
+                    }
+                }
+                return FailureProcessingResult.Continue;
             }
         }
     }

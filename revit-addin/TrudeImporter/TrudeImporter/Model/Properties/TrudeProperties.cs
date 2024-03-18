@@ -38,6 +38,9 @@ namespace TrudeImporter
         [JsonProperty("staircases")]
         public List<StairCaseProperties> Staircases { get; set; }
 
+        [JsonProperty("furniture")]
+        public List<FurnitureProperties> Furniture { get; set; }
+
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
     }

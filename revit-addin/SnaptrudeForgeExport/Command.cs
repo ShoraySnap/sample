@@ -111,13 +111,18 @@ namespace SnaptrudeForgeExport
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
 
-            using (Transaction t = new Transaction(newDoc, "Parse Trude"))
+            using (TransactionGroup tg = new TransactionGroup(newDoc, "Parse Trude"))
             {
-                t.Start();
-                TrudeImporterMain.Import(trudeProperties);
-                t.Commit();
+                tg.Start();
+                using (Transaction t = new Transaction(newDoc, "Parse Trude"))
+                {
+                    GlobalVariables.Transaction = t;
+                    t.Start();
+                    TrudeImporterMain.Import(trudeProperties);
+                    t.Commit();
+                }
+                tg.Assimilate();
             }
-
 
             //ImportSnaptrude(structureCollection, newDoc);
 
@@ -189,6 +194,9 @@ namespace SnaptrudeForgeExport
 
         private void ExportPDF(Document newDoc, List<View> allViews)
         {
+#if REVIT2019 || REVIT2020 || REVIT2021
+            return;
+#else
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
 
             List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
@@ -221,6 +229,7 @@ namespace SnaptrudeForgeExport
             ZipFile.CreateFromDirectory(Configs.PDF_EXPORT_DIRECTORY, Configs.OUTPUT_FILE);
 
             Directory.Delete(Configs.PDF_EXPORT_DIRECTORY, true);
+#endif
         }
 
         private void SaveDocument(Document newDoc)
