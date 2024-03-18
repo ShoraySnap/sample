@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 
 namespace TrudeImporter
@@ -44,5 +45,30 @@ namespace TrudeImporter
         [JsonProperty("faceMaterialIds")]
         public List<int> FaceMaterialIds { get; set; }
 
+        [JsonProperty("instances")]
+        public List<BeamInstanceProperties> Instances { get; set; }
+
+    }
+
+    [Serializable]
+    public class BeamInstanceProperties
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("storey")]
+        public int Storey { get; set; }
+
+        [JsonProperty("uniqueId")]
+        public int UniqueId { get; set; }
+
+        [JsonProperty("centerPosition")]
+        public XYZ CenterPosition { get; set; }
+
+        [JsonProperty("rotation")]
+        public XYZ Rotation { get; set; }
+
+        [JsonProperty("existingElementId")]
+        public int? ExistingElementId { get; set; }
     }
 }
