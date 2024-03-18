@@ -82,7 +82,7 @@ namespace TrudeSerializer.Uploader
             return response;
         }
 
-        public static async void UploadLog(TrudeLogger logger)
+        public static async void UploadLog(TrudeLogger logger, string processId)
         {
             var jsonData = logger.GetSerializedObject();
 
@@ -94,7 +94,6 @@ namespace TrudeSerializer.Uploader
             Task<HttpResponseMessage> uploadTask;
 
             byte[] data = Encoding.UTF8.GetBytes(jsonData.ToString());
-            string processId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
             string path = $"media/{userId}/revitImport/{projectFloorKey}/logs/{processId}_log.json";
 
             var presignedUrlResponse = await GetPresignedURL(path, config);
@@ -105,5 +104,6 @@ namespace TrudeSerializer.Uploader
 
             await uploadTask;
         }
+
     }
 }

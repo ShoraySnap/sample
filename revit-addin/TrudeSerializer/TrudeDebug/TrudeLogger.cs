@@ -160,7 +160,7 @@ namespace TrudeSerializer.Debug
 		{
 			if (element == null) return;
 
-			if(element is Wall wall)
+			if(TrudeWall.IsValidWall(element))
 			{
 				CountComponent(data.components.walls, ComponentLogData.BASIC_WALL_KEY);
 			}

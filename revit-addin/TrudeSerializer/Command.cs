@@ -18,7 +18,7 @@ namespace TrudeSerializer
         {
             TrudeLogger logger = new TrudeLogger();
             logger.Init();
-
+            string processId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
             UIApplication uiapp = commandData.Application;
             Document doc = uiapp.ActiveUIDocument.Document;
@@ -34,14 +34,17 @@ namespace TrudeSerializer
                 View3D view = Get3dView(doc);
                 SetDetailViewToFine(doc, view);
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
+                serializedData.SetProcessId(processId);
+
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
+
 
                 logger.SerializeDone(true);
                 TrudeDebug.StoreSerializedData(serializedObject);
                 try
                 {
-                    Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                    //Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
                     logger.UploadDone(true);
                 }
                 catch(Exception ex)
@@ -66,7 +69,7 @@ namespace TrudeSerializer
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
                 GlobalVariables.CleanGlobalVariables();
                 logger.Save();
-                Uploader.S3helper.UploadLog(logger);
+                //Uploader.S3helper.UploadLog(logger, processId);
             }
         }
 

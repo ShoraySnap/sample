@@ -160,6 +160,11 @@ namespace TrudeSerializer.Importer
             this.Windows.AddInstance(instanceId, instance);
         }
 
+        public void SetProcessId(string value)
+        {
+            this.ProjectProperties.processId = value;
+        }
+
         public string SerializeProjectProperties()
         {
             string projectProperties = JsonConvert.SerializeObject(this.ProjectProperties);
@@ -262,6 +267,7 @@ namespace TrudeSerializer.Importer
     {
         public Dictionary<string, TrudeLevel> Levels;
         public string ProjectUnit;
+        public string processId;
 
         public ProjectProperties()
         {
