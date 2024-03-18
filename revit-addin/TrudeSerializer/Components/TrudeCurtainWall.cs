@@ -24,6 +24,27 @@ namespace TrudeSerializer.Components
             return Array.Exists(SUPPORTED_CATEGORIES, element.Category.Name.Contains);
         }
 
+        public static bool IsCurtainWallPanel(Element element)
+        {
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
+
+            return element.Category.Name.Contains("Curtain Panels");
+        }
+        
+        public static bool IsCurtainWallMullion(Element element)
+        {
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
+
+            return element.Category.Name.Contains("Curtain Wall Mullions");
+        }
         public TrudeCurtainWall(string elementId, string family, string level, string subType, double[] center) : base(elementId, "Curtain Wall", family, level)
         {
             this.subType = subType;

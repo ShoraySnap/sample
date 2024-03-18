@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using TrudeSerializer.Components;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 

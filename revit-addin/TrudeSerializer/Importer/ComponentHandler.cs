@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System.Linq;
 using TrudeSerializer.Components;
+using TrudeSerializer.Debug;
 using TrudeCeiling = TrudeSerializer.Components.TrudeCeiling;
 using TrudeColumn = TrudeSerializer.Components.TrudeColumn;
 using TrudeDoor = TrudeSerializer.Components.TrudeDoor;
@@ -50,6 +51,7 @@ namespace TrudeSerializer.Importer
         }
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
+            TrudeLogger.Instance.CountInput(element);
             if (element is Wall)
             {
                 return TrudeWall.GetSerializedComponent(serializedData, element);
@@ -161,6 +163,8 @@ namespace TrudeSerializer.Importer
                 TrudeWindow windowInstance = component as TrudeWindow;
                 serializedData.AddWindowInstance(instanceId, windowInstance);
             }
+
+            TrudeLogger.Instance.CountOutput(component);
         }
 
         public void AddComponent(SerializedTrudeData serializedData, TrudeMass mass, string revitLink, string elementId)
