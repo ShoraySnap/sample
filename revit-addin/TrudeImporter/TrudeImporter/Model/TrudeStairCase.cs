@@ -143,11 +143,16 @@ namespace TrudeImporter
                         }
                         catch (Exception ex)
                         {
-                            //System.Diagnostics.Debug.WriteLine( ex.ToString());
                             System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead.");
                             CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
                         }
                     }
+                    
+                    if (StaircaseType == "square")
+                    {
+                       CreateEdgeLanding(createdRunIds[createdRunIds.Count-1],createdRunIds[0]);
+                    }
+                    
 
                     trans.Commit();
                 }
@@ -158,15 +163,10 @@ namespace TrudeImporter
             ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
             ElementTransformUtils.RotateElement(GlobalVariables.Document, stairsId, Line.CreateBound(XYZ.Zero, XYZ.Zero + XYZ.BasisZ), -Rotation.Z);
             ElementTransformUtils.MoveElement(GlobalVariables.Document, stairsId, Position);
-            //ICollection<ElementId> supportIds = CreatedStaircase.GetStairsSupports();
             foreach (ElementId railingId in railingIds)
             {
                 doc.Delete(railingId);
             }
-            //foreach (ElementId supportId in supportIds)
-            //{
-            //    doc.Delete(supportId);
-            //}
             if (CreatedStaircase != null)
             {
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
@@ -205,7 +205,7 @@ namespace TrudeImporter
             if (runBefore == null || runAfter == null)
                 throw new InvalidOperationException("Invalid stair runs for manual landing.");
 
-            double elevation = Math.Min(runBefore.TopElevation, runAfter.TopElevation);
+            double elevation = runBefore.TopElevation;
 
             Level level = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
                           .OrderBy(lvl => Math.Abs(elevation - lvl.Elevation))
@@ -245,7 +245,6 @@ namespace TrudeImporter
             XYZ straightDirection = rotatedDirectionCW.Normalize() ;
             XYZ perpendicularDirection = rotatedDirectionCCW.Normalize() ;
             
-            
             // straightDirection = new XYZ(Math.Round(rotatedDirectionCW.X, 2), Math.Round(rotatedDirectionCW.Y, 2), 0);
             // perpendicularDirection = new XYZ(Math.Round(rotatedDirectionCCW.X, 2), Math.Round(rotatedDirectionCCW.Y, 2), 0);
             
@@ -260,7 +259,7 @@ namespace TrudeImporter
             XYZ adjustedCorner3 = corner3 - adjustmentVector;
             XYZ adjustedCorner4 = corner4 - adjustmentVector;
             
-            XYZ adjustmentVector2 = perpendicularDirection * supportOffset * 0.995;
+            XYZ adjustmentVector2 = perpendicularDirection * supportOffset * 0.99;
             
             XYZ adjustedCorner2 = corner2 + adjustmentVector2 ;
             XYZ adjustedCorner1 = corner1 + adjustmentVector2;
@@ -274,6 +273,34 @@ namespace TrudeImporter
 
             StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, landingLoop, elevation);
 
+        }
+
+        private void CreateEdgeLanding(ElementId runIdBefore, ElementId runIdAfter)
+        {
+            // make a copy of the runAfter 
+            StairsRun runAfter = doc.GetElement(runIdAfter) as StairsRun;
+            StairsRun runBefore = doc.GetElement(runIdBefore) as StairsRun;
+            
+            if (runBefore == null || runAfter == null)
+                throw new InvalidOperationException("Invalid stair runs for manual landing.");
+
+            double elevation = runBefore.TopElevation;
+
+            Level level = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
+                .OrderBy(lvl => Math.Abs(elevation - lvl.Elevation))
+                .FirstOrDefault();
+
+            if (level == null)
+                throw new InvalidOperationException("No suitable level found for landing creation.");
+            
+            XYZ startPoint = runStartEndPoints[runBefore.Id].Item2;
+            XYZ endPoint = runStartEndPoints[runAfter.Id].Item1;
+            startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
+            endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
+            
+            XYZ direction = (endPoint - startPoint).Normalize();
+            double width = this.Width;
+            
         }
 
     }

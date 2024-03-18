@@ -11,17 +11,17 @@ namespace TrudeImporter
         {
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            //ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            //ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            //ImportFloors(trudeProperties.Floors);
-            //if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
-            //    ImportFloors(trudeProperties.Ceilings);
-            //else
-            //    ImportCeilings(trudeProperties.Ceilings);
-            //ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-            //ImportDoors(trudeProperties.Doors);
-            //ImportWindows(trudeProperties.Windows);
-            //ImportMasses(trudeProperties.Masses);
+            ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            ImportFloors(trudeProperties.Floors);
+            if (int.Parse(GlobalVariables.RvtApp.VersionNumber) < 2022)
+                ImportFloors(trudeProperties.Ceilings);
+            else
+                ImportCeilings(trudeProperties.Ceilings);
+            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
+            ImportDoors(trudeProperties.Doors);
+            ImportWindows(trudeProperties.Windows);
+            ImportMasses(trudeProperties.Masses);
             ImportStairCases(trudeProperties.Staircases);
         }
 
@@ -196,7 +196,6 @@ namespace TrudeImporter
                         if (props.AllFaceVertices != null)
                         {
                             TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Walls);
-
                         }
                         else
                         {
@@ -501,24 +500,40 @@ namespace TrudeImporter
         private static void ImportStairCases(List<StairCaseProperties> propsList)
         {
             //GlobalVariables.Transaction.Commit();
-
             foreach (var staircase in propsList)
             {
-                    try
+                try
+                {
+                    if (staircase.AllFaceVertices != null)
                     {
-                        //GlobalVariables.Transaction.Start();
+                        System.Diagnostics.Debug.WriteLine("Staircase is being imported directly");
+
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        staircase.MaterialName,
+                        staircase.FaceMaterialIds,
+                        staircase.AllFaceVertices
+                    );
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Stairs);
+                    }
+                    //GlobalVariables.Transaction.Start();
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Staircase: " + staircase.Name + " is being imported parametrically");
                         new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
-                        deleteOld(staircase.ExistingElementId);
-                        //GlobalVariables.Transaction.Commit();
                     }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
-                    }
+
+                    deleteOld(staircase.ExistingElementId);
+                    //GlobalVariables.Transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
+                }
             }
             //GlobalVariables.Transaction.Start();
 
         }
+
 
         /// <summary>
         /// This will appear on the Design Automation output

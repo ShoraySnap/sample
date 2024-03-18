@@ -45,6 +45,9 @@ namespace TrudeImporter
 
         [JsonProperty("rotation")]
         public XYZ Rotation { get; set; }
+        
+        [JsonProperty("materialName")]
+        public string MaterialName { get; set; }
 
         [JsonProperty("type")]
         public string Type { get; set; }
