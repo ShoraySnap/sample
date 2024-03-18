@@ -570,8 +570,6 @@ namespace TrudeImporter
                 {
                     if (staircase.AllFaceVertices != null)
                     {
-                        System.Diagnostics.Debug.WriteLine("Staircase is being imported directly");
-
                         DirectShapeProperties directShapeProps = new DirectShapeProperties(
                         staircase.MaterialName,
                         staircase.FaceMaterialIds,
@@ -582,7 +580,6 @@ namespace TrudeImporter
                     //GlobalVariables.Transaction.Start();
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("Staircase: " + staircase.Name + " is being imported parametrically");
                         new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
                     }
 
