@@ -136,7 +136,6 @@ namespace TrudeSerializer.Components
             try
             {
                 isNonParametric = MarkNonParametericBasedOnSideProfile(wall);
-
             }
             catch (Exception e)
             {
@@ -155,6 +154,9 @@ namespace TrudeSerializer.Components
             {
                 serializedWall.SetOpenings(openings);
             }
+
+            height = serializedWall.GetHeightFromTopAndBottomProfile(element);
+            serializedWall.height = height;
 
             return serializedWall;
         }
@@ -195,7 +197,6 @@ namespace TrudeSerializer.Components
             bool isSupportedCrossSection = crossSection == WallCrossSection.Vertical;
 #endif
 
-
             isParametric = isSupportedCrossSection && !isCurvedWall;
         }
 
@@ -228,6 +229,31 @@ namespace TrudeSerializer.Components
             centerLine = CorrectBottomProfile(centerLine, baseLine, width);
 
             return centerLine;
+        }
+
+        public double GetHeightFromTopAndBottomProfile(Element element)
+        {
+            List<XYZ> bottomFaceVertices = new List<XYZ> { };
+            List<XYZ> topFaceVertices = new List<XYZ> { };
+
+            Options opt = new Options { };
+
+            GeometryElement geometry = element.get_Geometry(opt);
+
+            foreach (GeometryObject geom in geometry)
+            {
+                if (!(geom is Solid)) continue;
+                Solid solid = geom as Solid;
+                topFaceVertices = GetTopVerticesFromSolid(solid);
+                bottomFaceVertices = GetBottomVerticesFromSolid(solid);
+            }
+
+            double maxZ = GetMax(topFaceVertices, 2);
+            double minZ = GetMin(bottomFaceVertices, 2);
+
+            double height = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(maxZ - minZ);
+
+            return height;
         }
 
         private static bool MarkNonParametericBasedOnSideProfile(Wall wall)
@@ -292,6 +318,19 @@ namespace TrudeSerializer.Components
             return bottomVertices;
         }
 
+        private static List<XYZ> GetTopVerticesFromSolid(Solid solid)
+        {
+            List<XYZ> topVertices = new List<XYZ>();
+            foreach (Face face in solid.Faces)
+            {
+                if (face.ComputeNormal(new UV(0.5, 0.5)).Z > 0)
+                {
+                    topVertices.AddRange(GetFaceVerticesFromFace(face));
+                }
+            }
+            return topVertices;
+        }
+
         private static List<XYZ> GetFaceVerticesFromFace(Face face)
         {
             List<XYZ> vertices = new List<XYZ> { };
@@ -325,12 +364,12 @@ namespace TrudeSerializer.Components
             return vertices;
         }
 
-        static XYZ MaxPoint(XYZ a, XYZ b, Func<XYZ, double> selector)
+        private static XYZ MaxPoint(XYZ a, XYZ b, Func<XYZ, double> selector)
         {
             return selector(a) > selector(b) ? a : b;
         }
 
-        static XYZ MinPoint(XYZ a, XYZ b, Func<XYZ, double> selector)
+        private static XYZ MinPoint(XYZ a, XYZ b, Func<XYZ, double> selector)
         {
             return selector(a) < selector(b) ? a : b;
         }
@@ -669,7 +708,7 @@ namespace TrudeSerializer.Components
         }
     }
 
-    class TrudeWallOpening
+    internal class TrudeWallOpening
     {
         public List<List<double>> faceVertices;
         private string elementId;

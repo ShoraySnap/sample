@@ -22,18 +22,23 @@ namespace TrudeSerializer.Utils
                 {
                     return hasParentElement;
                 }
+            }
 
-                ElementId assemblySuperComponent = familyInstance.AssemblyInstanceId;
-                if (assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1")
-                {
-                    hasParentElement = true;
-                }
+            ElementId assemblySuperComponent = element?.AssemblyInstanceId;
 
-                ElementId groupId = familyInstance.GroupId;
-                if (groupId != null && groupId.IntegerValue.ToString() != "-1")
-                {
-                    hasParentElement = true;
-                }
+            bool HasAssemblySuperComponent = assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1";
+
+            if (HasAssemblySuperComponent)
+            {
+                hasParentElement = true;
+            }
+
+            ElementId groupId = element?.GroupId;
+            bool hasGroupSuperComponent = groupId != null && groupId.IntegerValue.ToString() != "-1";
+
+            if (hasGroupSuperComponent)
+            {
+                hasParentElement = true;
             }
 
             return hasParentElement;

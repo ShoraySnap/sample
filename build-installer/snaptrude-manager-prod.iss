@@ -9,7 +9,6 @@
 #define MyAppAssocExt ".trude"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
 #define Base "..\build-installer"
-#define BaseDynamoScripts Base + "\dynamo-scripts"
 #define BaseInstallers Base + "\installers"
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"       
@@ -45,17 +44,6 @@ OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Code]
-
-function ShouldInstallDynamo: Boolean;
-var
-  exists: Boolean;
-  path: String;
-begin
-  path := ExpandConstant('{userappdata}') + '\Autodesk\RVT\2019';
-  exists := DirExists(path);
-  Result := exists;
-end;
-
 var
   CheckListBoxPage: TInputOptionWizardPage;
   DownloadPage: TDownloadWizardPage;
@@ -199,20 +187,17 @@ Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude\Rev
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude\Revit2Snaptrude.dll"; 
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude\Revit2Snaptrude.dll"; 
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude\Revit2Snaptrude.dll"; 
+Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2024\Revit2Snaptrude\Revit2Snaptrude.dll"; 
 
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2019\Revit2Snaptrude.addin"
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude.addin"; 
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude.addin"; 
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude.addin"; 
 Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.addin"; 
+Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2024\Revit2Snaptrude.addin";
 
 [Files]
 Source: "{#BaseMisc}\urls.json"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
-
-;dynamo scripts
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2019.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2019.dyn"; Flags: ignoreversion
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2020.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2020.dyn"; Flags: ignoreversion
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude.dyn"; Flags: ignoreversion
 
 ;2019
 Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
@@ -247,12 +232,7 @@ Source: "{#BaseInstallers}\*.exe"; DestDir: "{tmp}"; Flags: createallsubdirs rec
 
 
 [Run]
-
-FileName: "{tmp}\DynamoInstall2.0.4.exe"; Description: "Install Dynamo"; Check: ShouldInstallDynamo; Flags: postinstall shellexec waituntilterminated
-
-Filename: "{tmp}\dynamo-2.6.1.exe"; Description: "Install Dynamo Connector"; Flags: postinstall shellexec waituntilterminated
-
-Filename: "{tmp}\snaptrude-manager-1.0.0 Setup.exe"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
+Filename: "{commonappdata}\snaptrude-manager-1.0.0 Setup.exe"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

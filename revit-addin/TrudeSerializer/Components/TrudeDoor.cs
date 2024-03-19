@@ -96,14 +96,14 @@ namespace TrudeSerializer.Components
                 shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, door);
                 if (shouldUpdateFamily)
                 {
-                    serializedData.Doors.RemoveFamily(familyName);
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.Doors, familyName);
                 }
             }
             if (!isFamilyPresent || shouldUpdateFamily)
             {
                 door = new TrudeFamily(elementId, "Doors", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = door;
-                serializedData.Doors.AddFamily(familyName, door);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Doors, familyName, door);
             }
 
             TrudeDoor instance = new TrudeDoor(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, hostId);
