@@ -3,19 +3,12 @@ import sessionData from "./sessionData";
 import logger from "./logger";
 import urls from "./urls";
 import { PERSONAL_WORKSPACE_ID } from "../routes/constants";
-import _ from "lodash";
+import { keyBy } from "lodash";
+import { CUSTOMER_LIFECYCLE, RequestType } from "./constants";
 
 const snaptrudeService = (function () {
-  const RequestType = {
-    GET: "GET",
-    POST: "POST",
-  };
-
-  const _callApi = async function (
-    endPoint,
-    requestType = RequestType.POST,
-    data = {}
-  ) {
+ 
+  const _callApi = async function (endPoint, requestType = RequestType.POST, data = {}) {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
     for (let item in data) formData.append(item, data[item]);
@@ -47,13 +40,7 @@ const snaptrudeService = (function () {
       .catch((e) => {
         logger.log("Network error");
         const res = e?.response;
-        if (res)
-          logger.log(
-            res.status,
-            res.statusText,
-            res.data.message,
-            res.data.error
-          );
+        if (res) logger.log(res.status, res.statusText, res.data.message, res.data.error);
         else logger.log("Empty error msg", endPoint);
       });
   };
@@ -79,41 +66,13 @@ const snaptrudeService = (function () {
       .catch((e) => {
         logger.log("Network error");
         const res = e?.response;
-        if (res)
-          logger.log(
-            res.status,
-            res.statusText,
-            res.data.message,
-            res.data.error
-          );
+        if (res) logger.log(res.status, res.statusText, res.data.message, res.data.error);
         else logger.log("Empty error msg", endPoint);
       });
   };
 
-  const createProjectDeprecated = async function (streamId, teamId, folderId) {
-    logger.log("Creating Snaptrude project for", streamId, teamId);
-    const REACT_URL = urls.get("snaptrudeReactUrl");
-
-    const endPoint = "/newSpeckleLinkedBlankProject";
-    const data = {
-      stream_id: streamId,
-      team_id: teamId,
-      folder_id: folderId,
-      project_name: sessionData.getUserData()["revitProjectName"],
-    };
-
-    const response = await _callApi(endPoint, RequestType.POST, data);
-    if (response) {
-      const floorkey = response.data.floorkey;
-      logger.log("Created Snaptrude project", floorkey);
-
-      return REACT_URL + "/model/" + floorkey;
-    }
-  };
   const createProject = async function () {
     logger.log("Creating Snaptrude project");
-    const REACT_URL = urls.get("snaptrudeReactUrl");
-
     const endPoint = "/newBlankProject";
     const data = {
       project_name: sessionData.getUserData()["revitProjectName"],
@@ -174,7 +133,7 @@ const snaptrudeService = (function () {
       const response = await _callApi(endPoint, RequestType.POST, {});
       if (response.status === 200) {
         const permissionObject = response.data.team.permissions;
-        const roleBasedPermissions = _.keyBy(permissionObject, (o) => o.name);
+        const roleBasedPermissions = keyBy(permissionObject, (o) => o.name);
         if (!roleBasedPermissions[team.role].create_project) {
           return false;
         }
@@ -187,8 +146,7 @@ const snaptrudeService = (function () {
     const validTeams = [];
     for (let i = 0; i < teams.length; ++i) {
       const team = teams[i];
-      const isPermissionToCreateProject =
-        await checkRoleForPermissionToCreateProject(team);
+      const isPermissionToCreateProject = await checkRoleForPermissionToCreateProject(team);
       if (!isPermissionToCreateProject) continue;
       if (team.isManuallyPaid) {
         validTeams.push(team);
@@ -204,11 +162,7 @@ const snaptrudeService = (function () {
         queryParams.append(item, data[item]);
       }
       queryParams = queryParams.toString();
-      const response = await _callApi(
-        endPoint + queryParams,
-        RequestType.GET,
-        data
-      );
+      const response = await _callApi(endPoint + queryParams, RequestType.GET, data);
       if (response) {
         const projectsCount = response.data.projects.length;
         if (projectsCount < 1) {
@@ -219,7 +173,7 @@ const snaptrudeService = (function () {
     return validTeams;
   };
 
-  const checkIfUserLoggedIn = async function (){
+  const checkIfUserLoggedIn = async function () {
     const accessToken = sessionData.getUserData()["accessToken"];
     const refreshToken = sessionData.getUserData()["refreshToken"];
 
@@ -237,29 +191,34 @@ const snaptrudeService = (function () {
       return true;
     }
     return false;
-  }
+  };
 
   const checkPersonalWorkspaces = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      const isPro = response.data.isPro;
-      if (isPro) return true;
+    try {
+      const isUserPro = await isPaidUserAccount();
+      if (isUserPro) return true;
+
       const projectCount = await getProjectInPersonalWorkSpace();
-      if (projectCount < 3) {
-        return true;
-      }
+      return projectCount < 5;
+    } catch (error) {
       return false;
     }
   };
 
-  const checkIfProUser = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      return response.data.isPro;
+  const isPaidUserAccount = async function () {
+    const endPoint = `/getuserprofile/`;
+    try {
+      const response = await _callApi(endPoint, RequestType.GET);
+      if (!response) return false;
+
+      const { isPro, customer_lifeCycle } = response.data;
+      const isPaidUser = [CUSTOMER_LIFECYCLE.Paid_User, CUSTOMER_LIFECYCLE.Trial_Started].includes(
+        customer_lifeCycle
+      );
+      return (isPro || isPaidUser) 
+    } catch (error) {
+      return false;
     }
-    return false;
   };
 
   const getProjectInPersonalWorkSpace = async () => {
@@ -337,9 +296,9 @@ const snaptrudeService = (function () {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
-    checkIfProUser,
+    isPaidUserAccount,
     getFolders,
-    checkIfUserLoggedIn
+    checkIfUserLoggedIn,
   };
 })();
 

@@ -63,7 +63,7 @@ namespace TrudeSerializer.Components
             bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
-            string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
+            string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
 
             bool isFamilyPresent = serializedData.GenericModel.HasFamily(familyName);
             TrudeFamily genericModel;
@@ -74,14 +74,14 @@ namespace TrudeSerializer.Components
                 shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, genericModel);
                 if (shouldUpdateFamily)
                 {
-                    serializedData.GenericModel.RemoveFamily(familyName);
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.GenericModel, familyName);
                 }
             }
             if (!isFamilyPresent || shouldUpdateFamily)
             {
                 genericModel = new TrudeFamily(elementId, "GenericModel", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = genericModel;
-                serializedData.GenericModel.AddFamily(familyName, genericModel);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.GenericModel, familyName, genericModel);
             }
 
             TrudeGenericModel instance = new TrudeGenericModel(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);

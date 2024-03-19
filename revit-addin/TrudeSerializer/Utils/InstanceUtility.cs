@@ -7,7 +7,7 @@ namespace TrudeSerializer.Components
 {
     internal class InstanceUtility
     {
-        public static string GetRevitName(string subType, string family, double length, double width, double height, bool isFaceFlipped)
+        public static string GetRevitName(string subType, string family, Dimensions dimension, bool isFaceFlipped)
         {
             string name = subType;
 
@@ -16,19 +16,19 @@ namespace TrudeSerializer.Components
                 name += $"_{family}";
             }
 
-            if (length > 0)
+            if (dimension.length > 0)
             {
-                name += $"_L{(int)length}";
+                name += $"_L{(int)(dimension.length)}";
             }
 
-            if (width > 0)
+            if (dimension.width > 0)
             {
-                name += $"_W{(int)width}";
+                name += $"_W{(int)(dimension.width)}";
             }
 
-            if (height > 0)
+            if (dimension.height > 0)
             {
-                name += $"_H{(int)height}";
+                name += $"_H{(int)(dimension.height)}";
             }
 
             if (isFaceFlipped)

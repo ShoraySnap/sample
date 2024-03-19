@@ -29,7 +29,7 @@ namespace TrudeSerializer
                 View3D view = Get3dView(doc);
                 SetDetailViewToFine(doc, view);
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
-                serializedData.CleanSerializedData();
+                ComponentHandler.Instance.CleanSerializedData(serializedData);
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
 
                 TrudeDebug.StoreSerializedData(serializedObject);
