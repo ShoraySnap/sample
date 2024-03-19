@@ -11,11 +11,12 @@ const snaptrudeService = (function () {
     POST: "POST",
   };
 
-  const _callApi = async function (
-    endPoint,
-    requestType = RequestType.POST,
-    data = {}
-  ) {
+  const CUSTOMER_LIFECYCLE = {
+    Paid_User: "Paid_User",
+    Trial_Started: "Trial_Started",
+  };
+
+  const _callApi = async function (endPoint, requestType = RequestType.POST, data = {}) {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
     for (let item in data) formData.append(item, data[item]);
@@ -47,13 +48,7 @@ const snaptrudeService = (function () {
       .catch((e) => {
         logger.log("Network error");
         const res = e?.response;
-        if (res)
-          logger.log(
-            res.status,
-            res.statusText,
-            res.data.message,
-            res.data.error
-          );
+        if (res) logger.log(res.status, res.statusText, res.data.message, res.data.error);
         else logger.log("Empty error msg", endPoint);
       });
   };
@@ -79,13 +74,7 @@ const snaptrudeService = (function () {
       .catch((e) => {
         logger.log("Network error");
         const res = e?.response;
-        if (res)
-          logger.log(
-            res.status,
-            res.statusText,
-            res.data.message,
-            res.data.error
-          );
+        if (res) logger.log(res.status, res.statusText, res.data.message, res.data.error);
         else logger.log("Empty error msg", endPoint);
       });
   };
@@ -187,8 +176,7 @@ const snaptrudeService = (function () {
     const validTeams = [];
     for (let i = 0; i < teams.length; ++i) {
       const team = teams[i];
-      const isPermissionToCreateProject =
-        await checkRoleForPermissionToCreateProject(team);
+      const isPermissionToCreateProject = await checkRoleForPermissionToCreateProject(team);
       if (!isPermissionToCreateProject) continue;
       if (team.isManuallyPaid) {
         validTeams.push(team);
@@ -204,11 +192,7 @@ const snaptrudeService = (function () {
         queryParams.append(item, data[item]);
       }
       queryParams = queryParams.toString();
-      const response = await _callApi(
-        endPoint + queryParams,
-        RequestType.GET,
-        data
-      );
+      const response = await _callApi(endPoint + queryParams, RequestType.GET, data);
       if (response) {
         const projectsCount = response.data.projects.length;
         if (projectsCount < 1) {
@@ -219,7 +203,7 @@ const snaptrudeService = (function () {
     return validTeams;
   };
 
-  const checkIfUserLoggedIn = async function (){
+  const checkIfUserLoggedIn = async function () {
     const accessToken = sessionData.getUserData()["accessToken"];
     const refreshToken = sessionData.getUserData()["refreshToken"];
 
@@ -237,29 +221,34 @@ const snaptrudeService = (function () {
       return true;
     }
     return false;
-  }
+  };
 
   const checkPersonalWorkspaces = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      const isPro = response.data.isPro;
-      if (isPro) return true;
+    try {
+      const isUserPro = await isPaidUserAccount();
+      if (isUserPro) return true;
+
       const projectCount = await getProjectInPersonalWorkSpace();
-      if (projectCount < 3) {
-        return true;
-      }
+      return projectCount < 5;
+    } catch (error) {
       return false;
     }
   };
 
-  const checkIfProUser = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      return response.data.isPro;
+  const isPaidUserAccount = async function () {
+    const endPoint = `/getuserprofile/`;
+    try {
+      const response = await _callApi(endPoint, RequestType.GET);
+      if (!response) return false;
+
+      const { isPro, customer_lifeCycle } = response.data;
+      const isPaidUser = [CUSTOMER_LIFECYCLE.Paid_User, CUSTOMER_LIFECYCLE.Trial_Started].includes(
+        customer_lifeCycle
+      );
+      return (isPro || isPaidUser) 
+    } catch (error) {
+      return false;
     }
-    return false;
   };
 
   const getProjectInPersonalWorkSpace = async () => {
@@ -337,9 +326,9 @@ const snaptrudeService = (function () {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
-    checkIfProUser,
+    isPaidUserAccount,
     getFolders,
-    checkIfUserLoggedIn
+    checkIfUserLoggedIn,
   };
 })();
 

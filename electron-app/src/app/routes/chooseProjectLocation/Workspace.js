@@ -214,7 +214,7 @@ const Workspace = ({
   };
 
   const isUserPro = async () => {
-    const isProUser = await snaptrudeService.checkIfProUser();
+    const isProUser = await snaptrudeService.isPaidUserAccount();
     setIsProUser(isProUser);
   }
 
