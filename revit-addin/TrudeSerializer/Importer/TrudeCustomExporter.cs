@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
@@ -131,6 +130,7 @@ namespace TrudeSerializer
                 {
                     return RenderNodeAction.Skip;
                 }
+                TrudeLogger.Instance.CountInputRevitLink(currentLink.name);
             }
             else
             {

@@ -44,7 +44,7 @@ namespace TrudeSerializer
                 TrudeDebug.StoreSerializedData(serializedObject);
                 try
                 {
-                    //Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                    Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
                     logger.UploadDone(true);
                 }
                 catch(Exception ex)
@@ -69,7 +69,7 @@ namespace TrudeSerializer
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
                 GlobalVariables.CleanGlobalVariables();
                 logger.Save();
-                //Uploader.S3helper.UploadLog(logger, processId);
+                Uploader.S3helper.UploadLog(logger, processId);
             }
         }
 

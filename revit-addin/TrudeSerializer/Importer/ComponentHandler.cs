@@ -170,6 +170,7 @@ namespace TrudeSerializer.Importer
         public void AddComponent(SerializedTrudeData serializedData, TrudeMass mass, string revitLink, string elementId)
         {
             serializedData.RevitLinks[revitLink].Add(elementId, mass);
+            TrudeLogger.Instance.CountOutputRevitLink();
         }
 
         public void AddFamily(SerializedTrudeData serializedData, FamilyFolder folder, string familyName, TrudeFamily family)

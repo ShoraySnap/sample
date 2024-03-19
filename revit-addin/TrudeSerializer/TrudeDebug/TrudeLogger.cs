@@ -124,7 +124,7 @@ namespace TrudeSerializer.Debug
 			TrudeDebug.StoreData(serializedLog, "log.json");
 		}
 
-		private void CountComponent(Dictionary<string, CountData> componentDict, string key)
+		private void CountInputComponent(Dictionary<string, CountData> componentDict, string key)
 		{
 			if(componentDict.ContainsKey(key))
 			{
@@ -162,55 +162,64 @@ namespace TrudeSerializer.Debug
 
 			if(TrudeWall.IsValidWall(element))
 			{
-				CountComponent(data.components.walls, ComponentLogData.BASIC_WALL_KEY);
+				CountInputComponent(data.components.walls, ComponentLogData.BASIC_WALL_KEY);
 			}
 			else if(element is Floor floor)
 			{
-				CountComponent(data.components.floors, ComponentLogData.BASIC_FLOOR_KEY);
+				CountInputComponent(data.components.floors, ComponentLogData.BASIC_FLOOR_KEY);
 			}
 			else if(element is Ceiling ceiling)
 			{
-				CountComponent(data.components.ceilings, ComponentLogData.BASIC_CEILING_KEY);
+				CountInputComponent(data.components.ceilings, ComponentLogData.BASIC_CEILING_KEY);
 			}
 			else if(TrudeCurtainWall.IsCurtainWallComponent(element))
 			{
 				if(TrudeCurtainWall.IsCurtainWallMullion(element))
 				{
-					CountComponent(data.components.curtainWalls, ComponentLogData.MULLIONS_KEY);
+					CountInputComponent(data.components.curtainWalls, ComponentLogData.MULLIONS_KEY);
 				}
 				else if(TrudeCurtainWall.IsCurtainWallPanel(element))
 				{
-					CountComponent(data.components.curtainWalls, ComponentLogData.PANELS_KEY);
+					CountInputComponent(data.components.curtainWalls, ComponentLogData.PANELS_KEY);
 				}
 			}
 			else if(TrudeColumn.IsColumnCategory(element))
 			{
-				CountComponent(data.components.columns, ComponentLogData.BASIC_COLUMN_KEY);
+				CountInputComponent(data.components.columns, ComponentLogData.BASIC_COLUMN_KEY);
 			}
 			else if(TrudeDoor.IsDoor(element))
 			{
-				CountComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
+				CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
 			}
 			else if(TrudeWindow.IsWindow(element))
 			{
-				CountComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
+				CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
 			}
 			else if(TrudeFurniture.IsFurnitureCategory(element))
 			{
-				CountComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
+				CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
 			}
 			else if(TrudeGenericModel.IsGenericModel(element))
 			{
-				CountComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
+				CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
 			}
 			else if(element is RoofBase)
 			{
-				CountComponent(data.components.roofs, ComponentLogData.BASIC_ROOF_KEY);
+				CountInputComponent(data.components.roofs, ComponentLogData.BASIC_ROOF_KEY);
 			}
 			else
 			{
-				CountComponent(data.components.unrecognizedComponents, ComponentLogData.MASSES_KEY);
+				CountInputComponent(data.components.unrecognizedComponents, ComponentLogData.MASSES_KEY);
 			}
+		}
+
+		public void CountInputRevitLink(string key)
+		{
+			CountInputComponent(data.components.revitLinks, key); // Count revit links
+		}
+		public void CountOutputRevitLink()
+		{
+			CountOutputComponent(data.components.revitLinks, false); // Always non-parametric for now	
 		}
 		public void CountOutput(TrudeComponent component)
 		{
