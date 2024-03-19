@@ -14,7 +14,7 @@ namespace TrudeSerializer.Components
             {
                 return false;
             }
-            return category.Contains("Windows");
+            return element is FamilyInstance && category.Contains("Windows");
         }
 
         public Dimensions dimension;
@@ -87,7 +87,7 @@ namespace TrudeSerializer.Components
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
 
-            string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
+            string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
             string hostId = InstanceUtility.GetHostId(element);
 
             bool isFamilyPresent = serializedData.Windows.HasFamily(familyName);

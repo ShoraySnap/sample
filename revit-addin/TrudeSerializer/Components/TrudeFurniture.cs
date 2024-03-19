@@ -86,7 +86,7 @@ namespace TrudeSerializer.Components
             bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
-            string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
+            string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
 
             bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
             TrudeFamily furniture;
