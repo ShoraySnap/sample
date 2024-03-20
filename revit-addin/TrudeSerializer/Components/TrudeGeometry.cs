@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
@@ -18,9 +20,9 @@ namespace TrudeSerializer.Components
 
         public void AddVertices(double x, double y, double z)
         {
-            vertices.Add(x);
-            vertices.Add(y);
-            vertices.Add(z);
+            vertices.Add(Math.Round(x, Constants.ROUND_DIGITS));
+            vertices.Add(Math.Round(y, Constants.ROUND_DIGITS));
+            vertices.Add(Math.Round(z, Constants.ROUND_DIGITS));
         }
 
         public void AddFaces(long a, long b, long c)
@@ -32,8 +34,8 @@ namespace TrudeSerializer.Components
 
         public void AddUVs(double u, double v)
         {
-            uvs.Add(u);
-            uvs.Add(v);
+            uvs.Add(Math.Round(u, Constants.ROUND_DIGITS));
+            uvs.Add(Math.Round(v, Constants.ROUND_DIGITS));
         }
 
         public void SetMaterial(TrudeMaterial material)

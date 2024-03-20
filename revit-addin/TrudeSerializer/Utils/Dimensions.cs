@@ -1,4 +1,6 @@
-﻿namespace TrudeSerializer.Utils
+﻿using System;
+
+namespace TrudeSerializer.Utils
 {
     class Dimensions
     {
@@ -8,9 +10,9 @@
 
         public Dimensions(double width, double height, double length)
         {
-            this.width = width;
-            this.height = height;
-            this.length = length;
+            this.width = Math.Round(width, Constants.ROUND_DIGITS);
+            this.height = Math.Round(height, Constants.ROUND_DIGITS);
+            this.length = Math.Round(length, Constants.ROUND_DIGITS);
         }
     }
 }

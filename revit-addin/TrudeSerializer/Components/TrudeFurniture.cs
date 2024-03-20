@@ -31,7 +31,11 @@ namespace TrudeSerializer.Components
 
         public static bool IsFurnitureCategory(Element element)
         {
-            string category = element.Category.Name;
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
             return Array.Exists(funitureSubCategories, element.Category.Name.Contains);
         }
 
@@ -82,15 +86,25 @@ namespace TrudeSerializer.Components
             bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
-            string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
+            string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
 
             bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
             TrudeFamily furniture;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                furniture = serializedData.Furniture.GetFamily(familyName);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, furniture);
+                if (shouldUpdateFamily)
+                {
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 furniture = new TrudeFamily(elementId, "Furniture", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = furniture;
-                serializedData.Furniture.AddFamily(familyName, furniture);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName, furniture);
             }
 
             TrudeFurniture instance = new TrudeFurniture(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);

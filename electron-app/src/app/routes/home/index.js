@@ -112,7 +112,7 @@ const Home = () => {
     }
   };
 
-  const isLoggedIn = !!userData.accessToken;
+  const isLoggedIn = !!userData.accessToken && !!userData.userId;
   const initState = isLoggedIn ? buttonsAfterLogin : buttonsBeforeLogin;
 
   if (isLoggedIn) updateTemplatesWithUserData();

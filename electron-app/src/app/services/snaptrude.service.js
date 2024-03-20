@@ -3,14 +3,10 @@ import sessionData from "./sessionData";
 import logger from "./logger";
 import urls from "./urls";
 import { PERSONAL_WORKSPACE_ID } from "../routes/constants";
-import _ from "lodash";
+import { keyBy } from "lodash";
+import { CUSTOMER_LIFECYCLE, RequestType } from "./constants";
 
 const snaptrudeService = (function () {
-  const RequestType = {
-    GET: "GET",
-    POST: "POST",
-  };
-
   const _callApi = async function (
     endPoint,
     requestType = RequestType.POST,
@@ -90,27 +86,6 @@ const snaptrudeService = (function () {
       });
   };
 
-  const createProjectDeprecated = async function (streamId, teamId, folderId) {
-    logger.log("Creating Snaptrude project for", streamId, teamId);
-    const REACT_URL = urls.get("snaptrudeReactUrl");
-
-    const endPoint = "/newSpeckleLinkedBlankProject";
-    const data = {
-      stream_id: streamId,
-      team_id: teamId,
-      folder_id: folderId,
-      project_name: sessionData.getUserData()["revitProjectName"],
-    };
-
-    const response = await _callApi(endPoint, RequestType.POST, data);
-    if (response) {
-      const floorkey = response.data.floorkey;
-      logger.log("Created Snaptrude project", floorkey);
-
-      return REACT_URL + "/model/" + floorkey;
-    }
-  };
-
   const checkModelUrl = async function (floorkey) {
     const accessToken = sessionData.getUserData()["accessToken"];
     const userData = sessionData.getUserData();
@@ -135,8 +110,6 @@ const snaptrudeService = (function () {
 
   const createProject = async function () {
     logger.log("Creating Snaptrude project");
-    const REACT_URL = urls.get("snaptrudeReactUrl");
-
     const endPoint = "/newBlankProject";
     const data = {
       project_name: sessionData.getUserData()["revitProjectName"],
@@ -197,7 +170,7 @@ const snaptrudeService = (function () {
       const response = await _callApi(endPoint, RequestType.POST, {});
       if (response.status === 200) {
         const permissionObject = response.data.team.permissions;
-        const roleBasedPermissions = _.keyBy(permissionObject, (o) => o.name);
+        const roleBasedPermissions = keyBy(permissionObject, (o) => o.name);
         if (!roleBasedPermissions[team.role].create_project) {
           return false;
         }
@@ -263,26 +236,32 @@ const snaptrudeService = (function () {
   };
 
   const checkPersonalWorkspaces = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      const isPro = response.data.isPro;
-      if (isPro) return true;
+    try {
+      const isUserPro = await isPaidUserAccount();
+      if (isUserPro) return true;
+
       const projectCount = await getProjectInPersonalWorkSpace();
-      if (projectCount < 3) {
-        return true;
-      }
+      return projectCount < 5;
+    } catch (error) {
       return false;
     }
   };
 
-  const checkIfProUser = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      return response.data.isPro;
+  const isPaidUserAccount = async function () {
+    const endPoint = `/getuserprofile/`;
+    try {
+      const response = await _callApi(endPoint, RequestType.GET);
+      if (!response) return false;
+
+      const { isPro, customer_lifeCycle } = response.data;
+      const isPaidUser = [
+        CUSTOMER_LIFECYCLE.Paid_User,
+        CUSTOMER_LIFECYCLE.Trial_Started,
+      ].includes(customer_lifeCycle);
+      return isPro || isPaidUser;
+    } catch (error) {
+      return false;
     }
-    return false;
   };
 
   const getProjectInPersonalWorkSpace = async () => {
@@ -360,7 +339,7 @@ const snaptrudeService = (function () {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
-    checkIfProUser,
+    isPaidUserAccount,
     getFolders,
     checkIfUserLoggedIn,
     checkModelUrl,

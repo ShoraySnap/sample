@@ -1,18 +1,20 @@
 ﻿using Autodesk.Revit.DB;
-using System;
 using System.Collections.Generic;
-using System.IO.Packaging;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
-    internal class TrudeDoor: TrudeComponent
+    internal class TrudeDoor : TrudeComponent
     {
         public static bool IsDoor(Element element)
         {
-            string category = element.Category.Name;
-            return category.Contains("Doors");
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
+            return element is FamilyInstance && category.Contains("Doors");
         }
 
         public Dimensions dimension;
@@ -36,7 +38,6 @@ namespace TrudeSerializer.Components
             this.subComponent = subComponents;
             this.hasParentElement = hasParentElement;
             this.hostId = hostId;
-           
         }
 
         public void SetPlanViewIndicator(List<TrudePlanViewIndicator> planViewIndicator)
@@ -53,7 +54,6 @@ namespace TrudeSerializer.Components
         {
             this.facingOrientation = facingOrientation;
         }
-
 
         public static TrudeComponent GetSerializedComponent(SerializedTrudeData serializedData, Element element)
         {
@@ -81,20 +81,29 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
-            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
+            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element, true);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
-
-            string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
+            string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
             string hostId = InstanceUtility.GetHostId(element);
 
             bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
             TrudeFamily door;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
             {
-                door = new TrudeFamily(elementId, "Doors",  level, family, subType, subCategory, dimension, transform, subComponents);
+                door = serializedData.Doors.GetFamily(familyName);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, door);
+                if (shouldUpdateFamily)
+                {
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.Doors, familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
+            {
+                door = new TrudeFamily(elementId, "Doors", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = door;
-                serializedData.Doors.AddFamily(familyName, door);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Doors, familyName, door);
             }
 
             TrudeDoor instance = new TrudeDoor(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, hostId);
@@ -116,7 +125,6 @@ namespace TrudeSerializer.Components
             }
             double[] handOrientation = { familyInstance.HandOrientation.X, familyInstance.HandOrientation.Z, familyInstance.HandOrientation.Y };
             this.handOrientation = handOrientation;
-
         }
 
         public void SetFacingOrientation(Element element)
@@ -127,7 +135,6 @@ namespace TrudeSerializer.Components
             }
             double[] facingOrientation = { familyInstance.HandOrientation.X, familyInstance.HandOrientation.Z, familyInstance.HandOrientation.Y };
             this.facingOrientation = facingOrientation;
-
         }
     }
 }

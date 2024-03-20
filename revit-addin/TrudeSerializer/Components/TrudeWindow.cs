@@ -9,8 +9,12 @@ namespace TrudeSerializer.Components
     {
         public static bool IsWindow(Element element)
         {
-            string category = element.Category.Name;
-            return category.Contains("Windows");
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
+            return element is FamilyInstance && category.Contains("Windows");
         }
 
         public Dimensions dimension;
@@ -79,20 +83,30 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
-            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
+            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element, true);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
 
-            string familyName = InstanceUtility.GetRevitName(subType, family, length, width, height, isFaceFlipped);
+            string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
             string hostId = InstanceUtility.GetHostId(element);
 
-            bool isFamilyPresent = serializedData.Furniture.HasFamily(familyName);
+            bool isFamilyPresent = serializedData.Windows.HasFamily(familyName);
             TrudeFamily window;
-            if (!isFamilyPresent)
+            bool shouldUpdateFamily = false;
+            if (isFamilyPresent)
+            {
+                window = serializedData.Windows.GetFamily(familyName);
+                shouldUpdateFamily = TrudeFamily.ShouldGetNewFamilyGeometry(element, window);
+                if (shouldUpdateFamily)
+                {
+                    ComponentHandler.Instance.RemoveFamily(serializedData, ComponentHandler.FamilyFolder.Windows, familyName);
+                }
+            }
+            if (!isFamilyPresent || shouldUpdateFamily)
             {
                 window = new TrudeFamily(elementId, "Windows", level, family, subType, subCategory, dimension, transform, subComponents);
                 CurrentFamily = window;
-                serializedData.Windows.AddFamily(familyName, window);
+                ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Windows, familyName, window);
             }
 
             TrudeWindow instance = new TrudeWindow(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, hostId);

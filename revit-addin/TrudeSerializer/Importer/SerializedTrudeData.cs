@@ -16,6 +16,7 @@ namespace TrudeSerializer.Importer
         public TrudeObject<TrudeDoor> Doors { get; set; }
         public TrudeObject<TrudeWindow> Windows { get; set; }
         public Dictionary<string, TrudeFloor> Floors { get; set; }
+        public Dictionary<string, TrudeColumn> Columns { get; set; }
         public Dictionary<string, TrudeMass> Masses { get; set; }
         public Dictionary<string, Dictionary<string, TrudeMass>> RevitLinks { get; set; }
         public FamilyTypes FamilyTypes { get; set; }
@@ -23,6 +24,8 @@ namespace TrudeSerializer.Importer
         public TrudeObject<TrudeGenericModel> GenericModel { get; set; }
 
         public Dictionary<string, TrudeRoof> Roofs { get; set; }
+
+        public Dictionary<string, TrudeCurtainWall> CurtainWalls { get; set; }
 
         public SerializedTrudeData()
         {
@@ -33,10 +36,12 @@ namespace TrudeSerializer.Importer
             this.Windows = new TrudeObject<TrudeWindow>();
             this.Floors = new Dictionary<string, TrudeFloor>();
             this.Ceilings = new Dictionary<string, TrudeCeiling>();
+            this.Columns = new Dictionary<string, TrudeColumn>();
             this.Masses = new Dictionary<string, TrudeMass>();
             this.RevitLinks = new Dictionary<string, Dictionary<string, TrudeMass>>();
             this.GenericModel = new TrudeObject<TrudeGenericModel>();
             this.ProjectProperties = new ProjectProperties();
+            this.CurtainWalls = new Dictionary<string, TrudeCurtainWall>();
 
             this.Roofs = new Dictionary<string, TrudeRoof>();
         }
@@ -94,9 +99,20 @@ namespace TrudeSerializer.Importer
             this.Ceilings.Add(trudeCeiling.elementId, trudeCeiling);
         }
 
+        public void AddColumn(TrudeColumn trudeColumn)
+        {
+            if (this.Columns.ContainsKey(trudeColumn.elementId)) return;
+            this.Columns.Add(trudeColumn.elementId, trudeColumn);
+        }
+        public void AddCurtainWall(TrudeCurtainWall trudeCurtainWall)
+        {
+            if (this.CurtainWalls.ContainsKey(trudeCurtainWall.elementId)) return;
+            this.CurtainWalls.Add(trudeCurtainWall.elementId, trudeCurtainWall);
+        }
+
         public void AddRoof(TrudeRoof roof)
         {
-            if(this.Roofs.ContainsKey(roof.elementId)) return;
+            if (this.Roofs.ContainsKey(roof.elementId)) return;
             this.Roofs.Add(roof.elementId, roof);
         }
 
@@ -176,6 +192,7 @@ namespace TrudeSerializer.Importer
         public Dictionary<String, TrudeWallType> WallTypes;
         public Dictionary<String, TrudeFloorType> FloorTypes;
         public Dictionary<String, TrudeCeilingType> CeilingTypes;
+        public Dictionary<String, TrudeColumnType> ColumnTypes;
         public Dictionary<String, TrudeRoofType> RoofTypes;
 
         public FamilyTypes()
@@ -183,6 +200,7 @@ namespace TrudeSerializer.Importer
             this.WallTypes = new Dictionary<String, TrudeWallType>();
             this.FloorTypes = new Dictionary<String, TrudeFloorType>();
             this.CeilingTypes = new Dictionary<String, TrudeCeilingType>();
+            this.ColumnTypes = new Dictionary<String, TrudeColumnType>();
             this.RoofTypes = new Dictionary<string, TrudeRoofType>();
         }
 
@@ -200,6 +218,10 @@ namespace TrudeSerializer.Importer
             return this.CeilingTypes.ContainsKey(ceilingTypeName);
         }
 
+        public bool HasColumnType(String columnTypeName)
+        {
+            return this.ColumnTypes.ContainsKey(columnTypeName);
+        }
         public bool HasRoofType(String roofTypeName)
         {
             return this.RoofTypes.ContainsKey(roofTypeName);
@@ -226,6 +248,12 @@ namespace TrudeSerializer.Importer
         {
             if (this.HasCeilingType(roofTypeName)) return;
             this.RoofTypes.Add(roofTypeName, roofType);
+        }
+
+        public void AddColumnType(String columnTypeName, TrudeColumnType type)
+        {
+            if (this.HasColumnType(columnTypeName)) return;
+            this.ColumnTypes.Add(columnTypeName, type);
         }
 
     }
@@ -268,15 +296,24 @@ namespace TrudeSerializer.Importer
             return this.Families.ContainsKey(familyName);
         }
 
+        public TrudeFamily GetFamily(string familyName)
+        {
+            return this.Families[familyName];
+        }
+
+        public void RemoveFamily(string familyName)
+        {
+            this.Families.Remove(familyName);
+        }
+
         public void AddFamily(string familyName, TrudeFamily family)
         {
-            if (this.HasFamily(familyName)) return;
-            this.Families.Add(familyName, family);
+            this.Families[familyName] = family;
         }
 
         public void AddInstance(string instanceId, TFamily instance)
         {
-            this.Instances.Add(instanceId, instance);
+            this.Instances[instanceId] = instance;
         }
     }
 }
