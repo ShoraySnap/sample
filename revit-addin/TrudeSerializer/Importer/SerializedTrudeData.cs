@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using TrudeSerializer.Components;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Types;
 
 namespace TrudeSerializer.Importer
@@ -55,6 +56,10 @@ namespace TrudeSerializer.Importer
                     this.Masses.Remove(key);
                 }
             }
+            // TODO: CLEANUP UPDATE LISTENER INSTEAD OF THIS
+            CountData massCountData = new CountData() { parametric = 0, nonParametric = this.Masses.Count, total = this.Masses.Count };
+            TrudeLogger.Instance.CleanupUpdateMasses(massCountData);
+
             foreach (var revitLinkKey in this.RevitLinks.Keys.ToList())
             {
                 foreach (var trudeMassKey in this.RevitLinks[revitLinkKey].Keys.ToList())

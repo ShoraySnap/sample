@@ -40,7 +40,7 @@ namespace TrudeSerializer.Debug
 		public const string BASIC_WALL_KEY = "BasicWall";
 		public const string BASIC_FLOOR_KEY = "BasicFloor";
 		public const string BASIC_CEILING_KEY = "BasicCeiling";
-		public const string BASIC_COLUMN_KEY = "BasicCeiling";
+		public const string BASIC_COLUMN_KEY = "BasicColumn";
 		public const string BASIC_DOOR_KEY = "BasicDoor";
 		public const string BASIC_WINDOW_KEY = "BasicWindow";
 		public const string BASIC_FURNITURE_KEY = "BasicFurniture";
@@ -278,6 +278,9 @@ namespace TrudeSerializer.Debug
             return serializedLog;
         }
 
-
+		public void CleanupUpdateMasses(CountData newMassCount)
+		{
+			data.components.unrecognizedComponents["masses"] = newMassCount;
+		}
     }
 }
