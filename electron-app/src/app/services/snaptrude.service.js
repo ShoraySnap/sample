@@ -91,7 +91,7 @@ const snaptrudeService = (function () {
       floorkey: floorkey,
     };
     const response = await _callApi(
-      "/checkEditPermission/",
+      "/import/permission/",
       RequestType.POST,
       data
     );
