@@ -87,18 +87,8 @@ const snaptrudeService = (function () {
   };
 
   const checkModelUrl = async function (floorkey) {
-    const accessToken = sessionData.getUserData()["accessToken"];
-    const userData = sessionData.getUserData();
     const data = {
-      user: {
-        id: userData.userId,
-        name: userData.fullname,
-        accessToken: userData.accessToken,
-        refreshToken: userData.refreshToken,
-        email: userData.email,
-      },
       floorkey: floorkey,
-      jwt: accessToken,
     };
     const response = await _callApi(
       "/checkEditPermission/",
