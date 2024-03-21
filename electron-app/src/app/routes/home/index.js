@@ -26,6 +26,7 @@ const flushUserData = () => {
 
 const Home = () => {
   const navigate = useNavigate();
+  const fileType = sessionData.getUserData().fileType;
 
   const loginButton = {
     id: BUTTONS.login,
@@ -39,7 +40,11 @@ const Home = () => {
     title: "Upload to Snaptrude",
     icon: upload,
     onClick: () => {
-      navigate(ROUTES.projectSelection);
+      navigate(
+        fileType == "rfa"
+          ? ROUTES.projectSelection
+          : ROUTES.chooseProjectLocation
+      );
       // navigate(ROUTES.loading);
       // backend has to initiate the loading page provided everything has worked properly
     },
@@ -158,6 +163,10 @@ const Home = () => {
                 button.id === BUTTONS.reconcile
               )
                 isDisabled = true;
+            }
+
+            if (fileType == "rfa" && button.id === BUTTONS.reconcile) {
+              isDisabled = true;
             }
 
             return (
