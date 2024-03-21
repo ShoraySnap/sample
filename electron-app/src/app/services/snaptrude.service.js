@@ -91,8 +91,8 @@ const snaptrudeService = (function () {
       floorkey: floorkey,
     };
     const response = await _callApi(
-      "/import/permission/",
-      RequestType.POST,
+      `/import/permission/?floorkey=${data.floorkey}`,
+      RequestType.GET,
       data
     );
     return response?.status === 200;
