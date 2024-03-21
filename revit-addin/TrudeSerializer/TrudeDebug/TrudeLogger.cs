@@ -160,6 +160,7 @@ namespace TrudeSerializer.Debug
 		{
 			if (element == null) return;
 
+
 			if(TrudeWall.IsValidWall(element))
 			{
 				CountInputComponent(data.components.walls, ComponentLogData.BASIC_WALL_KEY);
@@ -187,19 +188,19 @@ namespace TrudeSerializer.Debug
 			{
 				CountInputComponent(data.components.columns, ComponentLogData.BASIC_COLUMN_KEY);
 			}
-			else if(TrudeDoor.IsDoor(element))
+			else if(TrudeDoor.IsDoor(element) && FamilyInstanceUtils.HasParentElement(element, true))
 			{
 				CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
 			}
-			else if(TrudeWindow.IsWindow(element))
+			else if(TrudeWindow.IsWindow(element) && FamilyInstanceUtils.HasParentElement(element, true))
 			{
 				CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
 			}
-			else if(TrudeFurniture.IsFurnitureCategory(element))
+			else if(TrudeFurniture.IsFurnitureCategory(element) && FamilyInstanceUtils.HasParentElement(element))
 			{
 				CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
 			}
-			else if(TrudeGenericModel.IsGenericModel(element))
+			else if(TrudeGenericModel.IsGenericModel(element) && FamilyInstanceUtils.HasParentElement(element))
 			{
 				CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
 			}
@@ -245,13 +246,19 @@ namespace TrudeSerializer.Debug
 			{
 				CountOutputComponent(data.components.columns, component.isParametric);
 			}
-			else if(component is TrudeDoor)
+			else if(component is TrudeDoor door)
 			{
-				CountOutputComponent(data.components.doors, component.isParametric);
+				if (!door.hasParentElement)
+				{
+					CountOutputComponent(data.components.doors, component.isParametric);
+				}
 			}
-			else if(component is TrudeWindow)
+			else if(component is TrudeWindow window)
 			{
-				CountOutputComponent(data.components.windows, component.isParametric);
+				if (!window.hasParentElement)
+				{
+					CountOutputComponent(data.components.windows, component.isParametric);
+				}
 			}
 			else if(component is TrudeGenericModel)
 			{
@@ -265,9 +272,12 @@ namespace TrudeSerializer.Debug
 			{
 				CountOutputComponent(data.components.unrecognizedComponents, component.isParametric);
 			}
-			else if(component is TrudeFurniture)
+			else if(component is TrudeFurniture furniture)
 			{
-				CountOutputComponent(data.components.furniture, component.isParametric);
+				if (!furniture.hasParentElement)
+				{
+					CountOutputComponent(data.components.furniture, component.isParametric);
+				}
 			}
 		}
 
