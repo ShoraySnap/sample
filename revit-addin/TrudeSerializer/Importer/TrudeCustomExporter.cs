@@ -174,7 +174,7 @@ namespace TrudeSerializer
         private TrudeComponent AddLinkedComponentToSerializedData(ElementId elementId, Element element)
         {
             TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
-            if (mass.elementId == "-1")
+            if (mass.elementId == "-1" || mass.subType == "Levels" || mass.subType == "Model Groups" || mass.subType == "Divisions")
             {
                 return null;
             }
