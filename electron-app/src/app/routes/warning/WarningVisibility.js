@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
-import snaptrudeService from "../../services/snaptrude.service";
+import React from "react";
 import { ROUTES } from "../constants";
 import styled from "styled-components";
 import { colors } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
-import urls from "../../services/urls";
 import _ from "lodash";
-import { RouteStore } from "../routeStore";
 import { Checkbox } from "antd";
-// import electronCommunicator from "../../../electron/communicator";
+import sessionData from "../../services/sessionData";
+import userPreferences from "../../services/userPreferences";
 
 const ParentWrapper = styled.div`
   display: flex;
@@ -64,6 +62,33 @@ const ParentWrapper = styled.div`
   .active {
     background: #818181;
   }
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: black !important;
+    border-color: black;
+  }
+  .ant-checkbox-wrapper:hover .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: black !important;
+    border-color: black !important;
+  }
+  .ant-checkbox-checked:hover .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: black !important;
+    border-color: black !important;
+  }
+  .ant-checkbox-checked:after {
+    border-color: black !important;
+    animation-duration: 0s !important;
+  }
+  .ant-checkbox:hover::after {
+    border-color: black !important;
+    animation-duration: 0s !important;
+  }
+  .ant-checkbox:hover .ant-checkbox-inner {
+    border-color: black !important;
+    animation-duration: 0s !important;
+  }
+  .ant-checkbox {
+    animation-duration: 0s !important;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -85,16 +110,8 @@ const Wrapper = styled.div`
   }
 `;
 
-const WorkspacesGrid = styled.div`
-  display: grid;
-  grid-template-rows: 40px 40px 35px;
-  grid-template-columns: 10% 40% 25% 25%;
-  margin-top: 20px;
-  overflow: auto;
-  align-items: center;
-`;
-
 const WarningVisibility = ({}) => {
+  let showWarningAgain = true;
   const navigate = useNavigate();
 
   const onBack = () => {
@@ -102,67 +119,26 @@ const WarningVisibility = ({}) => {
   };
 
   const onSubmit = async () => {
-    window.electronAPI.uploadToExistingProject(modelCode);
-
-    if (modelCode) {
-      RouteStore.set(
-        "projectLink",
-        urls.get("snaptrudeReactUrl") + "/model/" + modelCode
+    if (showWarningAgain == false) {
+      window.electronAPI.updateUserPreferences(
+        "showWarningVisibility",
+        showWarningAgain
       );
-    } else {
-      // logger.log("Operation failed");
-      window.electronAPI.operationFailed();
     }
-    navigate(ROUTES.loading);
+
+    fileType == "rfa"
+      ? navigate(ROUTES.projectSelection)
+      : navigate(ROUTES.chooseProjectLocation);
   };
 
+  const fileType = sessionData.getUserData().fileType;
   const leftButtonCallback = onBack;
   const rightButtonCallback = onSubmit;
 
-  const heading = `Enter Model Link`;
-
-  const [errorMessage, setErrorMessage] = useState("\u3000");
-  const [modelCode, setModelCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDisabled, setIsDisabled] = useState(true);
-
-  const handleInputChange = (event) => {
-    event.target.value = event.target.value.toUpperCase();
-    const newText = event.target.value;
-    setErrorMessage("\u3000");
-    setIsDisabled(true);
-    setModelCode(newText);
-
-    if (newText.length == 6) {
-      setIsLoading(true);
-    } else {
-      setIsLoading(false);
-    }
-  };
-
-  const checkUrl = async () => {
-    const isUrlValid = await snaptrudeService.checkModelUrl(modelCode);
-    return isUrlValid;
-  };
-
   const onCheckbox = (e) => {
-    window.electronAPI.updateUserPreferences(
-      "showWarningVisibility",
-      !e.target.checked
-    );
+    showWarningAgain = !e.target.checked;
+    userPreferences.set("showWarningVisibility", showWarningAgain);
   };
-
-  useEffect(() => {
-    setIsLoading(false);
-    if (modelCode.length != 6) return;
-    checkUrl().then((isUrlValid) => {
-      if (isUrlValid) {
-        setIsDisabled(false);
-      } else {
-        setErrorMessage("Invalid model link");
-      }
-    });
-  }, [modelCode]);
 
   return (
     <ParentWrapper>
@@ -190,8 +166,6 @@ const WarningVisibility = ({}) => {
             </div>
             <div className="button-wrapper">
               <Button
-                isLoading={isLoading}
-                disabled={false}
                 primary={true}
                 title={"I understand"}
                 onPress={rightButtonCallback}
