@@ -428,7 +428,17 @@ namespace TrudeSerializer.Components
             return bb;
         }
 
-        public static string GetHostId(Element element)
+        static public double GetOffset(Element element)
+        {
+            double offset = GetParameterValueOrDefault(element, "offset");
+            if (offset == 0)
+            {
+                offset = GetParameterValueOrDefault(element, "Offset from Host");
+            }
+            return offset;
+        }
+
+        static public string GetHostId(Element element)
         {
             string hostId = "";
             try
