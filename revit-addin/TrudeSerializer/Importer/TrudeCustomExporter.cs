@@ -1,8 +1,8 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using TrudeSerializer.Components;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 
@@ -130,6 +130,7 @@ namespace TrudeSerializer
                 {
                     return RenderNodeAction.Skip;
                 }
+                TrudeLogger.Instance.CountInputRevitLink(currentLink.name);
             }
             else
             {
@@ -173,7 +174,7 @@ namespace TrudeSerializer
         private TrudeComponent AddLinkedComponentToSerializedData(ElementId elementId, Element element)
         {
             TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
-            if (mass.elementId == "-1")
+            if (mass.elementId == "-1" || mass.subType == "Levels" || mass.subType == "Model Groups" || mass.subType == "Divisions")
             {
                 return null;
             }
