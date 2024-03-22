@@ -8,6 +8,7 @@ const sessionData = require("./src/electron/sessionData");
 const store = require("./src/electron/store");
 const logger = require("./src/electron/services/logger");
 const urls = require("./src/electron/services/urls");
+const userPreferences = require("./src/electron/UserPreferences");
 
 if (require("electron-squirrel-startup")) return app.quit();
 // the app opens a few times and closes during installation
@@ -63,6 +64,7 @@ const parseProtocolArgs = async function (argv) {
     store.setAllAndSave(userData);
 
     electronCommunicator.syncSessionData();
+    electronCommunicator.syncUserPreferences();
     electronCommunicator.updateUIAfterLogin();
     // updates UI
 
@@ -73,6 +75,7 @@ const parseProtocolArgs = async function (argv) {
     store.set("modelLink", REACT_URL + "/model/" + store.get("floorkey"));
     store.save();
     electronCommunicator.syncSessionData();
+    electronCommunicator.syncUserPreferences();
     electronCommunicator.revitImportDone();
   }
 };
@@ -128,6 +131,10 @@ const enableEventListeners = function () {
       store.flush();
     });
     ipcMain.on("updateUserData", (event, [data]) => store.setAllAndSave(data));
+    ipcMain.on("updateUserPreferences", (event, [key, value]) => {
+      userPreferences.set(key, value);
+      userPreferences.save();
+    });
     ipcMain.on("uploadToSnaptrude", (event, [teamId, folderId]) =>
       electronCommunicator.uploadToSnaptrude(teamId, folderId)
     );
@@ -143,6 +150,7 @@ const enableEventListeners = function () {
     ipcMain.on("showLogs", logger.showLogs);
 
     store.init();
+    userPreferences.init();
     urls.init();
     await createWindow();
 
@@ -152,6 +160,7 @@ const enableEventListeners = function () {
     await parseProtocolArgs(process.argv);
 
     electronCommunicator.syncSessionData();
+    electronCommunicator.syncUserPreferences();
     electronCommunicator.setUrls();
     electronCommunicator.goHome();
 

@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import urls from "../../services/urls";
 import snaptrudeService from "../../services/snaptrude.service";
 import LoadingScreen from "../../components/Loader";
+import userPreferences from "../../services/userPreferences";
 
 const openLoginPageInBrowser = () => {
   const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=revit";
@@ -41,7 +42,9 @@ const Home = () => {
     icon: upload,
     onClick: () => {
       navigate(
-        fileType == "rfa"
+        userPreferences.get("showWarningVisibility") == true
+          ? ROUTES.warningVisibility
+          : fileType == "rfa"
           ? ROUTES.projectSelection
           : ROUTES.chooseProjectLocation
       );
