@@ -84,6 +84,11 @@ namespace TrudeSerializer.Components
             return false;
         }
 
+        public static bool IsValidWall(Element element)
+        {
+            return !IsNotValidWall(element);
+        }
+
         public static TrudeWall GetSerializedComponent(SerializedTrudeData importData, Element element)
         {
             if (IsNotValidWall(element)) return GetDefaultTrudeWall();

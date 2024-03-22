@@ -45,8 +45,9 @@ namespace TrudeSerializer.Components
         public string subCategory;
         public bool hasParentElement;
         public List<string> subComponent;
+        public double offset;
 
-        public TrudeFurniture(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, bool hasParentElement, List<string> subComponents) : base(elementId, "Furniture", family, level)
+        public TrudeFurniture(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, bool hasParentElement, List<string> subComponents, double offset) : base(elementId, "Furniture", family, level)
         {
             this.subType = subType;
             this.subCategory = subCategory;
@@ -55,6 +56,7 @@ namespace TrudeSerializer.Components
             this.isInstance = true;
             this.subComponent = subComponents;
             this.hasParentElement = hasParentElement;
+            this.offset = offset;
         }
 
         public static TrudeComponent GetSerializedComponent(SerializedTrudeData serializedData, Element element)
@@ -83,6 +85,8 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
+            double offset = InstanceUtility.GetOffset(element);
+
             bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
@@ -107,7 +111,7 @@ namespace TrudeSerializer.Components
                 ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.Furniture, familyName, furniture);
             }
 
-            TrudeFurniture instance = new TrudeFurniture(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);
+            TrudeFurniture instance = new TrudeFurniture(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, offset);
 
             return instance;
         }
