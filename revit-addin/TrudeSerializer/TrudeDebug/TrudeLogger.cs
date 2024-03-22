@@ -188,19 +188,19 @@ namespace TrudeSerializer.Debug
 			{
 				CountInputComponent(data.components.columns, ComponentLogData.BASIC_COLUMN_KEY);
 			}
-			else if(TrudeDoor.IsDoor(element) && FamilyInstanceUtils.HasParentElement(element, true))
+			else if(TrudeDoor.IsDoor(element) && !FamilyInstanceUtils.HasParentElement(element, true))
 			{
 				CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
 			}
-			else if(TrudeWindow.IsWindow(element) && FamilyInstanceUtils.HasParentElement(element, true))
+			else if(TrudeWindow.IsWindow(element) && !FamilyInstanceUtils.HasParentElement(element, true))
 			{
 				CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
 			}
-			else if(TrudeFurniture.IsFurnitureCategory(element) && FamilyInstanceUtils.HasParentElement(element))
+			else if(TrudeFurniture.IsFurnitureCategory(element) && !FamilyInstanceUtils.HasParentElement(element))
 			{
 				CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
 			}
-			else if(TrudeGenericModel.IsGenericModel(element) && FamilyInstanceUtils.HasParentElement(element))
+			else if(TrudeGenericModel.IsGenericModel(element) && !FamilyInstanceUtils.HasParentElement(element))
 			{
 				CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
 			}
