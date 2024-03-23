@@ -35,14 +35,13 @@ const Wrapper = styled.div`
     flex-direction: row;
     z-index: 5;
     padding: 1em;
-    border-top: 1px solid rgba(96, 129, 159, 0.2);
-    justify-content: space-around;
+    justify-content: flex-end;
   }
   .button-wrapper {
     z-index: 5;
   }
   .button-wrapper button {
-    min-width: 12em;
+    min-width: 9em;
     width: fit-content;
   }
   .page-indicator {

@@ -8,9 +8,16 @@ import Button from "../../components/Button";
 import urls from "../../services/urls";
 import _ from "lodash";
 import { RouteStore } from "../routeStore";
+import { Input } from "antd";
+import {
+  LinkOutlined,
+  LoadingOutlined,
+  CheckCircleFilled,
+  CloseOutlined,
+} from "@ant-design/icons";
+import { INPUT_FIELD_STATUS } from "../../services/constants";
 
 const Wrapper = styled.div`
-  // position: relative;
   min-width: 100vw;
   max-height: 100%;
   display: flex;
@@ -20,11 +27,12 @@ const Wrapper = styled.div`
   color: ${colors.primeBlack};
   overflow: auto;
 
-  .content {
+  .main-content {
     display: flex;
-    overflow: auto;
     flex-direction: column;
-    padding: 1em 1em 5em 1em;
+    padding: 1em 8em 5em 8em;
+    align-items: start;
+    line-height: 0.5rem;
   }
 `;
 
@@ -66,20 +74,18 @@ const ModelValidator = ({}) => {
 
   const [errorMessage, setErrorMessage] = useState("\u3000");
   const [modelCode, setModelCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDisabled, setIsDisabled] = useState(true);
+  const [status, setStatus] = useState(INPUT_FIELD_STATUS.blank);
 
   const handleInputChange = (event) => {
     event.target.value = event.target.value.toUpperCase();
     const newText = event.target.value;
     setErrorMessage("\u3000");
-    setIsDisabled(true);
     setModelCode(newText);
 
     if (newText.length == 6) {
-      setIsLoading(true);
+      setStatus(INPUT_FIELD_STATUS.loading);
     } else {
-      setIsLoading(false);
+      setStatus(INPUT_FIELD_STATUS.blank);
     }
   };
 
@@ -89,12 +95,12 @@ const ModelValidator = ({}) => {
   };
 
   useEffect(() => {
-    setIsLoading(false);
     if (modelCode.length != 6) return;
     checkUrl().then((isUrlValid) => {
       if (isUrlValid) {
-        setIsDisabled(false);
+        setStatus(INPUT_FIELD_STATUS.success);
       } else {
+        setStatus(INPUT_FIELD_STATUS.errorInvalid);
         setErrorMessage("Invalid model link");
       }
     });
@@ -102,18 +108,25 @@ const ModelValidator = ({}) => {
 
   return (
     <Wrapper>
-      <div className="content">
-        <p>{heading}</p>
-        <WorkspacesGrid>
-          <div />
-          <p>{urls.get("snaptrudeReactUrl")}/model/</p>
-          <input
-            style={{ lineHeight: "1.6rem" }}
-            placeholder="ADV4T7"
-            onChange={handleInputChange}
-            maxLength="6"
-          />
-        </WorkspacesGrid>
+      <div className="main-content">
+        <p>Enter project URL:</p>
+        <Input
+          placeholder="Paste link here"
+          prefix={<LinkOutlined className="site-form-item-icon" />}
+          suffix={
+            status == INPUT_FIELD_STATUS.blank ? (
+              <div />
+            ) : status == INPUT_FIELD_STATUS.loading ? (
+              <LoadingOutlined style={{ color: "rgba(0,0,0,.45)" }} />
+            ) : status == INPUT_FIELD_STATUS.success ? (
+              <CheckCircleFilled style={{ color: "#1A5EE5" }} />
+            ) : (
+              <CloseOutlined />
+            )
+          }
+          onChange={handleInputChange}
+          status={errorMessage == "\u3000" ? "" : "error"}
+        />
         <p style={{ fontSize: "12px", color: "red" }}>{errorMessage}</p>
       </div>
       <footer>
@@ -129,10 +142,9 @@ const ModelValidator = ({}) => {
         </div>
         <div className="button-wrapper">
           <Button
-            isLoading={isLoading}
-            disabled={isDisabled}
+            disabled={status != INPUT_FIELD_STATUS.success}
             primary={true}
-            title={"Next"}
+            title={"Begin export"}
             onPress={rightButtonCallback}
           />
         </div>
