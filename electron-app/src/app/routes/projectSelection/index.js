@@ -4,6 +4,7 @@ import { colors } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants";
 import Button from "../../components/Button";
+import userPreferences from "../../services/userPreferences";
 
 const Wrapper = styled.div`
   footer {
@@ -59,7 +60,9 @@ const ProjectSelection = (props) => {
             primary={true}
             title={"Existing Project"}
             onPress={() => {
-              navigate(ROUTES.enterModelLink);
+              userPreferences.get("showWarningReconciliation") == true
+                ? navigate(ROUTES.warningReconciliation)
+                : navigate(ROUTES.enterModelLink);
             }}
           />
         </div>

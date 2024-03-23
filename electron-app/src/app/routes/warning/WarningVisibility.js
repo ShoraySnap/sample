@@ -124,6 +124,7 @@ const WarningVisibility = ({}) => {
         "showWarningVisibility",
         showWarningAgain
       );
+      userPreferences.set("showWarningVisibility", showWarningAgain);
     }
 
     fileType == "rfa"
@@ -137,7 +138,6 @@ const WarningVisibility = ({}) => {
 
   const onCheckbox = (e) => {
     showWarningAgain = !e.target.checked;
-    userPreferences.set("showWarningVisibility", showWarningAgain);
   };
 
   return (
@@ -145,8 +145,8 @@ const WarningVisibility = ({}) => {
       <Wrapper>
         <div className="content">
           <p>
-            The Revit model will directly export to Snaptrude without being
-            reconciled with the existing model.
+            All the visible parts of the model will export to Snaptrude. Hide or
+            remove any elements that you don’t wish to export before proceeding.
           </p>
         </div>
         <footer>
