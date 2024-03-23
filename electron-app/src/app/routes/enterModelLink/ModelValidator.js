@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import snaptrudeService from "../../services/snaptrude.service";
 import { ROUTES } from "../constants";
 import styled from "styled-components";
@@ -36,15 +36,6 @@ const Wrapper = styled.div`
   }
 `;
 
-const WorkspacesGrid = styled.div`
-  display: grid;
-  grid-template-rows: 40px 40px 35px;
-  grid-template-columns: 10% 40% 25% 25%;
-  margin-top: 20px;
-  overflow: auto;
-  align-items: center;
-`;
-
 const ModelValidator = ({}) => {
   const navigate = useNavigate();
 
@@ -70,11 +61,10 @@ const ModelValidator = ({}) => {
   const leftButtonCallback = onBack;
   const rightButtonCallback = onSubmit;
 
-  const heading = `Enter Model Link`;
-
   const [errorMessage, setErrorMessage] = useState("\u3000");
   const [modelCode, setModelCode] = useState("");
   const [status, setStatus] = useState(INPUT_FIELD_STATUS.blank);
+  const inputRef = useRef(null);
 
   const handleInputChange = (event) => {
     event.target.value = event.target.value.toUpperCase();
@@ -106,10 +96,17 @@ const ModelValidator = ({}) => {
     });
   }, [modelCode]);
 
+  useEffect(() => {
+    inputRef.current.focus({
+      cursor: "all",
+    });
+  }, []);
+
   return (
     <Wrapper>
       <div className="main-content">
         <p>Enter project URL:</p>
+
         <Input
           placeholder="Paste link here"
           prefix={<LinkOutlined className="site-form-item-icon" />}
@@ -126,6 +123,12 @@ const ModelValidator = ({}) => {
           }
           onChange={handleInputChange}
           status={errorMessage == "\u3000" ? "" : "error"}
+          ref={inputRef}
+          onFocus={() => {
+            inputRef.current.focus({
+              cursor: "all",
+            });
+          }}
         />
         <p style={{ fontSize: "12px", color: "red" }}>{errorMessage}</p>
       </div>
