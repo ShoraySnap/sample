@@ -36,6 +36,27 @@ const Wrapper = styled.div`
   }
 `;
 
+function isValidModelURL(inputText) {
+  let domain = urls.get("snaptrudeReactUrl");
+
+  if (domain.substring(0, 8) == "https://") {
+    if (inputText.substring(0, 8) != "https://")
+      inputText = "https://" + inputText;
+  } else if (domain.substring(0, 7) == "http://") {
+    if (inputText.substring(0, 7) != "http://")
+      inputText = "http://" + inputText;
+  }
+
+  if (domain.slice(-1) != "/") {
+    domain += "/";
+  }
+
+  var domainPath = domain + "model/";
+  var pattern = new RegExp("^" + domainPath + "\\w{6}/?$");
+
+  return pattern.test(inputText);
+}
+
 const ModelValidator = ({}) => {
   const navigate = useNavigate();
 
@@ -44,15 +65,11 @@ const ModelValidator = ({}) => {
   };
 
   const onSubmit = async () => {
-    window.electronAPI.uploadToExistingProject(modelCode);
+    window.electronAPI.uploadToExistingProject(modelURL);
 
-    if (modelCode) {
-      RouteStore.set(
-        "projectLink",
-        urls.get("snaptrudeReactUrl") + "/model/" + modelCode
-      );
+    if (modelURL) {
+      RouteStore.set("projectLink", modelURL);
     } else {
-      // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
     navigate(ROUTES.loading);
@@ -62,17 +79,16 @@ const ModelValidator = ({}) => {
   const rightButtonCallback = onSubmit;
 
   const [errorMessage, setErrorMessage] = useState("\u3000");
-  const [modelCode, setModelCode] = useState("");
+  const [modelURL, setModelURL] = useState("");
   const [status, setStatus] = useState(INPUT_FIELD_STATUS.blank);
   const inputRef = useRef(null);
 
   const handleInputChange = (event) => {
-    event.target.value = event.target.value.toUpperCase();
     const newText = event.target.value;
     setErrorMessage("\u3000");
-    setModelCode(newText);
+    setModelURL(newText);
 
-    if (newText.length == 6) {
+    if (isValidModelURL(newText)) {
       setStatus(INPUT_FIELD_STATUS.loading);
     } else {
       setStatus(INPUT_FIELD_STATUS.blank);
@@ -80,12 +96,15 @@ const ModelValidator = ({}) => {
   };
 
   const checkUrl = async () => {
-    const isUrlValid = await snaptrudeService.checkModelUrl(modelCode);
+    let floorKey = modelURL.endsWith("/")
+      ? modelURL.slice(-7).slice(0, 6)
+      : modelURL.slice(-6);
+    const isUrlValid = await snaptrudeService.checkModelUrl(floorKey);
     return isUrlValid;
   };
 
   useEffect(() => {
-    if (modelCode.length != 6) return;
+    if (status != INPUT_FIELD_STATUS.loading) return;
     checkUrl().then((isUrlValid) => {
       if (isUrlValid) {
         setStatus(INPUT_FIELD_STATUS.success);
@@ -94,7 +113,7 @@ const ModelValidator = ({}) => {
         setErrorMessage("Invalid model link");
       }
     });
-  }, [modelCode]);
+  }, [modelURL]);
 
   useEffect(() => {
     inputRef.current.focus({

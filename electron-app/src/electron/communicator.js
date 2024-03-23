@@ -158,7 +158,7 @@ const electronCommunicator = (function () {
     sendPipeCommandForImport();
   };
 
-  const uploadToExistingProject = async function (modelCode) {
+  const uploadToExistingProject = async function (url) {
     // taufiqul
   };
 
