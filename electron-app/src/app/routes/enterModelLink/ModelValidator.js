@@ -99,18 +99,23 @@ const ModelValidator = ({}) => {
     let floorKey = modelURL.endsWith("/")
       ? modelURL.slice(-7).slice(0, 6)
       : modelURL.slice(-6);
-    const isUrlValid = await snaptrudeService.checkModelUrl(floorKey);
-    return isUrlValid;
+    const response = await snaptrudeService.checkModelUrl(floorKey);
+    return response;
   };
 
   useEffect(() => {
     if (status != INPUT_FIELD_STATUS.loading) return;
-    checkUrl().then((isUrlValid) => {
-      if (isUrlValid) {
-        setStatus(INPUT_FIELD_STATUS.success);
+    checkUrl().then((response) => {
+      if (response?.status == 200 && response?.data != null) {
+        if (response.data.access == true) {
+          setStatus(INPUT_FIELD_STATUS.success);
+        } else {
+          setStatus(INPUT_FIELD_STATUS.errorInvalid);
+          setErrorMessage(response.data.message);
+        }
       } else {
         setStatus(INPUT_FIELD_STATUS.errorInvalid);
-        setErrorMessage("Invalid model link");
+        setErrorMessage("Network error occurred");
       }
     });
   }, [modelURL]);
