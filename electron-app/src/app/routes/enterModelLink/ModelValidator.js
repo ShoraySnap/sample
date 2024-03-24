@@ -6,7 +6,7 @@ import { colors } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import urls from "../../services/urls";
-import _ from "lodash";
+import _, { set } from "lodash";
 import { RouteStore } from "../routeStore";
 import { Input } from "antd";
 import {
@@ -82,6 +82,8 @@ const ModelValidator = ({}) => {
   const [errorMessage, setErrorMessage] = useState("\u3000");
   const [modelURL, setModelURL] = useState("");
   const [status, setStatus] = useState(INPUT_FIELD_STATUS.blank);
+  const [imageURL, setImageURL] = useState("");
+  const [projectName, setProjectName] = useState("");
   const inputRef = useRef(null);
 
   const handleInputChange = (event) => {
@@ -110,6 +112,10 @@ const ModelValidator = ({}) => {
       if (response?.status == 200 && response?.data != null) {
         if (response.data.access == true) {
           setStatus(INPUT_FIELD_STATUS.success);
+          setImageURL(
+            urls.get("snaptrudeDjangoUrl") + "/media/" + response.data.image
+          );
+          setProjectName(response.data.name);
         } else {
           setStatus(INPUT_FIELD_STATUS.errorInvalid);
           setErrorMessage(response.data.message);
@@ -164,12 +170,7 @@ const ModelValidator = ({}) => {
         />
         <div style={{ height: "1em" }}></div>
         {status == INPUT_FIELD_STATUS.success && (
-          <ProjectPreview
-            imageURL={
-              "https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"
-            }
-            projectName={"test project name"}
-          />
+          <ProjectPreview imageURL={imageURL} projectName={projectName} />
         )}
 
         {(status == INPUT_FIELD_STATUS.errorAccess ||

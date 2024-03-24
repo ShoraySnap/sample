@@ -19,6 +19,7 @@ const ProjectPreviewWrapper = styled.div`
     padding-left: 0.5em;
   }
   .main-items {
+    color: #767b93;
   }
 
   .square-image {
