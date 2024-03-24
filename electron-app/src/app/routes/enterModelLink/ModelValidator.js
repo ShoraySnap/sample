@@ -16,6 +16,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { INPUT_FIELD_STATUS } from "../../services/constants";
+import ProjectPreview from "./ProjectPreview";
 
 const Wrapper = styled.div`
   min-width: 100vw;
@@ -30,7 +31,7 @@ const Wrapper = styled.div`
   .main-content {
     display: flex;
     flex-direction: column;
-    padding: 1em 8em 5em 8em;
+    padding: 0em 8em 1em 8em;
     align-items: start;
     line-height: 0.5rem;
   }
@@ -161,7 +162,36 @@ const ModelValidator = ({}) => {
             });
           }}
         />
-        <p style={{ fontSize: "12px", color: "red" }}>{errorMessage}</p>
+        <div style={{ height: "1em" }}></div>
+        {status == INPUT_FIELD_STATUS.success && (
+          <ProjectPreview
+            imageURL={
+              "https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"
+            }
+            projectName={"test project name"}
+          />
+        )}
+
+        {(status == INPUT_FIELD_STATUS.errorAccess ||
+          status == INPUT_FIELD_STATUS.errorInvalid) && (
+          <div style={{ height: "4em" }}>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "red",
+                position: "relative",
+                top: "-15px",
+              }}
+            >
+              {errorMessage}
+            </p>
+          </div>
+        )}
+
+        {(status == INPUT_FIELD_STATUS.blank ||
+          status == INPUT_FIELD_STATUS.loading) && (
+          <div style={{ height: "4em" }}></div>
+        )}
       </div>
       <footer>
         <div className="button-wrapper">
