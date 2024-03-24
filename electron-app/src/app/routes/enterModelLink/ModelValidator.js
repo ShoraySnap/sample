@@ -133,6 +133,7 @@ const ModelValidator = ({}) => {
 
         <Input
           placeholder="Paste link here"
+          value={modelURL}
           prefix={<LinkOutlined className="site-form-item-icon" />}
           suffix={
             status == INPUT_FIELD_STATUS.blank ? (
@@ -142,7 +143,13 @@ const ModelValidator = ({}) => {
             ) : status == INPUT_FIELD_STATUS.success ? (
               <CheckCircleFilled style={{ color: "#1A5EE5" }} />
             ) : (
-              <CloseOutlined />
+              <CloseOutlined
+                onClick={() => {
+                  setErrorMessage("\u3000");
+                  setStatus(INPUT_FIELD_STATUS.blank);
+                  setModelURL("");
+                }}
+              />
             )
           }
           onChange={handleInputChange}
