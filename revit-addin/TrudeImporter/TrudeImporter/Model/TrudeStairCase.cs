@@ -131,9 +131,7 @@ namespace TrudeImporter
                     for (int i = 0; i < StairRunBlocks.Count; i++)
                     {
                         StaircaseBlockProperties props = StairRunBlocks[i];
-                        ElementId runId = RunCreator_Simple(props, bottomLevel);
-                        StaircaseBlockProperties lastBlockProps = i == 0 ? null : StairRunBlocks[i - 1];
-                        ElementId runId = RunCreator_Simple(props, lastBlockProps);
+                        ElementId runId = RunCreator_Simple(props, bottomLevel, i != StairRunBlocks.Count - 1);
                         createdRunIds.Add(runId);
                     }
                     for (int i = 1; i < createdRunIds.Count; i++)
@@ -178,25 +176,24 @@ namespace TrudeImporter
             }
         }
 
-private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottomLevel)
+private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottomLevel, bool endWithRiser)
         {
             Transform transform = Transform.CreateRotation(XYZ.BasisZ, -props.Rotation.Z);
             XYZ direction = transform.OfVector(new XYZ(-1, 0, 0));
             XYZ startPoint = props.StartPoint - new XYZ(props.Translation.X, -props.Translation.Y, -props.Translation.Z);
             startPoint += XYZ.BasisZ * bottomLevel.ProjectElevation;
+            startPoint += direction.CrossProduct(XYZ.BasisZ) * (3.2808398950131235 - Width) / 2;
             if (props.StartLandingWidth != 0)
-            {
                 startPoint += direction * props.StartLandingWidth;
-            }
-            double blockLength = props.Steps * props.Tread;
+            double blockLength = props.Tread * (endWithRiser ? (props.Steps - 1) : props.Steps);
             XYZ endPoint = startPoint + blockLength * direction;
             Line rightLine = Line.CreateBound(startPoint, endPoint);
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
-            run.EndsWithRiser = false;
+            run.EndsWithRiser = endWithRiser;
             double height = props.Steps * props.Riser;
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
-            run.TopElevation = props.Translation.Z + height;
+                run.TopElevation = props.Translation.Z + height;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
             return run.Id;
         }
