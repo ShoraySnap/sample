@@ -131,7 +131,7 @@ namespace TrudeImporter
                     for (int i = 0; i < StairRunBlocks.Count; i++)
                     {
                         StaircaseBlockProperties props = StairRunBlocks[i];
-                        string typeFromBlockBefore = i == 0 ? "" : StairRunBlocks[i - 1].Type;
+                        ElementId runId = RunCreator_Simple(props, bottomLevel);
                         StaircaseBlockProperties lastBlockProps = i == 0 ? null : StairRunBlocks[i - 1];
                         ElementId runId = RunCreator_Simple(props, lastBlockProps);
                         createdRunIds.Add(runId);
@@ -178,12 +178,12 @@ namespace TrudeImporter
             }
         }
 
-        private ElementId RunCreator_Simple(StaircaseBlockProperties props, StaircaseBlockProperties lastProps)
+private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottomLevel)
         {
             Transform transform = Transform.CreateRotation(XYZ.BasisZ, -props.Rotation.Z);
             XYZ direction = transform.OfVector(new XYZ(-1, 0, 0));
             XYZ startPoint = props.StartPoint - new XYZ(props.Translation.X, -props.Translation.Y, -props.Translation.Z);
-            startPoint += direction.CrossProduct(XYZ.BasisZ) * (3.28084 - Width) / 2;
+            startPoint += XYZ.BasisZ * bottomLevel.ProjectElevation;
             if (props.StartLandingWidth != 0)
             {
                 startPoint += direction * props.StartLandingWidth;
@@ -195,6 +195,7 @@ namespace TrudeImporter
             run.ActualRunWidth = Width;
             run.EndsWithRiser = false;
             double height = props.Steps * props.Riser;
+            if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
             run.TopElevation = props.Translation.Z + height;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
             return run.Id;
