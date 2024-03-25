@@ -6,7 +6,7 @@ namespace TrudeSerializer.Utils
 {
     internal class FamilyInstanceUtils
     {
-        public static bool HasParentElement(Element element)
+        public static bool HasParentElement(Element element, bool ignoreModelGroupAndAssemblies = false)
         {
             bool hasParentElement = false;
 
@@ -18,17 +18,27 @@ namespace TrudeSerializer.Utils
                     hasParentElement = true;
                 }
 
-                ElementId assemblySuperComponent = familyInstance.AssemblyInstanceId;
-                if (assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1")
+                if (ignoreModelGroupAndAssemblies)
                 {
-                    hasParentElement = true;
+                    return hasParentElement;
                 }
+            }
 
-                ElementId groupId = familyInstance.GroupId;
-                if (groupId != null && groupId.IntegerValue.ToString() != "-1")
-                {
-                    hasParentElement = true;
-                }
+            ElementId assemblySuperComponent = element?.AssemblyInstanceId;
+
+            bool HasAssemblySuperComponent = assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1";
+
+            if (HasAssemblySuperComponent)
+            {
+                hasParentElement = true;
+            }
+
+            ElementId groupId = element?.GroupId;
+            bool hasGroupSuperComponent = groupId != null && groupId.IntegerValue.ToString() != "-1";
+
+            if (hasGroupSuperComponent)
+            {
+                hasParentElement = true;
             }
 
             return hasParentElement;
@@ -39,6 +49,20 @@ namespace TrudeSerializer.Utils
             List<string> subComponentIds = new List<string> { };
 
             IList<ElementId> dependantElements = element.GetDependentElements(null);
+
+            if (element is FamilyInstance)
+            {
+                ICollection<ElementId> subComponents = (element as FamilyInstance).GetSubComponentIds();
+                if (subComponents.Count > 0)
+                {
+                    foreach (ElementId subComponent in subComponents)
+                    {
+                        subComponentIds.Add(subComponent.ToString());
+                    }
+
+                    return subComponentIds;
+                }
+            }
 
             if (element is AssemblyInstance)
             {
@@ -56,24 +80,6 @@ namespace TrudeSerializer.Utils
                     subComponentIds = dependantElements.Select(dependantElement => dependantElement.ToString()).ToList();
                     return subComponentIds;
                 }
-            }
-
-            FamilyInstance familyInstance = element as FamilyInstance;
-
-            if (familyInstance == null)
-            {
-                return subComponentIds;
-            }
-
-            ICollection<ElementId> subComponents = familyInstance.GetSubComponentIds();
-            if (subComponents.Count > 0)
-            {
-                foreach (ElementId subComponent in subComponents)
-                {
-                    subComponentIds.Add(subComponent.ToString());
-                }
-
-                return subComponentIds;
             }
 
             return subComponentIds;

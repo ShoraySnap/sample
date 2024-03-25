@@ -25,7 +25,11 @@ namespace TrudeSerializer.Components
         {
             string elementId = element.Id.ToString();
             string name = element.Name;
-            double elevation = UnitConversion.ConvertToMillimeterForRevit2021AndAbove((element as Level).Elevation, UnitTypeId.Feet);
+#if REVIT2019 || REVIT2020
+            double elevation = UnitConversion.ConvertToMillimeter((element as Level).Elevation, DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+            double elevation = UnitConversion.ConvertToMillimeter((element as Level).Elevation, UnitTypeId.Feet);
+#endif
             return new TrudeLevel(elementId, name, elevation);
         }
     }

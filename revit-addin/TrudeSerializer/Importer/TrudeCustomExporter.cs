@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 
@@ -59,6 +60,7 @@ namespace TrudeSerializer
 
         void IExportContext.Finish()
         {
+            ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
 
@@ -79,7 +81,6 @@ namespace TrudeSerializer
 
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
-            // implement link part
             Document doc = node.GetDocument();
             ChangeCurrentDocument(doc);
             isRevitLink = true;
@@ -124,30 +125,29 @@ namespace TrudeSerializer
             TrudeComponent component = null;
             if (isRevitLink)
             {
-                TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
-                if (mass.elementId == "-1")
+                component = AddLinkedComponentToSerializedData(elementId, element);
+                if (component == null)
                 {
                     return RenderNodeAction.Skip;
                 }
-                serializedSnaptrudeData.RevitLinks[currentLink.name].Add(elementId.ToString(), mass);
-                component = mass;
+                TrudeLogger.Instance.CountInputRevitLink(currentLink.name);
             }
             else
             {
                 try
                 {
                     component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
+                    if (component?.elementId == "-1")
+                    {
+                        return RenderNodeAction.Skip;
+                    }
+
+                    ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component);
                 }
                 catch (Exception e)
                 {
                     return RenderNodeAction.Skip;
                 }
-
-                if (component?.elementId == "-1")
-                {
-                    return RenderNodeAction.Skip;
-                }
-                AddComponentToSerializedData(component);
             }
 
             if (component.IsParametric())
@@ -160,6 +160,7 @@ namespace TrudeSerializer
             if (!component.isInstance) return RenderNodeAction.Proceed;
 
             TrudeComponent familyComponent = TrudeComponent.CurrentFamily;
+
             if (familyComponent == null)
             {
                 return RenderNodeAction.Skip;
@@ -170,40 +171,17 @@ namespace TrudeSerializer
             return RenderNodeAction.Proceed;
         }
 
-        private void AddComponentToSerializedData(TrudeComponent component)
+        private TrudeComponent AddLinkedComponentToSerializedData(ElementId elementId, Element element)
         {
-            if (component is TrudeWall)
+            TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
+            if (mass.elementId == "-1" || mass.subType == "Levels" || mass.subType == "Model Groups" || mass.subType == "Divisions")
             {
-                serializedSnaptrudeData.AddWall(component as TrudeWall);
+                return null;
             }
-            else if (component is TrudeLevel)
-            {
-                serializedSnaptrudeData.AddLevel(component as TrudeLevel);
-            }
-            else if (component is TrudeFloor)
-            {
-                serializedSnaptrudeData.AddFloor(component as TrudeFloor);
-            }
-            else if (component is TrudeMass)
-            {
-                serializedSnaptrudeData.AddMass(component as TrudeMass);
-            }
-            else if (component is TrudeCeiling)
-            {
-                serializedSnaptrudeData.AddCeiling(component as TrudeCeiling);
-            }
-            else if (component is TrudeFurniture)
-            {
-                serializedSnaptrudeData.AddFurnitureInstance(component.elementId, component as TrudeFurniture);
-            }
-            else if (component is TrudeDoor)
-            {
-                serializedSnaptrudeData.AddDoorInstance(component.elementId, component as TrudeDoor);
-            }
-            else if (component is TrudeWindow)
-            {
-                serializedSnaptrudeData.AddWindowInstance(component.elementId, component as TrudeWindow);
-            }
+
+            ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, mass, currentLink.name, elementId.ToString());
+
+            return mass;
         }
 
         void IExportContext.OnElementEnd(ElementId elementId)
@@ -246,12 +224,13 @@ namespace TrudeSerializer
         {
             String materialId = node.MaterialId.ToString();
             this.currentMaterialId = materialId;
+            string category = CurrentElement.GetCategory(currentElement);
 
             if (this.currentElement.HasMaterial(materialId)) return;
 
             Element material = doc.GetElement(node.MaterialId);
 
-            TrudeMaterial trudeMaterial = TrudeMaterial.GetMaterial(material as Material);
+            TrudeMaterial trudeMaterial = TrudeMaterial.GetMaterial(material as Material, category);
             this.currentElement.AddMaterial(materialId);
             this.currentElement.component.SetMaterial(currentMaterialId, trudeMaterial);
 

@@ -14,7 +14,6 @@ import Button from "../../components/Button";
 import team from "../../assets/team.svg";
 import personal from "../../assets/personal.svg";
 import folder from "../../assets/folder.svg";
-import logger from "../../services/logger";
 import LoadingScreen from "../../components/Loader";
 import urls from "../../services/urls";
 import _ from "lodash";
@@ -72,8 +71,7 @@ const WorkspaceInfo = styled.div`
 
   [class$="selected-img"] {
     // ends with this string
-    filter: invert(26%) sepia(94%) saturate(4987%) hue-rotate(337deg)
-      brightness(93%) contrast(98%);
+    filter: brightness(0%);
   }
 
   [class$="selected-txt"] {
@@ -216,7 +214,7 @@ const Workspace = ({
   };
 
   const isUserPro = async () => {
-    const isProUser = await snaptrudeService.checkIfProUser();
+    const isProUser = await snaptrudeService.isPaidUserAccount();
     setIsProUser(isProUser);
   }
 

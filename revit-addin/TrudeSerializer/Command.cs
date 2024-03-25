@@ -4,6 +4,7 @@ using Autodesk.Revit.UI;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
 
@@ -15,6 +16,10 @@ namespace TrudeSerializer
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            TrudeLogger logger = new TrudeLogger();
+            logger.Init();
+            string processId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
             UIApplication uiapp = commandData.Application;
             Document doc = uiapp.ActiveUIDocument.Document;
 
@@ -29,17 +34,32 @@ namespace TrudeSerializer
                 View3D view = Get3dView(doc);
                 SetDetailViewToFine(doc, view);
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
-                serializedData.CleanSerializedData();
+                serializedData.SetProcessId(processId);
+
+                ComponentHandler.Instance.CleanSerializedData(serializedData);
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
 
-                TrudeDebug.StoreSerializedData(serializedObject);
 
-                Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                logger.SerializeDone(true);
+                TrudeDebug.StoreSerializedData(serializedObject);
+                try
+                {
+                    Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                    logger.UploadDone(true);
+                }
+                catch(Exception ex)
+                {
+                    logger.UploadDone(false);
+                    TaskDialog.Show("catch", ex.ToString());
+                    return Result.Failed;
+                }
 
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
+                logger.SerializeDone(false);
+                logger.UploadDone(false);
                 TaskDialog.Show("catch", ex.ToString());
                 GlobalVariables.CleanGlobalVariables();
                 return Result.Failed;
@@ -48,6 +68,8 @@ namespace TrudeSerializer
             {
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
                 GlobalVariables.CleanGlobalVariables();
+                logger.Save();
+                Uploader.S3helper.UploadLog(logger, processId);
             }
         }
 

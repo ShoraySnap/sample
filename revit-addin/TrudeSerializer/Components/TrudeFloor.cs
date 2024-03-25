@@ -23,7 +23,7 @@ namespace TrudeSerializer.Components
             bool isInstance, bool isParametric,
             Dictionary<string, double[][]> outline,
             Dictionary<string, Dictionary<string, double[][]>> voids
-            ) : base(elementId, "Floors", family, level)
+            ) : base(elementId, "Floor", family, level)
         {
             this.elementId = elementId;
             this.level = level;
