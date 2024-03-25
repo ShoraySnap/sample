@@ -49,6 +49,7 @@ namespace TrudeImporter
             UniqueId = staircaseProps.UniqueId;
             Position = staircaseProps.Position;
             Rotation = staircaseProps.Rotation;
+            Scaling = staircaseProps.Scaling;
             Height =  staircaseProps.Height;
             Width = staircaseProps.Width;
             Tread = staircaseProps.Tread;
@@ -161,6 +162,8 @@ namespace TrudeImporter
             GlobalVariables.Transaction.Start();
 
             ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
+            if (Scaling.Z == -1)
+                ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId> { stairsId }, Plane.CreateByNormalAndOrigin(XYZ.BasisX, XYZ.Zero), false);
             ElementTransformUtils.RotateElement(GlobalVariables.Document, stairsId, Line.CreateBound(XYZ.Zero, XYZ.Zero + XYZ.BasisZ), -Rotation.Z);
             ElementTransformUtils.MoveElement(GlobalVariables.Document, stairsId, Position);
             foreach (ElementId railingId in railingIds)
