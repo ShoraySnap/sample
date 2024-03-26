@@ -1,10 +1,12 @@
-import React, { useState } from "react";
 import styled from "styled-components";
-import ModelValidator from "./ModelValidator";
 import { colors } from "../../themes/constant";
-import { ROOT_FOLDER_ID } from "../constants";
+import _ from "lodash";
+import React from "react";
+import Button from "../../components/Button";
+import { Checkbox } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
-const Wrapper = styled.div`
+const ParentWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,14 +37,17 @@ const Wrapper = styled.div`
     flex-direction: row;
     z-index: 5;
     padding: 1em;
-    border-top: 1px solid rgba(96, 129, 159, 0.2);
-    justify-content: space-around;
+    justify-content: space-between;
+  }
+  .button-parent {
+    display: flex;
+    flex-direction: row;
   }
   .button-wrapper {
     z-index: 5;
   }
   .button-wrapper button {
-    min-width: 12em;
+    min-width: 9em;
     width: fit-content;
   }
   .page-indicator {
@@ -53,14 +58,104 @@ const Wrapper = styled.div`
   .active {
     background: #818181;
   }
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: black !important;
+    border-color: black;
+  }
+  .ant-checkbox-wrapper:hover .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: black !important;
+    border-color: black !important;
+  }
+  .ant-checkbox-checked:hover .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: black !important;
+    border-color: black !important;
+  }
+  .ant-checkbox-checked:after {
+    border-color: black !important;
+    animation-duration: 0s !important;
+  }
+  .ant-checkbox:hover::after {
+    border-color: black !important;
+    animation-duration: 0s !important;
+  }
+  .ant-checkbox:hover .ant-checkbox-inner {
+    border-color: black !important;
+    animation-duration: 0s !important;
+  }
+  .ant-checkbox {
+    animation-duration: 0s !important;
+  }
 `;
 
-const WarningTemplate = () => {
+const WarningWrapper = styled.div`
+  height: 90%;
+  width: 100%;
+  padding: 1em;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    padding: 1em 1em 1em 1em;
+    border: 1.5px solid #e8e9ed;
+    border-radius: 0.75rem;
+    text-align: left;
+    height: 70%;
+    align-items: start;
+
+    color: ${colors.primeBlack};
+    font-weight: 400;
+    font-size: 14px;
+  }
+`;
+
+export const WarningTemplate = ({
+  note,
+  backButton,
+  nextButton,
+  onCheckbox,
+}) => {
   return (
-    <Wrapper>
-      <ModelValidator />
-    </Wrapper>
+    <ParentWrapper>
+      <WarningWrapper>
+        <div className="content">
+          <div style={{ marginBottom: "-1.25em" }}>
+            <InfoCircleOutlined style={{}} />
+            <p
+              style={{
+                display: "inline-block",
+                paddingLeft: "5px",
+              }}
+            >
+              Note:
+            </p>
+          </div>
+          <p style={{ fontSize: "16px" }}>{note}</p>
+        </div>
+      </WarningWrapper>
+      <footer>
+        <div className="page-indicator">
+          <Checkbox onChange={onCheckbox}>Don't show again</Checkbox>
+        </div>
+        <div className="button-parent">
+          <div className="button-wrapper">
+            <Button
+              customButtonStyle={{
+                backgroundColor: colors.fullWhite,
+                color: colors.secondaryGrey,
+              }}
+              title={"Back"}
+              onPress={backButton}
+            />
+          </div>
+          <div className="button-wrapper">
+            <Button
+              primary={true}
+              title={"I understand"}
+              onPress={nextButton}
+            />
+          </div>
+        </div>
+      </footer>
+    </ParentWrapper>
   );
 };
-
-export default WarningTemplate;
