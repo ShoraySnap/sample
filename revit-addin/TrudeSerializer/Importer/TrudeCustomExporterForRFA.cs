@@ -48,6 +48,8 @@ namespace TrudeSerializer
 
             currentElement = CurrentElement.SetCurrentElement(component);
             TrudeRFAComponent rfaComponent = component as TrudeRFAComponent;
+            rfaComponent.category = doc.FamilyManager.CurrentType.Name;
+            rfaComponent.family = doc.Title;
             serializedSnaptrudeData.ProjectProperties.SetRFA(true);
 
             serializedSnaptrudeData.AddRFAComponent(rfaComponent);
