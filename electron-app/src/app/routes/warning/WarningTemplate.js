@@ -1,8 +1,6 @@
 import styled from "styled-components";
 import { colors, fontSizes } from "../../themes/constant";
-import _ from "lodash";
 import React from "react";
-// import Button from "../../components/Button";
 import { Button } from "antd";
 import { Checkbox } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";

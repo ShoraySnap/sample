@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Column, Container, Rows } from "../../components/Styled/Comps";
+import { Column, Rows } from "../../components/Styled/Comps";
 import login from "../../assets/login.svg";
 import upload from "../../assets/upload.svg";
 import reconcile from "../../assets/reconcile.svg";

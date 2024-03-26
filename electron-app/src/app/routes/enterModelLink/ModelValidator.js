@@ -5,9 +5,8 @@ import styled from "styled-components";
 import { colors, fontSizes } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import urls from "../../services/urls";
-import _, { set } from "lodash";
 import { RouteStore } from "../routeStore";
-import { Input, ConfigProvider, Button } from "antd";
+import { Input, Button } from "antd";
 import {
   LinkOutlined,
   LoadingOutlined,
@@ -17,7 +16,7 @@ import {
 import { INPUT_FIELD_STATUS } from "../../services/constants";
 import ProjectPreview from "./ProjectPreview";
 
-const Wrapper = styled.div`
+const ModelValidatorWrapper = styled.div`
   min-width: 100vw;
   max-height: 100%;
   display: flex;
@@ -133,7 +132,7 @@ const ModelValidator = ({}) => {
   }, []);
 
   return (
-    <Wrapper>
+    <ModelValidatorWrapper>
       <div className="main-content">
         <p style={{ color: colors.Neutral[450], fontSize: fontSizes.tiny }}>
           Enter project URL:
@@ -224,7 +223,7 @@ const ModelValidator = ({}) => {
           </Button>
         </div>
       </footer>
-    </Wrapper>
+    </ModelValidatorWrapper>
   );
 };
 

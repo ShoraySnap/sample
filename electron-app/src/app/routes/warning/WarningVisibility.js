@@ -1,7 +1,6 @@
 import React from "react";
 import { ROUTES } from "../constants";
 import { useNavigate } from "react-router-dom";
-import _ from "lodash";
 import sessionData from "../../services/sessionData";
 import userPreferences from "../../services/userPreferences";
 import { WarningTemplate } from "./WarningTemplate";
