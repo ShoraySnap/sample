@@ -24,8 +24,9 @@ if ($branch -eq "master")
     #C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-preset.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
     C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
 
-    signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-v3.1.0.exe"
-    signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-v3.1.0-WeWork.exe"
+    signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-$version.exe"
+    signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-$version-WeWork.exe"
+    signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-$version-Update.exe"
 }
 elseif ($branch -eq "dev")
 {

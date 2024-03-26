@@ -51,7 +51,7 @@ var
   exists: Boolean;
   path: String;
 begin
-  path := ExpandConstant('{userappdata}') + '\Autodesk\RVT\2019';
+  path := ExpandConstant('{autoappdata}') + '\Autodesk\RVT\2019';
   exists := DirExists(path);
   Result := exists;
 end;
@@ -196,65 +196,65 @@ begin
 end.
 
 [InstallDelete]
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2019\Revit2Snaptrude\Revit2Snaptrude.dll"
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude\Revit2Snaptrude.dll"; 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude\Revit2Snaptrude.dll"; 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude\Revit2Snaptrude.dll"; 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude\Revit2Snaptrude.dll"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2019\Revit2Snaptrude\Revit2Snaptrude.dll"
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude\Revit2Snaptrude.dll"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude\Revit2Snaptrude.dll"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude\Revit2Snaptrude.dll"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude\Revit2Snaptrude.dll"; 
 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2019\Revit2Snaptrude.addin"
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude.addin"; 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude.addin"; 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude.addin"; 
-Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.addin"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2019\Revit2Snaptrude.addin"
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude.addin"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude.addin"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude.addin"; 
+Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.addin"; 
 
 [Files]
-Source: "{#BaseMisc}\urls.json"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
+Source: "{#BaseMisc}\urls.json"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
 
 ;dynamo scripts
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2019.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2019.dyn"; Flags: ignoreversion
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2020.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2020.dyn"; Flags: ignoreversion
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}.dyn"; DestDir: "{userappdata}\snaptrude-manager"; DestName: "revit-snaptrude.dyn"; Flags: ignoreversion
+Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2019.dyn"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2019.dyn"; Flags: ignoreversion
+Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2020.dyn"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2020.dyn"; Flags: ignoreversion
+Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}.dyn"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "revit-snaptrude.dyn"; Flags: ignoreversion
 
 ;2019
-Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: InstallVersion('2019');
+Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: InstallVersion('2019');
 Source: "{tmp}\2019\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2019');
 ;2020
-Source: "{#RevitAddinDllPath}\2020\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2020');
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2020"; Flags: ignoreversion; Check: InstallVersion('2020');
+Source: "{#RevitAddinDllPath}\2020\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2020\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2020');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2020"; Flags: ignoreversion; Check: InstallVersion('2020');
 Source: "{tmp}\2020\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2020');
 ;2021
-Source: "{#RevitAddinDllPath}\2021\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2021');
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2021"; Flags: ignoreversion; Check: InstallVersion('2021');
+Source: "{#RevitAddinDllPath}\2021\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2021\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2021');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2021"; Flags: ignoreversion; Check: InstallVersion('2021');
 Source: "{tmp}\2021\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2021');
 ;2022
-Source: "{#RevitAddinDllPath}\2022\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2022');
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2022"; Flags: ignoreversion; Check: InstallVersion('2022');
+Source: "{#RevitAddinDllPath}\2022\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2022\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2022');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2022"; Flags: ignoreversion; Check: InstallVersion('2022');
 Source: "{tmp}\2022\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2022');
 ;2023
-Source: "{#RevitAddinDllPath}\2023\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2023');
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: InstallVersion('2023');
+Source: "{#RevitAddinDllPath}\2023\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2023\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2023');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: InstallVersion('2023');
 Source: "{tmp}\2023\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2023');
 ;2024
-Source: "{#RevitAddinDllPath}\2024\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2024');
-Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024"; Flags: ignoreversion; Check: InstallVersion('2024');
+Source: "{#RevitAddinDllPath}\2024\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2024');
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2024"; Flags: ignoreversion; Check: InstallVersion('2024');
 Source: "{tmp}\2024\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2024');
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
 
-Source: "{#BaseInstallers}\*.exe"; DestDir: "{tmp}"; Flags: createallsubdirs recursesubdirs deleteafterinstall ignoreversion uninsremovereadonly; 
+Source: "{#BaseInstallers}\*.exe"; DestDir: "{autoappdata}\snaptrudeTemp"; Flags: createallsubdirs recursesubdirs deleteafterinstall ignoreversion uninsremovereadonly; 
 
 
 [Run]
 
-FileName: "{tmp}\DynamoInstall2.0.4.exe"; Description: "Install Dynamo"; Check: ShouldInstallDynamo; Flags: postinstall shellexec waituntilterminated
+Filename: "{autoappdata}\snaptrudeTemp\DynamoInstall2.0.4.exe"; Parameters: "/NORESTART"; Description: "Install Dynamo"; Check: ShouldInstallDynamo; Flags: postinstall shellexec waituntilterminated
 
-Filename: "{tmp}\dynamo-2.6.1.exe"; Description: "Install Dynamo Connector"; Flags: postinstall shellexec waituntilterminated
+Filename: "{autoappdata}\snaptrudeTemp\dynamo-2.6.1.exe"; Parameters: "/NORESTART"; Description: "Install Dynamo Connector"; Flags: postinstall shellexec waituntilterminated
 
-Filename: "{tmp}\snaptrude-manager-1.0.0 Setup.exe"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
+Filename: "{autoappdata}\snaptrudeTemp\snaptrude-manager-1.0.0 Setup.exe"; Parameters: "/VERYSILENT /NORESTART"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
