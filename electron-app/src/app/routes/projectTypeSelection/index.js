@@ -36,7 +36,7 @@ const Wrapper = styled.div`
   }
 `;
 
-const ProjectSelection = (props) => {
+const ProjectTypeSelection = (props) => {
   const navigate = useNavigate();
   const backButtonCallback = async () => {
     navigate(ROUTES.home);
@@ -85,4 +85,4 @@ const ProjectSelection = (props) => {
   );
 };
 
-export default ProjectSelection;
+export default ProjectTypeSelection;

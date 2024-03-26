@@ -62,7 +62,7 @@ const ModelValidator = ({}) => {
   const navigate = useNavigate();
 
   const onBack = () => {
-    navigate(ROUTES.projectSelection);
+    navigate(ROUTES.projectTypeSelection);
   };
 
   const onSubmit = async () => {

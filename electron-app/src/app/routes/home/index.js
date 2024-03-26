@@ -45,7 +45,7 @@ const Home = () => {
         userPreferences.get("showWarningVisibility") == true
           ? ROUTES.warningVisibility
           : fileType == "rfa"
-          ? ROUTES.projectSelection
+          ? ROUTES.projectTypeSelection
           : ROUTES.chooseProjectLocation
       );
       // navigate(ROUTES.loading);

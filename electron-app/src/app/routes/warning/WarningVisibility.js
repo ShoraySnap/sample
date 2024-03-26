@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 import sessionData from "../../services/sessionData";
 import userPreferences from "../../services/userPreferences";
-import { WarningTemplate } from ".";
+import { WarningTemplate } from "./WarningTemplate";
 
 const WarningVisibility = ({}) => {
   let showWarningAgain = true;
@@ -24,7 +24,7 @@ const WarningVisibility = ({}) => {
     }
 
     fileType == "rfa"
-      ? navigate(ROUTES.projectSelection)
+      ? navigate(ROUTES.projectTypeSelection)
       : navigate(ROUTES.chooseProjectLocation);
   };
 

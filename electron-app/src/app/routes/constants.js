@@ -4,7 +4,7 @@ export const ROUTES = {
   loading: "/loading",
   warningVisibility: "/warningVisibility",
   warningReconciliation: "/warningReconciliation",
-  projectSelection: "/projectSelection",
+  projectTypeSelection: "/projectTypeSelection",
   enterModelLink: "/enterModelLink",
   chooseProjectLocation: "/chooseProjectLocation",
 };

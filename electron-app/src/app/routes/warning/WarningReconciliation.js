@@ -3,14 +3,14 @@ import { ROUTES } from "../constants";
 import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 import userPreferences from "../../services/userPreferences";
-import { WarningTemplate } from ".";
+import { WarningTemplate } from "./WarningTemplate";
 
 const WarningReconciliation = ({}) => {
   let showWarningAgain = true;
   const navigate = useNavigate();
 
   const onBack = () => {
-    navigate(ROUTES.projectSelection);
+    navigate(ROUTES.projectTypeSelection);
   };
 
   const onSubmit = async () => {
