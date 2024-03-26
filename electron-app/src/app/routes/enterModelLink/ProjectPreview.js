@@ -25,6 +25,7 @@ const ProjectPreviewWrapper = styled.div`
   .square-image {
     background-repeat: no-repeat;
     background-size: cover;
+    background-position: center;
     width: 3em;
     height: 3em;
     border-radius: 0.5em;
