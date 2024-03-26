@@ -3,7 +3,8 @@ import styled from "styled-components";
 import { colors } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants";
-import Button from "../../components/Button";
+import { Button } from "antd";
+import { FileOutlined, PlusOutlined } from "@ant-design/icons";
 import userPreferences from "../../services/userPreferences";
 
 const Wrapper = styled.div`
@@ -29,10 +30,13 @@ const Wrapper = styled.div`
   .button-row {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    margin-left: 7em;
-    margin-right: 7em;
-    gap: 1em;
+    gap: 0.5em;
+    justify-content: center;
+  }
+  .ant-btn {
+    &::after {
+      all: unset;
+    }
   }
 `;
 
@@ -47,37 +51,43 @@ const ProjectTypeSelection = (props) => {
         <p>{"Export model to"}</p>
         <div className="button-row">
           <Button
-            weight={500}
-            primary={true}
-            title={"New Project"}
-            onPress={() => {
+            type="primary"
+            style={{ background: "#2C2E38" }}
+            onClick={() => {
               navigate(ROUTES.chooseProjectLocation);
             }}
-          />
+          >
+            <FileOutlined />
+            New Project
+          </Button>
           <Button
-            className="button"
-            weight={500}
-            primary={true}
-            title={"Existing Project"}
-            onPress={() => {
+            type="primary"
+            style={{ background: "#2C2E38" }}
+            onClick={() => {
               userPreferences.get("showWarningReconciliation") == true
                 ? navigate(ROUTES.warningReconciliation)
                 : navigate(ROUTES.enterModelLink);
             }}
-          />
+          >
+            <PlusOutlined />
+            Existing Project
+          </Button>
         </div>
       </div>
       <footer>
         <div className="button-parent">
           <div className="button-wrapper">
             <Button
-              customButtonStyle={{
-                backgroundColor: colors.fullWhite,
-                color: colors.secondaryGrey,
+              type="default"
+              style={{
+                background: "#ffffff",
+                borderColor: "white",
+                color: "#767B93",
               }}
-              title={"Back"}
-              onPress={backButtonCallback}
-            />
+              onClick={backButtonCallback}
+            >
+              Back
+            </Button>
           </div>
         </div>
       </footer>
