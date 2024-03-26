@@ -7,8 +7,11 @@ import { keyBy } from "lodash";
 import { CUSTOMER_LIFECYCLE, RequestType } from "./constants";
 
 const snaptrudeService = (function () {
- 
-  const _callApi = async function (endPoint, requestType = RequestType.POST, data = {}) {
+  const _callApi = async function (
+    endPoint,
+    requestType = RequestType.POST,
+    data = {}
+  ) {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
     for (let item in data) formData.append(item, data[item]);
@@ -40,7 +43,13 @@ const snaptrudeService = (function () {
       .catch((e) => {
         logger.log("Network error");
         const res = e?.response;
-        if (res) logger.log(res.status, res.statusText, res.data.message, res.data.error);
+        if (res)
+          logger.log(
+            res.status,
+            res.statusText,
+            res.data.message,
+            res.data.error
+          );
         else logger.log("Empty error msg", endPoint);
       });
   };
@@ -66,9 +75,27 @@ const snaptrudeService = (function () {
       .catch((e) => {
         logger.log("Network error");
         const res = e?.response;
-        if (res) logger.log(res.status, res.statusText, res.data.message, res.data.error);
+        if (res)
+          logger.log(
+            res.status,
+            res.statusText,
+            res.data.message,
+            res.data.error
+          );
         else logger.log("Empty error msg", endPoint);
       });
+  };
+
+  const checkModelUrl = async function (floorkey) {
+    const data = {
+      floorkey: floorkey,
+    };
+    const response = await _callApi(
+      `/import/permission/?floorkey=${data.floorkey}`,
+      RequestType.GET,
+      data
+    );
+    return response?.status === 200;
   };
 
   const createProject = async function () {
@@ -146,7 +173,8 @@ const snaptrudeService = (function () {
     const validTeams = [];
     for (let i = 0; i < teams.length; ++i) {
       const team = teams[i];
-      const isPermissionToCreateProject = await checkRoleForPermissionToCreateProject(team);
+      const isPermissionToCreateProject =
+        await checkRoleForPermissionToCreateProject(team);
       if (!isPermissionToCreateProject) continue;
       if (team.isManuallyPaid) {
         validTeams.push(team);
@@ -162,7 +190,11 @@ const snaptrudeService = (function () {
         queryParams.append(item, data[item]);
       }
       queryParams = queryParams.toString();
-      const response = await _callApi(endPoint + queryParams, RequestType.GET, data);
+      const response = await _callApi(
+        endPoint + queryParams,
+        RequestType.GET,
+        data
+      );
       if (response) {
         const projectsCount = response.data.projects.length;
         if (projectsCount < 1) {
@@ -212,10 +244,11 @@ const snaptrudeService = (function () {
       if (!response) return false;
 
       const { isPro, customer_lifeCycle } = response.data;
-      const isPaidUser = [CUSTOMER_LIFECYCLE.Paid_User, CUSTOMER_LIFECYCLE.Trial_Started].includes(
-        customer_lifeCycle
-      );
-      return (isPro || isPaidUser) 
+      const isPaidUser = [
+        CUSTOMER_LIFECYCLE.Paid_User,
+        CUSTOMER_LIFECYCLE.Trial_Started,
+      ].includes(customer_lifeCycle);
+      return isPro || isPaidUser;
     } catch (error) {
       return false;
     }
@@ -299,6 +332,7 @@ const snaptrudeService = (function () {
     isPaidUserAccount,
     getFolders,
     checkIfUserLoggedIn,
+    checkModelUrl,
   };
 })();
 

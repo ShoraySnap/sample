@@ -146,6 +146,10 @@ const electronCommunicator = (function () {
     sendPipeCommandForImport();
   };
 
+  const uploadToExistingProject = async function (modelCode) {
+    // taufiqul 
+  };
+
   const uploadToSnaptrude = async function (teamId, folderId) {
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
@@ -250,6 +254,7 @@ const electronCommunicator = (function () {
     openPageInDefaultBrowser,
     revitImportDone,
     uploadToSnaptrude,
+    uploadToExistingProject,
     importFromSnaptrude,
     operationSucceeded,
     operationFailed,

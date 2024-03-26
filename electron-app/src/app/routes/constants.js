@@ -2,6 +2,8 @@ export const ROUTES = {
   root: "/",
   home: "/home",
   loading: "/loading",
+  projectSelection: "/projectSelection",
+  enterModelLink: "/enterModelLink",
   chooseProjectLocation: "/chooseProjectLocation",
 }
 
