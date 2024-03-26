@@ -44,7 +44,11 @@ const ProjectPreview = ({ imageURL, projectName }) => {
             backgroundColor: colors.Neutral[200],
           }}
         ></div>
-        <p className="main-items">{projectName}</p>
+        <p className="main-items">
+          {projectName.length > 33
+            ? projectName.substring(0, 33) + "..."
+            : projectName}
+        </p>
       </div>
     </ProjectPreviewWrapper>
   );
