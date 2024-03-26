@@ -257,11 +257,6 @@ const electronCommunicator = (function () {
     mainWindow.webContents.send("syncUserPreferences", data);
   };
 
-  // const updateUserPreferences = function (key, value) {
-  //   userPreferences.set(key, value);
-  //   userPreferences.save();
-  // };
-
   const setUrls = function () {
     mainWindow.webContents.send("setUrls", urls.getAll());
   };

@@ -19,7 +19,6 @@ import urls from "../../services/urls";
 import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
 import { Tooltip } from "antd";
-import { RouteStore } from "../routeStore";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -124,9 +123,7 @@ const Workspace = ({
     const floorKey = sessionData.getUserData()["floorkey"];
     const projectLink = urls.get("snaptrudeReactUrl") + "/model/" + floorKey;
 
-    if (projectLink) {
-      RouteStore.set("projectLink", projectLink);
-    } else {
+    if (!projectLink) {
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }

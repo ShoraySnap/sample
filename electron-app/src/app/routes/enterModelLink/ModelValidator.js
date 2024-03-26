@@ -5,7 +5,6 @@ import styled from "styled-components";
 import { colors, fontSizes } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import urls from "../../services/urls";
-import { RouteStore } from "../routeStore";
 import { Input, Button } from "antd";
 import {
   LinkOutlined,
@@ -66,9 +65,7 @@ const ModelValidator = ({}) => {
   const onSubmit = async () => {
     window.electronAPI.uploadToExistingProject(modelURL);
 
-    if (modelURL) {
-      RouteStore.set("projectLink", modelURL);
-    } else {
+    if (!modelURL) {
       window.electronAPI.operationFailed();
     }
     navigate(ROUTES.loading);
