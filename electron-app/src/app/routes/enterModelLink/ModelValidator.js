@@ -2,13 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import snaptrudeService from "../../services/snaptrude.service";
 import { ROUTES } from "../constants";
 import styled from "styled-components";
-import { colors } from "../../themes/constant";
+import { colors, fontSizes } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/Button";
 import urls from "../../services/urls";
 import _, { set } from "lodash";
 import { RouteStore } from "../routeStore";
-import { Input } from "antd";
+import { Input, ConfigProvider, Button } from "antd";
 import {
   LinkOutlined,
   LoadingOutlined,
@@ -136,7 +135,9 @@ const ModelValidator = ({}) => {
   return (
     <Wrapper>
       <div className="main-content">
-        <p>Enter project URL:</p>
+        <p style={{ color: colors.Neutral[450], fontSize: fontSizes.tiny }}>
+          Enter project URL:
+        </p>
 
         <Input
           placeholder="Paste link here"
@@ -197,21 +198,30 @@ const ModelValidator = ({}) => {
       <footer>
         <div className="button-wrapper">
           <Button
-            customButtonStyle={{
-              backgroundColor: colors.fullWhite,
-              color: colors.secondaryGrey,
+            type="default"
+            style={{
+              borderColor: colors.fullWhite,
+              color: colors.Neutral[600],
+              marginRight: "1em",
             }}
-            title={"Back"}
-            onPress={leftButtonCallback}
-          />
-        </div>
-        <div className="button-wrapper">
+            onClick={leftButtonCallback}
+          >
+            Back
+          </Button>
           <Button
+            type="default"
             disabled={status != INPUT_FIELD_STATUS.success}
-            primary={true}
-            title={"Begin export"}
-            onPress={rightButtonCallback}
-          />
+            style={{
+              background:
+                status == INPUT_FIELD_STATUS.success ? colors.Neutral[900] : "",
+              borderColor: colors.fullWhite,
+              color:
+                status == INPUT_FIELD_STATUS.success ? colors.fullWhite : "",
+            }}
+            onClick={rightButtonCallback}
+          >
+            Begin export
+          </Button>
         </div>
       </footer>
     </Wrapper>

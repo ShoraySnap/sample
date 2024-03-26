@@ -1,11 +1,12 @@
 import React from "react";
 import styled from "styled-components";
+import { colors } from "../../themes/constant";
 
 const ProjectPreviewWrapper = styled.div`
   width: 100%;
   height: 4em;
   box-sizing: border-box;
-  border: 2px solid #e8e9ed;
+  border: 1px solid ${colors.Neutral[200]};
   border-radius: 0.5em;
   overflow: hidden;
 
@@ -19,7 +20,7 @@ const ProjectPreviewWrapper = styled.div`
     padding-left: 0.5em;
   }
   .main-items {
-    color: #767b93;
+    color: ${colors.Neutral[600]};
   }
 
   .square-image {
@@ -40,7 +41,7 @@ const ProjectPreview = ({ imageURL, projectName }) => {
           className="square-image"
           style={{
             backgroundImage: `url(${imageURL})`,
-            backgroundColor: "#e8e9ed",
+            backgroundColor: colors.Neutral[200],
           }}
         ></div>
         <p className="main-items">{projectName}</p>

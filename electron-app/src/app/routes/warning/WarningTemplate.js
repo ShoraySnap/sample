@@ -1,8 +1,9 @@
 import styled from "styled-components";
-import { colors } from "../../themes/constant";
+import { colors, fontSizes } from "../../themes/constant";
 import _ from "lodash";
 import React from "react";
-import Button from "../../components/Button";
+// import Button from "../../components/Button";
+import { Button } from "antd";
 import { Checkbox } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 
@@ -43,12 +44,8 @@ const ParentWrapper = styled.div`
     display: flex;
     flex-direction: row;
   }
-  .button-wrapper {
-    z-index: 5;
-  }
   .button-wrapper button {
-    min-width: 9em;
-    width: fit-content;
+    height: 120%;
   }
   .page-indicator {
     display: flex;
@@ -95,8 +92,8 @@ const WarningWrapper = styled.div`
   .content {
     display: flex;
     flex-direction: column;
-    padding: 1em 1em 1em 1em;
-    border: 1.5px solid #e8e9ed;
+    padding: 1em 2em 1em 2em;
+    border: 1.5px solid ${colors.Neutral[200]};
     border-radius: 0.75rem;
     text-align: left;
     height: 70%;
@@ -119,40 +116,59 @@ export const WarningTemplate = ({
       <WarningWrapper>
         <div className="content">
           <div style={{ marginBottom: "-1.25em" }}>
-            <InfoCircleOutlined style={{}} />
+            <InfoCircleOutlined style={{ color: colors.Neutral[600] }} />
             <p
               style={{
                 display: "inline-block",
                 paddingLeft: "5px",
+                color: colors.Neutral[600],
               }}
             >
               Note:
             </p>
           </div>
-          <p style={{ fontSize: "16px" }}>{note}</p>
+          <p style={{ fontSize: fontSizes.small, color: colors.Neutral[800] }}>
+            {note}
+          </p>
         </div>
       </WarningWrapper>
       <footer>
         <div className="page-indicator">
-          <Checkbox onChange={onCheckbox}>Don't show again</Checkbox>
+          <Checkbox
+            onChange={onCheckbox}
+            style={{
+              color: colors.Neutral[600],
+              fontWeight: 400,
+            }}
+          >
+            Don't show again
+          </Checkbox>
         </div>
         <div className="button-parent">
           <div className="button-wrapper">
             <Button
-              customButtonStyle={{
-                backgroundColor: colors.fullWhite,
-                color: colors.secondaryGrey,
+              type="default"
+              style={{
+                background: "#ffffff",
+                borderColor: "white",
+                color: colors.Neutral[600],
+                marginRight: "1em",
               }}
-              title={"Back"}
-              onPress={backButton}
-            />
-          </div>
-          <div className="button-wrapper">
+              onClick={backButton}
+            >
+              Back
+            </Button>
             <Button
-              primary={true}
-              title={"I understand"}
-              onPress={nextButton}
-            />
+              type="default"
+              style={{
+                background: colors.Neutral[900],
+                borderColor: "white",
+                color: "#ffffff",
+              }}
+              onClick={nextButton}
+            >
+              I understand
+            </Button>
           </div>
         </div>
       </footer>

@@ -1,13 +1,13 @@
 import React from "react";
 import styled from "styled-components";
-import { colors } from "../../themes/constant";
+import { colors, fontSizes } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants";
 import { Button } from "antd";
 import { FileOutlined, PlusOutlined } from "@ant-design/icons";
 import userPreferences from "../../services/userPreferences";
 
-const Wrapper = styled.div`
+const ProjectTypeSelectionWrapper = styled.div`
   footer {
     position: fixed;
     left: 0;
@@ -21,7 +21,6 @@ const Wrapper = styled.div`
     justify-content: flex-end;
     margin-right: 1em;
   }
-  padding: 0em 2em 0em 2em;
   .content {
     display: flex;
     flex-direction: column;
@@ -32,6 +31,9 @@ const Wrapper = styled.div`
     flex-direction: row;
     gap: 0.5em;
     justify-content: center;
+  }
+  .button-row button {
+    height: 2.4em;
   }
   .ant-btn {
     &::after {
@@ -46,30 +48,32 @@ const ProjectTypeSelection = (props) => {
     navigate(ROUTES.home);
   };
   return (
-    <Wrapper>
+    <ProjectTypeSelectionWrapper>
       <div className="content">
-        <p>{"Export model to"}</p>
+        <p style={{ fontSize: fontSizes.tiny, fontWeight: "500" }}>
+          {"Export model to"}
+        </p>
         <div className="button-row">
           <Button
             type="primary"
-            style={{ background: "#2C2E38" }}
+            style={{ background: colors.Neutral[900] }}
             onClick={() => {
               navigate(ROUTES.chooseProjectLocation);
             }}
           >
-            <FileOutlined />
+            <PlusOutlined />
             New Project
           </Button>
           <Button
             type="primary"
-            style={{ background: "#2C2E38" }}
+            style={{ background: colors.Neutral[900] }}
             onClick={() => {
               userPreferences.get("showWarningReconciliation") == true
                 ? navigate(ROUTES.warningReconciliation)
                 : navigate(ROUTES.enterModelLink);
             }}
           >
-            <PlusOutlined />
+            <FileOutlined />
             Existing Project
           </Button>
         </div>
@@ -82,7 +86,7 @@ const ProjectTypeSelection = (props) => {
               style={{
                 background: "#ffffff",
                 borderColor: "white",
-                color: "#767B93",
+                color: colors.Neutral[600],
               }}
               onClick={backButtonCallback}
             >
@@ -91,7 +95,7 @@ const ProjectTypeSelection = (props) => {
           </div>
         </div>
       </footer>
-    </Wrapper>
+    </ProjectTypeSelectionWrapper>
   );
 };
 
