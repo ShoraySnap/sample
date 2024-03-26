@@ -8,6 +8,7 @@ import _ from "lodash";
 import { Checkbox } from "antd";
 import sessionData from "../../services/sessionData";
 import userPreferences from "../../services/userPreferences";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 const ParentWrapper = styled.div`
   display: flex;
@@ -40,7 +41,6 @@ const ParentWrapper = styled.div`
     flex-direction: row;
     z-index: 5;
     padding: 1em;
-    border-top: 1px solid rgba(96, 129, 159, 0.2);
     justify-content: space-between;
   }
   .button-parent {
@@ -91,22 +91,24 @@ const ParentWrapper = styled.div`
   }
 `;
 
-const Wrapper = styled.div`
-  // position: relative;
-  min-width: 100vw;
-  max-height: 100%;
-  display: flex;
-  flex-direction: column;
-  font-weight: 400;
-  font-size: 14px;
-  color: ${colors.primeBlack};
-  overflow: auto;
+const WarningWrapper = styled.div`
+  height: 90%;
+  width: 100%;
+  padding: 1em;
 
   .content {
     display: flex;
-    overflow: auto;
     flex-direction: column;
-    padding: 1em 1em 5em 1em;
+    padding: 1em 1em 1em 1em;
+    border: 1.5px solid #e8e9ed;
+    border-radius: 0.75rem;
+    text-align: left;
+    height: 70%;
+    align-items: start;
+
+    color: ${colors.primeBlack};
+    font-weight: 400;
+    font-size: 14px;
   }
 `;
 
@@ -142,38 +144,49 @@ const WarningVisibility = ({}) => {
 
   return (
     <ParentWrapper>
-      <Wrapper>
+      <WarningWrapper>
         <div className="content">
-          <p>
+          <div style={{ marginBottom: "-1.25em" }}>
+            <InfoCircleOutlined style={{}} />
+            <p
+              style={{
+                display: "inline-block",
+                paddingLeft: "5px",
+              }}
+            >
+              Note:
+            </p>
+          </div>
+          <p style={{ fontSize: "16px" }}>
             All the visible parts of the model will export to Snaptrude. Hide or
             remove any elements that you don’t wish to export before proceeding.
           </p>
         </div>
-        <footer>
-          <div className="page-indicator">
-            <Checkbox onChange={onCheckbox}>Don't show again</Checkbox>
+      </WarningWrapper>
+      <footer>
+        <div className="page-indicator">
+          <Checkbox onChange={onCheckbox}>Don't show again</Checkbox>
+        </div>
+        <div className="button-parent">
+          <div className="button-wrapper">
+            <Button
+              customButtonStyle={{
+                backgroundColor: colors.fullWhite,
+                color: colors.secondaryGrey,
+              }}
+              title={"Back"}
+              onPress={leftButtonCallback}
+            />
           </div>
-          <div className="button-parent">
-            <div className="button-wrapper">
-              <Button
-                customButtonStyle={{
-                  backgroundColor: colors.fullWhite,
-                  color: colors.secondaryGrey,
-                }}
-                title={"Back"}
-                onPress={leftButtonCallback}
-              />
-            </div>
-            <div className="button-wrapper">
-              <Button
-                primary={true}
-                title={"I understand"}
-                onPress={rightButtonCallback}
-              />
-            </div>
+          <div className="button-wrapper">
+            <Button
+              primary={true}
+              title={"I understand"}
+              onPress={rightButtonCallback}
+            />
           </div>
-        </footer>
-      </Wrapper>
+        </div>
+      </footer>
     </ParentWrapper>
   );
 };
