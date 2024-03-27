@@ -8,6 +8,7 @@ const sessionData = require("./src/electron/sessionData");
 const store = require("./src/electron/store");
 const logger = require("./src/electron/services/logger");
 const urls = require("./src/electron/services/urls");
+const userPreferences = require("./src/electron/UserPreferences");
 
 if (require("electron-squirrel-startup")) return app.quit();
 // the app opens a few times and closes during installation
@@ -32,7 +33,7 @@ const parseProtocolArgs = async function (argv) {
   if (process.platform !== "darwin") {
     // Find the arg that is our custom protocol url and store it
     deepLinkingUrl = argv.find((arg) =>
-      arg.startsWith(CUSTOM_PROTOCOL + "://"),
+      arg.startsWith(CUSTOM_PROTOCOL + "://")
     );
   }
 
@@ -48,9 +49,12 @@ const parseProtocolArgs = async function (argv) {
     // snaptrude://start?name=<model-name>
 
     const revitProjectName = queryParamsObject.name;
+    const revitProjectFileType = queryParamsObject.fileType;
     logger.log("Initiated from Revit", revitProjectName);
 
     sessionData.setRevitModelName(revitProjectName);
+    sessionData.setFileType(revitProjectFileType);
+    store.set("fileType", revitProjectFileType);
     electronCommunicator.revitIsWaiting();
   } else if (deepLinkingUrl.includes("loginSuccess")) {
     // deep link url format-
@@ -60,6 +64,7 @@ const parseProtocolArgs = async function (argv) {
     store.setAllAndSave(userData);
 
     electronCommunicator.syncSessionData();
+    electronCommunicator.syncUserPreferences();
     electronCommunicator.updateUIAfterLogin();
     // updates UI
 
@@ -70,6 +75,7 @@ const parseProtocolArgs = async function (argv) {
     store.set("modelLink", REACT_URL + "/model/" + store.get("floorkey"));
     store.save();
     electronCommunicator.syncSessionData();
+    electronCommunicator.syncUserPreferences();
     electronCommunicator.revitImportDone();
   }
 };
@@ -118,18 +124,22 @@ const enableEventListeners = function () {
   app.whenReady().then(async () => {
     ipcMain.on(
       "openPageInDefaultBrowser",
-      electronCommunicator.openPageInDefaultBrowser,
+      electronCommunicator.openPageInDefaultBrowser
     );
     ipcMain.on("flushUserData", () => {
       logger.log("User logged out", store.get("fullname"));
       store.flush();
     });
     ipcMain.on("updateUserData", (event, [data]) => store.setAllAndSave(data));
+    ipcMain.on("updateUserPreferences", (event, [key, value]) => {
+      userPreferences.set(key, value);
+      userPreferences.save();
+    });
     ipcMain.on("uploadToSnaptrude", (event, [teamId, folderId]) =>
-      electronCommunicator.uploadToSnaptrude(teamId, folderId),
+      electronCommunicator.uploadToSnaptrude(teamId, folderId)
     );
     ipcMain.on("uploadToExistingProject", (event, [modelCode]) =>
-      electronCommunicator.uploadToExistingProject(modelCode),
+      electronCommunicator.uploadToExistingProject(modelCode)
     );
     ipcMain.on("importFromSnaptrude", electronCommunicator.importFromSnaptrude);
     ipcMain.on("log", (event, [messages]) => logger.log(...messages));
@@ -140,6 +150,7 @@ const enableEventListeners = function () {
     ipcMain.on("showLogs", logger.showLogs);
 
     store.init();
+    userPreferences.init();
     urls.init();
     await createWindow();
 
@@ -149,6 +160,7 @@ const enableEventListeners = function () {
     await parseProtocolArgs(process.argv);
 
     electronCommunicator.syncSessionData();
+    electronCommunicator.syncUserPreferences();
     electronCommunicator.setUrls();
     electronCommunicator.goHome();
 

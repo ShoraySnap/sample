@@ -1,9 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import Workspace from "./Workspace";
 import { colors } from "../../themes/constant";
-import { useLocation } from "react-router-dom";
-import { PERSONAL_WORKSPACE_ID, ROOT_FOLDER_ID } from "../constants";
+import { ROOT_FOLDER_ID } from "../constants";
 
 const Wrapper = styled.div`
   display: flex;

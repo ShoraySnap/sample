@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import snaptrudeService from "../../services/snaptrude.service";
 import { ROUTES } from "../constants";
 import styled from "styled-components";
-import { colors } from "../../themes/constant";
+import { colors, fontSizes } from "../../themes/constant";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/Button";
 import urls from "../../services/urls";
-import _ from "lodash";
-import { RouteStore } from "../routeStore";
+import { Input, Button } from "antd";
+import {
+  LinkOutlined,
+  LoadingOutlined,
+  CheckCircleFilled,
+  CloseOutlined,
+} from "@ant-design/icons";
+import { INPUT_FIELD_STATUS } from "../../services/constants";
+import ProjectPreview from "./ProjectPreview";
 
-const Wrapper = styled.div`
-  // position: relative;
+const ModelValidatorWrapper = styled.div`
   min-width: 100vw;
   max-height: 100%;
   display: flex;
@@ -20,40 +25,47 @@ const Wrapper = styled.div`
   color: ${colors.primeBlack};
   overflow: auto;
 
-  .content {
+  .main-content {
     display: flex;
-    overflow: auto;
     flex-direction: column;
-    padding: 1em 1em 5em 1em;
+    padding: 0em 8em 1em 8em;
+    align-items: start;
+    line-height: 0.5rem;
   }
 `;
 
-const WorkspacesGrid = styled.div`
-  display: grid;
-  grid-template-rows: 40px 40px 35px;
-  grid-template-columns: 10% 40% 25% 25%;
-  margin-top: 20px;
-  overflow: auto;
-  align-items: center;
-`;
+function isValidModelURL(inputText) {
+  let domain = urls.get("snaptrudeReactUrl");
+
+  if (domain.substring(0, 8) == "https://") {
+    if (inputText.substring(0, 8) != "https://")
+      inputText = "https://" + inputText;
+  } else if (domain.substring(0, 7) == "http://") {
+    if (inputText.substring(0, 7) != "http://")
+      inputText = "http://" + inputText;
+  }
+
+  if (domain.slice(-1) != "/") {
+    domain += "/";
+  }
+
+  var domainPath = domain + "model/";
+  var pattern = new RegExp("^" + domainPath + "\\w{6}/?$");
+
+  return pattern.test(inputText);
+}
 
 const ModelValidator = ({}) => {
   const navigate = useNavigate();
 
   const onBack = () => {
-    navigate(ROUTES.projectSelection);
+    navigate(ROUTES.projectTypeSelection);
   };
 
   const onSubmit = async () => {
-    window.electronAPI.uploadToExistingProject(modelCode);
+    window.electronAPI.uploadToExistingProject(modelURL);
 
-    if (modelCode) {
-      RouteStore.set(
-        "projectLink",
-        urls.get("snaptrudeReactUrl") + "/model/" + modelCode,
-      );
-    } else {
-      // logger.log("Operation failed");
+    if (!modelURL) {
       window.electronAPI.operationFailed();
     }
     navigate(ROUTES.loading);
@@ -62,82 +74,153 @@ const ModelValidator = ({}) => {
   const leftButtonCallback = onBack;
   const rightButtonCallback = onSubmit;
 
-  const heading = `Enter Model Link`;
-
   const [errorMessage, setErrorMessage] = useState("\u3000");
-  const [modelCode, setModelCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDisabled, setIsDisabled] = useState(true);
+  const [modelURL, setModelURL] = useState("");
+  const [status, setStatus] = useState(INPUT_FIELD_STATUS.blank);
+  const [imageURL, setImageURL] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const inputRef = useRef(null);
 
   const handleInputChange = (event) => {
-    event.target.value = event.target.value.toUpperCase();
     const newText = event.target.value;
     setErrorMessage("\u3000");
-    setIsDisabled(true);
-    setModelCode(newText);
+    setModelURL(newText);
 
-    if (newText.length == 6) {
-      setIsLoading(true);
+    if (isValidModelURL(newText)) {
+      setStatus(INPUT_FIELD_STATUS.loading);
     } else {
-      setIsLoading(false);
+      setStatus(INPUT_FIELD_STATUS.blank);
     }
   };
 
   const checkUrl = async () => {
-    const isUrlValid = await snaptrudeService.checkModelUrl(modelCode);
-    return isUrlValid;
+    let floorKey = modelURL.endsWith("/")
+      ? modelURL.slice(-7).slice(0, 6)
+      : modelURL.slice(-6);
+    const response = await snaptrudeService.checkModelUrl(floorKey);
+    return response;
   };
 
   useEffect(() => {
-    setIsLoading(false);
-    if (modelCode.length != 6) return;
-    checkUrl().then((isUrlValid) => {
-      if (isUrlValid) {
-        setIsDisabled(false);
+    if (status != INPUT_FIELD_STATUS.loading) return;
+    checkUrl().then((response) => {
+      if (response?.status == 200 && response?.data != null) {
+        if (response.data.access == true) {
+          setStatus(INPUT_FIELD_STATUS.success);
+          setImageURL(
+            urls.get("snaptrudeDjangoUrl") + "/media/" + response.data.image
+          );
+          setProjectName(response.data.name);
+        } else {
+          setStatus(INPUT_FIELD_STATUS.errorInvalid);
+          setErrorMessage(response.data.message);
+        }
       } else {
-        setErrorMessage("Invalid model link");
+        setStatus(INPUT_FIELD_STATUS.errorInvalid);
+        setErrorMessage("Network error occurred");
       }
     });
-  }, [modelCode]);
+  }, [modelURL]);
+
+  useEffect(() => {
+    inputRef.current.focus({
+      cursor: "all",
+    });
+  }, []);
 
   return (
-    <Wrapper>
-      <div className="content">
-        <p>{heading}</p>
-        <WorkspacesGrid>
-          <div />
-          <p>{urls.get("snaptrudeReactUrl")}/model/</p>
-          <input
-            style={{ lineHeight: "1.6rem" }}
-            placeholder="ADV4T7"
-            onChange={handleInputChange}
-            maxLength="6"
-          />
-        </WorkspacesGrid>
-        <p style={{ fontSize: "12px", color: "red" }}>{errorMessage}</p>
+    <ModelValidatorWrapper>
+      <div className="main-content">
+        <p style={{ color: colors.Neutral[450], fontSize: fontSizes.tiny }}>
+          Enter project URL:
+        </p>
+
+        <Input
+          placeholder="Paste link here"
+          value={modelURL}
+          prefix={<LinkOutlined className="site-form-item-icon" />}
+          suffix={
+            status == INPUT_FIELD_STATUS.blank ? (
+              <div />
+            ) : status == INPUT_FIELD_STATUS.loading ? (
+              <LoadingOutlined style={{ color: "rgba(0,0,0,.45)" }} />
+            ) : status == INPUT_FIELD_STATUS.success ? (
+              <CheckCircleFilled style={{ color: "#1A5EE5" }} />
+            ) : (
+              <CloseOutlined
+                onClick={() => {
+                  setErrorMessage("\u3000");
+                  setStatus(INPUT_FIELD_STATUS.blank);
+                  setModelURL("");
+                }}
+              />
+            )
+          }
+          onChange={handleInputChange}
+          status={errorMessage == "\u3000" ? "" : "error"}
+          ref={inputRef}
+          onFocus={() => {
+            inputRef.current.focus({
+              cursor: "all",
+            });
+          }}
+        />
+        <div style={{ height: "1em" }}></div>
+        {status == INPUT_FIELD_STATUS.success && (
+          <ProjectPreview imageURL={imageURL} projectName={projectName} />
+        )}
+
+        {(status == INPUT_FIELD_STATUS.errorAccess ||
+          status == INPUT_FIELD_STATUS.errorInvalid) && (
+          <div style={{ height: "4em" }}>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "red",
+                position: "relative",
+                top: "-15px",
+              }}
+            >
+              {errorMessage}
+            </p>
+          </div>
+        )}
+
+        {(status == INPUT_FIELD_STATUS.blank ||
+          status == INPUT_FIELD_STATUS.loading) && (
+          <div style={{ height: "4em" }}></div>
+        )}
       </div>
       <footer>
         <div className="button-wrapper">
           <Button
-            customButtonStyle={{
-              backgroundColor: colors.fullWhite,
-              color: colors.secondaryGrey,
+            type="default"
+            style={{
+              borderColor: colors.fullWhite,
+              color: colors.Neutral[600],
+              marginRight: "1em",
             }}
-            title={"Back"}
-            onPress={leftButtonCallback}
-          />
-        </div>
-        <div className="button-wrapper">
+            onClick={leftButtonCallback}
+          >
+            Back
+          </Button>
           <Button
-            isLoading={isLoading}
-            disabled={isDisabled}
-            primary={true}
-            title={"Next"}
-            onPress={rightButtonCallback}
-          />
+            type="default"
+            disabled={status != INPUT_FIELD_STATUS.success}
+            style={{
+              background:
+                status == INPUT_FIELD_STATUS.success ? colors.Neutral[900] : "",
+              borderColor: colors.fullWhite,
+              color:
+                status == INPUT_FIELD_STATUS.success ? colors.fullWhite : "",
+            }}
+            onClick={rightButtonCallback}
+          >
+            Begin export
+          </Button>
         </div>
       </footer>
-    </Wrapper>
+    </ModelValidatorWrapper>
   );
 };
 

@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import ModelValidator from "./ModelValidator";
 import { colors } from "../../themes/constant";
-import { ROOT_FOLDER_ID } from "../constants";
 
 const Wrapper = styled.div`
   display: flex;
@@ -34,16 +33,11 @@ const Wrapper = styled.div`
     display: flex;
     flex-direction: row;
     z-index: 5;
-    padding: 1em;
-    border-top: 1px solid rgba(96, 129, 159, 0.2);
-    justify-content: space-around;
-  }
-  .button-wrapper {
-    z-index: 5;
+    padding: 1.15em;
+    justify-content: flex-end;
   }
   .button-wrapper button {
-    min-width: 12em;
-    width: fit-content;
+    height: 120%;
   }
   .page-indicator {
     display: flex;

@@ -17,6 +17,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   closeApplication: () => ipcRenderer.send("closeApplication"),
   openDevtools: () => ipcRenderer.send("openDevtools"),
   showLogs: () => ipcRenderer.send("showLogs"),
+  updateUserPreferences: (key, value) =>
+    ipcRenderer.send("updateUserPreferences", [key, value]),
 
   // electron to react
   handleSuccessfulLogin: (callback) =>
@@ -25,6 +27,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("handleSuccessfulUpload", callback),
   showLoadingPage: (callback) => ipcRenderer.on("showLoadingPage", callback),
   syncSessionData: (callback) => ipcRenderer.on("syncSessionData", callback),
+  syncUserPreferences: (callback) =>
+    ipcRenderer.on("syncUserPreferences", callback),
   goHome: (callback) => ipcRenderer.on("goHome", callback),
   setUrls: (callback) => ipcRenderer.on("setUrls", callback),
 

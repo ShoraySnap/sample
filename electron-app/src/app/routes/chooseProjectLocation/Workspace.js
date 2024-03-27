@@ -19,7 +19,6 @@ import urls from "../../services/urls";
 import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
 import { Tooltip } from "antd";
-import { RouteStore } from "../routeStore";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -119,21 +118,12 @@ const Workspace = ({
     const workspaceId = selectedWorkspaceId;
     const folderId = currentFolderId;
 
-    // const projectLink = await snaptrudeService.createProject(
-    //   sessionData.getUserData()["streamId"],
-    //   workspaceId,
-    //   folderId
-    // );
-    // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
     setIsLoading(false);
     window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
     const floorKey = sessionData.getUserData()["floorkey"];
     const projectLink = urls.get("snaptrudeReactUrl") + "/model/" + floorKey;
 
-    if (projectLink) {
-      RouteStore.set("projectLink", projectLink);
-    } else {
+    if (!projectLink) {
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
@@ -145,11 +135,9 @@ const Workspace = ({
       urls.get("snaptrudeReactUrl") + "/dashboard/profile/plans";
 
     if (upgradePlanLink) {
-      // MAKE CHANGES HERE TOO
       window.electronAPI.openPageInDefaultBrowser(upgradePlanLink);
       window.electronAPI.operationSucceeded();
     } else {
-      // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
     goHome();
