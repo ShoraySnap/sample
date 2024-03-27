@@ -6,10 +6,10 @@ namespace TrudeSerializer.Components
 {
     internal class TrudeRFAComponent: TrudeComponent
     {
-
-        public TrudeRFAComponent(string elementId, string category, string family) : base(elementId, category, family, "-1")
+        public string type;
+        public TrudeRFAComponent(string elementId, string category, string family, string type) : base(elementId, category, family, "-1")
         {
-
+            this.type = type; 
         }
     }
 }

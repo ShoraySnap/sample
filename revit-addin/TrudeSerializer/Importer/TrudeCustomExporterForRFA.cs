@@ -44,11 +44,12 @@ namespace TrudeSerializer
         {
             Units units = doc.GetUnits();
 
-            TrudeComponent component = new TrudeRFAComponent("0", "RFA", "RFA");
+            TrudeComponent component = new TrudeRFAComponent("0", "RFA", "RFA_FAMILY", "RFA_TYPE");
 
             currentElement = CurrentElement.SetCurrentElement(component);
             TrudeRFAComponent rfaComponent = component as TrudeRFAComponent;
-            rfaComponent.category = doc.FamilyManager.CurrentType.Name;
+            rfaComponent.type = doc.FamilyManager.CurrentType.Name;
+            rfaComponent.category = "RFA";
             rfaComponent.family = doc.Title;
             serializedSnaptrudeData.ProjectProperties.SetRFA(true);
 

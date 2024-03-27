@@ -47,7 +47,7 @@ namespace TrudeSerializer.Importer
             this.CurtainWalls = new Dictionary<string, TrudeCurtainWall>();
 
             this.Roofs = new Dictionary<string, TrudeRoof>();
-            this.RFAComponent = new TrudeRFAComponent("NONE", "NONE", "NONE");
+            this.RFAComponent = new TrudeRFAComponent("-1", "RFA", "RFA_FAMILY", "RFA_TYPE");
         }
 
         public void CleanSerializedData()
