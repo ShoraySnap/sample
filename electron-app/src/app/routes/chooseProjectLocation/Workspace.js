@@ -209,7 +209,7 @@ const Workspace = ({
   const getFolders = async () => {
     let folders = await snaptrudeService.getFolders(
       selectedWorkspaceId,
-      currentFolderId
+      currentFolderId,
     );
 
     if (folders) {
@@ -260,8 +260,8 @@ const Workspace = ({
   const leftButtonCallback = isWorkspacesPage
     ? closeApplication
     : isRootFolderPage
-    ? goBackToWorkspaces
-    : goOneFolderUp;
+      ? goBackToWorkspaces
+      : goOneFolderUp;
 
   const rightButtonCallback = isWorkspacesPage ? chooseWorkspace : onSubmit;
   const entryClickCallback = isWorkspacesPage
@@ -284,10 +284,10 @@ const Workspace = ({
 
   const [entries, setEntries] = useState([]);
   const [selectedEntryId, setSelectedEntryId] = useState(
-    initiallySelectedEntryId
+    initiallySelectedEntryId,
   );
   const [selectedEntryName, setSelectedEntryName] = useState(
-    initiallySelectedEntryName
+    initiallySelectedEntryName,
   );
 
   useEffect(() => {

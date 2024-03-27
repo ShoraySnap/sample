@@ -5,13 +5,16 @@ const store = require("../store");
 const FormData = require("form-data");
 const sessionData = require("../sessionData");
 
-
-const snaptrudeService = function () {
+const snaptrudeService = (function () {
   const RequestType = {
     GET: "GET",
     POST: "POST",
   };
-  const _callApi = async function (endPoint, requestType = RequestType.POST, data = {}) {
+  const _callApi = async function (
+    endPoint,
+    requestType = RequestType.POST,
+    data = {},
+  ) {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new URLSearchParams();
     for (const item in data) {
@@ -52,7 +55,7 @@ const snaptrudeService = function () {
             res.status,
             res.statusText,
             res.data.message,
-            res.data.error
+            res.data.error,
           );
         else logger.log("Empty error msg", endPoint);
       });
@@ -84,7 +87,7 @@ const snaptrudeService = function () {
             res.status,
             res.statusText,
             res.data.message,
-            res.data.error
+            res.data.error,
           );
         else logger.log("Empty error msg", endPoint);
       });
@@ -104,7 +107,7 @@ const snaptrudeService = function () {
       stream_id: "test",
       team_id: teamId,
       folder_id: folderId,
-    }
+    };
 
     const response = await _callApi(endPoint, RequestType.POST, data);
     if (response) {
@@ -115,42 +118,48 @@ const snaptrudeService = function () {
     }
   };
 
-  const flagRevitImportState = async function(floorKey, import_state) {
+  const flagRevitImportState = async function (floorKey, import_state) {
     logger.log(`Flagging revit import state for ${floorKey} : ${import_state}`);
     const endPoint = "/import/state";
     const data = {
       floorkey: `${floorKey}`,
-      revitImportState: `${import_state}`
-    }
+      revitImportState: `${import_state}`,
+    };
 
     const response = await _callApi(endPoint, RequestType.POST, data);
-    if(response) {
-      const revitImportState = response.data.project.importStates.revitImportState;
+    if (response) {
+      const revitImportState =
+        response.data.project.importStates.revitImportState;
       console.log(response.data);
-      logger.log(`Flagged revit import state for ${floorKey} : ${revitImportState}`);
+      logger.log(
+        `Flagged revit import state for ${floorKey} : ${revitImportState}`,
+      );
       return revitImportState;
-    }
-    else {
-      logger.log(`Failed to flag revit import state for ${floorKey} : ${import_state}`);
+    } else {
+      logger.log(
+        `Failed to flag revit import state for ${floorKey} : ${import_state}`,
+      );
       return "INVALID";
     }
-  }
+  };
 
-  const getRevitImportState = async function(floorKey) {
+  const getRevitImportState = async function (floorKey) {
     logger.log(`Getting revit import state for ${floorKey}`);
     const endPoint = `/import/state/?floorkey=${floorKey}`;
 
     const response = await _callApi(endPoint, RequestType.GET);
-    if(response) {
-      const revitImportState = response.data.project.importStates.revitImportState;
-      logger.log(`Received revit import state for ${floorKey} : ${revitImportState}`);
+    if (response) {
+      const revitImportState =
+        response.data.project.importStates.revitImportState;
+      logger.log(
+        `Received revit import state for ${floorKey} : ${revitImportState}`,
+      );
       return revitImportState;
-    }
-    else {
+    } else {
       logger.log(`Failed to get revit import state for ${floorKey}`);
       return "INVALID";
     }
-  }
+  };
 
   axios.interceptors.request.use(
     (request) => {
@@ -170,7 +179,7 @@ const snaptrudeService = function () {
     (err) => {
       console.log(err);
       return Promise.reject();
-    }
+    },
   );
 
   axios.interceptors.response.use(
@@ -206,11 +215,13 @@ const snaptrudeService = function () {
     (err) => {
       console.log(err);
       return Promise.reject();
-    }
+    },
   );
   return {
-    createProject, getRevitImportState, flagRevitImportState
+    createProject,
+    getRevitImportState,
+    flagRevitImportState,
   };
-}();
+})();
 
 module.exports = snaptrudeService;
