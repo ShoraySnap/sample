@@ -141,6 +141,12 @@ const enableEventListeners = function () {
     ipcMain.on("uploadToExistingProject", (event, [modelCode]) =>
       electronCommunicator.uploadToExistingProject(modelCode)
     );
+    ipcMain.on("uploadRFAToSnaptrude", (event, [teamId, folderId]) =>
+      electronCommunicator.uploadRFAToSnaptrude(teamId, folderId)
+    );
+    ipcMain.on("uploadRFAToExistingProject", (event, [modelCode]) =>
+      electronCommunicator.uploadRFAToExistingProject(modelCode)
+    );
     ipcMain.on("importFromSnaptrude", electronCommunicator.importFromSnaptrude);
     ipcMain.on("log", (event, [messages]) => logger.log(...messages));
     ipcMain.on("operationSucceeded", electronCommunicator.operationSucceeded);

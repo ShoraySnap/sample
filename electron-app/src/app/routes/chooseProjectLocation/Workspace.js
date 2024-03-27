@@ -119,7 +119,14 @@ const Workspace = ({
     const folderId = currentFolderId;
 
     setIsLoading(false);
-    window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
+
+    if(sessionData.getUserData().fileType === "rfa") {
+      window.electronAPI.uploadRFAToSnaptrude(workspaceId, folderId);
+    }
+    else {
+      window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
+    }
+
     const floorKey = sessionData.getUserData()["floorkey"];
     const projectLink = urls.get("snaptrudeReactUrl") + "/model/" + floorKey;
 

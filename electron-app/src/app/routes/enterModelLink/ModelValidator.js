@@ -63,11 +63,11 @@ const ModelValidator = ({}) => {
   };
 
   const onSubmit = async () => {
-    window.electronAPI.uploadToExistingProject(modelURL);
-
     if (!modelURL) {
       window.electronAPI.operationFailed();
     }
+
+    window.electronAPI.uploadRFAToExistingProject(modelURL);
     navigate(ROUTES.loading);
   };
 
