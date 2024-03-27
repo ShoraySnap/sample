@@ -34,7 +34,7 @@ const ModelValidatorWrapper = styled.div`
   }
 `;
 
-function isValidModelURL(inputText) {
+function validateURL(inputText) {
   let domain = urls.get("snaptrudeReactUrl");
 
   if (domain.substring(0, 8) == "https://") {
@@ -52,7 +52,23 @@ function isValidModelURL(inputText) {
   var domainPath = domain + "model/";
   var pattern = new RegExp("^" + domainPath + "\\w{6}/?$");
 
-  return pattern.test(inputText);
+  if (pattern.test(inputText)) {
+    return INPUT_FIELD_STATUS.loading;
+  }
+
+  let floorKey = inputText.split("/model/")[1];
+  let urlFragments = inputText.match(/model/g)?.length;
+  if (floorKey && urlFragments) {
+    if (
+      urlFragments > 1 ||
+      (floorKey.endsWith("/") && floorKey.length > 7) ||
+      (!floorKey.endsWith("/") && floorKey.length > 6)
+    ) {
+      return INPUT_FIELD_STATUS.errorInvalid;
+    }
+  }
+
+  return INPUT_FIELD_STATUS.blank;
 }
 
 const ModelValidator = ({}) => {
@@ -86,10 +102,10 @@ const ModelValidator = ({}) => {
     setErrorMessage("\u3000");
     setModelURL(newText);
 
-    if (isValidModelURL(newText)) {
-      setStatus(INPUT_FIELD_STATUS.loading);
-    } else {
-      setStatus(INPUT_FIELD_STATUS.blank);
+    const _status = validateURL(newText);
+    setStatus(_status);
+    if (_status == INPUT_FIELD_STATUS.errorInvalid) {
+      setErrorMessage("Invalid URL");
     }
   };
 
