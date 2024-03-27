@@ -193,7 +193,7 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
-            if (!propsList.Any()) return;
+            if (propsList == null || !propsList.Any()) return;
             GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
             GlobalVariables.Transaction.Start();
             TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
@@ -253,7 +253,7 @@ namespace TrudeImporter
 
         private static void ImportBeams(List<BeamProperties> propsList)
         {
-            if (!propsList.Any()) return;
+            if (propsList == null || !propsList.Any()) return;
             GlobalVariables.Transaction.Commit();
 
             foreach (var beam in propsList)
@@ -290,6 +290,7 @@ namespace TrudeImporter
 
         private static void ImportColumns(List<ColumnProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var column in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -336,6 +337,7 @@ namespace TrudeImporter
 
         private static void ImportFloors(List<FloorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var floor in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -374,6 +376,7 @@ namespace TrudeImporter
 
         private static void ImportSlabs(List<SlabProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var slab in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -411,6 +414,7 @@ namespace TrudeImporter
 
         private static void ImportDoors(List<DoorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var (door,index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -436,6 +440,7 @@ namespace TrudeImporter
 
         private static void ImportWindows(List<WindowProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var (window,index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -461,6 +466,7 @@ namespace TrudeImporter
 
         private static void ImportFurniture(List<FurnitureProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             List<ElementId> sourceIdsToDelete = new List<ElementId>();
             foreach (var (furniture, index) in propsList.WithIndex())
             {
@@ -492,6 +498,8 @@ namespace TrudeImporter
 
         private static void ImportCeilings(List<FloorProperties> propsList)
         {
+if (propsList == null || !propsList.Any()) return;
+
             foreach (var ceiling in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -530,6 +538,8 @@ namespace TrudeImporter
 
         private static void ImportMasses(List<MassProperties> propsList)
         {
+if (propsList == null || !propsList.Any()) return;
+
             foreach (var mass in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -563,6 +573,8 @@ namespace TrudeImporter
 
         private static void ImportStairCases(List<StairCaseProperties> propsList)
         {
+            //if propsList is null
+if (propsList == null || !propsList.Any()) return;
             //GlobalVariables.Transaction.Commit();
             foreach (var staircase in propsList)
             {
@@ -598,6 +610,8 @@ namespace TrudeImporter
 
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
+           if (propsListDoors.Count == 0 && propsListWindows.Count == 0 && propsListFurniture.Count == 0) return;
+
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
             var result = familyUploadMVVM.ShowDialog();
