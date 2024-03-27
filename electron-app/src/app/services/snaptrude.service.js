@@ -95,7 +95,7 @@ const snaptrudeService = (function () {
       RequestType.GET,
       data,
     );
-    return response?.status === 200;
+    return response;
   };
 
   const createProject = async function () {

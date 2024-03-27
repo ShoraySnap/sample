@@ -2,7 +2,9 @@ export const ROUTES = {
   root: "/",
   home: "/home",
   loading: "/loading",
-  projectSelection: "/projectSelection",
+  warningVisibility: "/warningVisibility",
+  warningReconciliation: "/warningReconciliation",
+  projectTypeSelection: "/projectTypeSelection",
   enterModelLink: "/enterModelLink",
   chooseProjectLocation: "/chooseProjectLocation",
 };

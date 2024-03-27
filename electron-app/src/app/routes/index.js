@@ -5,8 +5,10 @@ import ChooseProjectLocation from "./chooseProjectLocation";
 import { ROUTES } from "./constants";
 import Root from "./root";
 import Loading from "./loading";
-import ProjectSelection from "./projectSelection";
+import ProjectTypeSelection from "./projectTypeSelection";
 import EnterModelLink from "./enterModelLink";
+import WarningReconciliation from "./warning/WarningReconciliation";
+import WarningVisibility from "./warning/WarningVisibility";
 
 const RoutesContainer = (props) => {
   return (
@@ -17,10 +19,18 @@ const RoutesContainer = (props) => {
           <Route path={ROUTES.home} element={<Home />} />
           <Route path={ROUTES.loading} element={<Loading />} />
           <Route
-            path={ROUTES.projectSelection}
-            element={<ProjectSelection />}
+            path={ROUTES.projectTypeSelection}
+            element={<ProjectTypeSelection />}
+          />
+          <Route
+            path={ROUTES.warningVisibility}
+            element={<WarningVisibility />}
           />
           <Route path={ROUTES.enterModelLink} element={<EnterModelLink />} />
+          <Route
+            path={ROUTES.warningReconciliation}
+            element={<WarningReconciliation />}
+          />
           <Route
             path={ROUTES.chooseProjectLocation}
             element={<ChooseProjectLocation />}

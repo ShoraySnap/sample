@@ -11,3 +11,8 @@ code {
   font-family: "DM Sans", source-code-pro, Menlo, Monaco, Consolas,
     "Courier New", monospace;
 }
+
+@font-face {
+  font-family: Inter;
+  src: url('./app/assets/Inter.ttf') format('truetype');
+}

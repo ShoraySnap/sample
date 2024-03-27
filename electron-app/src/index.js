@@ -6,12 +6,13 @@ import reportWebVitals from "./reportWebVitals";
 import sessionData from "./app/services/sessionData";
 import urls from "./app/services/urls";
 import * as mousetrap from "mousetrap";
+import userPreferences from "./app/services/userPreferences";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
@@ -29,6 +30,10 @@ reportWebVitals();
 
 window.electronAPI.syncSessionData((event, data) => {
   sessionData.setUserData(data);
+});
+
+window.electronAPI.syncUserPreferences((event, data) => {
+  userPreferences.setData(data);
 });
 
 window.electronAPI.setUrls((event, data) => {
