@@ -1,17 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
 import sessionData from "./app/services/sessionData";
 import urls from "./app/services/urls";
-import * as mousetrap from 'mousetrap';
+import * as mousetrap from "mousetrap";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function
@@ -35,11 +35,11 @@ window.electronAPI.setUrls((event, data) => {
   urls.init(data);
 });
 
-mousetrap.bind('o p e n s e s a m e', function() {
+mousetrap.bind("o p e n s e s a m e", function () {
   window.electronAPI.openDevtools();
 });
 
-mousetrap.bind('l o g s', function() {
+mousetrap.bind("l o g s", function () {
   window.electronAPI.showLogs();
 });
 

@@ -50,7 +50,7 @@ const ModelValidator = ({}) => {
     if (modelCode) {
       RouteStore.set(
         "projectLink",
-        urls.get("snaptrudeReactUrl") + "/model/" + modelCode
+        urls.get("snaptrudeReactUrl") + "/model/" + modelCode,
       );
     } else {
       // logger.log("Operation failed");

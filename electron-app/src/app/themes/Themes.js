@@ -19,7 +19,7 @@ const Theme = ({ children }) => (
 );
 
 Theme.propTypes = {
-  children: PropTypes.array.isRequired
+  children: PropTypes.array.isRequired,
   // children: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 

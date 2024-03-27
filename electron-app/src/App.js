@@ -1,8 +1,8 @@
-import './App.css';
+import "./App.css";
 import Theme from "./app/themes/Themes";
 import RoutesContainer from "./app/routes";
-import {createGlobalStyle} from "styled-components";
-import {Suspense} from "react";
+import { createGlobalStyle } from "styled-components";
+import { Suspense } from "react";
 
 const GlobalStyle = createGlobalStyle`
   html, body, #root {
@@ -15,10 +15,9 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function App() {
-  
   return (
     <Theme>
-      <GlobalStyle/>
+      <GlobalStyle />
       <Suspense fallback={<span>Loading...</span>}>
         <RoutesContainer />
       </Suspense>
