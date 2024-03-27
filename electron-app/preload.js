@@ -10,6 +10,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send("uploadToSnaptrude", [teamId, folderId]),
   uploadToExistingProject: (modelCode) =>
     ipcRenderer.send("uploadToExistingProject", [modelCode]),
+  uploadRFAToSnaptrude: (teamId, folderId) =>
+    ipcRenderer.send("uploadRFAToSnaptrude", [teamId, folderId]),
+  uploadRFAToExistingProject: (modelCode) =>
+    ipcRenderer.send("uploadRFAToExistingProject", [modelCode]),
   importFromSnaptrude: () => ipcRenderer.send("importFromSnaptrude"),
   log: (messages) => ipcRenderer.send("log", [messages]),
   operationSucceeded: () => ipcRenderer.send("operationSucceeded"),

@@ -163,6 +163,77 @@ const electronCommunicator = (function () {
     // taufiqul
   };
 
+  const uploadRFAToExistingProject = async function (url) {
+    let floorKey = url.endsWith("/")
+      ? url.slice(-7).slice(0, 6)
+      : url.slice(-6);
+
+    if (!isRevitWaiting) {
+      logger.log("Upload clicked but Revit is not waiting for a command");
+      return;
+    }
+
+    logger.log("Uploading to Snaptrude");
+
+    const snaptrudeProject = floorKey;
+
+    const revitImportState = await snaptrudeService.flagRevitImportState(
+      snaptrudeProject,
+      "RFA"
+    );
+    if (!revitImportState) {
+      logger.log("Failed to flag revit import state!");
+      return;
+    }
+    store.set("revitImportState", revitImportState);
+    store.set("floorkey", snaptrudeProject);
+
+    store.save();
+
+    logger.log("Generated model", snaptrudeProject);
+    syncSessionData();
+    syncUserPreferences();
+    sendPipeCommandForExport();
+    updateUIShowLoadingPage();
+  }
+
+  const uploadRFAToSnaptrude = async function (teamId, folderId) {
+    if (!isRevitWaiting) {
+      logger.log("Upload clicked but Revit is not waiting for a command");
+      return;
+    }
+
+    logger.log("Uploading to Snaptrude");
+
+    const snaptrudeProject = await snaptrudeService.createProject(
+      teamId,
+      folderId
+    );
+    if (!snaptrudeProject) {
+      logger.log("Error creating Snaptrude project");
+      return;
+    }
+
+    const revitImportState = await snaptrudeService.flagRevitImportState(
+      snaptrudeProject,
+      "RFA"
+    );
+    if (!revitImportState) {
+      logger.log("Failed to flag revit import state!");
+      return;
+    }
+    store.set("revitImportState", revitImportState);
+    store.set("floorkey", snaptrudeProject);
+
+    store.save();
+
+    logger.log("Generated model", snaptrudeProject);
+    syncSessionData();
+    syncUserPreferences();
+    sendPipeCommandForExport();
+    updateUIShowLoadingPage();
+  }
+
   const uploadToSnaptrude = async function (teamId, folderId) {
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
@@ -279,6 +350,8 @@ const electronCommunicator = (function () {
     revitImportDone,
     uploadToSnaptrude,
     uploadToExistingProject,
+    uploadRFAToSnaptrude,
+    uploadRFAToExistingProject,
     importFromSnaptrude,
     operationSucceeded,
     operationFailed,
