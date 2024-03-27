@@ -57,10 +57,10 @@ function validateURL(inputText) {
   }
 
   let floorKey = inputText.split("/model/")[1];
-  let invalidPattern = inputText.match(/model/g).length;
-  if (floorKey) {
+  let urlFragments = inputText.match(/model/g)?.length;
+  if (floorKey && urlFragments) {
     if (
-      invalidPattern > 1 ||
+      urlFragments > 1 ||
       (floorKey.endsWith("/") && floorKey.length > 7) ||
       (!floorKey.endsWith("/") && floorKey.length > 6)
     ) {
@@ -100,14 +100,13 @@ const ModelValidator = ({}) => {
   const handleInputChange = (event) => {
     const newText = event.target.value;
     setErrorMessage("\u3000");
+    setModelURL(newText);
 
     const _status = validateURL(newText);
     setStatus(_status);
     if (_status == INPUT_FIELD_STATUS.errorInvalid) {
       setErrorMessage("Invalid URL");
     }
-
-    setModelURL(newText);
   };
 
   const checkUrl = async () => {
