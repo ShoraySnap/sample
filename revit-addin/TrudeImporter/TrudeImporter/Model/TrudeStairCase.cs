@@ -30,7 +30,7 @@ namespace TrudeImporter
 
         public Level topLevel = null;
         public Level bottomLevel = null;
-        public double staircaseheight= 0;
+        public double staircaseheight = 0;
         public Dictionary<ElementId, Tuple<XYZ, XYZ>> runStartEndPoints = new Dictionary<ElementId, Tuple<XYZ, XYZ>>();
         public List<StaircaseBlockProperties> StaircaseBlocks { get; set; }
         public List<LayerProperties> Layers { get; set; }
@@ -50,7 +50,7 @@ namespace TrudeImporter
             Position = staircaseProps.Position;
             Rotation = staircaseProps.Rotation;
             Scaling = staircaseProps.Scaling;
-            Height =  staircaseProps.Height;
+            Height = staircaseProps.Height;
             Width = staircaseProps.Width;
             Tread = staircaseProps.Tread;
             Riser = staircaseProps.Storey;
@@ -78,9 +78,12 @@ namespace TrudeImporter
         private void CreateStaircase()
         {
             int finalStorey = Storey + 1;
-
-            topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey])select lvl).First();
-            bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey])select lvl).First();
+            if (finalStorey==0)
+            {
+              finalStorey = 1;
+            }
+            topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
+            bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
 
             stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
@@ -146,12 +149,12 @@ namespace TrudeImporter
                             CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
                         }
                     }
-                    
+
                     if (StaircaseType == "square")
                     {
-                       CreateEdgeLanding(createdRunIds[createdRunIds.Count-1],createdRunIds[0]);
+                        CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[0]);
                     }
-                    
+
 
                     trans.Commit();
                 }
@@ -176,7 +179,7 @@ namespace TrudeImporter
             }
         }
 
-private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottomLevel, bool endWithRiser)
+        private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottomLevel, bool endWithRiser)
         {
             Transform transform = Transform.CreateRotation(XYZ.BasisZ, -props.Rotation.Z);
             XYZ direction = transform.OfVector(new XYZ(-1, 0, 0));
@@ -225,14 +228,14 @@ private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottom
             double supportOffset = 0;
             double xDiff = Math.Abs(startPoint.X - endPoint.X);
             double yDiff = Math.Abs(startPoint.Y - endPoint.Y);
-            
-            if  (xDiff > yDiff)
+
+            if (xDiff > yDiff)
             {
-                supportOffset = yDiff%width;
+                supportOffset = yDiff % width;
             }
             else
             {
-                supportOffset = xDiff%width;
+                supportOffset = xDiff % width;
             }
             double angleRadians = Math.PI / 4;
             XYZ rotatedDirectionCW = new XYZ(
@@ -243,28 +246,28 @@ private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottom
                 direction.X * Math.Cos(angleRadians) - direction.Y * Math.Sin(angleRadians),
                 direction.X * Math.Sin(angleRadians) + direction.Y * Math.Cos(angleRadians),
                 0);
-            XYZ straightDirection = rotatedDirectionCW.Normalize() ;
-            XYZ perpendicularDirection = rotatedDirectionCCW.Normalize() ;
-            
+            XYZ straightDirection = rotatedDirectionCW.Normalize();
+            XYZ perpendicularDirection = rotatedDirectionCCW.Normalize();
+
             // straightDirection = new XYZ(Math.Round(rotatedDirectionCW.X, 2), Math.Round(rotatedDirectionCW.Y, 2), 0);
             // perpendicularDirection = new XYZ(Math.Round(rotatedDirectionCCW.X, 2), Math.Round(rotatedDirectionCCW.Y, 2), 0);
-            
-            XYZ offsetVectorCCW = perpendicularDirection * width ;
+
+            XYZ offsetVectorCCW = perpendicularDirection * width;
 
             XYZ corner1 = startPoint;
-            XYZ corner2 = startPoint + offsetVectorCCW ; 
+            XYZ corner2 = startPoint + offsetVectorCCW;
             XYZ corner3 = endPoint;
             XYZ corner4 = endPoint - offsetVectorCCW;
-            
+
             XYZ adjustmentVector = straightDirection * supportOffset;
             XYZ adjustedCorner3 = corner3 - adjustmentVector;
             XYZ adjustedCorner4 = corner4 - adjustmentVector;
-            
+
             XYZ adjustmentVector2 = perpendicularDirection * supportOffset * 0.99;
-            
-            XYZ adjustedCorner2 = corner2 + adjustmentVector2 ;
+
+            XYZ adjustedCorner2 = corner2 + adjustmentVector2;
             XYZ adjustedCorner1 = corner1 + adjustmentVector2;
-            
+
             CurveLoop landingLoop = new CurveLoop();
 
             landingLoop.Append(Line.CreateBound(adjustedCorner1, adjustedCorner4));
@@ -281,7 +284,7 @@ private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottom
             // make a copy of the runAfter 
             StairsRun runAfter = doc.GetElement(runIdAfter) as StairsRun;
             StairsRun runBefore = doc.GetElement(runIdBefore) as StairsRun;
-            
+
             if (runBefore == null || runAfter == null)
                 throw new InvalidOperationException("Invalid stair runs for manual landing.");
 
@@ -293,15 +296,15 @@ private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottom
 
             if (level == null)
                 throw new InvalidOperationException("No suitable level found for landing creation.");
-            
+
             XYZ startPoint = runStartEndPoints[runBefore.Id].Item2;
             XYZ endPoint = runStartEndPoints[runAfter.Id].Item1;
             startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
             endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
-            
+
             XYZ direction = (endPoint - startPoint).Normalize();
             double width = this.Width;
-            
+
         }
 
     }
