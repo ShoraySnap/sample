@@ -271,7 +271,7 @@ namespace SnaptrudeManagerAddin
         public void AutomaticLinking()
         {
             System.Diagnostics.Debug.WriteLine("Automatic Linking");
-            var filesInDirectory = Directory.EnumerateFiles(MissingFamiliesFolderPath, "*.rfa", SearchOption.AllDirectories)
+            var filesInDirectory = Directory.EnumerateFiles(MissingFamiliesFolderPath, "*.rfa", SearchOption.TopDirectoryOnly)
                 .ToDictionary(fileName => fileName.Split('\\').Last().Replace("_", "").Replace("-", "").Replace(" ", ""));
             TryLinkFamilyFiles(missingDoorFamiliesCount, filesInDirectory);
             TryLinkFamilyFiles(missingWindowFamiliesCount, filesInDirectory);

@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
 
@@ -78,5 +81,29 @@ namespace TrudeSerializer.Uploader
             response.EnsureSuccessStatusCode();
             return response;
         }
+
+        public static async void UploadLog(TrudeLogger logger, string processId)
+        {
+            var jsonData = logger.GetSerializedObject();
+
+            Config config = Config.GetConfigObject();
+
+            string userId = config.userId;
+            string projectFloorKey = config.floorKey;
+
+            Task<HttpResponseMessage> uploadTask;
+
+            byte[] data = Encoding.UTF8.GetBytes(jsonData.ToString());
+            string path = $"media/{userId}/revitImport/{projectFloorKey}/logs/{processId}_log.json";
+
+            var presignedUrlResponse = await GetPresignedURL(path, config);
+            var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
+            PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+            uploadTask = UploadUsingPresignedURL(data, presignedURL);
+
+
+            await uploadTask;
+        }
+
     }
 }

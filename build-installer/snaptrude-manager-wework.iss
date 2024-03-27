@@ -47,8 +47,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 var
   CheckListBoxPage: TInputOptionWizardPage;
   DownloadPage: TDownloadWizardPage;
-  FileURLs: TArrayOfString;
-  Versions: TArrayOfString;
+  AllFileURLs: TArrayOfString;
+  AllVersions: TArrayOfString;
+  InstalledVersions: TStringList;
+  InstalledVersionsURLs: TStringList;
 
 function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
 begin
