@@ -50,7 +50,7 @@ namespace SnaptrudeManagerAddin
                 Document doc = uidoc.Document;
                 string name = doc.Title; // name of the current project
                 string path = doc.PathName;
-                string fileType = doc.PathName.Substring(doc.PathName.Length - 3);
+                string fileType = doc.IsFamilyDocument ? "rfa" : "rvt";
 
 
                 log("Revit addin clicked");
