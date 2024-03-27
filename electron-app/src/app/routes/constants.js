@@ -5,7 +5,7 @@ export const ROUTES = {
   projectSelection: "/projectSelection",
   enterModelLink: "/enterModelLink",
   chooseProjectLocation: "/chooseProjectLocation",
-}
+};
 
 export const BUTTONS = {
   login: 1,
@@ -14,7 +14,7 @@ export const BUTTONS = {
   profile: 4,
   switch: 5,
   logout: 6,
-}
+};
 
 export const PERSONAL_WORKSPACE_ID = "";
 export const PERSONAL_WORKSPACE_NAME = "My Workspace";

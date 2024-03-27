@@ -1,20 +1,18 @@
-const authService = (function (){
-  
+const authService = (function () {
   let userData = {};
-  
-  const init = function (data){
+
+  const init = function (data) {
     userData = data;
   };
-  
-  const flush = function (){
+
+  const flush = function () {
     userData = {};
-  }
-  
+  };
+
   return {
     init,
-    flush
-  }
-  
+    flush,
+  };
 })();
 
 export default authService;

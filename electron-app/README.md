@@ -27,7 +27,7 @@ PORT=3005
 
 - Attach debugger to the process that spawns from running `npm run ef-start`.
 
-- For VS Code users, add a file `.vscode/launch.json`. You can now directly run the electron application from VS Code instead of running the  `npm run ef-start` command:
+- For VS Code users, add a file `.vscode/launch.json`. You can now directly run the electron application from VS Code instead of running the `npm run ef-start` command:
 
 ```
 // .vscode/launch.json

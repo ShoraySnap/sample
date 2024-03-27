@@ -10,7 +10,7 @@ const snaptrudeService = (function () {
   const _callApi = async function (
     endPoint,
     requestType = RequestType.POST,
-    data = {}
+    data = {},
   ) {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
@@ -48,7 +48,7 @@ const snaptrudeService = (function () {
             res.status,
             res.statusText,
             res.data.message,
-            res.data.error
+            res.data.error,
           );
         else logger.log("Empty error msg", endPoint);
       });
@@ -80,7 +80,7 @@ const snaptrudeService = (function () {
             res.status,
             res.statusText,
             res.data.message,
-            res.data.error
+            res.data.error,
           );
         else logger.log("Empty error msg", endPoint);
       });
@@ -93,7 +93,7 @@ const snaptrudeService = (function () {
     const response = await _callApi(
       `/import/permission/?floorkey=${data.floorkey}`,
       RequestType.GET,
-      data
+      data,
     );
     return response?.status === 200;
   };
@@ -193,7 +193,7 @@ const snaptrudeService = (function () {
       const response = await _callApi(
         endPoint + queryParams,
         RequestType.GET,
-        data
+        data,
       );
       if (response) {
         const projectsCount = response.data.projects.length;
@@ -285,7 +285,7 @@ const snaptrudeService = (function () {
     (err) => {
       console.log(err);
       return Promise.reject();
-    }
+    },
   );
 
   axios.interceptors.response.use(
@@ -322,7 +322,7 @@ const snaptrudeService = (function () {
     (err) => {
       console.log(err);
       return Promise.reject();
-    }
+    },
   );
 
   return {
