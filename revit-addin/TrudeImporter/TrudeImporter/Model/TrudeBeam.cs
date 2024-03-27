@@ -17,10 +17,12 @@ namespace TrudeImporter
         private string familyName;
         public static Dictionary<string, FamilySymbol> types = new Dictionary<string, FamilySymbol>();
         private BeamRfaGenerator beamRfaGenerator = new BeamRfaGenerator();
+        private List<BeamInstanceProperties> instances;
 
 
         public TrudeBeam (BeamProperties beamProps, ElementId levelId)
         {
+            instances = beamProps.Instances;
             this.countoursPlane = Plane.CreateByThreePoints(Extensions.Round(beamProps.FaceVertices[0]), Extensions.Round(beamProps.FaceVertices[1]), Extensions.Round(beamProps.FaceVertices[2]));
 
             // Get rotation angle required to align face plane with the YZ plane. (The faces are parallel to the YZ plane in rfa file)
@@ -65,7 +67,7 @@ namespace TrudeImporter
                 : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
             CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, GlobalVariables.Document, familyName, shapeProperties, rotatedFaceVertices, baseDir);
-            CreateFamilyInstance(GlobalVariables.Document, familyName, levelId, shapeProperties);
+            CreateFamilyInstances(GlobalVariables.Document, familyName, levelId, shapeProperties);
 
             BeamRfaGenerator.DeleteAll();
         }
@@ -96,8 +98,7 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
-                    string defaultRfaPath = $"{baseDir}/resourceFile/beams/rectangular_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "rectangular_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("rectangular_beam", FamilyLoader.FamilyFolder.Beams);
                     
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "rectangular_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
@@ -109,8 +110,8 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
-                    string defaultRfaPath = $"{baseDir}resourceFile/beams/l_shaped_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "l_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("l_shaped_beam", FamilyLoader.FamilyFolder.Beams);
+
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -122,9 +123,8 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(HShapeProperties))
                 {
-
-                    string defaultRfaPath = $"{baseDir}resourceFile/beams/i_shaped_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "i_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("i_shaped_beam", FamilyLoader.FamilyFolder.Beams);
+                    
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "i_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -137,8 +137,8 @@ namespace TrudeImporter
                 }
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
-                    string defaultRfaPath = $"{baseDir}resourceFile/beams/c_shaped_beam.rfa";
-                    if (!Utils.DocHasFamily(doc, "c_shaped_beam")) doc.LoadFamily(defaultRfaPath, out Family family);
+                    FamilyLoader.LoadCustomFamily("c_shaped_beam", FamilyLoader.FamilyFolder.Beams);
+                    
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_beam");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -152,7 +152,7 @@ namespace TrudeImporter
             }
         }
 
-        private void CreateFamilyInstance(Document doc, string familyName, ElementId levelId, ShapeProperties props)
+        private void CreateFamilyInstances(Document doc, string familyName, ElementId levelId, ShapeProperties props)
         {
             FamilySymbol familySymbol;
             if (types.ContainsKey(familyName)) { familySymbol = types[familyName]; }
@@ -162,32 +162,35 @@ namespace TrudeImporter
                 familySymbol = TrudeModel.GetFamilySymbolByName(doc, familyName);
                 types.Add(familyName, familySymbol);
             }
+            foreach (var instance in instances)
+            {
+                Curve curve = GetPositionCurve(props, instance.CenterPosition);
+                Level level = doc.GetElement(levelId) as Level;
+                double curveOffsetFromLevel = curve.GetEndPoint(0).Z - level.Elevation;
+                Transform transform = Transform.CreateTranslation(XYZ.BasisZ * -curveOffsetFromLevel);
+                Curve transformedCurve = curve.CreateTransformed(transform);
 
-            Curve curve = GetPositionCurve(props);
-
-            Level level = doc.GetElement(levelId) as Level;
-            double curveOffsetFromLevel = curve.GetEndPoint(0).Z - level.Elevation;
-            Transform transform = Transform.CreateTranslation(XYZ.BasisZ * -curveOffsetFromLevel);
-            Curve transformedCurve = curve.CreateTransformed(transform);
-
-            FamilyInstance beam = doc.Create.NewFamilyInstance(transformedCurve, familySymbol, level, StructuralType.Beam);
-            beam.GetParameters("Cross-Section Rotation")[0].Set(props?.rotation ?? 0);
-            beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int)ZJustification.Center);
-            GlobalVariables.Transaction.Commit();
-            GlobalVariables.Transaction.Start();
-            beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).Set(curveOffsetFromLevel);
-            beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END1_ELEVATION).Set(curveOffsetFromLevel);
+                FamilyInstance beam = doc.Create.NewFamilyInstance(transformedCurve, familySymbol, level, StructuralType.Beam);
+                beam.Location.Rotate(Line.CreateBound(instance.CenterPosition, instance.CenterPosition - XYZ.BasisZ), instance.Rotation.Z);
+                beam.GetParameters("Cross-Section Rotation")[0].Set(instance?.Rotation.Y ?? 0);
+                beam.get_Parameter(BuiltInParameter.Z_JUSTIFICATION).Set((int)ZJustification.Center);
+                GlobalVariables.Document.Regenerate();
+                beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).Set(curveOffsetFromLevel);
+                beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END1_ELEVATION).Set(curveOffsetFromLevel);
+            }
         }
 
-        private Curve GetPositionCurve(ShapeProperties props)
+        private Curve GetPositionCurve(ShapeProperties props, XYZ centerPosision)
         {
+            Line line = Line.CreateBound(startFaceCentroid + centerPosision, endFaceCentroid + centerPosision);
+
             if (props is null)
             {
-                return Line.CreateBound(startFaceCentroid, endFaceCentroid);
+                return line;
             }
             else
             {
-                return Line.CreateBound(endFaceCentroid, startFaceCentroid);
+                return line.CreateReversed();
             }
 
         }

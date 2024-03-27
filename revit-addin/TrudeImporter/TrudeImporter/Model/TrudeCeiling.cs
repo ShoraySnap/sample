@@ -174,21 +174,26 @@ namespace TrudeImporter
 
         private void CreateCeiling(ElementId levelId, bool depricated = false)
         {
-            CurveLoop profile = getProfileLoop(faceVertices);
+            double levelElevation = (GlobalVariables.Document.GetElement(levelId) as Level).Elevation;
+            height = faceVertices[0].Z - levelElevation;
+            List<XYZ> verticesInLevelElevation = faceVertices.Select(v => new XYZ(v.X, v.Y, levelElevation)).ToList();
+            CurveLoop profile = getProfileLoop(verticesInLevelElevation);
             CeilingType defaultCeilingType = null;
             var Doc = GlobalVariables.Document;
 
             if (existingCeilingTypeId is null)
             {
                 FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(CeilingType));
-                defaultCeilingType = collector.Where(type => ((CeilingType)type).FamilyName == "Compound Ceiling" && ((CeilingType)type).Name == "Plain").First() as CeilingType;
+                defaultCeilingType = collector.Where(type => ((CeilingType)type).FamilyName == "Compound Ceiling").FirstOrDefault() as CeilingType;
             }
 
             try
             {
                 var ceilingType = TypeStore.GetType(Layers, Doc, defaultCeilingType);
+#if !(REVIT2019 || REVIT2020 || REVIT2021)
                 ceiling = Ceiling.Create(Doc, new List<CurveLoop> { profile }, ceilingType.Id ?? ElementId.InvalidElementId, levelId);
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(height);
+#endif
             }
             catch
             {

@@ -25,9 +25,6 @@ namespace TrudeImporter
         [JsonProperty("layers")]
         public List<LayerProperties> Layers { get; set; }
 
-        [JsonProperty("thicknessInMm")]
-        public double? ThicknessInMm { get; set; }
-
         [JsonProperty("baseHeight")]
         public double BaseHeight { get; set; }
 

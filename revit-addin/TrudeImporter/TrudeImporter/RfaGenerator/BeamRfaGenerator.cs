@@ -11,7 +11,7 @@ namespace TrudeImporter
     {
         private const string BASE_DIRECTORY = "tmp_beams";
         static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        static string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Structural Framing - Beams and Braces.rft";
+        static string TEMPLATE_FILE_NAME = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Structural Framing - Beams and Braces.rft";
         public double height;
 
         public static void DeleteAll()
