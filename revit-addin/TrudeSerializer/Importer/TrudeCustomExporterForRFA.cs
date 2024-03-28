@@ -51,6 +51,9 @@ namespace TrudeSerializer
             rfaComponent.type = doc.FamilyManager.CurrentType.Name;
             rfaComponent.category = "RFA";
             rfaComponent.family = doc.Title;
+            if (rfaComponent.family.EndsWith(".rfa")) {
+                rfaComponent.family = rfaComponent.family.Substring(0, rfaComponent.family.Length - 4);
+            }
             serializedSnaptrudeData.ProjectProperties.SetRFA(true);
 
             serializedSnaptrudeData.AddRFAComponent(rfaComponent);
