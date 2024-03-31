@@ -38,7 +38,6 @@ namespace TrudeImporter
 
         public ElementId stairsId = null;
         public StairsType stairsType = null;
-        public StairsRunType stairsRunType = null;
 
         public Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
 
@@ -83,6 +82,7 @@ namespace TrudeImporter
             {
                 finalStorey = 1;
             }
+
             topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
 
@@ -136,8 +136,8 @@ namespace TrudeImporter
                     {
                         StaircaseBlockProperties props = StairRunBlocks[i];
                         ElementId runId = RunCreator_Simple(props, bottomLevel, i != StairRunBlocks.Count - 1);
+                        if (runId != null)
                         createdRunIds.Add(runId);
-
                     }
                     for (int i = 1; i < createdRunIds.Count; i++)
                     {
@@ -192,6 +192,10 @@ namespace TrudeImporter
                 startPoint += direction * props.StartLandingWidth;
             double blockLength = props.Tread * (endWithRiser ? (props.Steps - 1) : props.Steps);
             XYZ endPoint = startPoint + blockLength * direction;
+            if (startPoint.IsAlmostEqualTo(endPoint))
+            {
+                return null;
+            }
             Line rightLine = Line.CreateBound(startPoint, endPoint);
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
@@ -200,32 +204,6 @@ namespace TrudeImporter
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
                 run.TopElevation = props.Translation.Z + height;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
-
-
-            StairsRunType runType = CreatedStaircase.Document.GetElement(run.GetTypeId()) as StairsRunType;
-            double stairThicknessInRevit = StairThickness * 304.802581;
-            stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2);
-            if (runType.StructuralDepth != StairThickness)
-            {
-                StairsRunType existingRunType = new FilteredElementCollector(doc)
-                    .OfClass(typeof(StairsRunType))
-                    .OfType<StairsRunType>()
-                    .FirstOrDefault(st => st.Name.Equals(runType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
-
-                if (existingRunType != null)
-                {
-                    run.ChangeTypeId(existingRunType.Id);
-                }
-                else
-                {
-                    StairsRunType duplicateRunType = runType.Duplicate(runType.Name + " - " + stairThicknessInRevit) as StairsRunType;
-                    duplicateRunType.StructuralDepth = StairThickness;
-                    run.ChangeTypeId(duplicateRunType.Id);
-                }
-            }
-
-
-
             return run.Id;
         }
 
@@ -337,7 +315,6 @@ namespace TrudeImporter
 
     }
 }
-
 
 
 
