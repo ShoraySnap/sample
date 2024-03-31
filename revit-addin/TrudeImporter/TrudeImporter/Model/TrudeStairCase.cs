@@ -82,8 +82,12 @@ namespace TrudeImporter
             {
                 finalStorey = 1;
             }
-
+            if (!GlobalVariables.LevelIdByNumber.ContainsKey(finalStorey))
+            {
+                createLevel(finalStorey, Height);
+            }
             topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
+            
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
 
             stairsType = new FilteredElementCollector(doc)
@@ -313,6 +317,12 @@ namespace TrudeImporter
 
         }
 
+        private void createLevel(int storey, double elevation)
+        {
+            Level level = Level.Create(doc, elevation);
+            level.Name = "Level " + storey;
+            GlobalVariables.LevelIdByNumber.Add(storey, level.Id);
+        }
     }
 }
 
