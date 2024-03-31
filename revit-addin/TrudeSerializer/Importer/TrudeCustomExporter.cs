@@ -19,6 +19,7 @@ namespace TrudeSerializer
 
         private String currentMaterialId;
         private CurrentElement currentElement;
+        private List<string> elementIds = new List<string>();
         public SerializedTrudeData serializedSnaptrudeData;
 
         public SerializedTrudeData GetExportData()
@@ -136,6 +137,10 @@ namespace TrudeSerializer
             {
                 try
                 {
+                    if (isDuplicateElement(element))
+                    {
+                        return RenderNodeAction.Skip;
+                    }
                     component = ComponentHandler.Instance.GetComponent(serializedSnaptrudeData, element);
                     if (component?.elementId == "-1")
                     {
@@ -169,6 +174,17 @@ namespace TrudeSerializer
             this.currentElement.component = familyComponent;
 
             return RenderNodeAction.Proceed;
+        }
+
+        private bool isDuplicateElement(Element element)
+        {
+            string elementId = element.Id.ToString();
+            if (elementIds.Contains(elementId))
+            {
+                return true;
+            }
+            elementIds.Add(elementId);
+            return false;
         }
 
         private TrudeComponent AddLinkedComponentToSerializedData(ElementId elementId, Element element)
