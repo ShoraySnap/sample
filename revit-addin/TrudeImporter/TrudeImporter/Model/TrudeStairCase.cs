@@ -38,6 +38,7 @@ namespace TrudeImporter
 
         public ElementId stairsId = null;
         public StairsType stairsType = null;
+        public StairsRunType stairsRunType = null;
 
         public Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
 
@@ -208,6 +209,30 @@ namespace TrudeImporter
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
                 run.TopElevation = props.Translation.Z + height;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
+
+
+            StairsRunType runType = CreatedStaircase.Document.GetElement(run.GetTypeId()) as StairsRunType;
+            double stairThicknessInRevit = StairThickness * 304.802581;
+            stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2);
+            if (runType.StructuralDepth != StairThickness)
+            {
+                StairsRunType existingRunType = new FilteredElementCollector(doc)
+                    .OfClass(typeof(StairsRunType))
+                    .OfType<StairsRunType>()
+                    .FirstOrDefault(st => st.Name.Equals(runType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
+                if (existingRunType != null)
+                {
+                    run.ChangeTypeId(existingRunType.Id);
+                }
+                else
+                {
+                    StairsRunType duplicateRunType = runType.Duplicate(runType.Name + " - " + stairThicknessInRevit) as StairsRunType;
+                    duplicateRunType.StructuralDepth = StairThickness;
+                    run.ChangeTypeId(duplicateRunType.Id);
+                }
+            }
+
+
             return run.Id;
         }
 
