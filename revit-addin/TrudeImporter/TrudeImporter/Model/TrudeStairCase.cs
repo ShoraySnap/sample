@@ -65,7 +65,6 @@ namespace TrudeImporter
             StaircaseType = staircaseProps.StaircaseType;
             StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
-            StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
             CreateStaircase();
         }
 
@@ -169,14 +168,14 @@ namespace TrudeImporter
 
                     if (StaircaseType == "straight" && StaircaseBlocks.Count > 1)
                     {
+                            System.Diagnostics.Debug.WriteLine("Creating straight staircase with multiple blocks.");
                         if (StaircaseBlocks.Sum(b => b.StartLandingWidth) == 0)
                         {
                             StaircaseBlocks[0].Steps = StaircaseBlocks.Sum(b => b.Steps);
                             StaircaseBlocks = new List<StaircaseBlockProperties> { StaircaseBlocks[0] };
                         }
                     }
-
-
+                    List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
                     List<ElementId> createdRunIds = new List<ElementId>();
 
                     trans.Start();
@@ -225,7 +224,6 @@ namespace TrudeImporter
             if (CreatedStaircase != null)
             {
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
-                CreatedStaircase.ChangeTypeId(stairsType.Id);
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
             }
         }
