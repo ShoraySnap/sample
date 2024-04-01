@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using Grid = Autodesk.Revit.DB.Grid;
@@ -110,6 +111,48 @@ namespace TrudeImporter
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
             }
+            double stairThicknessInRevit = StairThickness * 304.802581;
+            stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2);
+
+            ElementId runTypeId = stairsType.RunType;
+            StairsRunType runType = doc.GetElement(runTypeId) as StairsRunType;
+            if (runType.StructuralDepth != StairThickness)
+            {
+                StairsRunType existingRunType = new FilteredElementCollector(doc)
+                    .OfClass(typeof(StairsRunType))
+                    .OfType<StairsRunType>()
+                    .FirstOrDefault(st => st.Name.Equals(runType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
+                if (existingRunType != null)
+                {
+                    stairsType.RunType = existingRunType.Id;
+                }
+                else
+                {
+                    StairsRunType duplicateRunType = runType.Duplicate(runType.Name + " - " + stairThicknessInRevit) as StairsRunType;
+                    duplicateRunType.StructuralDepth = StairThickness;
+                    stairsType.RunType = duplicateRunType.Id;
+                }
+            }
+
+            ElementId landingTypeId = stairsType.LandingType;
+            StairsLandingType landingType = doc.GetElement(landingTypeId) as StairsLandingType;
+            if(landingType.Thickness != StairThickness)
+            {
+                StairsLandingType existingLandingType = new FilteredElementCollector(doc)
+                    .OfClass(typeof(StairsLandingType))
+                    .OfType<StairsLandingType>()
+                    .FirstOrDefault(st => st.Name.Equals(landingType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
+                if (existingLandingType != null)
+                {
+                    stairsType.LandingType = existingLandingType.Id;
+                }
+                else
+                {
+                    StairsLandingType duplicateLandingType = landingType.Duplicate(landingType.Name + " - " + stairThicknessInRevit) as StairsLandingType;
+                    duplicateLandingType.Thickness = StairThickness;
+                    stairsType.LandingType = duplicateLandingType.Id;
+                }
+            }
 
             GlobalVariables.Transaction.Commit();
             using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
@@ -212,28 +255,6 @@ namespace TrudeImporter
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
                 run.TopElevation = props.Translation.Z + height;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
-
-
-            StairsRunType runType = CreatedStaircase.Document.GetElement(run.GetTypeId()) as StairsRunType;
-            double stairThicknessInRevit = StairThickness * 304.802581;
-            stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2);
-            if (runType.StructuralDepth != StairThickness)
-            {
-                StairsRunType existingRunType = new FilteredElementCollector(doc)
-                    .OfClass(typeof(StairsRunType))
-                    .OfType<StairsRunType>()
-                    .FirstOrDefault(st => st.Name.Equals(runType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
-                if (existingRunType != null)
-                {
-                    run.ChangeTypeId(existingRunType.Id);
-                }
-                else
-                {
-                    StairsRunType duplicateRunType = runType.Duplicate(runType.Name + " - " + stairThicknessInRevit) as StairsRunType;
-                    duplicateRunType.StructuralDepth = StairThickness;
-                    run.ChangeTypeId(duplicateRunType.Id);
-                }
-            }
 
             return run.Id;
         }
