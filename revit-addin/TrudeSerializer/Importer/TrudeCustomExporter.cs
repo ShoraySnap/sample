@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
@@ -51,10 +52,34 @@ namespace TrudeSerializer
             GlobalVariables.CurrentDocument = doc;
         }
 
+        private string GetStringBetween(string unitId)
+        {
+            const string pattern = @":(.*?)-";
+            Match match = Regex.Match(unitId, pattern);
+            return match.Success ? match.Groups[1].Value : null;
+        }
+
         bool IExportContext.Start()
         {
-            Units units = doc.GetUnits();
-
+            string unitsId = doc.GetUnits().GetFormatOptions(SpecTypeId.Length).GetUnitTypeId().TypeId;
+            string revitUnit = GetStringBetween(unitsId);
+            if (revitUnit != null)
+            {
+                ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, revitUnit);
+            }
+            else
+            {
+                switch(doc.DisplayUnitSystem.ToString())
+                {
+                    case "IMPERIAL":
+                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "feetFractionalInches");
+                        break;
+                    case "METRIC":
+                    default:
+                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "millimeters");
+                        break;
+                }
+            }
             return true;
         }
 
