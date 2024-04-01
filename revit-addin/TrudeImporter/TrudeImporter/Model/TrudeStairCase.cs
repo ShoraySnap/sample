@@ -39,6 +39,7 @@ namespace TrudeImporter
         public ElementId stairsId = null;
         public StairsType stairsType = null;
         public StairsRunType stairsRunType = null;
+        List<StaircaseBlockProperties> StairRunBlocks = null;
 
         public Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
 
@@ -63,7 +64,7 @@ namespace TrudeImporter
             StaircaseType = staircaseProps.StaircaseType;
             StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
-
+            StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
             CreateStaircase();
         }
 
@@ -132,7 +133,6 @@ namespace TrudeImporter
                         }
                     }
 
-                    List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
 
                     List<ElementId> createdRunIds = new List<ElementId>();
 
@@ -159,6 +159,7 @@ namespace TrudeImporter
 
                     if (StaircaseType == "square")
                     {
+                        System.Diagnostics.Debug.WriteLine("Creating edge landing.");
                         CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[0]);
                     }
 
@@ -205,9 +206,14 @@ namespace TrudeImporter
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
             run.EndsWithRiser = endWithRiser;
+
+
             double height = props.Steps * props.Riser;
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
                 run.TopElevation = props.Translation.Z + height;
+            System.Diagnostics.Debug.WriteLine("Start Point: " + startPoint);
+            System.Diagnostics.Debug.WriteLine("End Point: " + endPoint);
+            System.Diagnostics.Debug.WriteLine("\n");
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
 
 
@@ -231,7 +237,6 @@ namespace TrudeImporter
                     run.ChangeTypeId(duplicateRunType.Id);
                 }
             }
-
 
             return run.Id;
         }
@@ -316,7 +321,6 @@ namespace TrudeImporter
 
         private void CreateEdgeLanding(ElementId runIdBefore, ElementId runIdAfter)
         {
-            // make a copy of the runAfter 
             StairsRun runAfter = doc.GetElement(runIdAfter) as StairsRun;
             StairsRun runBefore = doc.GetElement(runIdBefore) as StairsRun;
 
@@ -332,14 +336,44 @@ namespace TrudeImporter
             if (level == null)
                 throw new InvalidOperationException("No suitable level found for landing creation.");
 
-            XYZ startPoint = runStartEndPoints[runBefore.Id].Item2;
-            XYZ endPoint = runStartEndPoints[runAfter.Id].Item1;
+            XYZ startPoint = runStartEndPoints[runAfter.Id].Item1;
+            XYZ endPoint = runStartEndPoints[runAfter.Id].Item2;
+
             startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
             endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
+            Line rightLine = Line.CreateBound(startPoint, endPoint);
+            StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
+            run.ActualRunWidth = Width;
+            run.EndsWithRiser = false;
+            System.Diagnostics.Debug.WriteLine("EDGEStart Point: " + startPoint);
+            System.Diagnostics.Debug.WriteLine("EDGEEnd Point: " + endPoint);
 
-            XYZ direction = (endPoint - startPoint).Normalize();
-            double width = this.Width;
+            try
+            {
+                StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, runBefore.Id, run.Id);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead.");
+                CreateManualLanding(runAfter.Id, run.Id);
+            }
+            doc.Delete(run.Id);
 
+
+
+            //ICollection<ElementId> copiedRunIds = ElementTransformUtils.CopyElement(doc, runAfter.Id, new XYZ(0, 0, 0));
+            //StairsRun copiedRun = doc.GetElement(copiedRunIds.First()) as StairsRun;
+
+            //ElementTransformUtils.MoveElement(doc, copiedRun.Id, runStartEndPoints[runBefore.Id].Item2 - runStartEndPoints[runAfter.Id].Item1);
+
+            ////print top elevation and bottom elevation
+            //System.Diagnostics.Debug.WriteLine("copiedRun Bottom Elevation: " + copiedRun.BaseElevation);
+            //System.Diagnostics.Debug.WriteLine("copiedRun Top Elevation: " + copiedRun.TopElevation);
+
+            //foreach (ElementId id in copiedRunIds)
+            //{
+            //    System.Diagnostics.Debug.WriteLine("Copied element id: " + id);
+            //}
         }
 
         private void createLevel(int storey, double elevation)
