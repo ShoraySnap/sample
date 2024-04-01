@@ -160,7 +160,7 @@ namespace TrudeImporter
                     if (StaircaseType == "square")
                     {
                         System.Diagnostics.Debug.WriteLine("Creating edge landing.");
-                        CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[0]);
+                        CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[createdRunIds.Count%4]);
                     }
 
 
@@ -211,9 +211,6 @@ namespace TrudeImporter
             double height = props.Steps * props.Riser;
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
                 run.TopElevation = props.Translation.Z + height;
-            System.Diagnostics.Debug.WriteLine("Start Point: " + startPoint);
-            System.Diagnostics.Debug.WriteLine("End Point: " + endPoint);
-            System.Diagnostics.Debug.WriteLine("\n");
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
 
 
@@ -345,9 +342,6 @@ namespace TrudeImporter
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
             run.EndsWithRiser = false;
-            System.Diagnostics.Debug.WriteLine("EDGEStart Point: " + startPoint);
-            System.Diagnostics.Debug.WriteLine("EDGEEnd Point: " + endPoint);
-
             try
             {
                 StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, runBefore.Id, run.Id);
@@ -359,21 +353,6 @@ namespace TrudeImporter
             }
             doc.Delete(run.Id);
 
-
-
-            //ICollection<ElementId> copiedRunIds = ElementTransformUtils.CopyElement(doc, runAfter.Id, new XYZ(0, 0, 0));
-            //StairsRun copiedRun = doc.GetElement(copiedRunIds.First()) as StairsRun;
-
-            //ElementTransformUtils.MoveElement(doc, copiedRun.Id, runStartEndPoints[runBefore.Id].Item2 - runStartEndPoints[runAfter.Id].Item1);
-
-            ////print top elevation and bottom elevation
-            //System.Diagnostics.Debug.WriteLine("copiedRun Bottom Elevation: " + copiedRun.BaseElevation);
-            //System.Diagnostics.Debug.WriteLine("copiedRun Top Elevation: " + copiedRun.TopElevation);
-
-            //foreach (ElementId id in copiedRunIds)
-            //{
-            //    System.Diagnostics.Debug.WriteLine("Copied element id: " + id);
-            //}
         }
 
         private void createLevel(int storey, double elevation)
