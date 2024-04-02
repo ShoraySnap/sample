@@ -52,17 +52,25 @@ namespace TrudeSerializer
             GlobalVariables.CurrentDocument = doc;
         }
 
-        private string GetStringBetween(string unitId)
+        private string GetUnits(string unitId)
         {
+#if REVIT2019 || REVIT2020
+            const string pattern = @"DUT_(.*)";
+#else
             const string pattern = @":(.*?)-";
+#endif
             Match match = Regex.Match(unitId, pattern);
             return match.Success ? match.Groups[1].Value : null;
         }
 
         bool IExportContext.Start()
         {
+#if REVIT2019 || REVIT2020
+            string unitsId = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits.ToString();
+#else
             string unitsId = doc.GetUnits().GetFormatOptions(SpecTypeId.Length).GetUnitTypeId().TypeId;
-            string revitUnit = GetStringBetween(unitsId);
+#endif
+            string revitUnit = GetUnits(unitsId);
             if (revitUnit != null)
             {
                 ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, revitUnit);
