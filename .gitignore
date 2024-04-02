@@ -16,6 +16,7 @@ revit-addin/SnaptrudeForgeExport/assets/*
 # Build results
 revit-addin/**/[Pp]ackages/*
 revit-addin/SnaptrudeManagerAddin/lib/IFC/*
+revit-addin/UnitTests/lib/*
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
