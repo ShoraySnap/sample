@@ -573,9 +573,11 @@ namespace TrudeImporter
 
         private static void ImportStairCases(List<StairCaseProperties> propsList)
         {
+            GlobalVariables.Transaction.Commit();
             //if propsList is null
             if (propsList == null || !propsList.Any()) return;
-            //GlobalVariables.Transaction.Commit();
+
+            GlobalVariables.StairsEditScope = new StairsEditScope(GlobalVariables.Document, "Stairs");
             foreach (var staircase in propsList)
             {
                 try
@@ -587,23 +589,25 @@ namespace TrudeImporter
                         staircase.FaceMaterialIds,
                         staircase.AllFaceVertices
                     );
+                        GlobalVariables.Transaction.Start();
                         TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Stairs);
+                        GlobalVariables.Transaction.Commit();
                     }
-                    //GlobalVariables.Transaction.Start();
                     else
                     {
                         new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
                     }
 
                     deleteOld(staircase.ExistingElementId);
-                    //GlobalVariables.Transaction.Commit();
                 }
                 catch (Exception e)
                 {
+                    if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.RollBack();
+                    if (GlobalVariables.StairsEditScope.IsActive) GlobalVariables.StairsEditScope.Cancel();
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
-            //GlobalVariables.Transaction.Start();
+            if (!GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Start();
 
         }
 

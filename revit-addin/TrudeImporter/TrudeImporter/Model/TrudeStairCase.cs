@@ -79,6 +79,7 @@ namespace TrudeImporter
 
         private void CreateStaircase()
         {
+            GlobalVariables.Transaction.Start();
             int finalStorey = Storey + 1;
             if (finalStorey == 0)
             {
@@ -89,7 +90,7 @@ namespace TrudeImporter
                 createLevel(finalStorey, Height);
             }
             topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
-            
+
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
 
             stairsType = new FilteredElementCollector(doc)
@@ -135,7 +136,7 @@ namespace TrudeImporter
 
             ElementId landingTypeId = stairsType.LandingType;
             StairsLandingType landingType = doc.GetElement(landingTypeId) as StairsLandingType;
-            if(landingType.Thickness != StairThickness)
+            if (landingType.Thickness != StairThickness)
             {
                 StairsLandingType existingLandingType = new FilteredElementCollector(doc)
                     .OfClass(typeof(StairsLandingType))
@@ -154,62 +155,58 @@ namespace TrudeImporter
             }
 
             GlobalVariables.Transaction.Commit();
-            using (StairsEditScope stairsScope = new StairsEditScope(doc, "Create Stairs"))
+
+            stairsId = GlobalVariables.StairsEditScope.Start(bottomLevel.Id, topLevel.Id);
+            CreatedStaircase = doc.GetElement(stairsId) as Stairs;
+
+            GlobalVariables.Transaction.Start();
+            CreatedStaircase.ChangeTypeId(stairsType.Id);
+            CreatedStaircase.ActualTreadDepth = Tread;
+            CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+            GlobalVariables.Transaction.Commit();
+
+            if (StaircaseType == "straight" && StaircaseBlocks.Count > 1)
             {
-                stairsId = stairsScope.Start(bottomLevel.Id, topLevel.Id);
-                CreatedStaircase = doc.GetElement(stairsId) as Stairs;
-                using (Transaction trans = new Transaction(GlobalVariables.Document, "Create Stairs"))
+                System.Diagnostics.Debug.WriteLine("Creating straight staircase with multiple blocks.");
+                if (StaircaseBlocks.Sum(b => b.StartLandingWidth) == 0)
                 {
-                    trans.Start();
-                    CreatedStaircase.ChangeTypeId(stairsType.Id);
-                    CreatedStaircase.ActualTreadDepth = Tread;
-                    CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
-                    trans.Commit();
-
-                    if (StaircaseType == "straight" && StaircaseBlocks.Count > 1)
-                    {
-                            System.Diagnostics.Debug.WriteLine("Creating straight staircase with multiple blocks.");
-                        if (StaircaseBlocks.Sum(b => b.StartLandingWidth) == 0)
-                        {
-                            StaircaseBlocks[0].Steps = StaircaseBlocks.Sum(b => b.Steps);
-                            StaircaseBlocks = new List<StaircaseBlockProperties> { StaircaseBlocks[0] };
-                        }
-                    }
-                    List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
-                    List<ElementId> createdRunIds = new List<ElementId>();
-
-                    trans.Start();
-                    for (int i = 0; i < StairRunBlocks.Count; i++)
-                    {
-                        StaircaseBlockProperties props = StairRunBlocks[i];
-                        ElementId runId = RunCreator_Simple(props, bottomLevel, i != StairRunBlocks.Count - 1);
-                        if (runId != null)
-                        createdRunIds.Add(runId);
-                    }
-                    for (int i = 1; i < createdRunIds.Count; i++)
-                    {
-                        try
-                        {
-                            StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead.");
-                            CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
-                        }
-                    }
-
-                    if (StaircaseType == "square")
-                    {
-                        System.Diagnostics.Debug.WriteLine("Creating edge landing.");
-                        CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[createdRunIds.Count%4]);
-                    }
-
-
-                    trans.Commit();
+                    StaircaseBlocks[0].Steps = StaircaseBlocks.Sum(b => b.Steps);
+                    StaircaseBlocks = new List<StaircaseBlockProperties> { StaircaseBlocks[0] };
                 }
-                stairsScope.Commit(new StairsFailurePreprocessor());
             }
+            List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
+            List<ElementId> createdRunIds = new List<ElementId>();
+
+            GlobalVariables.Transaction.Start();
+            for (int i = 0; i < StairRunBlocks.Count; i++)
+            {
+                StaircaseBlockProperties props = StairRunBlocks[i];
+                ElementId runId = RunCreator_Simple(props, bottomLevel, i != StairRunBlocks.Count - 1);
+                if (runId != null)
+                    createdRunIds.Add(runId);
+            }
+            for (int i = 1; i < createdRunIds.Count; i++)
+            {
+                try
+                {
+                    StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead.");
+                    CreateManualLanding(createdRunIds[i - 1], createdRunIds[i]);
+                }
+            }
+
+            if (StaircaseType == "square")
+            {
+                System.Diagnostics.Debug.WriteLine("Creating edge landing.");
+                CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[createdRunIds.Count % 4]);
+            }
+
+
+            GlobalVariables.Transaction.Commit();
+            GlobalVariables.StairsEditScope.Commit(new StairsFailurePreprocessor());
             GlobalVariables.Transaction.Start();
 
             ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
@@ -226,6 +223,7 @@ namespace TrudeImporter
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
             }
+            GlobalVariables.Transaction.Commit();
         }
 
         private ElementId RunCreator_Simple(StaircaseBlockProperties props, Level bottomLevel, bool endWithRiser)
