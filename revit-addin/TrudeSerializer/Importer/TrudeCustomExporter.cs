@@ -5,6 +5,7 @@ using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
+using TrudeSerializer.Utils;
 
 namespace TrudeSerializer
 {
@@ -51,10 +52,11 @@ namespace TrudeSerializer
             GlobalVariables.CurrentDocument = doc;
         }
 
+
+
         bool IExportContext.Start()
         {
-            Units units = doc.GetUnits();
-
+            UnitConversion.GetUnits(doc, serializedSnaptrudeData);
             return true;
         }
 
