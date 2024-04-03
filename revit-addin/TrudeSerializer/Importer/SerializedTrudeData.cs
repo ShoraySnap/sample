@@ -28,6 +28,7 @@ namespace TrudeSerializer.Importer
 
         public Dictionary<string, TrudeCurtainWall> CurtainWalls { get; set; }
 
+        [JsonConstructor]
         public SerializedTrudeData()
         {
             this.FamilyTypes = new FamilyTypes();
