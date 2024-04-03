@@ -85,13 +85,12 @@ namespace TrudeImporter
             {
                 finalStorey = 1;
             }
+            bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
             if (!GlobalVariables.LevelIdByNumber.ContainsKey(finalStorey))
             {
-                createLevel(finalStorey, Height);
+                createLevel(finalStorey, Height + bottomLevel.ProjectElevation);
             }
             topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
-
-            bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
 
             stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
@@ -245,8 +244,6 @@ namespace TrudeImporter
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
             run.EndsWithRiser = endWithRiser;
-
-
             double height = props.Steps * props.Riser;
             if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
                 run.TopElevation = props.Translation.Z + height;
