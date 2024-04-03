@@ -28,6 +28,7 @@ namespace TrudeImporter
         public int Steps { get; set; }
         public double BaseOffset { get; set; }
         public string StaircaseType { get; set; }
+        public string StaircasePreset { get; set; }
 
         public Level topLevel = null;
         public Level bottomLevel = null;
@@ -63,6 +64,7 @@ namespace TrudeImporter
             BaseOffset = staircaseProps.BaseOffset;
             Name = staircaseProps.Name;
             StaircaseType = staircaseProps.StaircaseType;
+            StaircasePreset = staircaseProps.StaircasePreset;
             StaircaseBlocks = staircaseProps.StaircaseBlocks;
             Layers = staircaseProps.Layers;
             CreateStaircase();
@@ -85,6 +87,7 @@ namespace TrudeImporter
             {
                 finalStorey = 1;
             }
+
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
             if (!GlobalVariables.LevelIdByNumber.ContainsKey(finalStorey))
             {
@@ -92,10 +95,15 @@ namespace TrudeImporter
             }
             topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
 
+            double stairThicknessInRevit = StairThickness * 304.802581;
+            //stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2); 
+            stairThicknessInRevit = Math.Floor(stairThicknessInRevit);
+
+            string typeName = "Snaptrude-" + StaircasePreset + "-" + stairThicknessInRevit + "mm";
             stairsType = new FilteredElementCollector(doc)
                 .OfClass(typeof(StairsType))
                 .OfType<StairsType>()
-                .FirstOrDefault(st => st.Name.Equals(StaircaseType, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(st => st.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase));
 
             if (stairsType == null)
             {
@@ -103,56 +111,55 @@ namespace TrudeImporter
 
                 if (stairsTypeTemplate != null)
                 {
-                    stairsType = stairsTypeTemplate.Duplicate(StaircaseType) as StairsType;
+                    stairsType = stairsTypeTemplate.Duplicate(typeName) as StairsType;
+
+                    ElementId runTypeId = stairsType.RunType;
+                    StairsRunType runType = doc.GetElement(runTypeId) as StairsRunType;
+                    string runTypeName = "Snaptrude-Run-Thickness-" + stairThicknessInRevit + "mm";
+                    if (runType.StructuralDepth != StairThickness)
+                    {
+                        StairsRunType existingRunType = new FilteredElementCollector(doc)
+                            .OfClass(typeof(StairsRunType))
+                            .OfType<StairsRunType>()
+                            .FirstOrDefault(st => st.Name.Equals(runTypeName, StringComparison.OrdinalIgnoreCase));
+                        if (existingRunType != null)
+                        {
+                            stairsType.RunType = existingRunType.Id;
+                        }
+                        else
+                        {
+                            StairsRunType duplicateRunType = runType.Duplicate(runTypeName) as StairsRunType;
+                            duplicateRunType.StructuralDepth = StairThickness;
+                            stairsType.RunType = duplicateRunType.Id;
+                        }
+                    }
+
+                    ElementId landingTypeId = stairsType.LandingType;
+                    StairsLandingType landingType = doc.GetElement(landingTypeId) as StairsLandingType;
+                    string landingTypeName = "Snaptrude-Landing-Thickness-" + stairThicknessInRevit + "mm";
+                    if (landingType.Thickness != StairThickness)
+                    {
+                        StairsLandingType existingLandingType = new FilteredElementCollector(doc)
+                            .OfClass(typeof(StairsLandingType))
+                            .OfType<StairsLandingType>()
+                            .FirstOrDefault(st => st.Name.Equals(landingTypeName, StringComparison.OrdinalIgnoreCase));
+                        if (existingLandingType != null)
+                        {
+                            stairsType.LandingType = existingLandingType.Id;
+                        }
+                        else
+                        {
+                            StairsLandingType duplicateLandingType = landingType.Duplicate(landingTypeName) as StairsLandingType;
+                            duplicateLandingType.Thickness = StairThickness;
+                            stairsType.LandingType = duplicateLandingType.Id;
+                        }
+                    }
                 }
                 else
                 {
                     throw new InvalidOperationException("No StairsType template found to duplicate.");
                 }
             }
-            double stairThicknessInRevit = StairThickness * 304.802581;
-            stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2);
-
-            ElementId runTypeId = stairsType.RunType;
-            StairsRunType runType = doc.GetElement(runTypeId) as StairsRunType;
-            if (runType.StructuralDepth != StairThickness)
-            {
-                StairsRunType existingRunType = new FilteredElementCollector(doc)
-                    .OfClass(typeof(StairsRunType))
-                    .OfType<StairsRunType>()
-                    .FirstOrDefault(st => st.Name.Equals(runType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
-                if (existingRunType != null)
-                {
-                    stairsType.RunType = existingRunType.Id;
-                }
-                else
-                {
-                    StairsRunType duplicateRunType = runType.Duplicate(runType.Name + " - " + stairThicknessInRevit) as StairsRunType;
-                    duplicateRunType.StructuralDepth = StairThickness;
-                    stairsType.RunType = duplicateRunType.Id;
-                }
-            }
-
-            ElementId landingTypeId = stairsType.LandingType;
-            StairsLandingType landingType = doc.GetElement(landingTypeId) as StairsLandingType;
-            if (landingType.Thickness != StairThickness)
-            {
-                StairsLandingType existingLandingType = new FilteredElementCollector(doc)
-                    .OfClass(typeof(StairsLandingType))
-                    .OfType<StairsLandingType>()
-                    .FirstOrDefault(st => st.Name.Equals(landingType.Name + " - " + stairThicknessInRevit, StringComparison.OrdinalIgnoreCase));
-                if (existingLandingType != null)
-                {
-                    stairsType.LandingType = existingLandingType.Id;
-                }
-                else
-                {
-                    StairsLandingType duplicateLandingType = landingType.Duplicate(landingType.Name + " - " + stairThicknessInRevit) as StairsLandingType;
-                    duplicateLandingType.Thickness = StairThickness;
-                    stairsType.LandingType = duplicateLandingType.Id;
-                }
-            }
-
             GlobalVariables.Transaction.Commit();
 
             stairsId = GlobalVariables.StairsEditScope.Start(bottomLevel.Id, topLevel.Id);
@@ -166,7 +173,6 @@ namespace TrudeImporter
 
             if (StaircaseType == "straight" && StaircaseBlocks.Count > 1)
             {
-                System.Diagnostics.Debug.WriteLine("Creating straight staircase with multiple blocks.");
                 if (StaircaseBlocks.Sum(b => b.StartLandingWidth) == 0)
                 {
                     StaircaseBlocks[0].Steps = StaircaseBlocks.Sum(b => b.Steps);
