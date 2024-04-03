@@ -1,11 +1,11 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
+using TrudeSerializer.Utils;
 
 namespace TrudeSerializer
 {
@@ -52,42 +52,11 @@ namespace TrudeSerializer
             GlobalVariables.CurrentDocument = doc;
         }
 
-        private string GetUnits(string unitId)
-        {
-#if REVIT2019 || REVIT2020
-            const string pattern = @"DUT_(.*)";
-#else
-            const string pattern = @":(.*?)-";
-#endif
-            Match match = Regex.Match(unitId, pattern);
-            return match.Success ? match.Groups[1].Value : null;
-        }
+
 
         bool IExportContext.Start()
         {
-#if REVIT2019 || REVIT2020
-            string unitsId = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits.ToString();
-#else
-            string unitsId = doc.GetUnits().GetFormatOptions(SpecTypeId.Length).GetUnitTypeId().TypeId;
-#endif
-            string revitUnit = GetUnits(unitsId);
-            if (revitUnit != null)
-            {
-                ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, revitUnit);
-            }
-            else
-            {
-                switch(doc.DisplayUnitSystem.ToString())
-                {
-                    case "IMPERIAL":
-                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "feetFractionalInches");
-                        break;
-                    case "METRIC":
-                    default:
-                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "millimeters");
-                        break;
-                }
-            }
+            UnitConversion.GetUnits(doc, serializedSnaptrudeData);
             return true;
         }
 
