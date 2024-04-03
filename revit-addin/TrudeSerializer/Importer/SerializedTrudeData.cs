@@ -58,7 +58,7 @@ namespace TrudeSerializer.Importer
             }
             // TODO: CLEANUP UPDATE LISTENER INSTEAD OF THIS
             CountData massCountData = new CountData() { parametric = 0, nonParametric = this.Masses.Count, total = this.Masses.Count };
-            TrudeLogger.Instance.CleanupUpdateMasses(massCountData);
+            TrudeLogger.Instance.CleanupCount(ComponentLogData.MASSES_KEY, massCountData);
 
             foreach (var revitLinkKey in this.RevitLinks.Keys.ToList())
             {

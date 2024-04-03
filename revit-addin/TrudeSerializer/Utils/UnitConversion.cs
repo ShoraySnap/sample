@@ -1,11 +1,38 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using TrudeSerializer.Importer;
 
 namespace TrudeSerializer.Utils
 {
     internal class UnitConversion
     {
 #if REVIT2019 || REVIT2020
+        public static void GetUnits(Document doc, SerializedTrudeData serializedSnaptrudeData)
+        {
+            string unitsId = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits.ToString();
+            const string pattern = @"DUT_(.*)";
+            Match match = Regex.Match(unitsId, pattern);
+            string revitUnit = match.Success ? match.Groups[1].Value : null;
+            if (revitUnit != null)
+            {
+                ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, revitUnit);
+            }
+            else
+            {
+                switch (doc.DisplayUnitSystem.ToString())
+                {
+                    case "IMPERIAL":
+                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "feetFractionalInches");
+                        break;
+                    case "METRIC":
+                    default:
+                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "millimeters");
+                        break;
+                }
+            }
+        }
+
         public static double ConvertToMillimeter(double value, DisplayUnitType unit)
         {
             switch(unit)
@@ -73,6 +100,31 @@ namespace TrudeSerializer.Utils
 
 #endif
 #if REVIT2021 || REVIT2022 || REVIT2023 || REVIT2024
+
+        public static void GetUnits(Document doc, SerializedTrudeData serializedSnaptrudeData)
+        {
+            string unitsId = doc.GetUnits().GetFormatOptions(SpecTypeId.Length).GetUnitTypeId().TypeId;
+            const string pattern = @":(.*?)-";
+            Match match = Regex.Match(unitsId, pattern);
+            string revitUnit = match.Success ? match.Groups[1].Value : null;
+            if (revitUnit != null)
+            {
+                ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, revitUnit);
+            }
+            else
+            {
+                switch (doc.DisplayUnitSystem.ToString())
+                {
+                    case "IMPERIAL":
+                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "feetFractionalInches");
+                        break;
+                    case "METRIC":
+                    default:
+                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "millimeters");
+                        break;
+                }
+            }
+        }
         public static double ConvertToMillimeter(double value, ForgeTypeId unit)
         {
             if (unit.Equals(UnitTypeId.Inches))

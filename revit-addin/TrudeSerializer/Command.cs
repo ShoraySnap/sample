@@ -32,7 +32,7 @@ namespace TrudeSerializer
                 bool status = false;
 
                 View3D view = Get3dView(doc);
-                SetDetailViewToFine(doc, view);
+                //SetDetailViewToFine(doc, view);
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 serializedData.SetProcessId(processId);
 

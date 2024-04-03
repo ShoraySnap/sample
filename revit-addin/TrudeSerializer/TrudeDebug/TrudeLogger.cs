@@ -292,9 +292,16 @@ namespace TrudeSerializer.Debug
             return serializedLog;
         }
 
-        public void CleanupUpdateMasses(CountData newMassCount)
+        public void CleanupCount(string key, CountData newCountData)
         {
-            data.components.unrecognizedComponents["masses"] = newMassCount;
+            if (key == ComponentLogData.MASSES_KEY)
+            {
+                data.components.unrecognizedComponents["masses"] = newCountData;
+            }
+            else if (key == ComponentLogData.GENERIC_MODELS_KEY)
+            {
+                data.components.genericModels["generic"] = newCountData;
+            }
         }
     }
 }
