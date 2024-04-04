@@ -73,7 +73,16 @@ namespace TrudeImporter
                 foreach (var level in existingLevels)
                 {
                     if (storeyNames.Contains(level.Name)) levelsToCheckElevation.Add(level);
-                    else levelsToDelete.Add(level);
+                    else
+                    {
+                        ElementLevelFilter levelFilter = new ElementLevelFilter(level.Id);
+                        var elementsInLevel = new FilteredElementCollector(GlobalVariables.Document)
+                            .WhereElementIsNotElementType()
+                            .WherePasses(levelFilter)
+                            .ToList();
+                        if (!elementsInLevel.Any())
+                            levelsToDelete.Add(level);
+                    }
                 }
 
                 //Revit dont allow to delete the level that is associated with the current activeView
