@@ -23,6 +23,16 @@ namespace UnitTests
             return doc;
         }
 
+        public static UIDocument OpenFamily(UIApplication uiApplication, string familyName)
+        {
+            string folder = TestUtils.GetTestProjectFolder();
+            string revitVersion = TestUtils.GetRevitVersion();
+            var doc = uiApplication.OpenAndActivateDocument(folder + revitVersion + "\\" + familyName + ".rfa");
+            Assert.NotNull( doc );
+            Assert.IsTrue(uiApplication.ActiveUIDocument.Document.IsFamilyDocument);
+            return doc;
+        }
+
         public static JToken GetExpectedData(string projectName)
         {
             string folder = TestUtils.GetTestProjectFolder();
