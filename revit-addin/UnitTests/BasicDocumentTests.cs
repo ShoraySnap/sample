@@ -60,6 +60,7 @@ namespace UnitTests
             TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
             var result = trudeSerializer.ExecuteWithUIApplication(uiApp,true);
             Assert.IsTrue(result == Result.Succeeded);
+            Assert.True(trudeSerializer.isDone);
         }
 
         [Test]
@@ -83,7 +84,8 @@ namespace UnitTests
                 Assert.AreEqual(GlobalVariables.Document,doc);
                 Assert.NotNull(GlobalVariables.RvtApp);
             };
-            trudeSerializer.ExecuteWithUIApplication(uiApp, true);
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp,true);
+            Assert.IsTrue(result == Result.Succeeded);
             Assert.True(trudeSerializer.isDone);
         }
 
@@ -101,7 +103,8 @@ namespace UnitTests
             trudeSerializer.OnView3D += (View3D view, Document doc) => {
                 Assert.NotNull(view);
             };
-            trudeSerializer.ExecuteWithUIApplication(uiApp, true);
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp,true);
+            Assert.IsTrue(result == Result.Succeeded);
             Assert.True(trudeSerializer.isDone);
         }
 
@@ -121,7 +124,8 @@ namespace UnitTests
                 Assert.IsTrue(Common.IsJsonSame(data, projectName));
             };
 
-            trudeSerializer.ExecuteWithUIApplication(uiApp, true);
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp,true);
+            Assert.IsTrue(result == Result.Succeeded);
             Assert.True(trudeSerializer.isDone);
         }
 
