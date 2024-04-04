@@ -22,16 +22,16 @@ namespace TrudeImporter
             GlobalVariables.MissingWindowIndexes.Clear();
 
             ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            ImportWalls(trudeProperties.Walls);
+            ImportBeams(trudeProperties.Beams);
+            ImportColumns(trudeProperties.Columns);
             ImportFloors(trudeProperties.Floors);
-#if REVIT2019 || REVIT2020 || REVIT2021
+            #if REVIT2019 || REVIT2020 || REVIT2021
             ImportFloors(trudeProperties.Ceilings);
-#else
+            #else
                 ImportCeilings(trudeProperties.Ceilings);
-#endif
-            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
+            #endif
+            ImportSlabs(trudeProperties.Slabs);
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
             ImportMasses(trudeProperties.Masses);

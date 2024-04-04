@@ -111,7 +111,7 @@ namespace SnaptrudeManagerAddin
             };
             serializer.Converters.Add(new XyzConverter());
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
-            //_ = new FetchTextures.FetchTextures();
+            _ = new FetchTextures.FetchTextures();
             deleteRemovedElements(trudeProperties.DeletedElements);
 
             TrudeImporterMain.Import(trudeProperties);
@@ -137,11 +137,11 @@ namespace SnaptrudeManagerAddin
             {
                 try
                 {
-#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                    #if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                     ElementId id = new ElementId((int)elementId);
-#else
+                    #else
                     ElementId id = new ElementId((Int64)elementId);
-#endif
+                    #endif
                     Element element = GlobalVariables.Document.GetElement(id);
                     if (!element.GroupId.Equals(ElementId.InvalidElementId))
                         TrudeImporterMain.deleteIfInGroup(element);
@@ -169,11 +169,11 @@ namespace SnaptrudeManagerAddin
                     {
                         try
                         {
-#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                            #if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
                             ElementId id = new ElementId((int)elementId);
-#else
+                            #else
                             ElementId id = new ElementId((Int64)elementId);
-#endif
+                            #endif
                             GlobalVariables.Document.Delete(id);
                         }
                         catch (Exception e)
