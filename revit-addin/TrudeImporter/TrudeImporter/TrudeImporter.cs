@@ -339,6 +339,26 @@ namespace TrudeImporter
         private static void ImportRooms()
         {
             if (!GlobalVariables.CreatedFloorsByLevel.Any()) return;
+            GlobalVariables.Document.Regenerate();
+
+            foreach (var levelId in GlobalVariables.CreatedFloorsByLevel.Keys)
+            {
+                CurveArray curveArray = new CurveArray();
+                foreach (var floor in GlobalVariables.CreatedFloorsByLevel[levelId])
+                {
+                    foreach (Curve curve in floor.CurveArray)
+                    {
+                        curveArray.Append(curve);
+                    }
+                }
+                SketchPlane plane = SketchPlane.Create(GlobalVariables.Document, levelId);
+                Autodesk.Revit.DB.View levelView = new FilteredElementCollector(GlobalVariables.Document)
+                    .OfClass(typeof(ViewPlan))
+                    .Cast<Autodesk.Revit.DB.View>()
+                    .FirstOrDefault(v => v.Name == GlobalVariables.Document.GetElement(levelId).Name);
+
+                GlobalVariables.Document.Create.NewRoomBoundaryLines(plane, curveArray, levelView);
+            }
         }
 
         private static void ImportFloors(List<FloorProperties> propsList)
