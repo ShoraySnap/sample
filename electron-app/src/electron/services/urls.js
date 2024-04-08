@@ -11,7 +11,7 @@ const urls = (function (){
   };
   
   const init = function () {
-    // const appDataPath = electron.app.getPath('programData');
+  
     const appDataPath = path.resolve(process.env.ProgramData, "snaptrude-manager");
     
     const fileName = "urls.json";
