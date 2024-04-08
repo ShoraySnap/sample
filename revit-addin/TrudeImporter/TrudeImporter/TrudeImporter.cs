@@ -350,7 +350,17 @@ namespace TrudeImporter
                             );
                         if (floor.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            if (floor.RoomType != "Default")
+                            {
+                                var levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
+                                var roomType = floor.RoomType;
+                                var trudeRoom = new TrudeRoom(roomType, directShape.Id, floor.FaceVertices, true);
+                                if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
+                                    GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
+                                else
+                                    GlobalVariables.CreatedFloorsByLevel.Add(levelId, new List<TrudeRoom> { trudeRoom });
+                            }
                         }
                         else
                         {
