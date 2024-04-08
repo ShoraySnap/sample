@@ -23,9 +23,11 @@ namespace TrudeImporter
 
             ImportStories(trudeProperties.Storeys);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            ImportFloors(trudeProperties.Floors);
+            ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            ImportRooms();
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            ImportFloors(trudeProperties.Floors);
 #if REVIT2019 || REVIT2020|| REVIT2021
                 ImportFloors(trudeProperties.Ceilings);
 #else
@@ -332,6 +334,11 @@ namespace TrudeImporter
                     }
                 }
             }
+        }
+
+        private static void ImportRooms()
+        {
+            if (!GlobalVariables.CreatedFloorsByLevel.Any()) return;
         }
 
         private static void ImportFloors(List<FloorProperties> propsList)
