@@ -393,6 +393,36 @@ namespace TrudeImporter
                     GlobalVariables.Document.Delete(roomId);
                 }
             }
+
+            GlobalVariables.Transaction.Commit();
+
+            List<FailureMessage> failures = GlobalVariables.Document.GetWarnings()
+                .Where(fm =>
+                fm.GetFailureDefinitionId() == BuiltInFailures.OverlapFailures.RoomSeparationLinesOverlap ||
+                fm.GetFailureDefinitionId() == BuiltInFailures.OverlapFailures.WallRoomSeparationOverlap
+                )
+                .ToList();
+
+            List<ElementId> roomBoundariesToDelete = new List<ElementId>();
+            foreach (var failure in failures)
+            {
+                if (failure.GetFailureDefinitionId() == BuiltInFailures.OverlapFailures.RoomSeparationLinesOverlap)
+                    roomBoundariesToDelete.Add(failure.GetFailingElements().First());
+                else
+                {
+                    Element wall = GlobalVariables.Document.GetElement(failure.GetFailingElements().First());
+                    ModelCurve roomBoundary = GlobalVariables.Document.GetElement(failure.GetFailingElements().Last()) as ModelCurve;
+                    Curve wallCurve = (wall.Location as LocationCurve).Curve;
+                    Curve roomBoundaryCurve = roomBoundary.GeometryCurve;
+                    if (wallCurve.Project(roomBoundaryCurve.GetEndPoint(0)).Distance < 1 && wallCurve.Project(roomBoundaryCurve.GetEndPoint(1)).Distance < 1)
+                    {
+                        roomBoundariesToDelete.Add(failure.GetFailingElements().First(id => GlobalVariables.Document.GetElement(id) is ModelCurve));
+                    }
+                }
+            }
+
+            GlobalVariables.Transaction.Start();
+            GlobalVariables.Document.Delete(roomBoundariesToDelete);
         }
 
         private static void ImportFloors(List<FloorProperties> propsList)
