@@ -8,6 +8,25 @@ namespace TrudeImporter
 {
     public class Utils
     {
+        public static bool IsPointInsideElementGeometryProjection(Element element, XYZ point, FindReferenceTarget findReferenceTarget)
+        {
+            View3D default3DView = new FilteredElementCollector(GlobalVariables.Document)
+                .OfClass(typeof(View3D))
+                .Cast<View3D>()
+                .FirstOrDefault(x => !x.IsTemplate);
+            if (default3DView == null)
+            {
+                ViewFamilyType template3DView = new FilteredElementCollector(GlobalVariables.Document)
+                    .OfClass(typeof(ViewFamilyType))
+                    .Cast<ViewFamilyType>()
+                    .FirstOrDefault(vt => vt.ViewFamily == ViewFamily.ThreeDimensional) as ViewFamilyType;
+                default3DView = View3D.CreateIsometric(GlobalVariables.Document, template3DView.Id);
+            }
+            ReferenceIntersector intersector = new ReferenceIntersector(element.Id, findReferenceTarget, default3DView);
+            IList<ReferenceWithContext> references = intersector.Find(point, XYZ.BasisZ);
+            return references.Any();
+        }
+
         public static bool CheckIfPointIsInsideSolid(List<Solid> solids, XYZ point)
         {
 
@@ -67,6 +86,7 @@ namespace TrudeImporter
             }
             return solid1;
         }
+
         public static bool DocHasFamily(Document doc, string familyName)
         {
             return new FilteredElementCollector(doc)

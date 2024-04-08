@@ -30,7 +30,7 @@ namespace TrudeImporter
 #if REVIT2019 || REVIT2020|| REVIT2021
                 ImportFloors(trudeProperties.Ceilings);
 #else
-                ImportCeilings(trudeProperties.Ceilings);
+            ImportCeilings(trudeProperties.Ceilings);
 #endif
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
@@ -88,7 +88,7 @@ namespace TrudeImporter
                         {
                             TrudeStorey firstStorey = storiesToCreate.Any() ? storiesToCreate[0] : storiesWithMatchingLevelIds[0].Storey;
                             t.Start();
-                            
+
                             levelAssociatedWithActiveView.Name = firstStorey.RevitName;
                             levelAssociatedWithActiveView.Elevation = firstStorey.Elevation;
                             GlobalVariables.LevelIdByNumber.Add(firstStorey.LevelNumber, levelAssociatedWithActiveView.Id);
@@ -273,7 +273,7 @@ namespace TrudeImporter
                     }
                     else
                     {
-                            new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                        new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
                     }
 
                     deleteOld(beam.ExistingElementId);
@@ -345,6 +345,10 @@ namespace TrudeImporter
                 CurveArray curveArray = new CurveArray();
                 foreach (var floor in GlobalVariables.CreatedFloorsByLevel[levelId])
                 {
+                    if (!floor.IsDirectShape)
+                    {
+                        floor.Solid = Utils.GetElementSolid(GlobalVariables.Document.GetElement(floor.Id));
+                    }
                     foreach (Curve curve in floor.CurveArray)
                     {
                         curveArray.Append(curve);
@@ -370,11 +374,20 @@ namespace TrudeImporter
                     {
                         var floor = filteredDictionary.ElementAt(i);
                         bool roomInProjection = false;
+                        if (floor.IsDirectShape)
+                        {
+                            if (Utils.IsPointInsideElementGeometryProjection(GlobalVariables.Document.GetElement(floor.Id), roomLocation - XYZ.BasisZ * 10000, FindReferenceTarget.Element))
+                            {
+                                roomInProjection = true;
+                            }
+                        }
+                        else
+                        {
                         if (Utils.CheckIfPointIsInsideSolid(new List<Solid> { floor.Solid }, roomLocation))
                         {
                             roomInProjection = true;
                         }
-            }
+                        }
                         if (roomInProjection)
                         {
                             roomMatched = true;
