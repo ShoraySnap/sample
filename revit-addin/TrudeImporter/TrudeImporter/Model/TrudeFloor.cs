@@ -18,6 +18,10 @@ namespace TrudeImporter
         private string baseType = null;
         private string materialName = null;
         private string roomType = null;
+        private CurveArray profile;
+        private double levelElevation;
+        private double offsetFromLevel;
+        private List<XYZ> verticesInLevelElevation;
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
@@ -35,6 +39,10 @@ namespace TrudeImporter
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
+            levelElevation = (GlobalVariables.Document.GetElement(levelId) as Level).Elevation;
+            offsetFromLevel = faceVertices[0].Z - levelElevation;
+            verticesInLevelElevation = faceVertices.Select(v => new XYZ(v.X, v.Y, levelElevation)).ToList();
+            profile = getProfile(verticesInLevelElevation);
 
             // get existing floor id from revit meta data if already exists else set it to null
             if (!GlobalVariables.ForForge && floorProps.ExistingElementId != null)
@@ -186,10 +194,6 @@ namespace TrudeImporter
 
         private void CreateFloor(ElementId levelId, bool depricated = false)
         {
-            double levelElevation = (GlobalVariables.Document.GetElement(levelId) as Level).Elevation;
-            double offsetFromLevel = faceVertices[0].Z - levelElevation;
-            List<XYZ> verticesInLevelElevation = faceVertices.Select(v => new XYZ(v.X, v.Y, levelElevation)).ToList();
-            CurveArray profile = getProfile(verticesInLevelElevation);
             CurveLoop profileLoop = Utils.GetProfileLoop(verticesInLevelElevation);
             FloorType floorType = existingFloorType;
 
@@ -243,6 +247,10 @@ namespace TrudeImporter
             foreach (var hole in holes)
             {
                 var holeProfile = getProfile(hole);
+                foreach (Curve curve in holeProfile)
+                {
+                    profile.Append(curve);
+                }
                 try
                 {
                     GlobalVariables.Document.Create.NewOpening(floor, holeProfile, true);
