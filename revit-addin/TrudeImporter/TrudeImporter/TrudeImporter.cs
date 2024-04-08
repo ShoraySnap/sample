@@ -27,7 +27,6 @@ namespace TrudeImporter
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportRooms();
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
 #if REVIT2019 || REVIT2020|| REVIT2021
                 ImportFloors(trudeProperties.Ceilings);
 #else
@@ -361,6 +360,38 @@ namespace TrudeImporter
                 List<ElementId> createdRoomIds = GlobalVariables.Document.Create
                     .NewRooms2(GlobalVariables.Document.GetElement(levelId) as Level)
                     .ToList();
+                List<ElementId> roomsToDelete = new List<ElementId>();
+                foreach (var roomId in createdRoomIds)
+                {
+                    XYZ roomLocation = (GlobalVariables.Document.GetElement(roomId).Location as LocationPoint).Point;
+                    bool roomMatched = false;
+                    var filteredDictionary = GlobalVariables.CreatedFloorsByLevel[levelId].Where(x => !x.RoomMatched);
+                    for (int i = 0; i < filteredDictionary.Count(); i++)
+                    {
+                        var floor = filteredDictionary.ElementAt(i);
+                        bool roomInProjection = false;
+                        if (Utils.CheckIfPointIsInsideSolid(new List<Solid> { floor.Solid }, roomLocation))
+                        {
+                            roomInProjection = true;
+                        }
+            }
+                        if (roomInProjection)
+                        {
+                            roomMatched = true;
+                            floor.RoomMatched = true;
+                            GlobalVariables.Document.GetElement(roomId).get_Parameter(BuiltInParameter.ROOM_NAME).Set(floor.Label);
+                            break;
+                        }
+                    }
+                    if (!roomMatched)
+                    {
+                        roomsToDelete.Add(roomId);
+                    }
+                }
+                foreach (var roomId in roomsToDelete)
+                {
+                    GlobalVariables.Document.Delete(roomId);
+                }
             }
         }
 

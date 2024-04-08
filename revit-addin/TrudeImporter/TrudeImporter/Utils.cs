@@ -8,6 +8,65 @@ namespace TrudeImporter
 {
     public class Utils
     {
+        public static bool CheckIfPointIsInsideSolid(List<Solid> solids, XYZ point)
+        {
+
+            Curve intersectCurve = Line.CreateBound(point + new XYZ(0, 0, 10000), point - new XYZ(0, 0, 10000));
+            bool intersect = false;
+            foreach (var solid in solids)
+            {
+                SolidCurveIntersection intersection1 = solid.IntersectWithCurve(intersectCurve, new SolidCurveIntersectionOptions());
+                if (intersection1.SegmentCount != 0)
+                {
+                    intersect = true;
+                    break;
+                }
+            }
+            return intersect;
+        }
+
+        public static Solid GetElementSolid(Element element)
+        {
+            Options opt = new Options
+            {
+                IncludeNonVisibleObjects = true,
+                ComputeReferences = true
+            };
+
+            Solid solid1 = null;
+
+            GeometryElement geoEle1 = element.get_Geometry(opt);
+
+            foreach (GeometryObject geoObj in geoEle1)
+            {
+                if (geoObj is Solid)
+                {
+                    if (solid1 == null)
+                    {
+                        solid1 = geoObj as Solid;
+                    }
+                    else
+                    {
+                        BooleanOperationsUtils.ExecuteBooleanOperation(solid1, geoObj as Solid, BooleanOperationsType.Union);
+                    }
+                }
+                else if (geoObj is GeometryInstance)
+                {
+                    foreach (GeometryObject geoInstanceObj in (geoObj as GeometryInstance).GetInstanceGeometry())
+                    {
+                        if (solid1 == null)
+                        {
+                            solid1 = geoInstanceObj as Solid;
+                        }
+                        else
+                        {
+                            BooleanOperationsUtils.ExecuteBooleanOperation(solid1, geoInstanceObj as Solid, BooleanOperationsType.Union);
+                        }
+                    }
+                }
+            }
+            return solid1;
+        }
         public static bool DocHasFamily(Document doc, string familyName)
         {
             return new FilteredElementCollector(doc)
