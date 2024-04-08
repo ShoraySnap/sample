@@ -1,4 +1,3 @@
-const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
 const logger = require("../services/logger");
@@ -12,7 +11,8 @@ const urls = (function (){
   };
   
   const init = function () {
-    const appDataPath = electron.app.getPath('userData');
+    // const appDataPath = electron.app.getPath('programData');
+    const appDataPath = path.resolve(process.env.ProgramData, "snaptrude-manager");
     
     const fileName = "urls.json";
     filePath = path.join(appDataPath, fileName);
@@ -20,7 +20,6 @@ const urls = (function (){
     if (fs.existsSync(filePath)) {
       const data = _parseDataFile(filePath);
       
-      if (data.speckleUrl) _urls.speckleUrl = data.speckleUrl;
       if (data.snaptrudeReactUrl) _urls.snaptrudeReactUrl = data.snaptrudeReactUrl;
       if (data.snaptrudeDjangoUrl) _urls.snaptrudeDjangoUrl = data.snaptrudeDjangoUrl;
     }
