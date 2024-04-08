@@ -21,7 +21,7 @@ namespace TrudeImporter
             GlobalVariables.MissingDoorIndexes.Clear();
             GlobalVariables.MissingWindowIndexes.Clear();
 
-            ImportStories(trudeProperties.Storeys);
+            ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
@@ -40,7 +40,7 @@ namespace TrudeImporter
                 ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture);
         }
 
-        private static void ImportStories(List<StoreyProperties> propsList)
+        private static void ImportStories(List<StoreyProperties> propsList, bool isRevitImport)
         {
             if (propsList == null) return;
             var storiesWithMatchingLevelIds = new List<(TrudeStorey Storey, Level Level)>();
@@ -75,13 +75,16 @@ namespace TrudeImporter
                     if (storeyNames.Contains(level.Name)) levelsToCheckElevation.Add(level);
                     else
                     {
-                        ElementLevelFilter levelFilter = new ElementLevelFilter(level.Id);
-                        var elementsInLevel = new FilteredElementCollector(GlobalVariables.Document)
-                            .WhereElementIsNotElementType()
-                            .WherePasses(levelFilter)
-                            .ToList();
-                        if (!elementsInLevel.Any())
-                            levelsToDelete.Add(level);
+                        if (!isRevitImport)
+                        {
+                            ElementLevelFilter levelFilter = new ElementLevelFilter(level.Id);
+                            var elementsInLevel = new FilteredElementCollector(GlobalVariables.Document)
+                                .WhereElementIsNotElementType()
+                                .WherePasses(levelFilter)
+                                .ToList();
+                            if (!elementsInLevel.Any())
+                                levelsToDelete.Add(level);
+                        }
                     }
                 }
 
