@@ -358,6 +358,9 @@ namespace TrudeImporter
                     .FirstOrDefault(v => v.Name == GlobalVariables.Document.GetElement(levelId).Name);
 
                 GlobalVariables.Document.Create.NewRoomBoundaryLines(plane, curveArray, levelView);
+                List<ElementId> createdRoomIds = GlobalVariables.Document.Create
+                    .NewRooms2(GlobalVariables.Document.GetElement(levelId) as Level)
+                    .ToList();
             }
         }
 
