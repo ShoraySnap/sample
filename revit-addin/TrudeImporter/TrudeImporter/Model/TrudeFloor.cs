@@ -17,7 +17,7 @@ namespace TrudeImporter
         private XYZ centerPosition;
         private string baseType = null;
         private string materialName = null;
-
+        private string roomType = null;
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
@@ -25,6 +25,7 @@ namespace TrudeImporter
         /// <param name="levelId"></param>
         public TrudeFloor(FloorProperties floorProps, ElementId levelId)
         {
+            roomType = floorProps.RoomType;
             thickness = floorProps.Thickness;
             baseType = floorProps.BaseType;
             centerPosition = floorProps.CenterPosition;
