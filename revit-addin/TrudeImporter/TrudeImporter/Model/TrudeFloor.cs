@@ -90,6 +90,7 @@ namespace TrudeImporter
             // --------------------------------------------
             CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             CreateHoles(floorProps.Holes);
+            StoreRoomData(levelId);
 
 
             try
@@ -225,20 +226,8 @@ namespace TrudeImporter
                 floor = Floor.Create(Doc, curveLoops, floorType.Id, levelId);
 #endif
             }
-
+            
             floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(offsetFromLevel);
-
-            // Rotate and move the slab
-            //rotate();
-
-            //bool result = floor.Location.Move(centerPosition);
-
-            //if (!result) throw new Exception("Move floor location failed.");
-
-            //this.setType(floorType);
-
-            Level level = Doc.GetElement(levelId) as Level;
-            //setHeight(level);
             Doc.Regenerate();
         }
 
@@ -259,6 +248,19 @@ namespace TrudeImporter
                 {
                     System.Diagnostics.Debug.WriteLine("Could not create hole with error: " + e.Message);
                 }
+            }
+        }
+
+        private void StoreRoomData(ElementId levelId)
+        {
+            if (roomType != "Default")
+            {
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
+                TrudeRoom trudeRoom = new TrudeRoom(roomType, floor.Id, profile, false);
+                if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
+                    GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
+                else
+                    GlobalVariables.CreatedFloorsByLevel.Add(levelId, new List<TrudeRoom> { trudeRoom });
             }
         }
 
