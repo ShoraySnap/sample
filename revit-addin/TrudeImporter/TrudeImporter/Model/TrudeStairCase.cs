@@ -22,6 +22,7 @@ namespace TrudeImporter
         public double Height { get; set; }
         public double Width { get; set; }
         public double Tread { get; set; }
+        public double StoreyHeight { get; set; }
         public double Riser { get; set; }
         public double LandingWidth { get; set; }
         public double StairThickness { get; set; }
@@ -42,6 +43,7 @@ namespace TrudeImporter
         public StairsType stairsType = null;
         public StairsRunType stairsRunType = null;
         List<StaircaseBlockProperties> StairRunBlocks = null;
+        
 
         public Autodesk.Revit.DB.Document doc = GlobalVariables.Document;
 
@@ -58,6 +60,7 @@ namespace TrudeImporter
             Width = staircaseProps.Width;
             Tread = staircaseProps.Tread;
             Riser = staircaseProps.Storey;
+            StoreyHeight = staircaseProps.StoreyHeight;
             LandingWidth = staircaseProps.LandingWidth;
             StairThickness = staircaseProps.StairThickness;
             Steps = staircaseProps.Steps;
@@ -82,19 +85,25 @@ namespace TrudeImporter
         private void CreateStaircase()
         {
             GlobalVariables.Transaction.Start();
-            int finalStorey = Storey + 1;
-            if (finalStorey == 0)
-            {
-                finalStorey = 1;
-            }
 
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
-            if (!GlobalVariables.LevelIdByNumber.ContainsKey(finalStorey))
+            if (StoreyHeight != Height)
             {
-                createLevel(finalStorey, Height + bottomLevel.ProjectElevation);
+                topLevel=createTempLevel(Storey, Height + bottomLevel.ProjectElevation);
             }
-            topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
+            else { 
+                int finalStorey = Storey + 1;
+                if (finalStorey == 0)
+                {
+                    finalStorey = 1;
+                }
 
+                if (!GlobalVariables.LevelIdByNumber.ContainsKey(finalStorey))
+                {
+                    createLevel(finalStorey, Height + bottomLevel.ProjectElevation);
+                }
+                topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
+            }
             double stairThicknessInRevit = StairThickness * 304.802581;
             //stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2); 
             stairThicknessInRevit = Math.Floor(stairThicknessInRevit);
@@ -227,6 +236,11 @@ namespace TrudeImporter
             {
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).Set(BaseOffset);
                 CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
+            }
+
+            if (StoreyHeight != Height)
+            {
+                doc.Delete(topLevel.Id);
             }
             GlobalVariables.Transaction.Commit();
         }
@@ -380,6 +394,12 @@ namespace TrudeImporter
             Level level = Level.Create(doc, elevation);
             level.Name = "Level " + storey;
             GlobalVariables.LevelIdByNumber.Add(storey, level.Id);
+        }
+        private Level createTempLevel(int storey, double elevation)
+        {
+            Level level = Level.Create(doc, elevation);
+            level.Name = "Temp Level " + storey;
+            return level;
         }
     }
 }

@@ -22,6 +22,9 @@ namespace TrudeImporter
         [JsonProperty("tread")]
         public double Tread { get; set; }
 
+        [JsonProperty("storeyHeight")]
+        public double StoreyHeight { get; set; }
+
         [JsonProperty("riser")]
         public double Riser { get; set; }
 
