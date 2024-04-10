@@ -15,23 +15,23 @@ namespace TrudeImporter
         public bool IsDirectShape;
         public CurveArray CurveArray;
 
-        public TrudeRoom(string label, ElementId id, CurveArray curveLoop, bool isDirectShape)
+        public TrudeRoom(string label, ElementId id, CurveArray curveArray)
         {
             RoomMatched = false;
             Solid = null;
             Label = label;
             Id = id;
-            CurveArray = curveLoop;
-            IsDirectShape = isDirectShape;
+            CurveArray = curveArray;
+            IsDirectShape = false;
         }
-        public TrudeRoom(string label, ElementId id, List<XYZ> vertices, bool isDirectShape)
+        public TrudeRoom(string label, ElementId id, List<XYZ> vertices)
         {
             RoomMatched = false;
             Solid = null;
             Label = label;
             Id = id;
             if (vertices != null) CurveArray = getProfile(vertices);
-            IsDirectShape = isDirectShape;
+            IsDirectShape = true;
         }
 
         private CurveArray getProfile(List<XYZ> vertices)

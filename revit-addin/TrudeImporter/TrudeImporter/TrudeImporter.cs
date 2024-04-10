@@ -349,9 +349,12 @@ namespace TrudeImporter
                     {
                         floor.Solid = Utils.GetElementSolid(GlobalVariables.Document.GetElement(floor.Id));
                     }
-                    foreach (Curve curve in floor.CurveArray)
+                    if (floor.CurveArray != null)
                     {
-                        curveArray.Append(curve);
+                        foreach (Curve curve in floor.CurveArray)
+                        {
+                            curveArray.Append(curve);
+                        }
                     }
                 }
                 SketchPlane plane = SketchPlane.Create(GlobalVariables.Document, levelId);
@@ -430,7 +433,7 @@ namespace TrudeImporter
                     if (wallCurve.Project(roomBoundaryCurve.GetEndPoint(0)).Distance < 1 && wallCurve.Project(roomBoundaryCurve.GetEndPoint(1)).Distance < 1)
                     {
                         roomBoundariesToDelete.Add(failure.GetFailingElements().First(id => GlobalVariables.Document.GetElement(id) is ModelCurve));
-                    }
+                }
                 }
             }
 
@@ -459,7 +462,7 @@ namespace TrudeImporter
                             {
                                 var levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
                                 var roomType = floor.RoomType;
-                                var trudeRoom = new TrudeRoom(roomType, directShape.Id, floor.FaceVertices, true);
+                                var trudeRoom = new TrudeRoom(roomType, directShape.Id, floor.FaceVertices);
                                 if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
                                     GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
                                 else

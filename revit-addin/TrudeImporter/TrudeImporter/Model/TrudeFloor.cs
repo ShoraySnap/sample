@@ -256,7 +256,7 @@ namespace TrudeImporter
             if (roomType != "Default")
             {
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
-                TrudeRoom trudeRoom = new TrudeRoom(roomType, floor.Id, profile, false);
+                TrudeRoom trudeRoom = new TrudeRoom(roomType, floor.Id, profile);
                 if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
                     GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
                 else
