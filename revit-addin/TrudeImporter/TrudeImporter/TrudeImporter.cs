@@ -573,9 +573,8 @@ namespace TrudeImporter
 
         private static void ImportStairCases(List<StairCaseProperties> propsList)
         {
-            GlobalVariables.Transaction.Commit();
-            //if propsList is null
             if (propsList == null || !propsList.Any()) return;
+            if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Commit();
 
             GlobalVariables.StairsEditScope = new StairsEditScope(GlobalVariables.Document, "Stairs");
             foreach (var staircase in propsList)
