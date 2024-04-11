@@ -5,7 +5,6 @@ const logger = require("../services/logger");
 const urls = (function (){
   
   const _urls = {
-    speckleUrl: "https://speckle.snaptrude.com",
     snaptrudeReactUrl: "https://app.snaptrude.com",
     snaptrudeDjangoUrl: "https://api.snaptrude.com",
   };
