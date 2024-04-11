@@ -51,3 +51,7 @@
     - Checkout the branch and run `build.bat` file to batch build all of configurations for each Revit version.
     - The version is read from version.txt file. Update the file with corretct version and run build.ps1.
     - Check inside `<root-directory>/build-installer/out` for the build with correct version names.
+
+
+# Unit Tests for revit-addin
+    - Check out this notion doc for setup and running Unit Tests for revit-addin [Unit Tests Doc](https://www.notion.so/snaptrude/Unit-Testing-Revit-Plugin-2316ff48f78441bbace47539aabc73d1)
