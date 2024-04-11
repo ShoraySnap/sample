@@ -31,11 +31,22 @@ namespace UnitTests
             return JsonConvert.DeserializeObject<JToken>(fileData);
         }
 
-        public static void WriteData(SerializedTrudeData data)
+        public static void WriteData(SerializedTrudeData data, string k = "")
         {
             string folder = TestUtils.GetTestProjectFolder();
             string revitVersion = TestUtils.GetRevitVersion();
-            File.WriteAllText(folder + revitVersion + "\\" + "newData.json",JsonConvert.SerializeObject(data));
+
+            string serializedData = JsonConvert.SerializeObject(data);
+            if(k.Length == 0)
+            {
+                File.WriteAllText(folder + revitVersion + "\\" + "newData.json", serializedData);
+            }
+            else
+            {
+                JToken newData = JsonConvert.DeserializeObject<JToken> (serializedData);
+                string towrite = JsonConvert.SerializeObject(newData[k]);
+                File.WriteAllText(folder + revitVersion + "\\" + "newData_" + k + ".json", towrite);
+            }
         }
 
         public static bool IsJsonSame(SerializedTrudeData data, string projectName)
@@ -53,6 +64,20 @@ namespace UnitTests
             if(!flag)
             {
                 WriteData(data);
+            }
+            return flag;
+        }
+
+        public static bool IsJsonKeySame(SerializedTrudeData data, string projectName, string key)
+        {
+            string serializedObject = JsonConvert.SerializeObject(data);
+            JToken newData = JsonConvert.DeserializeObject<JToken> (serializedObject);
+            JToken expectedDict = GetExpectedData(projectName);
+
+            bool flag = JToken.DeepEquals(newData[key], expectedDict[key]);
+            if(!flag)
+            {
+                WriteData(data, key);
             }
             return flag;
         }

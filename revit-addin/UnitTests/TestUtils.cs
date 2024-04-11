@@ -31,7 +31,9 @@ namespace UnitTests
         public static string GetTestProjectFolder()
         {
             string value = "./projects/";
-            value = Directory.GetCurrentDirectory() + "\\projects\\";
+            var dir =  Directory.GetCurrentDirectory();
+
+            value = Directory.GetCurrentDirectory() + "\\..\\..\\..\\..\\projects\\";
             return value;
         }
 
