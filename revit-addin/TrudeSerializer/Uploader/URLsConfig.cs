@@ -15,7 +15,7 @@ namespace TrudeSerializer.Uploader
             string configFileName = "urls.json";
 
             string configPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 snaptrudeManagerPath,
                 configFileName
             );
@@ -28,7 +28,7 @@ namespace TrudeSerializer.Uploader
         public static string GetSnaptrudeDjangoUrl()
         {
             URLsConfig urlsConfig = GetURLObject();
-            return urlsConfig.snaptrudeDjangoUrl;
+            return urlsConfig?.snaptrudeDjangoUrl;
         }
 
         public static bool IsLocalEnv()
