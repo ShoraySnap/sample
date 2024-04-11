@@ -138,7 +138,7 @@ namespace SnaptrudeManagerAddin
         {
             string snaptrudeManagerPath = "snaptrude-manager";
             var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 snaptrudeManagerPath,
                 fileName
             );
