@@ -25,7 +25,7 @@
    - REQUIRED to compile Revit Plugin in Visual Studio
 3. Open Visual Studio, open SnaptrudeManager.sln, Build > Build Solution
 4. Open the following file:
-   `{users}\AppData\Roaming\Autodesk\Revit\Addins\{REVIT_VERSION}\SnaptrudeManagerAddin.addin`
+   `programData\autodesk\Revit\Addins\<REVIT_VERSION>\snaptrudeManagerAddin.addin`
    and replace the Assembly config in it with below value:
    ```    
    <Assembly>{repo-path}\revit-addin\SnaptrudeManagerAddin\bin\Debug\{REVIT_VERSION}\SnaptrudeManagerAddin.dll</Assembly>
@@ -35,7 +35,7 @@
 
 > Note:
 > 1. Make sure electron-app react server (`npm run start`) is running
-> 2. Update URLs in `{users}\AppData\Roaming\snaptrude-manager\urls.json` to use different snaptrudereact/snaptrudestaging servers (e.g local or PR testing)
+> 2. Update URLs in `{users}programData\snaptrude-manager\urls.json` to use different snaptrudereact/snaptrudestaging servers (e.g local or PR testing)
 
 ## To use Snaptrude-manager through Visual Studio (development) and Add-in Manager follow the below steps:
 
@@ -64,7 +64,7 @@ To be done for building and deploying the final plugin installer.
    - Go inside `<root-directory>/build-installer/out` and check new files' version in the format `<branch-name>_<YYYYMMDD>`.
 4. On master and dev:
    - Checkout the branch and run `build.bat` file to batch build all of configurations for each Revit version.
-   - The version is read from version.txt file. Update the file with corretct version and run build.ps1.
+   - The version is read from version.txt file. Update the file with correct version and run build.ps1.
    - Check inside `<root-directory>/build-installer/out` for the build with correct version names.
 
 ## Unit Tests for revit-addin
