@@ -9,7 +9,7 @@
 
 1. Install Visual Studio.
 2. Clone SnaptrudeManager repo.
-3. Download and install the latest Snaptrude manager. Either download it from either:
+3. Download and install the latest Snaptrude manager. Download it from either:
    - [Snaptrude's drive](https://drive.google.com/drive/folders/1ToMcqBVUU8VR0U5uW1VEiL1CJXcp102J?usp=drive_link)
    - Snaptrude > open any project > import > Revit Files > Download Snaptrude Manager
 4. Install required version of Revit.
