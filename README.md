@@ -59,12 +59,11 @@ To be done for building and deploying the final plugin installer.
 3. On feature branches:
    - For building branch name should not have "/" in it. We can't have branch name like "feature/export", instead we can use "feature-export".
    - Checkout the branch and build it from visual studio.
-   - Run `build.bat` file to batch build all of configurations for each Revit version.
    - Run `build.ps1` file to create the installer for the new Snaptrude manager.
    - Go inside `<root-directory>/build-installer/out` and check new files' version in the format `<branch-name>_<YYYYMMDD>`.
 4. On master and dev:
-   - Checkout the branch and run `build.bat` file to batch build all of configurations for each Revit version.
-   - The version is read from version.txt file. Update the file with correct version and run build.ps1.
+   - The version is read from version.txt file. Update the file with correct version
+   - run build.ps1.
    - Check inside `<root-directory>/build-installer/out` for the build with correct version names.
 
 ## Unit Tests for revit-addin
