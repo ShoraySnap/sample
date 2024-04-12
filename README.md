@@ -53,7 +53,6 @@ To be done for building and deploying the final plugin installer.
 
 1. One time setup
    - Install [inno-setup](https://jrsoftware.org/isinfo.php).
-   - Create `custom_families` folder inside `<root-directory>/build-installer/misc`
    - Create `installers` folder inside `build-installer` put [these](https://drive.google.com/drive/folders/1rvZJ7jytefcPT2KEGaHOcRnVh6wW_vfY) installers inside it.
 2. If there is any new change in the `electron-app` under your branch then build the electron app and replace `snaptrude-manager-<version>` Setup inside `build-installer`.
 3. On feature branches:
