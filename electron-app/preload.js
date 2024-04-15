@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openPageInDefaultBrowser: (url) => ipcRenderer.send('openPageInDefaultBrowser', [url]),
     flushUserData: () => ipcRenderer.send('flushUserData'),
     updateUserData: (data) => ipcRenderer.send('updateUserData', [data]),
-    uploadToSnaptrude: () => ipcRenderer.send('uploadToSnaptrude'),
+    uploadToSnaptrude: (teamId, folderId) => ipcRenderer.send('uploadToSnaptrude', [teamId, folderId]),
     importFromSnaptrude: () => ipcRenderer.send('importFromSnaptrude'),
     log: (messages) => ipcRenderer.send('log', [messages]),
     operationSucceeded: () => ipcRenderer.send('operationSucceeded'),
@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     
     // electron to react
     handleSuccessfulLogin: (callback) => ipcRenderer.on('handleSuccessfulLogin', callback),
-    handleSuccessfulSpeckleUpload: (callback) => ipcRenderer.on('handleSuccessfulSpeckleUpload', callback),
+    handleSuccessfulUpload: (callback) => ipcRenderer.on('handleSuccessfulUpload', callback),
     showLoadingPage: (callback) => ipcRenderer.on('showLoadingPage', callback),
     syncSessionData: (callback) => ipcRenderer.on('syncSessionData', callback),
     goHome: (callback) => ipcRenderer.on('goHome', callback),
@@ -24,6 +24,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     
     // electron to react remove listeners
     removeSuccessfulLoginHandler: () => ipcRenderer.removeAllListeners('handleSuccessfulLogin'),
-    removeSuccessfulSpeckleUploadHandler: () => ipcRenderer.removeAllListeners('handleSuccessfulSpeckleUpload'),
+    removeSuccessfulUploadHandler: () => ipcRenderer.removeAllListeners('handleSuccessfulUpload'),
     removeShowLoadingPageHandler: () => ipcRenderer.removeAllListeners('showLoadingPage'),
 });

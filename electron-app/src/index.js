@@ -23,7 +23,7 @@ reportWebVitals();
   handleSuccessfulLogin: () => {},
   syncSessionData: () => {},
   goHome: () => {},
-  handleSuccessfulSpeckleUpload: () => {},
+  handleSuccessfulUpload: () => {},
   log: () => {},
 };*/
 

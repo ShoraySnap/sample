@@ -59,13 +59,18 @@ const parseProtocolArgs = async function (argv){
     const userData = JSON.parse(queryParamsObject.data);
     store.setAllAndSave(userData);
     
-    electronCommunicator.writeAccountInfoForSpeckleConnector();
     electronCommunicator.syncSessionData();
     electronCommunicator.updateUIAfterLogin();
     // updates UI
     
     logger.log("Login successful", store.get("fullname"));
     logger.log();
+  } else if(deepLinkingUrl.includes("finish")){
+    const REACT_URL = urls.get("snaptrudeReactUrl");
+    store.set("modelLink", REACT_URL + "/model/" + store.get("floorkey"));
+    store.save();
+    electronCommunicator.syncSessionData();
+    electronCommunicator.revitImportDone();
   }
 };
 
@@ -119,7 +124,7 @@ const enableEventListeners = function () {
       store.flush();
     });
     ipcMain.on('updateUserData', (event, [data]) => store.setAllAndSave(data));
-    ipcMain.on('uploadToSnaptrude', electronCommunicator.uploadToSnaptrude);
+    ipcMain.on('uploadToSnaptrude',(event, [teamId, folderId]) => electronCommunicator.uploadToSnaptrude(teamId, folderId));
     ipcMain.on('importFromSnaptrude', electronCommunicator.importFromSnaptrude);
     ipcMain.on('log', (event, [messages]) => logger.log(...messages));
     ipcMain.on('operationSucceeded', electronCommunicator.operationSucceeded);
@@ -158,6 +163,7 @@ const createWindow = async () => {
       // contextIsolation: false,
     },
     resizable: false,
+    icon: __dirname + '/public/favicon.ico',
   });
   
   // remote module not recommended by electron anymore
