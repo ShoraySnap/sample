@@ -11,12 +11,12 @@ using TrudeWall = TrudeSerializer.Components.TrudeWall;
 
 namespace TrudeSerializer.Importer
 {
-    /*! \brief modifies the serializedTrudeData.
-     *  All the modifications in serializedTrudeData are done through this class.
+    /*! @brief modifies the serializedSnaptrudeData.
+     *  All the modifications in serializedSnaptrudeData are done through this class.
      */
     internal class ComponentHandler
     {
-        /*! \brief enum of all components that have a family */
+        /*! @brief enum of all components that have a family */
         public enum FamilyFolder
         {
             Doors,
@@ -26,9 +26,10 @@ namespace TrudeSerializer.Importer
         }
         private ComponentHandler() { }
 
-        /*! \brief only instance of ComponentHandler singleton class */
+        /*! @brief only instance of [ComponentHandler](@ref TrudeSerializer.Importer::ComponentHandler) singleton class */
         private static ComponentHandler instance = null;
 
+        /*! @brief ComponentHandler's instance object is initialized */
         public static ComponentHandler Instance
         {
             get
@@ -42,9 +43,9 @@ namespace TrudeSerializer.Importer
         }
 
         /*! 
-        * extracts levels from the document and adds them to the serializedData
-        * @param serializedTrudeData
-        * @param doc
+        * extracts levels from the document and adds them to the `serializedData`
+        * @param serializedData
+        * @param doc document
         * @return void
         */
         public void AddLevelsToSerializedData(SerializedTrudeData serializedData, Document doc)
