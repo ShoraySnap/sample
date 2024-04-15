@@ -1,5 +1,4 @@
 {
-  "speckleUrl": "https://specklestaging.snaptru.de",
   "snaptrudeReactUrl": "https://staging.snaptru.de",
   "snaptrudeDjangoUrl": "https://api.snaptru.de"
 }
