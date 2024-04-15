@@ -14,29 +14,41 @@ namespace TrudeSerializer
     [Regeneration(RegenerationOption.Manual)]
     public class Command : IExternalCommand
     {
+        internal bool isDone = false;
+        internal Action<string, UIApplication, Document> OnInit;
+        internal Action<View3D, Document> OnView3D;
+        internal Action<SerializedTrudeData> OnCleanSerializedTrudeData;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            return ExecuteWithUIApplication(commandData.Application);
+        }
+
+        internal Result ExecuteWithUIApplication(UIApplication uiapp, bool testMode = false)
         {
             TrudeLogger logger = new TrudeLogger();
             logger.Init();
             string processId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
-            UIApplication uiapp = commandData.Application;
             Document doc = uiapp.ActiveUIDocument.Document;
 
             GlobalVariables.Document = doc;
             GlobalVariables.RvtApp = uiapp.Application;
 
             uiapp.Application.FailuresProcessing += Application_FailuresProcessing;
+
+            OnInit?.Invoke(processId, uiapp, doc);
             try
             {
-                bool status = false;
-
                 View3D view = Get3dView(doc);
                 //SetDetailViewToFine(doc, view);
+                OnView3D?.Invoke(view, doc);
+
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 serializedData.SetProcessId(processId);
 
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
+                OnCleanSerializedTrudeData?.Invoke(serializedData);
+
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
 
 
@@ -44,7 +56,10 @@ namespace TrudeSerializer
                 TrudeDebug.StoreSerializedData(serializedObject);
                 try
                 {
-                    Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                    if(!testMode)
+                    {
+                        Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                    }
                     logger.UploadDone(true);
                 }
                 catch(Exception ex)
@@ -69,7 +84,9 @@ namespace TrudeSerializer
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
                 GlobalVariables.CleanGlobalVariables();
                 logger.Save();
-                Uploader.S3helper.UploadLog(logger, processId);
+                if (!testMode)
+                    Uploader.S3helper.UploadLog(logger, processId);
+                isDone = true;
             }
         }
 
