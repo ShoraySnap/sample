@@ -11,7 +11,7 @@ using TrudeWall = TrudeSerializer.Components.TrudeWall;
 
 namespace TrudeSerializer.Importer
 {
-    /*! @brief modifies the serializedSnaptrudeData.
+    /*! @brief modifies the [serializedSnaptrudeData](@ref TrudeSerializer::TrudeCustomExporter::serializedSnaptrudeData).
      *  All the modifications in serializedSnaptrudeData are done through this class.
      */
     internal class ComponentHandler
@@ -29,7 +29,7 @@ namespace TrudeSerializer.Importer
         /*! @brief only instance of [ComponentHandler](@ref TrudeSerializer.Importer::ComponentHandler) singleton class */
         private static ComponentHandler instance = null;
 
-        /*! @brief ComponentHandler's instance object is initialized */
+        /*! @brief ComponentHandler's [instance](@ref TrudeSerializer.Importer::ComponentHandler::instance) object is initialized */
         public static ComponentHandler Instance
         {
             get
@@ -63,6 +63,14 @@ namespace TrudeSerializer.Importer
                 }
             }
         }
+
+        /*! 
+        * Determines the type of the element and creates the corresponding TrudeComponent
+        * Also sets the family type in `serializedData`, if it exists for that element type
+        * @param serializedData
+        * @param element
+        * @return TrudeComponent
+        */
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
             TrudeLogger.Instance.CountInput(element);
@@ -114,6 +122,12 @@ namespace TrudeSerializer.Importer
             return TrudeMass.GetSerializedComponent(serializedData, element);
         }
 
+        /*! 
+        * Add the TrudeComponent object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler:GetComponent) to the `serializedData`
+        * @param serializedData
+        * @param component
+        * @return void
+        */
         public void AddComponent(SerializedTrudeData serializedData, TrudeComponent component)
         {
             string instanceId = component.elementId.ToString();
@@ -181,12 +195,28 @@ namespace TrudeSerializer.Importer
             TrudeLogger.Instance.CountOutput(component);
         }
 
+        /*! 
+        * Add the RevitLink's TrudeMass object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler:GetComponent) to the `serializedData`
+        * @param serializedData
+        * @param mass
+        * @param revitLink
+        * @param elementId
+        * @return void
+        */
         public void AddComponent(SerializedTrudeData serializedData, TrudeMass mass, string revitLink, string elementId)
         {
             serializedData.RevitLinks[revitLink].Add(elementId, mass);
             TrudeLogger.Instance.CountOutputRevitLink();
         }
 
+        /*!
+        * Add the family of `folder` type to the `serializedData`
+        * @param serializedData
+        * @param folder used to identify the family type
+        * @param familyName name of the family
+        * @param family TrudeFamily object
+        * @return void
+        */
         public void AddFamily(SerializedTrudeData serializedData, FamilyFolder folder, string familyName, TrudeFamily family)
         {
 
@@ -207,6 +237,13 @@ namespace TrudeSerializer.Importer
             }
         }
 
+        /*!
+        * Remove the family of `folder` type from the `serializedData`
+        * @param serializedData
+        * @param folder used to identify the family type
+        * @param familyName name of the family to be removed
+        * @return void
+        */
         public void RemoveFamily(SerializedTrudeData serializedData, FamilyFolder folder, string familyName)
         {
             switch (folder)
@@ -226,11 +263,22 @@ namespace TrudeSerializer.Importer
             }
         }
 
+        /*!
+        * Set the project unit in the `serializedData`
+        * @param serializedData
+        * @param unit unit to be set, e.g. "millimeters", "feetFractionalInches", etc.
+        * @return void
+        */
         public void SetProjectUnit(SerializedTrudeData serializedData, string unit)
         {
             serializedData.SetProjectUnit(unit);
         }
 
+        /*!
+        * Used to remove objects with no geometry from the serializedData.
+        * @param serializedData
+        * @return void
+        */
         public void CleanSerializedData(SerializedTrudeData serializedData)
         {
             serializedData.CleanSerializedData();
