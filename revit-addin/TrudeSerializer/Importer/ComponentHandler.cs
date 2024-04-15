@@ -11,12 +11,12 @@ using TrudeWall = TrudeSerializer.Components.TrudeWall;
 
 namespace TrudeSerializer.Importer
 {
-    /*! @brief modifies the [serializedSnaptrudeData](@ref TrudeSerializer::TrudeCustomExporter::serializedSnaptrudeData).
+    /*! modifies the [serializedSnaptrudeData](@ref TrudeSerializer::TrudeCustomExporter::serializedSnaptrudeData).
      *  All the modifications in serializedSnaptrudeData are done through this class.
      */
     internal class ComponentHandler
     {
-        /*! @brief enum of all components that have a family */
+        /*! enum of all components that have a family */
         public enum FamilyFolder
         {
             Doors,
@@ -26,10 +26,10 @@ namespace TrudeSerializer.Importer
         }
         private ComponentHandler() { }
 
-        /*! @brief only instance of [ComponentHandler](@ref TrudeSerializer.Importer::ComponentHandler) singleton class */
+        /*! only instance of [ComponentHandler](@ref TrudeSerializer.Importer::ComponentHandler) singleton class */
         private static ComponentHandler instance = null;
 
-        /*! @brief ComponentHandler's [instance](@ref TrudeSerializer.Importer::ComponentHandler::instance) object is initialized */
+        /*! ComponentHandler's [instance](@ref TrudeSerializer.Importer::ComponentHandler::instance) object is initialized */
         public static ComponentHandler Instance
         {
             get

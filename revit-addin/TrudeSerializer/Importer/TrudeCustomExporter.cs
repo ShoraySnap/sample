@@ -9,23 +9,23 @@ using TrudeSerializer.Utils;
 
 namespace TrudeSerializer
 {
-    /*! @brief Snaptrude's Custom Exporter class.
+    /*! Snaptrude's Custom Exporter class.
      *  This class allows custom exporting 3D views of a Revit model.
      *  It inherits from the IExportContext interface, which defines methods for export process pipeline.
      */
     internal class TrudeCustomExporter : IExportContext
     {
-        private bool isRevitLink = false; /*!< @brief Flag to check if the current element is a Revit link. */
-        private CurrentLink currentLink; /*!< @brief Used to track the name of current RevitLink. */
-        private List<string> revitLinks = new List<string>(); /*!< @brief Used to track the RevitLink files to avoid circular dependency */
+        private bool isRevitLink = false; /*!< Flag to check if the current element is a Revit link. */
+        private CurrentLink currentLink; /*!< Used to track the name of current RevitLink. */
+        private List<string> revitLinks = new List<string>(); /*!< Used to track the RevitLink files to avoid circular dependency */
 
-        private Document doc; /*!< @brief Used to track the active document, which changes in case of RevitLinks */
+        private Document doc; /*!< Used to track the active document, which changes in case of RevitLinks */
         private Stack<Transform> transforms = new Stack<Transform>();
 
-        private String currentMaterialId; /*!< @brief Used to track the current MaterialId. */
-        private CurrentElement currentElement; /*!< @brief Used to track the current element. */
-        private List<string> elementIds = new List<string>(); /*!< @brief Tracks all elements to avoid duplication, as in the case of some Generic Models. */
-        public SerializedTrudeData serializedSnaptrudeData;  /*!< @brief The main SerializedTrudeData object, which stores the serialized data.  */
+        private String currentMaterialId; /*!< Used to track the current MaterialId. */
+        private CurrentElement currentElement; /*!< Used to track the current element. */
+        private List<string> elementIds = new List<string>(); /*!< Tracks all elements to avoid duplication, as in the case of some Generic Models. */
+        public SerializedTrudeData serializedSnaptrudeData;  /*!< The main SerializedTrudeData object, which stores the serialized data.  */
 
         /*!
         *  @return serializedSnaptrudeData
@@ -57,7 +57,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Constructor for TrudeCustomExporter class.
+        * Constructor for TrudeCustomExporter class.
         * @param doc new document to track
         */
         public TrudeCustomExporter(Document doc)
@@ -69,7 +69,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Called when the export process starts.
+        * Called when the export process starts.
         * The first step of export pipeline. Only called once in the export process.
         * @return bool
         */
@@ -80,7 +80,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Called when the export process finishes.
+        * Called when the export process finishes.
         * The last step of export pipeline. Only called once in the export process.
         */
         void IExportContext.Finish()
@@ -105,7 +105,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief init for RevitLink element export - sets current doc and currentLink, checks for circular dependency. 
+        * init for RevitLink element export - sets current doc and currentLink, checks for circular dependency. 
         * Part of the export pipeline, called after onElementBegin at the start each time a linked project element is encountered.
         * @param node the current LinkNode
         * @return RenderNodeAction Proceed or Skip
@@ -142,7 +142,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief last step of RevitLink element export - resets current doc and currentLink
+        * last step of RevitLink element export - resets current doc and currentLink
         * @param node
         */
         void IExportContext.OnLinkEnd(LinkNode node)
@@ -155,7 +155,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief adds element to serializedSnaptrudeData and skips the flow for invalid elements.
+        * adds element to serializedSnaptrudeData and skips the flow for invalid elements.
         * Part of the export pipeline, called after onViewBegin for each element encountered.
         * @param elementId
         * @return RenderNodeAction Proceed or Skip
@@ -217,7 +217,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Checks if an element has appeared before.
+        * Checks if an element has appeared before.
         * @param element
         * @return bool true if element is duplicate, false otherwise
         */
@@ -233,7 +233,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief adds revitLink element to serializedSnaptrudeData. 
+        * adds revitLink element to serializedSnaptrudeData. 
         * Also checks of undesirable elements like Levels, Model Groups, Divisions
         * @param elementId
         * @param element
@@ -253,7 +253,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Part of the export pipeline, called at the end of each element export.
+        * Part of the export pipeline, called at the end of each element export.
         * @param elementId
         */
         void IExportContext.OnElementEnd(ElementId elementId)
@@ -262,7 +262,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Part of the export pipeline, called if the element has a family instance.
+        * Part of the export pipeline, called if the element has a family instance.
         * @param node InstanceNode
         * @return RenderNodeAction Proceed
         */
@@ -273,7 +273,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief Part of the export pipeline, called after all faces are done for an element.
+        * Part of the export pipeline, called after all faces are done for an element.
         * @param node InstanceNode
         * @return RenderNodeAction void
         */
@@ -303,7 +303,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief used to assign material to current element. 
+        * used to assign material to current element. 
         * Part of the export pipeline, called after onElementBegin / onInstanceBegin for each element encountered.
         * @param node MaterialNode
         */
@@ -325,7 +325,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * @brief used to extract vertices, faces and uvs for the current element. 
+        * used to extract vertices, faces and uvs for the current element. 
         * Part of the export pipeline, called after assigning material to the elemnt.
         * @param node PolymeshTopology
         */
