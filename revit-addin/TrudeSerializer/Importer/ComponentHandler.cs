@@ -46,7 +46,6 @@ namespace TrudeSerializer.Importer
         * extracts levels from the document and adds them to the `serializedData`
         * @param serializedData
         * @param doc document
-        * @return void
         */
         public void AddLevelsToSerializedData(SerializedTrudeData serializedData, Document doc)
         {
@@ -123,10 +122,9 @@ namespace TrudeSerializer.Importer
         }
 
         /*! 
-        * Add the TrudeComponent object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler:GetComponent) to the `serializedData`
+        * Add the TrudeComponent object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler::GetComponent) to the `serializedData`
         * @param serializedData
         * @param component
-        * @return void
         */
         public void AddComponent(SerializedTrudeData serializedData, TrudeComponent component)
         {
@@ -196,12 +194,11 @@ namespace TrudeSerializer.Importer
         }
 
         /*! 
-        * Add the RevitLink's TrudeMass object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler:GetComponent) to the `serializedData`
+        * Add the RevitLink's TrudeMass object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler::GetComponent) to the `serializedData`
         * @param serializedData
         * @param mass
         * @param revitLink
         * @param elementId
-        * @return void
         */
         public void AddComponent(SerializedTrudeData serializedData, TrudeMass mass, string revitLink, string elementId)
         {
@@ -215,7 +212,6 @@ namespace TrudeSerializer.Importer
         * @param folder used to identify the family type
         * @param familyName name of the family
         * @param family TrudeFamily object
-        * @return void
         */
         public void AddFamily(SerializedTrudeData serializedData, FamilyFolder folder, string familyName, TrudeFamily family)
         {
@@ -242,7 +238,6 @@ namespace TrudeSerializer.Importer
         * @param serializedData
         * @param folder used to identify the family type
         * @param familyName name of the family to be removed
-        * @return void
         */
         public void RemoveFamily(SerializedTrudeData serializedData, FamilyFolder folder, string familyName)
         {
@@ -267,7 +262,6 @@ namespace TrudeSerializer.Importer
         * Set the project unit in the `serializedData`
         * @param serializedData
         * @param unit unit to be set, e.g. "millimeters", "feetFractionalInches", etc.
-        * @return void
         */
         public void SetProjectUnit(SerializedTrudeData serializedData, string unit)
         {
@@ -277,7 +271,6 @@ namespace TrudeSerializer.Importer
         /*!
         * Used to remove objects with no geometry from the serializedData.
         * @param serializedData
-        * @return void
         */
         public void CleanSerializedData(SerializedTrudeData serializedData)
         {

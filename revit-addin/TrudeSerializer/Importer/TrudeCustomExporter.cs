@@ -9,20 +9,27 @@ using TrudeSerializer.Utils;
 
 namespace TrudeSerializer
 {
+    /*! @brief Snaptrude's Custom Exporter class.
+     *  This class allows custom exporting 3D views of a Revit model.
+     *  It inherits from the IExportContext interface, which defines methods for export process pipeline.
+     */
     internal class TrudeCustomExporter : IExportContext
     {
-        private bool isRevitLink = false;
-        private CurrentLink currentLink;
-        private List<string> revitLinks = new List<string>();
+        private bool isRevitLink = false; /*!< @brief Flag to check if the current element is a Revit link. */
+        private CurrentLink currentLink; /*!< @brief Used to track the name of current RevitLink. */
+        private List<string> revitLinks = new List<string>(); /*!< @brief Used to track the RevitLink files to avoid circular dependency */
 
-        private Document doc;
+        private Document doc; /*!< @brief Used to track the active document, which changes in case of RevitLinks */
         private Stack<Transform> transforms = new Stack<Transform>();
 
-        private String currentMaterialId;
-        private CurrentElement currentElement;
-        private List<string> elementIds = new List<string>();
-        public SerializedTrudeData serializedSnaptrudeData;
+        private String currentMaterialId; /*!< @brief Used to track the current MaterialId. */
+        private CurrentElement currentElement; /*!< @brief Used to track the current element. */
+        private List<string> elementIds = new List<string>(); /*!< @brief Tracks all elements to avoid duplication, as in the case of some Generic Models. */
+        public SerializedTrudeData serializedSnaptrudeData;  /*!< @brief The main SerializedTrudeData object, which stores the serialized data.  */
 
+        /*!
+        *  @return serializedSnaptrudeData
+        */
         public SerializedTrudeData GetExportData()
         {
             return serializedSnaptrudeData;
@@ -39,12 +46,20 @@ namespace TrudeSerializer
             }
         }
 
+        /*!
+        * used to change the current document in case of RevitLinks
+        * @param doc new document to track
+        */
         private void ChangeCurrentDocument(Document doc)
         {
             this.doc = doc;
             GlobalVariables.CurrentDocument = doc;
         }
 
+        /*!
+        * @brief Constructor for TrudeCustomExporter class.
+        * @param doc new document to track
+        */
         public TrudeCustomExporter(Document doc)
         {
             this.doc = doc;
@@ -53,14 +68,21 @@ namespace TrudeSerializer
             GlobalVariables.CurrentDocument = doc;
         }
 
-
-
+        /*!
+        * @brief Called when the export process starts.
+        * The first step of export pipeline. Only called once in the export process.
+        * @return bool
+        */
         bool IExportContext.Start()
         {
             UnitConversion.GetUnits(doc, serializedSnaptrudeData);
             return true;
         }
 
+        /*!
+        * @brief Called when the export process finishes.
+        * The last step of export pipeline. Only called once in the export process.
+        */
         void IExportContext.Finish()
         {
             ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
@@ -82,6 +104,12 @@ namespace TrudeSerializer
             return;
         }
 
+        /*!
+        * @brief init for RevitLink element export - sets current doc and currentLink, checks for circular dependency. 
+        * Part of the export pipeline, called after onElementBegin at the start each time a linked project element is encountered.
+        * @param node the current LinkNode
+        * @return RenderNodeAction Proceed or Skip
+        */
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
             Document doc = node.GetDocument();
@@ -113,6 +141,10 @@ namespace TrudeSerializer
             return RenderNodeAction.Proceed;
         }
 
+        /*!
+        * @brief last step of RevitLink element export - resets current doc and currentLink
+        * @param node
+        */
         void IExportContext.OnLinkEnd(LinkNode node)
         {
             ChangeCurrentDocument(GlobalVariables.Document);
@@ -122,6 +154,12 @@ namespace TrudeSerializer
             transforms.Pop();
         }
 
+        /*!
+        * @brief adds element to serializedSnaptrudeData and skips the flow for invalid elements.
+        * Part of the export pipeline, called after onViewBegin for each element encountered.
+        * @param elementId
+        * @return RenderNodeAction Proceed or Skip
+        */
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
             Element element = doc.GetElement(elementId);
@@ -178,6 +216,11 @@ namespace TrudeSerializer
             return RenderNodeAction.Proceed;
         }
 
+        /*!
+        * @brief Checks if an element has appeared before.
+        * @param element
+        * @return bool true if element is duplicate, false otherwise
+        */
         private bool isDuplicateElement(Element element)
         {
             string elementId = element.Id.ToString();
@@ -189,6 +232,13 @@ namespace TrudeSerializer
             return false;
         }
 
+        /*!
+        * @brief adds revitLink element to serializedSnaptrudeData. 
+        * Also checks of undesirable elements like Levels, Model Groups, Divisions
+        * @param elementId
+        * @param element
+        * @return TrudeMass the RevitLink element converted to TrudeMass
+        */
         private TrudeComponent AddLinkedComponentToSerializedData(ElementId elementId, Element element)
         {
             TrudeMass mass = TrudeMass.GetSerializedComponent(serializedSnaptrudeData, element);
@@ -202,17 +252,31 @@ namespace TrudeSerializer
             return mass;
         }
 
+        /*!
+        * @brief Part of the export pipeline, called at the end of each element export.
+        * @param elementId
+        */
         void IExportContext.OnElementEnd(ElementId elementId)
         {
             return;
         }
 
+        /*!
+        * @brief Part of the export pipeline, called if the element has a family instance.
+        * @param node InstanceNode
+        * @return RenderNodeAction Proceed
+        */
         RenderNodeAction IExportContext.OnInstanceBegin(InstanceNode node)
         {
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
             return RenderNodeAction.Proceed;
         }
 
+        /*!
+        * @brief Part of the export pipeline, called after all faces are done for an element.
+        * @param node InstanceNode
+        * @return RenderNodeAction void
+        */
         void IExportContext.OnInstanceEnd(InstanceNode node)
         {
             transforms.Pop();
@@ -238,6 +302,11 @@ namespace TrudeSerializer
             return;
         }
 
+        /*!
+        * @brief used to assign material to current element. 
+        * Part of the export pipeline, called after onElementBegin / onInstanceBegin for each element encountered.
+        * @param node MaterialNode
+        */
         void IExportContext.OnMaterial(MaterialNode node)
         {
             String materialId = node.MaterialId.ToString();
@@ -255,6 +324,11 @@ namespace TrudeSerializer
             return;
         }
 
+        /*!
+        * @brief used to extract vertices, faces and uvs for the current element. 
+        * Part of the export pipeline, called after assigning material to the elemnt.
+        * @param node PolymeshTopology
+        */
         void IExportContext.OnPolymesh(PolymeshTopology node)
         {
             String materialId = this.currentMaterialId;
