@@ -27,13 +27,14 @@
 4. Open the following file:
    `programData\autodesk\Revit\Addins\<REVIT_VERSION>\snaptrudeManagerAddin.addin`
    and replace the Assembly config in it with below value:
-   ```    
+   ```
    <Assembly>{repo-path}\revit-addin\SnaptrudeManagerAddin\bin\Debug\{REVIT_VERSION}\SnaptrudeManagerAddin.dll</Assembly>
    ```
-   * this will use the SnaptrudeManager plugin built from the local repo, instead of the one that we just installed from setup.
+   - this will use the SnaptrudeManager plugin built from the local repo, instead of the one that we just installed from setup.
 5. Use the debug profile corresponding to the desired Revit version from the toolbar
 
 > Note:
+>
 > 1. Make sure electron-app react server (`npm run start`) is running
 > 2. Update URLs in `{users}programData\snaptrude-manager\urls.json` to use different snaptrudereact/snaptrudestaging servers (e.g local or PR testing)
 
@@ -69,8 +70,43 @@ To be done for building and deploying the final plugin installer.
 
 Check out this notion doc for setup, running and debugging Unit Tests for revit-addin [Unit Tests Doc](https://www.notion.so/snaptrude/Unit-Testing-Revit-Plugin-2316ff48f78441bbace47539aabc73d1)
 
+## Documentation with Doxygen
+
+- Documentation can be viewed from the [official website](https://www.doxygen.nl/manual/docblocks.html).
+- `JAVADOC_AUTOBRIEF` is enabled, which means a brief description ends at the first dot followed by a space or new line.
+
+### Doxygen Setup
+
+1. Download the latest installer setup from Doxygen [github](https://github.com/doxygen/doxygen/releases) or [website](https://www.doxygen.nl/download.html).
+2. Open the installer, remember to check on the doxywizard GUI, and continue the installation process.
+3. Download the [DoxyFile from Drive](https://drive.google.com/file/d/1z-wlGA-IwhTYAT9aONaP_OcpTmHUYJMx/view?usp=sharing). This defines the settings to be used by the documentation system.
+4. (optional) download [doxygen-awesome.css](https://github.com/jothepro/doxygen-awesome-css/blob/main/doxygen-awesome.css) for a better UI.
+
+### Generating documentation
+
+1. Open doxywizard program.
+2. Go to File > Open > select the downloaded DoxyFile.
+3. We will set the following parameters manually via UI:
+
+   ```
+   <working directory>
+   INPUT
+   OUTPUT_DIRECTORY
+   (optional) HTML_EXTRA_STYLESHEET
+   ```
+
+   - `working directory`: all files and directories will be defined relative to this directory. browse and set it as any directory you want.
+   - `INPUT`: In the Wizard tab, for 'Source Code Directory', browse and select `<root-directory>/revit-addin/TrudeSerializer/Importer`
+   - `OUTPUT_DIRECTORY`: In the Wizard tab, for 'Destination Directory', browse and select the directory you want to save the generated HTML documentation. Note that this documentation _should never_ be pushed.
+   - (optional) `HTML_EXTRA_STYLESHEET`: In the Expert tab, choose HTML topic, scroll down to find HTML_EXTRA_STYLESHEET, and browse to `doxygen-awesome.css` file.
+
+4. You can save this settings configuration by File > Save.
+5. Go to Run tab, then Run Doxygen. This should generate the HTML documentation. Click on Show HTML Output to view it.
+6. If you're adding/modifiying the documentation, scroll the Output section for any errors after doxywizard finishes generating the doc.
+
 ## Debugging
+
 1. If you've added (or pulled) a new directory or files and intellij is unable to identify them, then close Visual Studio, delete `.vs` folder and reopen Visual Studio
 2. Double check the path for `SnaptrudeManagerAddin.dll` in `SnaptrudeManagerAddin.addin`
 3. For log-in issues in electron-app, log-out and log-in in snaptrudereact, then try again.
-4. Make sure the url in `urls.json` is correct - e.g. URL doesn't end with `/` 
+4. Make sure the url in `urls.json` is correct - e.g. URL doesn't end with `/`
