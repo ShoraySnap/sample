@@ -19,7 +19,6 @@ import urls from "../../services/urls";
 import _ from "lodash";
 import UpgradePlan from "../../components/UpgradePlan";
 import { Tooltip } from "antd";
-import { RouteStore } from "../routeStore";
 
 const Wrapper = styled.div`
   // position: relative;
@@ -119,21 +118,19 @@ const Workspace = ({
     const workspaceId = selectedWorkspaceId;
     const folderId = currentFolderId;
 
-    // const projectLink = await snaptrudeService.createProject(
-    //   sessionData.getUserData()["streamId"],
-    //   workspaceId,
-    //   folderId
-    // );
-    // const projectLink = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
     setIsLoading(false);
-    window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
+
+    if(sessionData.getUserData().fileType === "rfa") {
+      window.electronAPI.uploadRFAToSnaptrude(workspaceId, folderId);
+    }
+    else {
+      window.electronAPI.uploadToSnaptrude(workspaceId, folderId);
+    }
+
     const floorKey = sessionData.getUserData()["floorkey"];
     const projectLink = urls.get("snaptrudeReactUrl") + "/model/" + floorKey;
 
-    if (projectLink) {
-      RouteStore.set("projectLink", projectLink);
-    } else {
+    if (!projectLink) {
       // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
@@ -145,11 +142,9 @@ const Workspace = ({
       urls.get("snaptrudeReactUrl") + "/dashboard/profile/plans";
 
     if (upgradePlanLink) {
-      // MAKE CHANGES HERE TOO
       window.electronAPI.openPageInDefaultBrowser(upgradePlanLink);
       window.electronAPI.operationSucceeded();
     } else {
-      // logger.log("Operation failed");
       window.electronAPI.operationFailed();
     }
     goHome();
@@ -216,14 +211,13 @@ const Workspace = ({
   const isUserPro = async () => {
     const isProUser = await snaptrudeService.isPaidUserAccount();
     setIsProUser(isProUser);
-  }
+  };
 
   const getFolders = async () => {
     let folders = await snaptrudeService.getFolders(
       selectedWorkspaceId,
-      currentFolderId
+      currentFolderId,
     );
-   
 
     if (folders) {
       folders.forEach((f) => {
@@ -238,7 +232,8 @@ const Workspace = ({
         type: CSS_FOLDER_TAG,
       };
 
-      const workspaceIcon = selectedWorkspaceName === PERSONAL_WORKSPACE_NAME ? personal : team;
+      const workspaceIcon =
+        selectedWorkspaceName === PERSONAL_WORKSPACE_NAME ? personal : team;
 
       const currentWorkspace = {
         id: ROOT_FOLDER_ID,
@@ -272,8 +267,8 @@ const Workspace = ({
   const leftButtonCallback = isWorkspacesPage
     ? closeApplication
     : isRootFolderPage
-    ? goBackToWorkspaces
-    : goOneFolderUp;
+      ? goBackToWorkspaces
+      : goOneFolderUp;
 
   const rightButtonCallback = isWorkspacesPage ? chooseWorkspace : onSubmit;
   const entryClickCallback = isWorkspacesPage
@@ -296,10 +291,10 @@ const Workspace = ({
 
   const [entries, setEntries] = useState([]);
   const [selectedEntryId, setSelectedEntryId] = useState(
-    initiallySelectedEntryId
+    initiallySelectedEntryId,
   );
   const [selectedEntryName, setSelectedEntryName] = useState(
-    initiallySelectedEntryName
+    initiallySelectedEntryName,
   );
 
   useEffect(() => {
@@ -308,7 +303,7 @@ const Workspace = ({
       isRootFolderPage
         ? setSelectedEntryId(selectedWorkspaceId)
         : setSelectedEntryId(parentFolderId);
-    }else{
+    } else {
       setIsWorkSpaceLoading(true);
     }
     const getEntries = isWorkspacesPage ? getWorkspaces : getFolders;
@@ -321,13 +316,16 @@ const Workspace = ({
       }
     });
 
-    isUserPro().then(() => { });
+    isUserPro().then(() => {});
   }, [selectedWorkspaceId, foldersArray, parentFolderId]);
 
   if (isWorkSpaceLoading) return <LoadingScreen />;
   if (!entries.length || !isProUser)
     return (
-    <UpgradePlan closeApplication = {closeApplication} onSubmitGoToPayment = {onSubmitGoToPayment}/>
+      <UpgradePlan
+        closeApplication={closeApplication}
+        onSubmitGoToPayment={onSubmitGoToPayment}
+      />
     );
   return (
     <Wrapper>
@@ -339,21 +337,26 @@ const Workspace = ({
               type + (id === selectedEntryId ? "selected" : "");
             const classNameTxt = id === selectedEntryId ? "selected" : "";
             return (
-              <Tooltip placement="top" key = {idx} title={name.length > 25 ? name : undefined} color = {colors.primeBlack} >
-              <WorkspaceInfo
+              <Tooltip
+                placement="top"
                 key={idx}
-                onClick={() => entryClickCallback(id, name)}
+                title={name.length > 25 ? name : undefined}
+                color={colors.primeBlack}
               >
-                <WorkspaceIcon
-                  className={classNameIcon + "-img"}
-                  src={icon}
-                  alt={"workspace"}
-                />
-                <WorkspaceTitle className={classNameTxt + "-txt"}>
-                  {" "}
-                  {name}{" "}
-                </WorkspaceTitle>
-              </WorkspaceInfo>
+                <WorkspaceInfo
+                  key={idx}
+                  onClick={() => entryClickCallback(id, name)}
+                >
+                  <WorkspaceIcon
+                    className={classNameIcon + "-img"}
+                    src={icon}
+                    alt={"workspace"}
+                  />
+                  <WorkspaceTitle className={classNameTxt + "-txt"}>
+                    {" "}
+                    {name}{" "}
+                  </WorkspaceTitle>
+                </WorkspaceInfo>
               </Tooltip>
             );
           })}

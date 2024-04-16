@@ -3,32 +3,27 @@ const path = require("path");
 const fs = require("fs");
 const logger = require("./services/logger");
 
-/*
-
-TO REMEMBER-
-
-There could be discrepancy between in memory data and the data in config.json
-That is by design. All required data need not be written to disk
-
- */
-
-const store = (function () {
+const userPreferences = (function () {
   let filePath;
   let data;
+  const initData = {
+    showWarningVisibility: true,
+    showWarningReconciliation: true,
+  };
 
   const init = function (options = {}) {
     // Renderer process has to get `app` module via `remote`, whereas the main process can get it directly
     // app.getPath('userData') will return a string of the user's app data directory path.
     const appDataPath = electron.app.getPath("userData");
-
-    const fileName = options.configName || "config";
-    filePath = path.join(appDataPath, fileName + ".json");
+    filePath = path.join(appDataPath, "userPreferences.json");
 
     if (fs.existsSync(filePath)) {
       data = _parseDataFile(filePath);
-    } else {
-      _createEmptyConfig();
+      if (data != {}) {
+        return;
+      }
     }
+    _createEmptyUserPreferences();
   };
 
   const _parseDataFile = function (filePath) {
@@ -38,12 +33,12 @@ const store = (function () {
       return JSON.parse(fs.readFileSync(filePath));
     } catch (error) {
       logger.log(error);
-      _createEmptyConfig();
+      _createEmptyUserPreferences();
     }
   };
 
-  const _createEmptyConfig = function () {
-    data = {};
+  const _createEmptyUserPreferences = function () {
+    data = initData;
     save();
   };
 
@@ -52,18 +47,13 @@ const store = (function () {
     return data[key];
   };
 
+  const getData = function () {
+    return data;
+  };
+
   // ...and this will set it
   const set = function (key, val) {
     data[key] = val;
-  };
-
-  const unset = function (key) {
-    delete data[key];
-  };
-
-  const setAllAndSave = function (dataObject) {
-    data = dataObject;
-    save();
   };
 
   const save = function () {
@@ -78,24 +68,13 @@ const store = (function () {
     }
   };
 
-  const getData = function () {
-    return data;
-  };
-
-  const flush = function () {
-    _createEmptyConfig();
-  };
-
   return {
     init,
     get,
-    set,
-    unset,
-    setAllAndSave,
-    save,
-    flush,
     getData,
+    set,
+    save,
   };
 })();
 
-module.exports = store;
+module.exports = userPreferences;

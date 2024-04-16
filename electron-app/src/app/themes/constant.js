@@ -36,12 +36,22 @@ export const colors = {
   veryDimDullGrey: "#cccccc",
   midWhite: "#FCFCFC",
   midGrey: "#cccccc",
+
+  Neutral: {
+    900: "#2d2e37",
+    800: "#484B5B",
+    600: "#767B93",
+    500: "#AFB2C0",
+    450: "#989DAE",
+    300: "#DDDEE4",
+    200: "#E8E9ED",
+  },
 };
 
 export const fontSizes = {
   veryTiny: "0.625rem",
   tiny: "0.875rem",
-  small: "1rem",
+  small: "0.95rem",
   large: "3rem",
   heading: "1.375rem",
 };

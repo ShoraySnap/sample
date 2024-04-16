@@ -50,11 +50,12 @@ namespace SnaptrudeManagerAddin
                 Document doc = uidoc.Document;
                 string name = doc.Title; // name of the current project
                 string path = doc.PathName;
+                string fileType = doc.IsFamilyDocument ? "rfa" : "rvt";
 
 
                 log("Revit addin clicked");
 
-                string requestURL = "snaptrude://start?name=" + name;
+                string requestURL = "snaptrude://start?name=" + name + "&fileType=" + fileType;
                 // System.Diagnostics.Process.Start("explorer", requestURL);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Column, Container, Rows } from "../../components/Styled/Comps";
+import { Column, Rows } from "../../components/Styled/Comps";
 import login from "../../assets/login.svg";
 import upload from "../../assets/upload.svg";
 import reconcile from "../../assets/reconcile.svg";
@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import urls from "../../services/urls";
 import snaptrudeService from "../../services/snaptrude.service";
 import LoadingScreen from "../../components/Loader";
+import userPreferences from "../../services/userPreferences";
 
 const openLoginPageInBrowser = () => {
   const logInUrl = urls.get("snaptrudeReactUrl") + "/login?externalAuth=revit";
@@ -26,6 +27,7 @@ const flushUserData = () => {
 
 const Home = () => {
   const navigate = useNavigate();
+  const fileType = sessionData.getUserData().fileType;
 
   const loginButton = {
     id: BUTTONS.login,
@@ -39,7 +41,13 @@ const Home = () => {
     title: "Upload to Snaptrude",
     icon: upload,
     onClick: () => {
-      navigate(ROUTES.chooseProjectLocation);
+      navigate(
+        userPreferences.get("showWarningVisibility") == true
+          ? ROUTES.warningVisibility
+          : fileType == "rfa"
+          ? ROUTES.projectTypeSelection
+          : ROUTES.chooseProjectLocation
+      );
       // navigate(ROUTES.loading);
       // backend has to initiate the loading page provided everything has worked properly
     },
@@ -158,6 +166,10 @@ const Home = () => {
                 button.id === BUTTONS.reconcile
               )
                 isDisabled = true;
+            }
+
+            if (fileType == "rfa" && button.id === BUTTONS.reconcile) {
+              isDisabled = true;
             }
 
             return (

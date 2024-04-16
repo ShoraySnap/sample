@@ -92,6 +92,15 @@ namespace TrudeSerializer
 
         private SerializedTrudeData ExportViewUsingCustomExporter(Document doc, View3D view)
         {
+            if(doc.IsFamilyDocument)
+            {
+                TrudeCustomExporterForRFA exporterContextForRFA = new TrudeCustomExporterForRFA(doc);
+                CustomExporter exporterForRFA = new CustomExporter(doc, exporterContextForRFA);
+
+                exporterForRFA.Export(view);
+                return exporterContextForRFA.GetExportData();
+            }
+
             TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
             CustomExporter exporter = new CustomExporter(doc, exporterContext);
 

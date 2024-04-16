@@ -8,7 +8,7 @@ const electron = require("electron");
 const urls = require("./services/urls");
 const sessionData = require("../electron/sessionData");
 const snaptrudeService = require("./services/snaptrude.service");
-
+const userPreferences = require("./UserPreferences");
 
 const electronCommunicator = (function () {
   let mainWindow;
@@ -42,7 +42,10 @@ const electronCommunicator = (function () {
 
     try {
       const client = net.createConnection(PIPE_PATH + PIPE_NAME, () => {
-        logger.log("Connected to Revit pipe server!", "Sending command to import from Snaptrude");
+        logger.log(
+          "Connected to Revit pipe server!",
+          "Sending command to import from Snaptrude"
+        );
         client.write(REVIT_PIPE_MSG_BEGIN_IMPORT);
 
         if (timeoutId) clearTimeout(timeoutId);
@@ -67,7 +70,10 @@ const electronCommunicator = (function () {
 
     try {
       const client = net.createConnection(PIPE_PATH + PIPE_NAME, () => {
-        logger.log("Connected to Revit pipe server!", "Sending command to export to Snaptrude");
+        logger.log(
+          "Connected to Revit pipe server!",
+          "Sending command to export to Snaptrude"
+        );
         client.write(REVIT_PIPE_MSG_BEGIN_EXPORT);
 
         if (timeoutId) clearTimeout(timeoutId);
@@ -91,7 +97,10 @@ const electronCommunicator = (function () {
 
     try {
       const client = net.createConnection(PIPE_PATH + PIPE_NAME, () => {
-        logger.log("Connected to Revit pipe server!", "Sending command to stop waiting");
+        logger.log(
+          "Connected to Revit pipe server!",
+          "Sending command to stop waiting"
+        );
         client.write(REVIT_PIPE_MSG_STOP);
 
         isRevitWaiting = false;
@@ -114,7 +123,10 @@ const electronCommunicator = (function () {
 
     try {
       const client = net.createConnection(PIPE_PATH + PIPE_NAME, () => {
-        logger.log("Connected to Revit pipe server!", "Sending command for done import");
+        logger.log(
+          "Connected to Revit pipe server!",
+          "Sending command for done import"
+        );
         client.write(REVIT_PIPE_MEG_FINISH_IMPORT);
 
         if (timeoutId) clearTimeout(timeoutId);
@@ -147,7 +159,15 @@ const electronCommunicator = (function () {
     sendPipeCommandForImport();
   };
 
-  const uploadToSnaptrude = async function (teamId, folderId) {
+  const uploadToExistingProject = async function (url) {
+    // taufiqul
+  };
+
+  const uploadRFAToExistingProject = async function (url) {
+    let floorKey = url.endsWith("/")
+      ? url.slice(-7).slice(0, 6)
+      : url.slice(-6);
+
     if (!isRevitWaiting) {
       logger.log("Upload clicked but Revit is not waiting for a command");
       return;
@@ -155,15 +175,13 @@ const electronCommunicator = (function () {
 
     logger.log("Uploading to Snaptrude");
 
-    // TODO: ADD SOME FUNCTIONALITY TO UPLOAD TO EXISTING PROJECT 
-    const snaptrudeProject = await snaptrudeService.createProject(teamId, folderId);
-    if (!snaptrudeProject) {
-      logger.log("Error creating Snaptrude project");
-      return;
-    }
+    const snaptrudeProject = floorKey;
 
-    const revitImportState = await snaptrudeService.flagRevitImportState(snaptrudeProject, "NEW");
-    if(!revitImportState) {
+    const revitImportState = await snaptrudeService.flagRevitImportState(
+      snaptrudeProject,
+      "RFA"
+    );
+    if (!revitImportState) {
       logger.log("Failed to flag revit import state!");
       return;
     }
@@ -174,6 +192,82 @@ const electronCommunicator = (function () {
 
     logger.log("Generated model", snaptrudeProject);
     syncSessionData();
+    syncUserPreferences();
+    sendPipeCommandForExport();
+    updateUIShowLoadingPage();
+  }
+
+  const uploadRFAToSnaptrude = async function (teamId, folderId) {
+    if (!isRevitWaiting) {
+      logger.log("Upload clicked but Revit is not waiting for a command");
+      return;
+    }
+
+    logger.log("Uploading to Snaptrude");
+
+    const snaptrudeProject = await snaptrudeService.createProject(
+      teamId,
+      folderId
+    );
+    if (!snaptrudeProject) {
+      logger.log("Error creating Snaptrude project");
+      return;
+    }
+
+    const revitImportState = await snaptrudeService.flagRevitImportState(
+      snaptrudeProject,
+      "RFA"
+    );
+    if (!revitImportState) {
+      logger.log("Failed to flag revit import state!");
+      return;
+    }
+    store.set("revitImportState", revitImportState);
+    store.set("floorkey", snaptrudeProject);
+
+    store.save();
+
+    logger.log("Generated model", snaptrudeProject);
+    syncSessionData();
+    syncUserPreferences();
+    sendPipeCommandForExport();
+    updateUIShowLoadingPage();
+  }
+
+  const uploadToSnaptrude = async function (teamId, folderId) {
+    if (!isRevitWaiting) {
+      logger.log("Upload clicked but Revit is not waiting for a command");
+      return;
+    }
+
+    logger.log("Uploading to Snaptrude");
+
+    // TODO: ADD SOME FUNCTIONALITY TO UPLOAD TO EXISTING PROJECT
+    const snaptrudeProject = await snaptrudeService.createProject(
+      teamId,
+      folderId
+    );
+    if (!snaptrudeProject) {
+      logger.log("Error creating Snaptrude project");
+      return;
+    }
+
+    const revitImportState = await snaptrudeService.flagRevitImportState(
+      snaptrudeProject,
+      "NEW"
+    );
+    if (!revitImportState) {
+      logger.log("Failed to flag revit import state!");
+      return;
+    }
+    store.set("revitImportState", revitImportState);
+    store.set("floorkey", snaptrudeProject);
+
+    store.save();
+
+    logger.log("Generated model", snaptrudeProject);
+    syncSessionData();
+    syncUserPreferences();
     sendPipeCommandForExport();
     updateUIShowLoadingPage();
   };
@@ -231,6 +325,10 @@ const electronCommunicator = (function () {
     mainWindow.webContents.send("syncSessionData", data);
   };
 
+  const syncUserPreferences = function (data = userPreferences.getData()) {
+    mainWindow.webContents.send("syncUserPreferences", data);
+  };
+
   const setUrls = function () {
     mainWindow.webContents.send("setUrls", urls.getAll());
   };
@@ -251,16 +349,20 @@ const electronCommunicator = (function () {
     openPageInDefaultBrowser,
     revitImportDone,
     uploadToSnaptrude,
+    uploadToExistingProject,
+    uploadRFAToSnaptrude,
+    uploadRFAToExistingProject,
     importFromSnaptrude,
     operationSucceeded,
     operationFailed,
     revitIsWaiting,
     setUrls,
     openDevtools,
-
     updateUIAfterLogin,
     updateUIShowLoadingPage,
     syncSessionData,
+    syncUserPreferences,
+    // updateUserPreferences,
     goHome,
     closeApplication,
   };
