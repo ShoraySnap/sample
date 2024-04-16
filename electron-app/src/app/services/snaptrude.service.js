@@ -3,18 +3,14 @@ import sessionData from "./sessionData";
 import logger from "./logger";
 import urls from "./urls";
 import { PERSONAL_WORKSPACE_ID } from "../routes/constants";
-import _ from "lodash";
+import { keyBy } from "lodash";
+import { CUSTOMER_LIFECYCLE, RequestType } from "./constants";
 
 const snaptrudeService = (function () {
-  const RequestType = {
-    GET: "GET",
-    POST: "POST",
-  };
-
   const _callApi = async function (
     endPoint,
     requestType = RequestType.POST,
-    data = {}
+    data = {},
   ) {
     const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
     const formData = new FormData();
@@ -52,7 +48,7 @@ const snaptrudeService = (function () {
             res.status,
             res.statusText,
             res.data.message,
-            res.data.error
+            res.data.error,
           );
         else logger.log("Empty error msg", endPoint);
       });
@@ -84,21 +80,28 @@ const snaptrudeService = (function () {
             res.status,
             res.statusText,
             res.data.message,
-            res.data.error
+            res.data.error,
           );
         else logger.log("Empty error msg", endPoint);
       });
   };
 
-  const createProject = async function (streamId, teamId, folderId) {
-    logger.log("Creating Snaptrude project for", streamId, teamId);
-    const REACT_URL = urls.get("snaptrudeReactUrl");
-
-    const endPoint = "/newSpeckleLinkedBlankProject";
+  const checkModelUrl = async function (floorkey) {
     const data = {
-      stream_id: streamId,
-      team_id: teamId,
-      folder_id: folderId,
+      floorkey: floorkey,
+    };
+    const response = await _callApi(
+      `/import/permission/?floorkey=${data.floorkey}`,
+      RequestType.GET,
+      data,
+    );
+    return response;
+  };
+
+  const createProject = async function () {
+    logger.log("Creating Snaptrude project");
+    const endPoint = "/newBlankProject";
+    const data = {
       project_name: sessionData.getUserData()["revitProjectName"],
     };
 
@@ -107,7 +110,7 @@ const snaptrudeService = (function () {
       const floorkey = response.data.floorkey;
       logger.log("Created Snaptrude project", floorkey);
 
-      return REACT_URL + "/model/" + floorkey;
+      return floorkey;
     }
   };
 
@@ -157,7 +160,7 @@ const snaptrudeService = (function () {
       const response = await _callApi(endPoint, RequestType.POST, {});
       if (response.status === 200) {
         const permissionObject = response.data.team.permissions;
-        const roleBasedPermissions = _.keyBy(permissionObject, (o) => o.name);
+        const roleBasedPermissions = keyBy(permissionObject, (o) => o.name);
         if (!roleBasedPermissions[team.role].create_project) {
           return false;
         }
@@ -190,7 +193,7 @@ const snaptrudeService = (function () {
       const response = await _callApi(
         endPoint + queryParams,
         RequestType.GET,
-        data
+        data,
       );
       if (response) {
         const projectsCount = response.data.projects.length;
@@ -202,23 +205,51 @@ const snaptrudeService = (function () {
     return validTeams;
   };
 
-  const checkIfUserLoggedIn = async function (){
-    // TODO: need better way to check if refresh token is expired for now checking if user is pro or not.
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    return response
-  }
+  const checkIfUserLoggedIn = async function () {
+    const accessToken = sessionData.getUserData()["accessToken"];
+    const refreshToken = sessionData.getUserData()["refreshToken"];
+
+    const DJANGO_URL = urls.get("snaptrudeDjangoUrl");
+    const response = await axios.post(DJANGO_URL + "/refreshAccessToken/", {
+      accessToken,
+      refreshToken,
+    });
+
+    console.log("response is: ", response);
+
+    if (response?.data?.accessToken) {
+      sessionData.getUserData()["accessToken"] = response.data.accessToken;
+      window.electronAPI.updateUserData(sessionData.getUserData());
+      return true;
+    }
+    return false;
+  };
 
   const checkPersonalWorkspaces = async function () {
-    const endPoint = "/payments/ispro";
-    const response = await _callApi(endPoint, RequestType.GET);
-    if (response) {
-      const isPro = response.data.isPro;
-      if (isPro) return true;
+    try {
+      const isUserPro = await isPaidUserAccount();
+      if (isUserPro) return true;
+
       const projectCount = await getProjectInPersonalWorkSpace();
-      if (projectCount < 3) {
-        return true;
-      }
+      return projectCount < 5;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const isPaidUserAccount = async function () {
+    const endPoint = `/getuserprofile/`;
+    try {
+      const response = await _callApi(endPoint, RequestType.GET);
+      if (!response) return false;
+
+      const { isPro, customer_lifeCycle } = response.data;
+      const isPaidUser = [
+        CUSTOMER_LIFECYCLE.Paid_User,
+        CUSTOMER_LIFECYCLE.Trial_Started,
+      ].includes(customer_lifeCycle);
+      return isPro || isPaidUser;
+    } catch (error) {
       return false;
     }
   };
@@ -254,7 +285,7 @@ const snaptrudeService = (function () {
     (err) => {
       console.log(err);
       return Promise.reject();
-    }
+    },
   );
 
   axios.interceptors.response.use(
@@ -291,15 +322,17 @@ const snaptrudeService = (function () {
     (err) => {
       console.log(err);
       return Promise.reject();
-    }
+    },
   );
 
   return {
     createProject,
     getUserWorkspaces,
     checkPersonalWorkspaces,
+    isPaidUserAccount,
     getFolders,
-    checkIfUserLoggedIn
+    checkIfUserLoggedIn,
+    checkModelUrl,
   };
 })();
 

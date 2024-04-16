@@ -1,7 +1,6 @@
 $branch= &git rev-parse --abbrev-ref HEAD
 $date= Get-Date -format "yyyyMMdd"
 $version= -join($branch, "_", $date)
-$dynamo_script_version= Get-Content -Path .\dynamo_script_version.txt -TotalCount 1
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 
 if ($branch -eq "master")
@@ -19,10 +18,9 @@ if ($branch -eq "master")
     signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "installers\snaptrude-manager-1.0.0 Setup.exe"
 
     $version= Get-Content -Path .\version.txt -TotalCount 1
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-prod.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-wework.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
-    #C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-preset.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-prod.iss /DMyAppVersion=$version 
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-wework.iss /DMyAppVersion=$version 
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version
 
     signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-$version.exe"
     signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd.ToString() /t http://timestamp.digicert.com "out\snaptrude-manager-setup-$version-WeWork.exe"
@@ -32,13 +30,13 @@ elseif ($branch -eq "dev")
 {
     $version_number= Get-Content -Path .\version.txt -TotalCount 1
     $version= -join("dev-", $version_number)
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-staging.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-staging.iss /DMyAppVersion=$version 
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version 
 }
 else
 {
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-staging.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
-    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version /DDynamoScriptVersion=$dynamo_script_version
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-staging.iss /DMyAppVersion=$version 
+    C:\"Program Files (x86)"\"Inno Setup 6"\ISCC.exe snaptrude-manager-update.iss /DMyAppVersion=$version 
 }
 
 git tag -a $version -m $version

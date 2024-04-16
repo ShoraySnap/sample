@@ -1,9 +1,9 @@
-import {colors} from "../../themes/constant";
-import {useEffect, useRef, useState} from "react";
-import ProgressBar from "../../components/ProgressBar";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import {useNavigate} from "react-router-dom";
-import {ROUTES} from "../constants";
+import ProgressBar from "../../components/ProgressBar";
+import sessionData from "../../services/sessionData";
+import { colors } from "../../themes/constant";
 
 const Container = styled.div`
   display: flex;
@@ -20,7 +20,7 @@ const ModalFooter = styled.div`
   left: 0;
   bottom: 0;
   right: 0;
-  
+
   display: flex;
   justify-content: space-around;
   padding: 0.25em 0em;
@@ -31,11 +31,11 @@ const ModalFooter = styled.div`
 `;
 
 const progressTexts = [
-  "Opening Dynamo",
   "Uploading model",
   "Converting data",
   "Recreating objects",
   "Getting your 3D model ready",
+  "Almost there...",
 ];
 
 function useInterval(callback, delay) {
@@ -61,53 +61,56 @@ function useInterval(callback, delay) {
 let intervalId;
 
 const Loading = (props) => {
-  
   const navigate = useNavigate();
-  
+
   useEffect(() => {
-    window.electronAPI.handleSuccessfulSpeckleUpload(async () => {
-      // navigate(ROUTES.chooseProjectLocation,{ state: {workspaces: workspaces}});
-      navigate(ROUTES.chooseProjectLocation);
+    window.electronAPI.handleSuccessfulUpload(async () => {
+      window.electronAPI.openPageInDefaultBrowser(
+        sessionData.getUserData().modelLink,
+      );
+      window.electronAPI.operationSucceeded();
     });
-    
-    return window.electronAPI.removeSuccessfulSpeckleUploadHandler;
+
+    return window.electronAPI.removeSuccessfulUploadHandler;
   }, []);
-  
-  
+
   const [progress, setProgress] = useState(1);
   const [progressText, setProgressText] = useState(progressTexts[0]);
-  
+
   const expectedRunTime = 5 * 60 * 1e3; // 5 mins
   const delay = expectedRunTime / 100;
-  
+
   useInterval(() => {
     if (progress < 90) {
       setProgress(progress + 1);
-      
+
       if (progress > 0 && progress <= 10) setProgressText(progressTexts[0]);
-      else if (progress > 10 && progress <= 25) setProgressText(progressTexts[1]);
-      else if (progress > 25 && progress <= 50) setProgressText(progressTexts[2]);
-      else if (progress > 50 && progress <= 75) setProgressText(progressTexts[3]);
-      else if (progress > 75 && progress <= 100) setProgressText(progressTexts[4]);
-    }
-    else {
+      else if (progress > 10 && progress <= 25)
+        setProgressText(progressTexts[1]);
+      else if (progress > 25 && progress <= 50)
+        setProgressText(progressTexts[2]);
+      else if (progress > 50 && progress <= 75)
+        setProgressText(progressTexts[3]);
+      else if (progress > 75 && progress <= 100)
+        setProgressText(progressTexts[4]);
+    } else {
       // will be stuck at 90
-      // cleared when handleSuccessfulSpeckleUpload is called
+      // cleared when handleSuccessfulUpload is called
     }
-    
   }, delay);
-  
+
   return (
     <Container>
-      <Text>
-        Your Revit model is being uploaded to Snaptrude
-      </Text>
+      <Text>Your Revit model is being uploaded to Snaptrude</Text>
       <ModalFooter>
-        <ProgressBar bgColor={colors.red} completed={progress} text={progressText}/>
+        <ProgressBar
+          bgColor={colors.black}
+          completed={progress}
+          text={progressText}
+        />
       </ModalFooter>
     </Container>
-  )
-  
+  );
 };
 
 export default Loading;

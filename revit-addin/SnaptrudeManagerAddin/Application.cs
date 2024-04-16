@@ -32,7 +32,7 @@ namespace SnaptrudeManagerAddin
             RibbonPanel panel = application.CreateRibbonPanel(tabName, panelName);
 
             // Create the push button
-            string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.DynamoExport));
+            string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.SnaptrudeManager));
             PushButtonData buttonData = new PushButtonData("Export", "Snaptrude Manager", assemblyPath, className);
             PushButton button = panel.AddItem(buttonData) as PushButton;
             button.Image = GetEmbeddedImage(myAssembly, "SnaptrudeManagerAddin.Icons.logo16.png");

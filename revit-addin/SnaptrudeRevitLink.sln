@@ -174,5 +174,7 @@ Global
 		TrudeImporter\TrudeImporter.projitems*{0a89a8dd-10c0-40d0-8225-12cae6df19b2}*SharedItemsImports = 5
 		TrudeImporter\TrudeImporter.projitems*{32cc7e8c-1571-4044-9eb7-4d662c104917}*SharedItemsImports = 13
 		TrudeImporter\TrudeImporter.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 5
+		TrudeSerializer\TrudeSerializer.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 5
+		TrudeSerializer\TrudeSerializer.projitems*{8d197602-7456-410d-b7e9-a9069a7eae81}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
