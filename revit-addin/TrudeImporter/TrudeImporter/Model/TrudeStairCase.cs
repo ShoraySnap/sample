@@ -89,7 +89,7 @@ namespace TrudeImporter
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
             if (StoreyHeight != Height)
             {
-                topLevel=createTempLevel(Storey, Height + bottomLevel.ProjectElevation);
+                topLevel=createTempLevel(Storey, Height + bottomLevel.ProjectElevation + BaseOffset);
             }
             else { 
                 int finalStorey = Storey + 1;
@@ -100,7 +100,7 @@ namespace TrudeImporter
 
                 if (!GlobalVariables.LevelIdByNumber.ContainsKey(finalStorey))
                 {
-                    createLevel(finalStorey, Height + bottomLevel.ProjectElevation);
+                    createLevel(finalStorey, Height + bottomLevel.ProjectElevation + BaseOffset);
                 }
                 topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
             }
@@ -177,6 +177,11 @@ namespace TrudeImporter
             GlobalVariables.Transaction.Start();
             CreatedStaircase.ChangeTypeId(stairsType.Id);
             CreatedStaircase.ActualTreadDepth = Tread;
+            if (StoreyHeight != Height)
+            {
+                CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_TOP_LEVEL_PARAM).Set(new ElementId(-1));
+                CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_STAIRS_HEIGHT).Set(Height);
+            }
             CreatedStaircase.get_Parameter(BuiltInParameter.STAIRS_DESIRED_NUMBER_OF_RISERS).Set(Steps);
             GlobalVariables.Transaction.Commit();
 
@@ -264,9 +269,6 @@ namespace TrudeImporter
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
             run.EndsWithRiser = endWithRiser;
-            double height = props.Steps * props.Riser;
-            if (Math.Abs(run.TopElevation - (props.Translation.Z + height)) > 0.01)
-                run.TopElevation = props.Translation.Z + height;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
 
             return run.Id;
@@ -358,20 +360,13 @@ namespace TrudeImporter
             if (runBefore == null || runAfter == null)
                 throw new InvalidOperationException("Invalid stair runs for manual landing.");
 
-            double elevation = runBefore.TopElevation;
-
-            Level level = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>()
-                .OrderBy(lvl => Math.Abs(elevation - lvl.Elevation))
-                .FirstOrDefault();
-
-            if (level == null)
-                throw new InvalidOperationException("No suitable level found for landing creation.");
+            double elevation = Height + bottomLevel.ProjectElevation;
 
             XYZ startPoint = runStartEndPoints[runAfter.Id].Item1;
             XYZ endPoint = runStartEndPoints[runAfter.Id].Item2;
 
-            startPoint = new XYZ(startPoint.X, startPoint.Y, level.Elevation);
-            endPoint = new XYZ(endPoint.X, endPoint.Y, level.Elevation);
+            startPoint = new XYZ(startPoint.X, startPoint.Y, elevation);
+            endPoint = new XYZ(endPoint.X, endPoint.Y, elevation);
             Line rightLine = Line.CreateBound(startPoint, endPoint);
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
@@ -382,7 +377,7 @@ namespace TrudeImporter
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead.");
+                System.Diagnostics.Debug.WriteLine("Failed to create automatic landing. Creating manual landing instead." + ex.Message);
                 CreateManualLanding(runAfter.Id, run.Id);
             }
             doc.Delete(run.Id);
