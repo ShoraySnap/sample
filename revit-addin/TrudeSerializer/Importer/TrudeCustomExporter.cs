@@ -47,7 +47,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * used to change the current document in case of RevitLinks
+        * Used to change the current document in case of RevitLinks
         * @param doc new document to track
         */
         private void ChangeCurrentDocument(Document doc)
@@ -105,7 +105,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * init for RevitLink element export - sets current doc and currentLink, checks for circular dependency. 
+        * Init for RevitLink element export - sets current doc and currentLink, checks for circular dependency. 
         * Part of the export pipeline, called after onElementBegin at the start each time a linked project element is encountered.
         * @param node the current LinkNode
         * @return RenderNodeAction Proceed or Skip
@@ -142,7 +142,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * last step of RevitLink element export - resets current doc and currentLink
+        * Last step of RevitLink element export - resets current doc and currentLink
         * @param node
         */
         void IExportContext.OnLinkEnd(LinkNode node)
@@ -155,7 +155,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * adds element to serializedSnaptrudeData and skips the flow for invalid elements.
+        * Adds element to serializedSnaptrudeData and skips the flow for invalid elements.
         * Part of the export pipeline, called after onViewBegin for each element encountered.
         * @param elementId
         * @return RenderNodeAction Proceed or Skip
@@ -233,7 +233,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * adds revitLink element to serializedSnaptrudeData. 
+        * Adds revitLink element to serializedSnaptrudeData. 
         * Also checks of undesirable elements like Levels, Model Groups, Divisions
         * @param elementId
         * @param element
@@ -303,7 +303,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * used to assign material to current element. 
+        * Used to extract material from the face. 
         * Part of the export pipeline, called after onElementBegin / onInstanceBegin for each element encountered.
         * @param node MaterialNode
         */
@@ -325,7 +325,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * used to extract vertices, faces and uvs for the current element. 
+        * Used to extract vertices, faces and uvs for the current face. 
         * Part of the export pipeline, called after assigning material to the elemnt.
         * @param node PolymeshTopology
         */
