@@ -95,7 +95,7 @@ Check out this notion doc for setup, running and debugging Unit Tests for revit-
    (optional) HTML_EXTRA_STYLESHEET
    ```
 
-   - `working directory`: all files and directories will be defined relative to this directory. browse and set it as any directory you want.
+   - `working directory`: It will use it as a scratchpad for writing temporary files. browse and set it as any directory you want.
    - `INPUT`: In the Wizard tab, for 'Source Code Directory', browse and select `<root-directory>/revit-addin/TrudeSerializer/Importer`
    - `OUTPUT_DIRECTORY`: In the Wizard tab, for 'Destination Directory', browse and select the directory you want to save the generated HTML documentation. Note that this documentation _should never_ be pushed.
    - (optional) `HTML_EXTRA_STYLESHEET`: In the Expert tab, choose HTML topic, scroll down to find HTML_EXTRA_STYLESHEET, and browse to `doxygen-awesome.css` file.
