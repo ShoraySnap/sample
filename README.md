@@ -84,6 +84,8 @@ Check out this notion doc for setup, running and debugging Unit Tests for revit-
 
 ### Generating documentation
 
+> Video of below steps for generating documentation: [link](https://drive.google.com/file/d/1RIRzjhZia4LlGmkYadiBiTp80Xjmh47Y/view?usp=sharing)
+
 1. Open doxywizard program.
 2. Go to File > Open > select the downloaded DoxyFile.
 3. We will set the following parameters manually via UI:
