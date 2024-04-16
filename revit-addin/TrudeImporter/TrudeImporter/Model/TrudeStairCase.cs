@@ -259,7 +259,7 @@ namespace TrudeImporter
             startPoint += direction.CrossProduct(XYZ.BasisZ) * (3.2808398950131235 - Width) / 2;
             if (props.StartLandingWidth != 0)
                 startPoint += direction * props.StartLandingWidth;
-            double blockLength = props.Tread * (endWithRiser ? (props.Steps - 1) : props.Steps);
+            double blockLength =  props.Tread * (endWithRiser && props.Steps != 1 ? (props.Steps - 1) : props.Steps);
             XYZ endPoint = startPoint + blockLength * direction;
             if (startPoint.IsAlmostEqualTo(endPoint))
             {
@@ -268,7 +268,7 @@ namespace TrudeImporter
             Line rightLine = Line.CreateBound(startPoint, endPoint);
             StairsRun run = StairsRun.CreateStraightRun(GlobalVariables.Document, stairsId, rightLine, StairsRunJustification.Right);
             run.ActualRunWidth = Width;
-            run.EndsWithRiser = endWithRiser;
+            run.EndsWithRiser = endWithRiser && props.Steps != 1;
             runStartEndPoints.Add(run.Id, new Tuple<XYZ, XYZ>(startPoint, endPoint));
 
             return run.Id;
