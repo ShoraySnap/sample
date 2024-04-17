@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace TrudeSerializer.Uploader
         public static async void UploadAndRedirectToSnaptrude(SerializedTrudeData serializedData)
         {
             Dictionary<string, string> jsonData = serializedData.GetSerializedObject();
+            Dictionary<string, byte[]> compressedJsonData = new Dictionary<string, byte[]>();
 
             Config config = Config.GetConfigObject();
 
@@ -23,18 +25,25 @@ namespace TrudeSerializer.Uploader
             string projectFloorKey = config.floorKey;
 
             List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
+            List<string> paths = new List<string>();
 
             foreach (KeyValuePair<string, string> entry in jsonData)
             {
                 byte[] compressedString = Compressor.CompressString(entry.Value);
-                string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
+                compressedJsonData.Add(entry.Key, compressedString);
 
-                var presignedUrlResponse = await GetPresignedURL(path, config);
-                var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
-                PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-                uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
+                string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
+                paths.Add(path);
             }
 
+            var presignedUrlsResponse = await GetPresignedURL(paths, config);
+            var presignedUrlsResponseData = await presignedUrlsResponse.Content.ReadAsStringAsync();
+            Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
+
+            foreach (KeyValuePair<string, PreSignedURLResponse> presignedURL in presignedURLs)
+            {
+                uploadTasks.Add(UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value));
+            }
             await Task.WhenAll(uploadTasks);
 
             string requestURL = "snaptrude://finish?name=" + projectFloorKey;
@@ -61,7 +70,7 @@ namespace TrudeSerializer.Uploader
             return uploadResponse;
         }
 
-        public static async Task<HttpResponseMessage> GetPresignedURL(string fileName, Config config)
+        public static async Task<HttpResponseMessage> GetPresignedURL(List<string> fileNames, Config config)
         {
             var client = new HttpClient();
 
@@ -72,9 +81,12 @@ namespace TrudeSerializer.Uploader
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             string accessToken = "Bearer " + config.accessToken;
             request.Headers.Add("Auth", accessToken);
+
+            string serializedFileNames = JsonConvert.SerializeObject(fileNames);
+
             var content = new MultipartFormDataContent
             {
-                { new StringContent(fileName), "object_name" }
+                { new StringContent(serializedFileNames), "object_names" }
             };
             request.Content = content;
             var response = await client.SendAsync(request);
@@ -94,15 +106,17 @@ namespace TrudeSerializer.Uploader
             Task<HttpResponseMessage> uploadTask;
 
             byte[] data = Encoding.UTF8.GetBytes(jsonData.ToString());
-            string path = $"media/{userId}/revitImport/{projectFloorKey}/logs/{processId}_log.json";
+            List<string> path = new List<string> {$"media/{userId}/revitImport/{projectFloorKey}/logs/{processId}_log.json" };
 
             var presignedUrlResponse = await GetPresignedURL(path, config);
             var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
-            PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-            uploadTask = UploadUsingPresignedURL(data, presignedURL);
+            Dictionary<string, PreSignedURLResponse> presignedURL = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlResponseData);
 
-
-            await uploadTask;
+            foreach (KeyValuePair<string, PreSignedURLResponse> entry in presignedURL)
+            {
+                uploadTask = UploadUsingPresignedURL(data, entry.Value);
+                await uploadTask;
+            }
         }
 
     }
