@@ -9,6 +9,7 @@ namespace TrudeImporter
     public static class GlobalVariables
     {
         public static Transaction Transaction;
+        public static StairsEditScope StairsEditScope;
         public static Document Document;
         public static Autodesk.Revit.ApplicationServices.Application RvtApp;
         
