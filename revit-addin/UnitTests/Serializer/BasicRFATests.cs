@@ -12,7 +12,7 @@ using TrudeSerializer.Importer;
 using Newtonsoft.Json;
 
 
-namespace UnitTests
+namespace UnitTests.Serializer
 {
     public class BasicRFATests
     {
@@ -21,24 +21,24 @@ namespace UnitTests
         string projectName = "f1";
 
         [SetUp]
-        public void SetUp( UIApplication uiApplication )
+        public void SetUp(UIApplication uiApplication)
         {
-            Assert.NotNull( uiApplication );
-            Assert.NotNull( uiApplication.Application );
+            Assert.NotNull(uiApplication);
+            Assert.NotNull(uiApplication.Application);
 
             uiApp = uiApplication;
             var document = Common.OpenFamily(uiApp, projectName).Document;
-            Assert.NotNull(document );
+            Assert.NotNull(document);
 
             Assert.NotNull(uiApp.ActiveUIDocument);
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
         }
 
         [TearDown]
-        public void TearDown( UIApplication application )
+        public void TearDown(UIApplication application)
         {
-            Assert.NotNull( application );
-            Assert.NotNull( application.Application );
+            Assert.NotNull(application);
+            Assert.NotNull(application.Application);
             Assert.NotNull(uiApp);
             Assert.NotNull(uiApp.ActiveUIDocument);
 
@@ -57,8 +57,8 @@ namespace UnitTests
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
             // SMOKE SERIALIZER
-            TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
-            var result = trudeSerializer.ExecuteWithUIApplication(uiApp,true);
+            Command trudeSerializer = new Command();
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp, true);
             Assert.IsTrue(result == Result.Succeeded);
             Assert.IsTrue(trudeSerializer.isDone);
         }
@@ -74,17 +74,17 @@ namespace UnitTests
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
             // Init Serializer
-            TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
-            trudeSerializer.OnInit += (string processId, UIApplication app, Document doc) =>
+            Command trudeSerializer = new Command();
+            trudeSerializer.OnInit += (processId, app, doc) =>
             {
                 Assert.NotNull(processId);
                 Assert.IsTrue(processId.Length > 0);
                 Assert.NotNull(TrudeLogger.Instance);
                 Assert.NotNull(doc);
-                Assert.AreEqual(GlobalVariables.Document,doc);
+                Assert.AreEqual(GlobalVariables.Document, doc);
                 Assert.NotNull(GlobalVariables.RvtApp);
             };
-            var result =  trudeSerializer.ExecuteWithUIApplication(uiApp, true);
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp, true);
             Assert.IsTrue(result == Result.Succeeded);
             Assert.IsTrue(trudeSerializer.isDone);
         }
@@ -99,11 +99,12 @@ namespace UnitTests
             Assert.NotNull(uiApp.ActiveUIDocument);
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
-            TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
-            trudeSerializer.OnView3D += (View3D view, Document doc) => {
+            Command trudeSerializer = new Command();
+            trudeSerializer.OnView3D += (view, doc) =>
+            {
                 Assert.NotNull(view);
             };
-            var result =  trudeSerializer.ExecuteWithUIApplication(uiApp, true);
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp, true);
             Assert.IsTrue(result == Result.Succeeded);
             Assert.IsTrue(trudeSerializer.isDone);
         }
@@ -118,13 +119,14 @@ namespace UnitTests
             Assert.NotNull(uiApp.ActiveUIDocument);
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
-            TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
-            trudeSerializer.OnCleanSerializedTrudeData += (SerializedTrudeData data) => {
+            Command trudeSerializer = new Command();
+            trudeSerializer.OnCleanSerializedTrudeData += (data) =>
+            {
                 Assert.NotNull(data);
                 Assert.IsTrue(Common.IsJsonSame(data, projectName));
             };
 
-            var result =  trudeSerializer.ExecuteWithUIApplication(uiApp, true);
+            var result = trudeSerializer.ExecuteWithUIApplication(uiApp, true);
             Assert.IsTrue(result == Result.Succeeded);
             Assert.IsTrue(trudeSerializer.isDone);
         }
