@@ -78,18 +78,17 @@
 		<Reference Include="System" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Drawing" />
+		<Reference Include="System.Net" />
+		<Reference Include="System.Net.Http" />
 		<Reference Include="System.Windows.Forms" />
 		<Reference Include="System.Xaml" />
 		<Reference Include="System.Xml" />
 		<Reference Include="WindowsBase" />
 		<Reference Include="RevitAPI" />
+		<Reference Include="RevitAPIIFC" Version="$(RevitVersion)">
+			<HintPath>lib\IFC\$(RevitVersion)\RevitAPIIFC.dll</HintPath>
+		</Reference>
 		<Reference Include="RevitAPIUI" />
-		<Reference Include="DynamoCore">
-			<HintPath>lib\DynamoCore.dll</HintPath>
-		</Reference>
-		<Reference Include="DynamoRevitDS">
-			<HintPath>lib\DynamoRevitDS.dll</HintPath>
-		</Reference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
 	</ItemGroup>
@@ -104,6 +103,8 @@
 
 	<Import Project="..\TrudeImporter\TrudeImporter.projitems" Label="Shared" />
 
+	<Import Project="..\TrudeSerializer\TrudeSerializer.projitems" Label="Shared" />
+
 	<PropertyGroup>
 		<Optimize>False</Optimize>
 		<DebugSymbols>true</DebugSymbols>
@@ -111,6 +112,11 @@
 		<DefineConstants>DEBUG;TRACE;REVIT$(RevitVersion)</DefineConstants>
 		<NoWarn>MSB3052</NoWarn>
 		<DebugType>Full</DebugType>
+		<BaseOutputPath>bin\</BaseOutputPath>
 	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="&quot;C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe&quot; -file $(ProjectDir)InstallAddinForDebugging.ps1 $(ConfigurationName) $(ProjectName) $(ProjectDir) $(TargetPath)&#xD;&#xA;:exit" />
+	</Target>
 
 </Project>
