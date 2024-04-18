@@ -29,9 +29,5 @@ namespace ManagerUI.Views
         //{
         //    OnSuccessfulExport?.Invoke(this, e);
         //}
-        private void back(object sender, RoutedEventArgs e)
-        {
-            MainWindow.Instance.ActiveItem.Content = MainWindow.HomeView;
-        }
     }
 }

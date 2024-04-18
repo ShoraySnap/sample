@@ -25,9 +25,5 @@ namespace ManagerUI.Views
             InitializeComponent();
         }
 
-        private void export(object sender, RoutedEventArgs e)
-        {
-            MainWindow.Instance.ActiveItem.Content = MainWindow.ExportView;
-        }
     }
 }

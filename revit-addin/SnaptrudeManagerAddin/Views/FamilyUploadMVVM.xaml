@@ -416,6 +416,7 @@
                                                             <DataGridTemplateColumn.CellTemplate>
                                                                 <DataTemplate>
                                                                     <TextBlock
+                                                                        MaxWidth="420"
                                                                         Padding="0,6"
                                                                         HorizontalAlignment="Left"
                                                                         VerticalAlignment="Center"
@@ -424,9 +425,7 @@
                                                                         Foreground="{StaticResource Colors/Neutral/600}"
                                                                         Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                                         TextTrimming="CharacterEllipsis"
-                                                                        ToolTip="{Binding FamilyName}"
-                                                                        MaxWidth="420"
-                                                                        />
+                                                                        ToolTip="{Binding FamilyName}" />
                                                                 </DataTemplate>
                                                             </DataGridTemplateColumn.CellTemplate>
                                                         </DataGridTemplateColumn>
@@ -522,8 +521,8 @@
                                         <Button
                                             x:Name="Link_Button"
                                             Click="Link_Button_Click"
-                                            IsEnabled="{Binding LinkButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                             Content="Link missing RFAs"
+                                            IsEnabled="{Binding LinkButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                             Style="{StaticResource Button_Primary}" />
                                     </StackPanel>
                                 </Grid>
@@ -620,10 +619,10 @@
                                                     CellStyle="{StaticResource TransparentCell}"
                                                     GridLinesVisibility="None"
                                                     HeadersVisibility="None"
+                                                    HorizontalScrollBarVisibility="Disabled"
                                                     ItemsSource="{Binding FilteredMissingFamilies}"
                                                     RowHeight="60"
-                                                    RowStyle="{StaticResource TransparentRow}"
-                                                    HorizontalScrollBarVisibility="Disabled">
+                                                    RowStyle="{StaticResource TransparentRow}">
                                                     <DataGrid.OpacityMask>
                                                         <VisualBrush Visual="{Binding ElementName='Child_Border2'}" />
                                                     </DataGrid.OpacityMask>
@@ -722,6 +721,7 @@
                                                                                         </Grid>
                                                                                     </Grid>
                                                                                     <TextBlock
+                                                                                        MaxWidth="420"
                                                                                         Padding="0,6"
                                                                                         VerticalAlignment="Center"
                                                                                         d:Text="1200 x 1400 2 Shutter Wood Frame"
@@ -729,9 +729,7 @@
                                                                                         Foreground="{StaticResource Colors/Neutral/600}"
                                                                                         Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                                                         TextTrimming="CharacterEllipsis"
-                                                                                        ToolTip="{Binding FamilyName}"
-                                                                                        MaxWidth="420"
-                                                                                        />
+                                                                                        ToolTip="{Binding FamilyName}" />
                                                                                 </StackPanel>
                                                                                 <Button
                                                                                     Margin="0,0,16,0"
@@ -744,17 +742,16 @@
                                                                             </Grid>
                                                                             <Grid Height="32" VerticalAlignment="Bottom">
                                                                                 <TextBlock
+                                                                                    MaxWidth="440"
                                                                                     Padding="56,0,0,0"
-                                                                                    VerticalAlignment="Center"
                                                                                     HorizontalAlignment="Left"
+                                                                                    VerticalAlignment="Center"
                                                                                     d:Text="C:/Users/ROG/Desktop/E16RFAs"
                                                                                     FontSize="13"
                                                                                     Foreground="{StaticResource Colors/Neutral/500}"
                                                                                     Text="{Binding FamilyPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                                                     TextTrimming="CharacterEllipsis"
-                                                                                    ToolTip="{Binding FamilyPath}"
-                                                                                    MaxWidth="440"
-                                                                                    />
+                                                                                    ToolTip="{Binding FamilyPath}" />
                                                                             </Grid>
                                                                         </Grid>
                                                                     </Border>

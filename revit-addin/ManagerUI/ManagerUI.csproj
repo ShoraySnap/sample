@@ -59,6 +59,20 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Commands\CloseCommand.cs" />
+    <Compile Include="Commands\LoginCommand.cs" />
+    <Compile Include="Commands\CommandBase.cs" />
+    <Compile Include="Commands\LogoutCommand.cs" />
+    <Compile Include="Commands\NavigateCommand.cs" />
+    <Compile Include="Commands\SwitchAccountCommand.cs" />
+    <Compile Include="Services\NavigationService.cs" />
+    <Compile Include="Stores\NavigationStore.cs" />
+    <Compile Include="ViewModels\ExportViewModel.cs" />
+    <Compile Include="ViewModels\HomeViewModel.cs" />
+    <Compile Include="ViewModels\LoginViewModel.cs" />
+    <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="ViewModels\ViewModelCreation.cs" />
     <Compile Include="Views\ExportView.xaml.cs">
       <DependentUpon>ExportView.xaml</DependentUpon>
     </Compile>
@@ -70,7 +84,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -94,6 +108,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Resource Include="Resources\Inter.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -107,9 +122,15 @@
     <Resource Include="Images\snaptrudeLogo.png" />
     <Resource Include="Images\userLogo.png" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <Page Include="MainWindow.xaml">
+    <Resource Include="Images\plus-medium.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources\ResourcesDictionary.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\MainWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
