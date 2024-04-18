@@ -9,16 +9,16 @@
     <Import_RootNamespace>TrudeSerializer</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeCurtainWall.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeColumn.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeDoor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFamily.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)components\TrudeGenericModel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudePlanViewIndicator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeRFAComponent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)components\TrudeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeCurtainWall.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeColumn.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudeFamily.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeGenericModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudePlanViewIndicator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeRFAComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporterForRFA.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)components\TrudeRoof.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAssemblies.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)types\TrudeRoofType.cs" />
     <Compile Include="..\TrudeSerializer\TrudeDebug\TrudeLogger.cs" />
@@ -28,16 +28,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeDebug\TrudeDebug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\FamilyInstanceUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\InstanceUtility.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)components\TrudeCeiling.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeComponent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFloor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeFurniture.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeGeometry.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeInstance.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeLevel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)components\TrudeMass.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeMaterial.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Components\TrudeWall.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeCeiling.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudeComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeFloor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeFurniture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudeGeometry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeMass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudeMaterial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeWall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GlobalVariables.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Command.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\SerializedTrudeData.cs" />
@@ -53,9 +52,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Constants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)utils\CurveUtils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\Dimensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TransformObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\CurveUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)types\Dimensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\TransformObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversion.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Components\CoreComponents\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Components\SupportComponents\" />
+    <Folder Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\" />
   </ItemGroup>
 </Project>
