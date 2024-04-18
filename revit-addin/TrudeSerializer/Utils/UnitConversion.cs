@@ -1,17 +1,46 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Visual;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TrudeSerializer.Importer;
 
 namespace TrudeSerializer.Utils
 {
+    internal interface IUnitProvider
+    {
+        List<double> ConvertSnaptrudeUnitsFromXYZFromFeet(XYZ value);
+        double ConvertToMillimeter(double value, object unit);
+        double ConvertToSnaptrudeAreaUnits(double areaValue);
+        double ConvertToSnaptrudeUnits(double value, object unit);
+        double ConvertToSnaptrudeUnitsFromFeet(double value);
+        double[] ConvertToSnaptrudeUnitsFromFeet(double[] values);
+        double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value);
+        object GetRevitUnit(TRUDE_UNIT_TYPE type);
+        object GetRevitUnitFromParameter(Parameter param);
+        object GetRevitUnitFromAssetPropertyDistance(AssetPropertyDistance p);
+        TRUDE_UNIT_TYPE GetTrudeUnit(object unit);
+        TRUDE_UNIT_TYPE GetTrudeUnitFromParameter(Parameter param);
+        TRUDE_UNIT_TYPE GetTrudeUnitFromAssetPropertyDistance(AssetPropertyDistance p);
+        string GetUnitId(Document doc);
+        string GetUnitPattern();
+    }
+
+    internal enum TRUDE_UNIT_TYPE
+    {
+        INCH, FEET, METER, CENTIMETER, MILLIMETER, _INVALID
+    }
+
     internal class UnitConversion
     {
 #if REVIT2019 || REVIT2020
+        static IUnitProvider provider = new UnitProvider_19_20();
+#elif REVIT2021 || REVIT2022 || REVIT2023 || REVIT2024
+        static IUnitProvider provider = new UnitProvider_21_22_23_24();
+#endif
         public static void GetUnits(Document doc, SerializedTrudeData serializedSnaptrudeData)
         {
-            string unitsId = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits.ToString();
-            const string pattern = @"DUT_(.*)";
+            string unitsId = provider.GetUnitId(doc);
+            string pattern = provider.GetUnitPattern();
             Match match = Regex.Match(unitsId, pattern);
             string revitUnit = match.Success ? match.Groups[1].Value : null;
             if (revitUnit != null)
@@ -32,168 +61,48 @@ namespace TrudeSerializer.Utils
                 }
             }
         }
-
-        public static double ConvertToMillimeter(double value, DisplayUnitType unit)
+        public static double ConvertToMillimeter(double value, TRUDE_UNIT_TYPE unit)
         {
-            switch(unit)
-            {
-                case DisplayUnitType.DUT_DECIMAL_INCHES:
-                    return value * 25.4;
-                case DisplayUnitType.DUT_DECIMAL_FEET:
-                    return value * 304.8;
-                case DisplayUnitType.DUT_METERS:
-                    return value * 1000.0;
-                case DisplayUnitType.DUT_CENTIMETERS:
-                    return value * 10.0;
-            }
-            return value;
+            return provider.ConvertToMillimeter(value, unit);
         }
 
-        public static double ConvertToSnaptrudeUnits(double value, DisplayUnitType unit)
+        public static double ConvertToSnaptrudeUnits(double value, TRUDE_UNIT_TYPE unit)
         {
-            if (unit.Equals(DisplayUnitType.DUT_DECIMAL_INCHES))
-            {
-                value /= 10;
-            }
-            else if (unit.Equals(DisplayUnitType.DUT_DECIMAL_FEET))
-            {
-                value *= (1.2);
-            }
-            else if (unit.Equals(DisplayUnitType.DUT_METERS))
-            {
-                value *= (39.37 / 10);
-            }
-            else if (unit.Equals(DisplayUnitType.DUT_CENTIMETERS))
-            {
-                value /= 25.4;
-            }
-            else if (unit.Equals(DisplayUnitType.DUT_MILLIMETERS))
-            {
-                value /= 254;
-            }
-            return value;
-        }
-        public static double ConvertToSnaptrudeUnitsFromFeet(double value)
-        {
-            return ConvertToSnaptrudeUnits(value, DisplayUnitType.DUT_DECIMAL_FEET);
-        }
-
-        public static double[] ConvertToSnaptrudeUnitsFromFeet(double[] values)
-        {
-            return new double[] { ConvertToSnaptrudeUnits(values[0], DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(values[1], DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(values[2], DisplayUnitType.DUT_DECIMAL_FEET) };
-        }
-
-        public static double ConvertToSnaptrudeAreaUnits(double areaValue)
-        {
-            return areaValue * 1.44;
-        }
-
-        public static double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value)
-        {
-            return new double[] { ConvertToSnaptrudeUnits(value.X, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Z, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Y, DisplayUnitType.DUT_DECIMAL_FEET) };
-        }
-
-        public static List<double> ConvertSnaptrudeUnitsFromXYZFromFeet(XYZ value)
-        {
-            return new List<double> { ConvertToSnaptrudeUnits(value.X, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Z, DisplayUnitType.DUT_DECIMAL_FEET), ConvertToSnaptrudeUnits(value.Y, DisplayUnitType.DUT_DECIMAL_FEET) };
-        }
-
-#endif
-#if REVIT2021 || REVIT2022 || REVIT2023 || REVIT2024
-
-        public static void GetUnits(Document doc, SerializedTrudeData serializedSnaptrudeData)
-        {
-            string unitsId = doc.GetUnits().GetFormatOptions(SpecTypeId.Length).GetUnitTypeId().TypeId;
-            const string pattern = @":(.*?)-";
-            Match match = Regex.Match(unitsId, pattern);
-            string revitUnit = match.Success ? match.Groups[1].Value : null;
-            if (revitUnit != null)
-            {
-                ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, revitUnit);
-            }
-            else
-            {
-                switch (doc.DisplayUnitSystem.ToString())
-                {
-                    case "IMPERIAL":
-                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "feetFractionalInches");
-                        break;
-                    case "METRIC":
-                    default:
-                        ComponentHandler.Instance.SetProjectUnit(serializedSnaptrudeData, "millimeters");
-                        break;
-                }
-            }
-        }
-        public static double ConvertToMillimeter(double value, ForgeTypeId unit)
-        {
-            if (unit.Equals(UnitTypeId.Inches))
-            {
-                value *= 25.4;
-            }
-            else if (unit.Equals(UnitTypeId.Feet))
-            {
-                value *= 304.8;
-            }
-            else if (unit.Equals(UnitTypeId.Meters))
-            {
-                value *= 1000;
-            }
-            else if (unit.Equals(UnitTypeId.Centimeters))
-            {
-                value *= 10;
-            }
-            return value;
-        }
-
-        public static double ConvertToSnaptrudeUnits(double value, ForgeTypeId unit)
-        {
-            if (unit.Equals(UnitTypeId.Inches))
-            {
-                value /= 10;
-            }
-            else if (unit.Equals(UnitTypeId.Feet))
-            {
-                value *= (1.2);
-            }
-            else if (unit.Equals(UnitTypeId.Meters))
-            {
-                value *= (39.37 / 10);
-            }
-            else if (unit.Equals(UnitTypeId.Centimeters))
-            {
-                value /= 25.4;
-            }
-            else if (unit.Equals(UnitTypeId.Millimeters))
-            {
-                value /= 254;
-            }
-            return value;
+            return provider.ConvertToSnaptrudeUnits(value, unit);
         }
 
         public static double ConvertToSnaptrudeUnitsFromFeet(double value)
         {
-            return ConvertToSnaptrudeUnits(value, UnitTypeId.Feet);
+            return provider.ConvertToSnaptrudeUnitsFromFeet(value);
         }
 
         public static double[] ConvertToSnaptrudeUnitsFromFeet(double[] values)
         {
-            return new double[] { ConvertToSnaptrudeUnits(values[0], UnitTypeId.Feet), ConvertToSnaptrudeUnits(values[1], UnitTypeId.Feet), ConvertToSnaptrudeUnits(values[2], UnitTypeId.Feet) };
+            return provider.ConvertToSnaptrudeUnitsFromFeet(values);
         }
 
         public static double ConvertToSnaptrudeAreaUnits(double areaValue)
         {
-            return areaValue * 1.44;
+            return provider.ConvertToSnaptrudeAreaUnits(areaValue);
         }
 
         public static double[] ConvertToSnaptrudeUnitsFromFeet(XYZ value)
         {
-            return new double[] { ConvertToSnaptrudeUnits(value.X, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Z, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Y, UnitTypeId.Feet) };
+            return provider.ConvertToSnaptrudeUnitsFromFeet(value);
         }
         public static List<double> ConvertSnaptrudeUnitsFromXYZFromFeet(XYZ value)
         {
-            return new List<double> { ConvertToSnaptrudeUnits(value.X, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Z, UnitTypeId.Feet), ConvertToSnaptrudeUnits(value.Y, UnitTypeId.Feet) };
+            return provider.ConvertSnaptrudeUnitsFromXYZFromFeet(value);
         }
-#endif
+
+        public static TRUDE_UNIT_TYPE GetTrudeUnitFromParameter(Parameter parameter)
+        {
+            return provider.GetTrudeUnitFromParameter(parameter);
+        }
+
+        public static TRUDE_UNIT_TYPE GetTrudeUnitFromAssetPropertyDistance(AssetPropertyDistance p)
+        {
+            return provider.GetTrudeUnitFromAssetPropertyDistance(p);
+        }
     }
 }
