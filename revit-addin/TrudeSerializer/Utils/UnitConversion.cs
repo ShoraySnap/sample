@@ -37,6 +37,8 @@ namespace TrudeSerializer.Utils
 #elif REVIT2021 || REVIT2022 || REVIT2023 || REVIT2024
         static IUnitProvider provider = new UnitProvider_21_22_23_24();
 #endif
+
+        //TODO: Test this function properly
         public static void GetUnits(Document doc, SerializedTrudeData serializedSnaptrudeData)
         {
             string unitsId = provider.GetUnitId(doc);
@@ -63,12 +65,14 @@ namespace TrudeSerializer.Utils
         }
         public static double ConvertToMillimeter(double value, TRUDE_UNIT_TYPE unit)
         {
-            return provider.ConvertToMillimeter(value, unit);
+            var revitUnit = provider.GetRevitUnit(unit);
+            return provider.ConvertToMillimeter(value, revitUnit);
         }
 
         public static double ConvertToSnaptrudeUnits(double value, TRUDE_UNIT_TYPE unit)
         {
-            return provider.ConvertToSnaptrudeUnits(value, unit);
+            var revitUnit = provider.GetRevitUnit(unit);
+            return provider.ConvertToSnaptrudeUnits(value, revitUnit);
         }
 
         public static double ConvertToSnaptrudeUnitsFromFeet(double value)
