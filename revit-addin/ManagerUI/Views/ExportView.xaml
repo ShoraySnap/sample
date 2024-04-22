@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <DockPanel Background="Transparent">
+    <DockPanel Background="Transparent" Margin="10">
         <Button
             HorizontalAlignment="Right"
             Content="Back"

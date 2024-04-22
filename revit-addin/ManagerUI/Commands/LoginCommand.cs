@@ -18,8 +18,14 @@ namespace ManagerUI.Commands
 
         public override void Execute(object parameter)
         {
-            // TO DO: OPEN SNAPTRUDE LOGIN PAGE
-            navigationService.Navigate();
+            // TO DO: LOGIN SNAPTRUDE
+            bool auth = true;
+
+            if (auth)
+            {
+                navigationService.Navigate();
+            }
+
         }
     }
 }

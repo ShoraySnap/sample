@@ -1,0 +1,43 @@
+﻿<UserControl
+    x:Class="ManagerUI.Views.UpdateAvailableView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ManagerUI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="320"
+    d:DesignWidth="560"
+    FontFamily="{DynamicResource Inter}"
+    FontSize="13"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
+    </UserControl.Resources>
+    <DockPanel>
+        <TextBlock
+            Width="400"
+            Margin="0,0,0,15"
+            DockPanel.Dock="Bottom"
+            Foreground="White"
+            TextAlignment="Center"
+            TextWrapping="Wrap">
+            <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersionTextInstruction}" />
+            <Run Text="is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude" />
+        </TextBlock>
+        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+            <Button
+                Margin="0,0,10,0"
+                Command="{Binding LoginCommand}"
+                Style="{DynamicResource Button_Quaternary}">
+                <TextBlock>
+                    <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersionString}" />
+                </TextBlock>
+            </Button>
+            <Button
+                HorizontalAlignment="Center"
+                Command="{Binding SkipCommand}"
+                Content="Skip for later"
+                Style="{DynamicResource Button_Tertiary}" />
+        </StackPanel>
+    </DockPanel>
+</UserControl>

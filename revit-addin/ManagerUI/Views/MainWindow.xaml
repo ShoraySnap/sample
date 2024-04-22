@@ -75,7 +75,7 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
         </DockPanel>
-        <ContentControl Margin="5" Content="{Binding CurrentViewModel}">
+        <ContentControl Content="{Binding CurrentViewModel}">
             <ContentControl.Resources>
                 <DataTemplate DataType="{x:Type vms:ExportViewModel}">
                     <views:ExportView />
@@ -85,6 +85,9 @@
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type vms:LoginViewModel}">
                     <views:LoginView />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vms:UpdateAvailableViewModel}">
+                    <views:UpdateAvailableView />
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>

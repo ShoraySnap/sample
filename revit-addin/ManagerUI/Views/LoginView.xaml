@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <DockPanel>
+    <DockPanel Margin="15">
         <TextBlock
             Width="300"
             DockPanel.Dock="Bottom"

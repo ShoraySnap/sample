@@ -14,7 +14,7 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <DockPanel>
+    <DockPanel Margin="15">
         <Label
             HorizontalAlignment="Center"
             DockPanel.Dock="Bottom"
