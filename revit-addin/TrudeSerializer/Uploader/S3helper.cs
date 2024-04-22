@@ -13,6 +13,7 @@ namespace TrudeSerializer.Uploader
     internal class S3helper
     {
         static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
+        static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
         public static async void UploadAndRedirectToSnaptrude(SerializedTrudeData serializedData)
         {
             Dictionary<string, string> jsonData = serializedData.GetSerializedObject();
@@ -75,7 +76,7 @@ namespace TrudeSerializer.Uploader
 
             string snaptrudeDjangoUrl = URLsConfig.GetSnaptrudeDjangoUrl();
 
-            string url = snaptrudeDjangoUrl + GET_PRESIGNED_URL;
+            string url = snaptrudeDjangoUrl + GET_PRESIGNED_URLS;
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             string accessToken = "Bearer " + config.accessToken;
