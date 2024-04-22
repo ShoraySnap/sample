@@ -13,9 +13,14 @@ namespace ManagerUI.ViewModels
     public class LoginViewModel : ViewModelBase
     {
         public ICommand LoginCommand { get; }
-        public LoginViewModel(NavigationService loginNavigationService)
+        public LoginViewModel(NavigationService homeNavigationService, NavigationService updateAvailableNavigationService)
         {
-            LoginCommand = new NavigateCommand(loginNavigationService);
+            LoginCommand = new NavigateCommand(homeNavigationService);
+        }
+
+        private bool openSnaptrudeLoginPage()
+        {
+            return true;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace ManagerUI.Commands
     {
         private readonly NavigationService navigationService;
 
-        public NavigateCommand(NavigationService navigationService )
+        public NavigateCommand(NavigationService navigationService)
         {
             this.navigationService = navigationService;
         }
