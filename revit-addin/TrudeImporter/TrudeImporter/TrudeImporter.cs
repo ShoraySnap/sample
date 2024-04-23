@@ -21,10 +21,10 @@ namespace TrudeImporter
             GlobalVariables.MissingDoorIndexes.Clear();
             GlobalVariables.MissingWindowIndexes.Clear();
 
-            ImportStories(trudeProperties.Storeys);
-            ImportWalls(trudeProperties.Walls);
-            ImportBeams(trudeProperties.Beams);
-            ImportColumns(trudeProperties.Columns);
+            ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport);
+            ImportWalls(trudeProperties.Walls); // these are structural components of the building
+            ImportBeams(trudeProperties.Beams); // these are structural components of the building
+            ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportRooms();
@@ -44,7 +44,7 @@ namespace TrudeImporter
                 ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture);
         }
 
-        private static void ImportStories(List<StoreyProperties> propsList)
+        private static void ImportStories(List<StoreyProperties> propsList, bool isRevitImport)
         {
             if (propsList == null) return;
             var storiesWithMatchingLevelIds = new List<(TrudeStorey Storey, Level Level)>();
@@ -77,7 +77,19 @@ namespace TrudeImporter
                 foreach (var level in existingLevels)
                 {
                     if (storeyNames.Contains(level.Name)) levelsToCheckElevation.Add(level);
-                    else levelsToDelete.Add(level);
+                    else
+                    {
+                        if (!isRevitImport)
+                        {
+                            ElementLevelFilter levelFilter = new ElementLevelFilter(level.Id);
+                            var elementsInLevel = new FilteredElementCollector(GlobalVariables.Document)
+                                .WhereElementIsNotElementType()
+                                .WherePasses(levelFilter)
+                                .ToList();
+                            if (!elementsInLevel.Any())
+                                levelsToDelete.Add(level);
+                        }
+                    }
                 }
 
                 //Revit dont allow to delete the level that is associated with the current activeView

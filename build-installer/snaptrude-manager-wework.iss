@@ -9,7 +9,6 @@
 #define MyAppAssocExt ".trude"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
 #define Base "..\build-installer"
-#define BaseDynamoScripts Base + "\dynamo-scripts"
 #define BaseInstallers Base + "\installers"
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
@@ -45,17 +44,6 @@ OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-WeWork
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Code]
-
-function ShouldInstallDynamo: Boolean;
-var
-  exists: Boolean;
-  path: String;
-begin
-  path := ExpandConstant('{autoappdata}') + '\Autodesk\RVT\2019';
-  exists := DirExists(path);
-  Result := exists;
-end;
-
 var
   CheckListBoxPage: TInputOptionWizardPage;
   DownloadPage: TDownloadWizardPage;
@@ -212,11 +200,6 @@ Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.add
 [Files]
 Source: "{#BaseMisc}\urlswework.json"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
 
-;dynamo scripts
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2019.dyn"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2019.dyn"; Flags: ignoreversion
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}-2020.dyn"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "revit-snaptrude-2020.dyn"; Flags: ignoreversion
-Source: "{#BaseDynamoScripts}\revit-snaptrude-{#DynamoScriptVersion}.dyn"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "revit-snaptrude.dyn"; Flags: ignoreversion
-
 ;2019
 Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: InstallVersion('2019');
@@ -250,10 +233,6 @@ Source: "{#BaseInstallers}\*.exe"; DestDir: "{autoappdata}\snaptrudeTemp"; Flags
 
 
 [Run]
-
-FileName: "{autoappdata}\snaptrudeTemp\DynamoInstall2.0.4.exe"; Parameters: "/NORESTART"; Description: "Install Dynamo"; Check: ShouldInstallDynamo; Flags: postinstall shellexec waituntilterminated
-
-Filename: "{autoappdata}\snaptrudeTemp\dynamo-2.6.1.exe"; Parameters: "/NORESTART"; Description: "Install Dynamo Connector"; Flags: postinstall shellexec waituntilterminated
 
 Filename: "{autoappdata}\snaptrudeTemp\snaptrude-manager-1.0.0 Setup.exe"; Parameters: "/VERYSILENT /NORESTART"; Description: "Install Snaptrude Manager"; Flags: postinstall shellexec waituntilterminated
 

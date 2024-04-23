@@ -5,6 +5,9 @@ namespace TrudeImporter
 {
     public class TrudeProperties
     {
+        [JsonProperty("isRevitImport")]
+        public bool IsRevitImport { get; set; }
+
         [JsonProperty("storeys")]
         public List<StoreyProperties> Storeys { get; set; }
 

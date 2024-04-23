@@ -1,4 +1,6 @@
 # How to
+`src/app` directory contains the react part of Revit-addin UI. <br>
+`src/electron` directory is the node.js backend of the Revit-addin.
 
 ## Development
 
@@ -10,6 +12,11 @@ PORT=3005
 
 - Run `npm run start`. This will start the React server in dev mode
 - Run `npm run ef-start` to launch the electron app in dev mode
+
+> Note:
+> 1. During development, react server needs to run at all times.
+> 2. if `npm run start` shows error, delete node modules and npm install again
+
 
 ## Deployment
 
@@ -27,7 +34,7 @@ PORT=3005
 
 - Attach debugger to the process that spawns from running `npm run ef-start`.
 
-- For VS Code users, add a file `.vscode/launch.json`. You can now directly run the electron application from VS Code instead of running the  `npm run ef-start` command:
+- For VS Code users, add a file `.vscode/launch.json`. You can now directly run the electron application from VS Code instead of running the `npm run ef-start` command:
 
 ```
 // .vscode/launch.json

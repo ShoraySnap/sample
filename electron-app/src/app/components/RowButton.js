@@ -12,19 +12,19 @@ const Container = styled.div`
   margin-right: 10px;
   margin-left: 10px;
   border-radius: 0.75rem;
-  
+
   width: 150px;
-  
-  .enabled{
+
+  .enabled {
     cursor: pointer;
   }
-  
-  .disabled{
+
+  .disabled {
     cursor: not-allowed;
   }
-  
+
   &:hover {
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     font-weight: 700;
   }
 `;
@@ -44,23 +44,24 @@ const Text = styled.p`
   font-size: 12px;
   font-weight: 600;
   font-style: normal;
-  color: #2D2D2E;
+  color: #2d2d2e;
   // letter-spacing: -0.333565px;
 `;
 
-const RowButton = ({title, icon, onClick, isDisabled}) => {
-  
+const RowButton = ({ title, icon, onClick, isDisabled }) => {
   const className = isDisabled ? "disabled" : "enabled";
-  
+
   return (
     <Container>
-      <InnerContainer className={className} onClick={onClick}>
-        <ButtonIcon  src={icon} alt={title} />
+      <InnerContainer
+        className={className}
+        onClick={isDisabled ? null : onClick}
+      >
+        <ButtonIcon src={icon} alt={title} />
         <Text>{title}</Text>
       </InnerContainer>
     </Container>
-  )
-  
+  );
 };
 
 export default RowButton;
