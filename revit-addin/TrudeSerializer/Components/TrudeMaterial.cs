@@ -294,7 +294,7 @@ namespace TrudeSerializer.Components
 
             bool isCommonTintColor = propertyName.Equals("common_Tint_color");
 
-            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing");
+            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing") || propertyName.Contains("albedo") ;
 
             return isDiffuseColorProperty && !isCommonTintColor;
         }

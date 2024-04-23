@@ -7,6 +7,7 @@ using System.Linq;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
+using TrudeSerializer.Utils.Screenshot;
 
 namespace TrudeSerializer
 {
@@ -42,6 +43,8 @@ namespace TrudeSerializer
                 View3D view = Get3dView(doc);
                 //SetDetailViewToFine(doc, view);
                 OnView3D?.Invoke(view, doc);
+
+                ModelImage.Capture();
 
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 serializedData.SetProcessId(processId);
@@ -86,6 +89,8 @@ namespace TrudeSerializer
                 logger.Save();
                 if (!testMode)
                     Uploader.S3helper.UploadLog(logger, processId);
+                    Uploader.S3helper.UploadSnapshot(processId);
+
                 isDone = true;
             }
         }

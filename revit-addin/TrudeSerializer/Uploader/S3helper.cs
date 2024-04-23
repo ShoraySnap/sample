@@ -1,18 +1,21 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
+using TrudeSerializer.Utils.Screenshot;
 
 namespace TrudeSerializer.Uploader
 {
     internal class S3helper
     {
-        static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
+        private static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
+
         public static async void UploadAndRedirectToSnaptrude(SerializedTrudeData serializedData)
         {
             Dictionary<string, string> jsonData = serializedData.GetSerializedObject();
@@ -101,9 +104,37 @@ namespace TrudeSerializer.Uploader
             PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
             uploadTask = UploadUsingPresignedURL(data, presignedURL);
 
-
             await uploadTask;
         }
 
+        public static async void UploadSnapshot(string processId)
+        {
+            Config config = Config.GetConfigObject();
+
+            string userId = config.userId;
+            string projectFloorKey = config.floorKey;
+
+            Task<HttpResponseMessage> uploadTask;
+
+            string imagePath = ModelImage.GetSnapshotPath();
+
+            byte[] imageData = File.ReadAllBytes(imagePath);
+
+            string path = $"media/{userId}/revitImport/{projectFloorKey}/{processId}.png";
+
+            try
+            {
+                var presignedUrlResponse = await GetPresignedURL(path, config);
+                var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
+                PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+                uploadTask = UploadUsingPresignedURL(imageData, presignedURL);
+
+                await uploadTask;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
     }
 }

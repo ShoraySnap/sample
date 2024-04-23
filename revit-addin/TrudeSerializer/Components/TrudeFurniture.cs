@@ -115,5 +115,6 @@ namespace TrudeSerializer.Components
 
             return instance;
         }
+
     }
 }

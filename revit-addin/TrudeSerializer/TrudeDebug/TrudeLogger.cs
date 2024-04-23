@@ -197,7 +197,7 @@ namespace TrudeSerializer.Debug
             {
                 CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
             }
-            else if (TrudeFurniture.IsFurnitureCategory(element) && !FamilyInstanceUtils.HasParentElement(element))
+            else if (TrudeFurniture.IsFurnitureCategory(element))
             {
                 CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
             }
@@ -278,10 +278,7 @@ namespace TrudeSerializer.Debug
             }
             else if (component is TrudeFurniture furniture)
             {
-                if (!furniture.hasParentElement)
-                {
-                    CountOutputComponent(data.components.furniture, component.isParametric);
-                }
+                CountOutputComponent(data.components.furniture, component.isParametric);
             }
         }
 
