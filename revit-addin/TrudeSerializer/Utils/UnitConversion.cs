@@ -25,6 +25,7 @@ namespace TrudeSerializer.Utils
         string GetUnitPattern();
     }
 
+
     internal enum TRUDE_UNIT_TYPE
     {
         INCH, FEET, METER, CENTIMETER, MILLIMETER, _INVALID

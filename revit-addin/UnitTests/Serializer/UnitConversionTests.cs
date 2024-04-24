@@ -96,10 +96,44 @@ namespace UnitTests.Serializer
             double[] resultList = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(valueList);
             Assert.AreEqual(expectedList, resultList);
 
-            XYZ valueXYZ = new XYZ(123.123, 321.321, 515.15);
+            XYZ valueXYZ = new XYZ(valueList[0], valueList[1], valueList[2]);
             double[] resultXYZ = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(valueXYZ);
 
+            // NOT EQUAL AS THIS CHANGES THE ORDERING,
+            // THIS ORDERING SHOULD CHANGE ONLY DURING SERIALIZATION
             Assert.AreEqual(expectedList, resultXYZ);
+
+            // NOT EQUAL AS THIS CHANGES THE ORDERING,
+            // THIS ORDERING SHOULD CHANGE ONLY DURING SERIALIZATION
+            List<double> resultListL = UnitConversion.ConvertSnaptrudeUnitsFromXYZFromFeet(valueXYZ);
+            Assert.AreEqual(expectedList, resultListL.ToArray());
+        }
+
+        [Test]
+        public void ConvertToSnaptrudeAreaUnitsTest()
+        {
+            Assert.NotNull(uiApp);
+            double value = 123.123;
+            double expected = value * 1.44;
+
+            double result = UnitConversion.ConvertToSnaptrudeAreaUnits(value);
+            Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        public void ConvertToMillimeterTest()
+        {
+            Assert.NotNull(uiApp);
+            double value = 123.123;
+
+            double result = UnitConversion.ConvertToMillimeter(value, TRUDE_UNIT_TYPE.INCH);
+            Assert.AreEqual(value * 25.4, result);
+            result = UnitConversion.ConvertToMillimeter(value, TRUDE_UNIT_TYPE.FEET);
+            Assert.AreEqual(value * 304.8, result);
+            result = UnitConversion.ConvertToMillimeter(value, TRUDE_UNIT_TYPE.METER);
+            Assert.AreEqual(value * 1000.0, result);
+            result = UnitConversion.ConvertToMillimeter(value, TRUDE_UNIT_TYPE.CENTIMETER);
+            Assert.AreEqual(value * 10.0, result);
         }
 
 

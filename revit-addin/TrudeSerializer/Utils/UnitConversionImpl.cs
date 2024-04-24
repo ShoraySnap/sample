@@ -21,11 +21,11 @@ namespace TrudeSerializer.Utils
         {
             if (unit.Equals(UnitTypeId.Inches))
             {
-                value *= 25.4;
+                value *= GlobalConstants.INCH_TO_MM;
             }
             else if (unit.Equals(UnitTypeId.Feet))
             {
-                value *= 304.8;
+                value *= GlobalConstants.FEET_TO_MM;
             }
             else if (unit.Equals(UnitTypeId.Meters))
             {
@@ -40,30 +40,30 @@ namespace TrudeSerializer.Utils
 
         public double ConvertToSnaptrudeAreaUnits(double areaValue)
         {
-            return areaValue * 1.44;
+            return areaValue * GlobalConstants.SQF_TO_SNAP_AREA;
         }
 
         public double ConvertToSnaptrudeUnits(double value, object unit)
         {
             if (unit.Equals(UnitTypeId.Inches))
             {
-                value /= 10;
+                value /= GlobalConstants.INCH_PER_SNAP;
             }
             else if (unit.Equals(UnitTypeId.Feet))
             {
-                value *= (1.2);
+                value *= GlobalConstants.FEET_TO_SNAP;
             }
             else if (unit.Equals(UnitTypeId.Meters))
             {
-                value *= (39.37 / 10);
+                value *= GlobalConstants.METER_TO_SNAP;
             }
             else if (unit.Equals(UnitTypeId.Centimeters))
             {
-                value /= 25.4;
+                value /= GlobalConstants.CM_TO_SNAP;
             }
             else if (unit.Equals(UnitTypeId.Millimeters))
             {
-                value /= 254;
+                value /= GlobalConstants.MM_TO_SNAP;
             }
             return value;
         }
@@ -174,11 +174,11 @@ namespace TrudeSerializer.Utils
         {
             if (unit.Equals(DisplayUnitType.DUT_DECIMAL_INCHES))
             {
-                value *= 25.4;
+                value *= GlobalConstants.INCH_TO_MM;
             }
             else if (unit.Equals(DisplayUnitType.DUT_DECIMAL_FEET))
             {
-                value *= 304.8;
+                value *= GlobalConstants.FEET_TO_MM;
             }
             else if (unit.Equals(DisplayUnitType.DUT_METERS))
             {
@@ -193,30 +193,30 @@ namespace TrudeSerializer.Utils
 
         public double ConvertToSnaptrudeAreaUnits(double areaValue)
         {
-            return areaValue * 1.44;
+            return areaValue * GlobalConstants.FEET_TO_SNAPTRUDEAREA;
         }
 
         public double ConvertToSnaptrudeUnits(double value, object unit)
         {
             if (unit.Equals(DisplayUnitType.DUT_DECIMAL_INCHES))
             {
-                value /= 10;
+                value /= GlobalConstants.INCH_PER_SNAP;
             }
             else if (unit.Equals(DisplayUnitType.DUT_DECIMAL_FEET))
             {
-                value *= (1.2);
+                value *= GlobalConstants.FEET_TO_SNAP;
             }
             else if (unit.Equals(DisplayUnitType.DUT_METERS))
             {
-                value *= (39.37 / 10);
+                value *= GlobalConstants.METER_TO_SNAP;
             }
             else if (unit.Equals(DisplayUnitType.DUT_CENTIMETERS))
             {
-                value /= 25.4;
+                value /= GlobalConstants.CM_TO_SNAP;
             }
             else if (unit.Equals(DisplayUnitType.DUT_MILLIMETERS))
             {
-                value /= 254;
+                value /= GlobalConstants.MM_TO_SNAP;
             }
             return value;
         }
