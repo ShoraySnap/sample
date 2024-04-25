@@ -31,12 +31,12 @@ namespace ManagerUI.ViewModels
             new Folder("10", "Folder 6", "folder", "2"),
             new Folder("11", "Folder 7", "folder", "2"),
             new Folder("12", "Folder 1", "folder", "3"),
-            new Folder("13", "Child Folder 1", "folder", "5"),
-            new Folder("14", "Child Folder 1", "folder", "13"),
-            new Folder("15", "Child Folder 1", "folder", "14"),
-            new Folder("16", "Child Folder 1", "folder", "15"),
-            new Folder("17", "Child Folder 1", "folder", "16"),
-            new Folder("18", "Child Folder 2", "folder", "17"),
+            new Folder("13", "Child Folder", "folder", "5"),
+            new Folder("14", "Child Folder", "folder", "13"),
+            new Folder("15", "Child Folder", "folder", "14"),
+            new Folder("16", "Child Folder", "folder", "15"),
+            new Folder("17", "Child Folder", "folder", "16"),
+            new Folder("18", "Child Folder", "folder", "17"),
         };
 
         public ObservableCollection<FolderViewModel> CurrentPathFolders { get; private set; }

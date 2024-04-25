@@ -19,15 +19,160 @@
             <RowDefinition />
             <RowDefinition Height="64" />
         </Grid.RowDefinitions>
-        <Border
-            Margin="16,8,16,0"
-            BorderBrush="{DynamicResource Colors/Neutral/200}"
-            BorderThickness="1"
-            CornerRadius="5">
-            <DockPanel>
-                <TextBox></TextBox>
-            </DockPanel>
-        </Border>
+        <Grid Width="280" Margin="0,52,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Label
+                Grid.Row="0"
+                VerticalAlignment="Center"
+                Content="Enter Project URL:" />
+
+            <Border
+                Grid.Row="1"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top"
+                BorderBrush="#FFC6C6C6"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid Height="32">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid
+                        Width="16"
+                        Height="16"
+                        Margin="8,8,0,8">
+                        <Path
+                            Data="M11.485 9.30788L12.9463 7.8466C14.1067 6.65688 14.0949 4.75524 12.9197 3.58007C11.7445 2.40491 9.8429 2.39305 8.65317 3.55348L7.19189 5.01476"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" />
+                        <Path
+                            Data="M10.2787 6.22126L6.72119 9.77874"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" />
+                        <Path
+                            Data="M5.51481 6.69212L4.05353 8.1534C2.8931 9.34312 2.90495 11.2448 4.08012 12.4199C5.25529 13.5951 7.15693 13.6069 8.34665 12.4465L9.80793 10.9852"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" />
+                    </Grid>
+                    <TextBox
+                        Grid.Column="1"
+                        Height="30"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        d:Text="Paste link here"
+                        Background="Transparent"
+                        BorderThickness="0" />
+                    <Grid Grid.Column="2" Margin="0,6,8,6">
+                        <Grid>
+                            <Path
+                                Data="M18.003 10H15.502"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M2.99707 10H5.49811"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M10.4998 2.49687V4.99792"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M10.4998 17.5031V15.0021"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M15.8053 15.3055L14.0371 13.5373"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M5.19531 4.69446L6.96355 6.46269"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M14.0371 6.46269L15.8053 4.69446"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M6.96355 13.5373L5.19531 15.3055"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                        </Grid>
+                        <Grid />
+                        <Grid>
+                            <Path
+                                Fill="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round">
+                                <Path.Data>
+                                    <EllipseGeometry
+                                        Center="10.5,10.5"
+                                        RadiusX="7.5"
+                                        RadiusY="7.5" />
+                                </Path.Data>
+                            </Path>
+                            <Path
+                                Data="M7.53516 10.2826L9.34174 12.0892L9.33007 12.0775L13.4059 8.00167"
+                                Stroke="white"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.25" />
+                        </Grid>
+                        <Grid
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+                            <Path
+                                Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                Stroke="white"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.25" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
         <Grid Grid.Row="1" Margin="16">
             <StackPanel Orientation="Horizontal">
                 <TextBlock

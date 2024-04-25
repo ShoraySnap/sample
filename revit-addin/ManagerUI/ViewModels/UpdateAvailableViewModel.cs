@@ -27,6 +27,7 @@ namespace ManagerUI.ViewModels
             //TO DO: GET UPDATES VERSION
             UpdateVersion = "2.2";
 
+            MainWindowViewModel.Instance.WhiteBackground = false;
             MainWindowViewModel.Instance.ImageBackground = true;
             SkipCommand = new NavigateCommand(skipUpdateNavigationService);
             UpdateCommand = new UpdateCommand();

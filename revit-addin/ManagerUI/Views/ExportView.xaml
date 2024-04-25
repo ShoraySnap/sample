@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <DockPanel Margin="10" Background="Transparent">
+    <DockPanel Margin="16" Background="Transparent">
         <Button
             HorizontalAlignment="Right"
             Command="{Binding BackCommand}"
@@ -25,7 +25,7 @@
             VerticalAlignment="Center"
             Orientation="Vertical">
             <Label
-                Margin="0,0,0,24"
+                Margin="0,0,0,14"
                 HorizontalAlignment="Center"
                 Content="Export model to"
                 Foreground="{DynamicResource Colors/Neutral/800}" />
@@ -49,7 +49,7 @@
                     Command="{Binding ExportToExistingCommand}"
                     Style="{DynamicResource Button_Primary}">
                     <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/userLogo.png" />
+                        <Image Height="16" Source="/Images/document-file-blank.png" />
                         <Label
                             VerticalAlignment="Center"
                             Content="Existing Project"

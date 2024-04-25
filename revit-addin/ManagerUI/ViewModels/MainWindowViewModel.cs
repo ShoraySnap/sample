@@ -15,13 +15,24 @@ namespace ManagerUI.ViewModels
 
         private readonly NavigationStore navigationStore;
 
+        private bool whiteBackground;
+
+        public bool WhiteBackground
+        {
+            get { return whiteBackground; }
+            set
+            {
+                whiteBackground = value; OnPropertyChanged("WhiteBackground");
+            }
+        }
+
         private bool imageBackground;
         public bool ImageBackground
         {
             get { return imageBackground; }
-            set 
+            set
             {
-                imageBackground = value; OnPropertyChanged("ImageBackground"); 
+                imageBackground = value; OnPropertyChanged("ImageBackground");
             }
         }
 

@@ -14,23 +14,17 @@
     Background="Transparent"
     FontFamily="{DynamicResource Inter}"
     FontSize="13"
+    MouseDown="Window_MouseDown"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
-        <Style x:Name="mainForeground" TargetType="{x:Type TextBlock}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding ImageBackground}" Value="true">
-                    <Setter Property="Foreground" Value="White" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <BooleanToVisibilityConverter x:Key="BoolToVisisibility" />
+        <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </Window.Resources>
     <Grid>
         <Border Background="White" CornerRadius="10" />
-        <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisisibility}}">
+        <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
                 <Border.Background>
@@ -42,55 +36,84 @@
             </Border>
         </Grid>
         <DockPanel>
-            <DockPanel
-                Width="auto"
-                Margin="10"
-                DockPanel.Dock="Top"
-                LastChildFill="False">
-                <Image Height="16" Source="/Images/snaptrudeLogo.png" />
-                <TextBlock
-                    Margin="5,0,0,0"
-                    VerticalAlignment="Center"
-                    FontWeight="Bold">
-                    Snaptrude
-                </TextBlock>
-                <TextBlock
-                    Margin="2,0,0,0"
-                    VerticalAlignment="Center"
-                    Opacity="0.66">
-                    Manager
-                </TextBlock>
-                <Button
-                    Padding="8"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Command="{Binding CloseCommand}"
-                    DockPanel.Dock="Right">
-                    <Image
-                        Height="12"
-                        Opacity="0.66"
-                        Source="/Images/close.png"
-                        Stretch="Uniform" />
-                </Button>
-                <ComboBox
-                    Name="user"
-                    Width="100"
-                    Margin="25,0"
-                    BorderBrush="WhiteSmoke"
-                    BorderThickness="1"
-                    DockPanel.Dock="Right"
-                    Foreground="Black"
-                    IsEditable="True"
-                    IsReadOnly="True">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Image Width="auto" Source="{Binding optionLogo}" />
-                                <TextBlock Width="auto" Text="{Binding optionText}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+            <DockPanel DockPanel.Dock="Top">
+                <DockPanel
+                    Width="auto"
+                    Height="32"
+                    Margin="8"
+                    LastChildFill="False">
+                    <Grid Margin="8,0,0,0">
+                        <Image
+                            Width="10"
+                            Height="15.53"
+                            Source="/Images/snaptrudeLogoWhite.png"
+                            Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}" />
+                        <Image
+                            Width="10"
+                            Height="15.53"
+                            Source="/Images/snaptrudeLogoBlack.png"
+                            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
+                    </Grid>
+                    <TextBlock
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        FontWeight="Bold">
+                        Snaptrude
+                    </TextBlock>
+                    <TextBlock
+                        Margin="2,0,0,0"
+                        VerticalAlignment="Center"
+                        Opacity="0.66">
+                        Manager
+                    </TextBlock>
+                    <Button
+                        Padding="10"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding CloseCommand}"
+                        DockPanel.Dock="Right"
+                        Style="{DynamicResource Button_6}">
+                        <Grid>
+                            <Grid Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+                                <Path
+                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                    Stroke="black"
+                                    StrokeEndLineCap="round"
+                                    StrokeLineJoin="round"
+                                    StrokeStartLineCap="round"
+                                    StrokeThickness="1.25" />
+                            </Grid>
+                            <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+                                <Path
+                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                    Stroke="white"
+                                    StrokeEndLineCap="round"
+                                    StrokeLineJoin="round"
+                                    StrokeStartLineCap="round"
+                                    StrokeThickness="1.25" />
+                            </Grid>
+                        </Grid>
+                    </Button>
+                    <ComboBox
+                        Name="user"
+                        Width="100"
+                        Margin="25,0"
+                        BorderBrush="WhiteSmoke"
+                        BorderThickness="1"
+                        DockPanel.Dock="Right"
+                        Foreground="Black"
+                        IsEditable="True"
+                        IsReadOnly="True">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Width="auto" Source="{Binding optionLogo}" />
+                                    <TextBlock Width="auto" Text="{Binding optionText}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </DockPanel>
             </DockPanel>
             <ContentControl Content="{Binding CurrentViewModel}">
                 <ContentControl.Resources>
@@ -108,6 +131,12 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vms:SelectFolderViewModel}">
                         <views:SelectFolderView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:EnterProjectUrlViewModel}">
+                        <views:EnterProjectUrlView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:ProgressViewModel}">
+                        <views:ProgressView />
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>

@@ -17,6 +17,7 @@ namespace ManagerUI.ViewModels
         public HomeViewModel(NavigationService importNavigationService, NavigationService exportNavigationService)
         {
             MainWindowViewModel.Instance.ImageBackground = false;
+            MainWindowViewModel.Instance.WhiteBackground = true;
             ExportCommand = new NavigateCommand(exportNavigationService);
             ImportCommand = new NavigateCommand(importNavigationService);
         }

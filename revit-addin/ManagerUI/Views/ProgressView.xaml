@@ -1,0 +1,46 @@
+﻿<UserControl
+    x:Class="ManagerUI.Views.ProgressView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ManagerUI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="320"
+    d:DesignWidth="560"
+    FontFamily="{DynamicResource Inter}"
+    FontSize="13"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
+    </UserControl.Resources>
+    <Grid Margin="10" Background="Transparent">
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical">
+            <Image
+                Width="28"
+                Height="28"
+                Margin="0,0,0,30"
+                DockPanel.Dock="Bottom"
+                Source="/Images/snaptrudeLogoBlack.png" />
+            <ProgressBar
+                Width="240"
+                Margin="0,0,0,12"
+                d:Maximum="100"
+                d:Value="64"
+                Style="{StaticResource RoundedProgressBar2}"
+                Value="{Binding ProgressValue}" />
+            <Label
+                HorizontalAlignment="Center"
+                d:Content="64%"
+                Content="{Binding ProgressBarPercentage}" />
+        </StackPanel>
+        <Label
+            Margin="0,0,0,15"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            d:Content="Update in progress, please don’t close this window."
+            Content="{Binding ProgressBarMessage}" />
+    </Grid>
+</UserControl>

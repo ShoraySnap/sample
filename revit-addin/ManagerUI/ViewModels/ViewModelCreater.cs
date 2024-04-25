@@ -14,7 +14,7 @@ namespace ManagerUI.ViewModels
         {
             return new SelectFolderViewModel(
                 new NavigationService(NavigationStore.Instance, CreateExportViewModel),
-                new NavigationService(NavigationStore.Instance, CreateExportViewModel)
+                new NavigationService(NavigationStore.Instance, CreateProgressViewModel)
                 );
         }
 
@@ -32,7 +32,14 @@ namespace ManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateUpdateNowViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
         }
-        
+
+        public static ProgressViewModel CreateProgressViewModel()
+        {
+            return new ProgressViewModel(
+                new NavigationService(NavigationStore.Instance, CreateUpdateNowViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+        }
+
         public static UpdateNowViewModel CreateUpdateNowViewModel()
         {
             return new UpdateNowViewModel(
@@ -52,13 +59,18 @@ namespace ManagerUI.ViewModels
             return new SelectTrudeFileViewModel(new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel));
         }
 
-
+        private static EnterProjectUrlViewModel CreateEnterProjectUrlViewModel()
+        {
+            return new EnterProjectUrlViewModel(
+                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
+                new NavigationService(NavigationStore.Instance, CreateProgressViewModel));
+        }
         private static ExportViewModel CreateExportViewModel()
         {
             return new ExportViewModel(
                 new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
-                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel));
+                new NavigationService(NavigationStore.Instance, CreateEnterProjectUrlViewModel));
         }
         
         private static SelectTrudeFileViewModel CreateSelectTrudeFileViewModel()
