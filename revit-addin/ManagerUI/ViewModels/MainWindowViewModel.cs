@@ -11,14 +11,27 @@ namespace ManagerUI.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        public static MainWindowViewModel Instance;
+
         private readonly NavigationStore navigationStore;
 
-        public ICommand CloseCommand{ get; }
+        private bool imageBackground;
+        public bool ImageBackground
+        {
+            get { return imageBackground; }
+            set 
+            {
+                imageBackground = value; OnPropertyChanged("ImageBackground"); 
+            }
+        }
+
+        public ICommand CloseCommand { get; }
 
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
 
         public MainWindowViewModel(NavigationStore navigationStore)
         {
+            Instance = this;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
             CloseCommand = new CloseCommand();

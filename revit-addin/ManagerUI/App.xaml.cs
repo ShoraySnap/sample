@@ -14,14 +14,14 @@ namespace ManagerUI
             // Create the startup window
 
             NavigationStore navigationStore = NavigationStore.Instance;
-
+            MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(navigationStore);
             // Create initial ViewModel
 
-            navigationStore.CurrentViewModel = ViewModelCreater.CreateLoginViewModel();
+            navigationStore.CurrentViewModel = ViewModelCreater.CreateUpdateAvailableViewModel();
 
             MainWindow wnd = new MainWindow
             {
-                DataContext = new MainWindowViewModel(navigationStore)
+                DataContext = mainWindowViewModel
             };
             // Show the window
             wnd.Show();

@@ -10,6 +10,14 @@ namespace ManagerUI.ViewModels
 {
     public static class ViewModelCreater
     {
+        public static SelectFolderViewModel CreateSelectFolderViewModel()
+        {
+            return new SelectFolderViewModel(
+                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
+                new NavigationService(NavigationStore.Instance, CreateExportViewModel)
+                );
+        }
+
         public static LoginViewModel CreateLoginViewModel()
         {
             return new LoginViewModel(
@@ -47,7 +55,10 @@ namespace ManagerUI.ViewModels
 
         private static ExportViewModel CreateExportViewModel()
         {
-            return new ExportViewModel();
+            return new ExportViewModel(
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel));
         }
         
         private static SelectTrudeFileViewModel CreateSelectTrudeFileViewModel()

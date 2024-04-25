@@ -64,15 +64,20 @@
     <Compile Include="Commands\CommandBase.cs" />
     <Compile Include="Commands\LogoutCommand.cs" />
     <Compile Include="Commands\NavigateCommand.cs" />
+    <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Commands\SwitchAccountCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
+    <Compile Include="Models\Folder.cs" />
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Stores\NavigationStore.cs" />
+    <Compile Include="ViewModels\EnterProjectUrlViewModel.cs" />
     <Compile Include="ViewModels\ExportViewModel.cs" />
+    <Compile Include="ViewModels\FolderViewModel.cs" />
     <Compile Include="ViewModels\HomeViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\IncompatibleTrudeViewModel.cs" />
+    <Compile Include="ViewModels\SelectFolderViewModel.cs" />
     <Compile Include="ViewModels\UpdateAvailableViewModel.cs" />
     <Compile Include="ViewModels\SelectTrudeFileViewModel.cs" />
     <Compile Include="ViewModels\UpdateNowViewModel.cs" />
@@ -87,8 +92,17 @@
     <Compile Include="Views\LoginView.xaml.cs">
       <DependentUpon>LoginView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\EnterProjectUrlView.xaml.cs">
+      <DependentUpon>EnterProjectUrlView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\UpdateAvailableView.xaml.cs">
       <DependentUpon>UpdateAvailableView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SelectFolderView.xaml.cs">
+      <DependentUpon>SelectFolderView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WarningView.xaml.cs">
+      <DependentUpon>WarningView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -154,10 +168,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\EnterProjectUrlView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\UpdateAvailableView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\SelectFolderView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\WarningView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\folder-modern-style-3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\arrow-button.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\users-profile-group.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\user-profile.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

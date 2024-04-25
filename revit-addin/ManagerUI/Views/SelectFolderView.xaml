@@ -1,0 +1,151 @@
+﻿<UserControl
+    x:Class="ManagerUI.Views.SelectFolderView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ManagerUI.ViewModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vms="clr-namespace:ManagerUI.ViewModels"
+    d:DesignHeight="320"
+    d:DesignWidth="560"
+    FontFamily="{DynamicResource Inter}"
+    FontSize="13"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="64" />
+        </Grid.RowDefinitions>
+        <Border
+            Margin="16,8,16,0"
+            BorderBrush="{DynamicResource Colors/Neutral/200}"
+            BorderThickness="1"
+            CornerRadius="5">
+            <DockPanel>
+                <!--  Breadcrumb Navigation  -->
+                <ItemsControl
+                    Padding="6,6,6,16"
+                    DockPanel.Dock="Top"
+                    ItemsSource="{Binding Breadcrumb}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Width="510" Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    x:Name="SlashTextBlock"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource Colors/Neutral/600}"
+                                    Text="/" />
+                                <Button
+                                    Command="{Binding DataContext.NavigateToFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                    CommandParameter="{Binding}"
+                                    Content="{Binding Name}"
+                                    Style="{DynamicResource Button_6}" />
+                            </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
+                                    <Setter TargetName="SlashTextBlock" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <!--  Folder View  -->
+                <ScrollViewer Style="{DynamicResource ScrollViewerStyle}" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl Padding="48,0" ItemsSource="{Binding CurrentPathFolders}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
+                                    Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{DynamicResource Button_7}">
+                                    <Grid Height="32">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="32" />
+                                            <RowDefinition Height="1" />
+                                        </Grid.RowDefinitions>
+                                        <Image
+                                            Grid.Column="0"
+                                            Height="20"
+                                            Margin="6,4">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding FolderType}" Value="personal">
+                                                            <Setter Property="Source" Value="/Images/user-profile.png" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding FolderType}" Value="shared">
+                                                            <Setter Property="Source" Value="/Images/users-profile-group.png" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding FolderType}" Value="folder">
+                                                            <Setter Property="Source" Value="/Images/folder-modern-style-3.png" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Name}" />
+                                        <Image
+                                            Grid.Column="2"
+                                            Height="12"
+                                            Margin="8,4"
+                                            Source="/Images/arrow-button.png" />
+                                        <Rectangle
+                                            Grid.Column="1"
+                                            Grid.ColumnSpan="2"
+                                            Height="1"
+                                            Margin="0,0,5,0"
+                                            VerticalAlignment="Bottom"
+                                            Fill="{DynamicResource Colors/Neutral/400}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+        <Grid Grid.Row="1" Margin="16">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    d:Text="Select workspace to begin export"
+                    FontSize="13"
+                    FontWeight="Medium"
+                    Foreground="{StaticResource Colors/Neutral/600}"
+                    Text="{Binding SelectedWorkspaceString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button
+                    Command="{Binding BackCommand}"
+                    Content="Back"
+                    Style="{DynamicResource Button_Secondary}" />
+                <Button
+                    Margin="8,0,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding BeginExportCommand}"
+                    Content="Begin export"
+                    IsEnabled="{Binding IsWorkspaceSelected}"
+                    Style="{DynamicResource Button_Primary}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
+

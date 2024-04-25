@@ -6,7 +6,15 @@ using System.Threading.Tasks;
 
 namespace ManagerUI.Commands
 {
-    internal class UpdateCommand
+    public class UpdateCommand : CommandBase
     {
+        public UpdateCommand() 
+        {
+
+        }
+        public override void Execute(object parameter)
+        {
+            
+        }
     }
 }

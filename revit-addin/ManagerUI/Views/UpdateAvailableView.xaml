@@ -21,7 +21,7 @@
             Foreground="White"
             TextAlignment="Center"
             TextWrapping="Wrap">
-            <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersionTextInstruction}" />
+            <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersion}" />
             <Run Text="is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude" />
         </TextBlock>
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
@@ -30,7 +30,7 @@
                 Command="{Binding LoginCommand}"
                 Style="{DynamicResource Button_Quaternary}">
                 <TextBlock>
-                    <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersionString}" />
+                    <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersion}" />
                 </TextBlock>
             </Button>
             <Button

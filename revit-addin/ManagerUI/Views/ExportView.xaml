@@ -13,9 +13,10 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <DockPanel Background="Transparent" Margin="10">
+    <DockPanel Margin="10" Background="Transparent">
         <Button
             HorizontalAlignment="Right"
+            Command="{Binding BackCommand}"
             Content="Back"
             DockPanel.Dock="Bottom"
             Style="{DynamicResource Button_Secondary}" />
@@ -29,7 +30,7 @@
                 Content="Export model to"
                 Foreground="{DynamicResource Colors/Neutral/800}" />
             <StackPanel Orientation="Horizontal">
-                <Button Style="{DynamicResource Button_Primary}">
+                <Button Command="{Binding ExportToNewCommand}" Style="{DynamicResource Button_Primary}">
                     <StackPanel Orientation="Horizontal">
                         <Image
                             Width="20"
@@ -43,7 +44,10 @@
                     </StackPanel>
 
                 </Button>
-                <Button Margin="8,0,0,0" Style="{DynamicResource Button_Primary}">
+                <Button
+                    Margin="8,0,0,0"
+                    Command="{Binding ExportToExistingCommand}"
+                    Style="{DynamicResource Button_Primary}">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/Images/userLogo.png" />
                         <Label
