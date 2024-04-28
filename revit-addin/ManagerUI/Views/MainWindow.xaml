@@ -138,6 +138,9 @@
                     <DataTemplate DataType="{x:Type vms:ProgressViewModel}">
                         <views:ProgressView />
                     </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:SelectTrudeFileViewModel}">
+                        <views:SelectTrudeFileView />
+                    </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>
         </DockPanel>

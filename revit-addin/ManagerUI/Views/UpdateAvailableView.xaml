@@ -27,7 +27,7 @@
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
             <Button
                 Margin="0,0,10,0"
-                Command="{Binding LoginCommand}"
+                Command="{Binding UpdateCommand}"
                 Style="{DynamicResource Button_Quaternary}">
                 <TextBlock>
                     <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersion}" />

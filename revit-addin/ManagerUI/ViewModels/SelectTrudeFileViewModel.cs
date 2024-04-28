@@ -11,9 +11,16 @@ namespace ManagerUI.ViewModels
 {
     public class SelectTrudeFileViewModel : ViewModelBase
     {
-        public SelectTrudeFileViewModel(NavigationService incompatibleNavigationService)
+        ICommand StartImportNavigateCommand {  get; set; }
+        ICommand IncompatibleNavigateCommand {  get; set; }
+        public SelectTrudeFileViewModel(NavigationService progressViewNavigationService, NavigationService incompatibleNavigationService)
         {
-
+            StartImportNavigateCommand = new NavigateCommand(progressViewNavigationService);
+            IncompatibleNavigateCommand = new NavigateCommand(incompatibleNavigationService);
+            if (progressViewNavigationService != null)
+                StartImportNavigateCommand.Execute(null);
+            else
+                IncompatibleNavigateCommand.Execute(null);
         }
     }
 }

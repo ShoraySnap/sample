@@ -30,7 +30,7 @@
         </Style.Triggers>
     </Style>
     <converters:ProgressBarWidthConverter x:Key="ProgressBarWidthConverter" />
-    <Style x:Key="RoundedProgressBar2" TargetType="{x:Type ProgressBar}">
+    <Style x:Key="RoundedBlueProgressBar" TargetType="{x:Type ProgressBar}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ProgressBar}">
@@ -66,22 +66,27 @@
         </Setter>
         <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style x:Key="RoundedProgressBar" TargetType="{x:Type ProgressBar}">
+    <Style x:Key="RoundedWhiteProgressBar" TargetType="{x:Type ProgressBar}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ProgressBar}">
-                    <Grid>
+                    <Grid
+                        Height="4"
+                        MinWidth="50"
+                        Background="{TemplateBinding Background}">
                         <Border
+                            x:Name="PART_Track"
+                            Width="238"
+                            Height="2"
                             Background="{StaticResource Colors/Neutral/300}"
-                            BorderBrush="Transparent"
                             BorderThickness="0"
-                            CornerRadius="2" />
+                            CornerRadius="1" />
                         <Border
                             Margin="{TemplateBinding BorderThickness}"
                             HorizontalAlignment="Left"
-                            Background="{StaticResource Colors/Blue/300}"
+                            Background="{StaticResource Colors/Neutral/100}"
                             BorderThickness="0"
-                            CornerRadius="2">
+                            CornerRadius="1">
                             <Border.Width>
                                 <MultiBinding Converter="{StaticResource ProgressBarWidthConverter}">
                                     <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}" />
@@ -95,7 +100,9 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Setter Property="Background" Value="Transparent" />
     </Style>
+
     <Style x:Key="Button_Primary" TargetType="{x:Type Button}">
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/0}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />

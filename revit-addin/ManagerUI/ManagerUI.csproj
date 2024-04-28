@@ -100,6 +100,9 @@
     <Compile Include="Views\EnterProjectUrlView.xaml.cs">
       <DependentUpon>EnterProjectUrlView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SelectTrudeFileView.xaml.cs">
+      <DependentUpon>SelectTrudeFileView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\UpdateAvailableView.xaml.cs">
       <DependentUpon>UpdateAvailableView.xaml</DependentUpon>
     </Compile>
@@ -180,6 +183,10 @@
     <Page Include="Views\EnterProjectUrlView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\SelectTrudeFileView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\UpdateAvailableView.xaml">
       <SubType>Designer</SubType>

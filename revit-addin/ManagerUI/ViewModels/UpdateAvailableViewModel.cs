@@ -30,7 +30,7 @@ namespace ManagerUI.ViewModels
             MainWindowViewModel.Instance.WhiteBackground = false;
             MainWindowViewModel.Instance.ImageBackground = true;
             SkipCommand = new NavigateCommand(skipUpdateNavigationService);
-            UpdateCommand = new UpdateCommand();
+            UpdateCommand = new NavigateCommand(updateNowNavigationService);
         }
     }
 }

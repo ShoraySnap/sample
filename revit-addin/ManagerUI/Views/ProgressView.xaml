@@ -23,7 +23,8 @@
                 Height="28"
                 Margin="0,0,0,30"
                 DockPanel.Dock="Bottom"
-                Source="/Images/snaptrudeLogoBlack.png" />
+                Source="/Images/snaptrudeLogoBlack.png"
+                Visibility="{Binding LogoIsVisible, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar
                 Width="240"
                 Margin="0,0,0,12"
