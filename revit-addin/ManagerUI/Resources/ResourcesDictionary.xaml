@@ -30,7 +30,7 @@
         </Style.Triggers>
     </Style>
     <converters:ProgressBarWidthConverter x:Key="ProgressBarWidthConverter" />
-    <Style x:Key="RoundedBlueProgressBar" TargetType="{x:Type ProgressBar}">
+    <Style x:Key="RoundedProgressBar" TargetType="{x:Type ProgressBar}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ProgressBar}">
@@ -46,6 +46,7 @@
                             BorderThickness="0"
                             CornerRadius="1" />
                         <Border
+                            x:Name="PART_Back"
                             Margin="{TemplateBinding BorderThickness}"
                             HorizontalAlignment="Left"
                             Background="{StaticResource Colors/Blue/300}"
@@ -61,6 +62,12 @@
                             </Border.Width>
                         </Border>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="false">
+                            <Setter TargetName="PART_Track" Property="Background" Value="{StaticResource Colors/Neutral/600}" />
+                            <Setter TargetName="PART_Back" Property="Background" Value="White" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -78,13 +85,13 @@
                             x:Name="PART_Track"
                             Width="238"
                             Height="2"
-                            Background="{StaticResource Colors/Neutral/300}"
+                            Background="{StaticResource Colors/Neutral/600}"
                             BorderThickness="0"
                             CornerRadius="1" />
                         <Border
                             Margin="{TemplateBinding BorderThickness}"
                             HorizontalAlignment="Left"
-                            Background="{StaticResource Colors/Neutral/100}"
+                            Background="White"
                             BorderThickness="0"
                             CornerRadius="1">
                             <Border.Width>

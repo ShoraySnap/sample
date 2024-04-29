@@ -31,27 +31,15 @@ namespace ManagerUI.ViewModels
             }
         }
 
-        private Style _dynamicStyle = (Style)Application.Current.FindResource("Style1");
-        public Style DynamicStyle
+        private bool whiteBackground = true;
+
+        public bool WhiteBackground
         {
-            get { return _dynamicStyle; }
+            get { return whiteBackground; }
             set
             {
-                _dynamicStyle = value;
-                OnPropertyChanged("DynamicStyle");
-            }
-
-        }
-
-        private bool logoIsVisible = true;
-
-        public bool LogoIsVisible
-        {
-            get { return logoIsVisible; }
-            set
-            {
-                logoIsVisible = value;
-                OnPropertyChanged("LogoIsVisible");
+                whiteBackground = value;
+                OnPropertyChanged("WhiteBackground");
             }
         }
 
@@ -77,7 +65,7 @@ namespace ManagerUI.ViewModels
                     StartProgressCommand = new RelayCommand(async (o) => await StartImport());
                     break;
                 case ProgressViewType.Update:
-                    LogoIsVisible = false;
+                    WhiteBackground = false;
                     StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
                     break;
                 default:

@@ -24,13 +24,13 @@
                 Margin="0,0,0,30"
                 DockPanel.Dock="Bottom"
                 Source="/Images/snaptrudeLogoBlack.png"
-                Visibility="{Binding LogoIsVisible, Converter={StaticResource BoolToVisibility}}" />
+                Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar
                 Width="240"
                 Margin="0,0,0,12"
                 d:Maximum="100"
                 d:Value="64"
-                Style="{StaticResource RoundedProgressBar2}"
+                Style="{StaticResource RoundedProgressBar}"
                 Value="{Binding ProgressValue}" />
             <Label
                 HorizontalAlignment="Center"
