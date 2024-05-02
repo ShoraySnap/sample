@@ -15,6 +15,10 @@ namespace ManagerUI.ViewModels
         public ICommand ExportCommand { get; }
         public ICommand ImportCommand { get; }
         public ICommand UpdateCommand { get; }
+
+        public string CurrentVersion => MainWindowViewModel.Instance.CurrentVersion;
+        public string UpdateVersion => MainWindowViewModel.Instance.UpdateVersion;
+        public bool UpdateAvailable => CurrentVersion != UpdateVersion;
         public HomeViewModel(NavigationService importNavigationService, NavigationService exportNavigationService, NavigationService updateNavigationService)
         {
             //MainWindowViewModel.Instance.ImageBackground = false;

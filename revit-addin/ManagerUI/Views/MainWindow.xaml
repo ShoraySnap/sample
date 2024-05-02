@@ -88,21 +88,7 @@
                         FontWeight="DemiBold"
                         Opacity="0.66"
                         Text="{Binding CurrentVersion}" />
-                    <Button
-                        Margin="16,0"
-                        VerticalAlignment="Center"
-                        d:Content="Update v2.2"
-                        Command="{Binding UpdateCommand}"
-                        Style="{StaticResource Button_24}"
-                        Visibility="{Binding HaveUpdateAvailable, Converter={StaticResource BoolToVisibility}}">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Foreground="White" Text="Update " />
-                                <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="v" />
-                                <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="{Binding UpdateVersion, Mode=OneTime}" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
+                    
                     <Button
                         Padding="10"
                         Background="Transparent"

@@ -78,7 +78,113 @@
                                             <RowDefinition Height="32" />
                                             <RowDefinition Height="1" />
                                         </Grid.RowDefinitions>
-                                        <Image
+                                        <Grid Height="20" Margin="6,4">
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FolderType}" Value="personal">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <Path
+                                                    Data="M9.56256 1.77096C10.7016 2.91 10.7016 4.75672 9.56256 5.89575C8.42353 7.03479 6.5768 7.03479 5.43777 5.89575C4.29874 4.75672 4.29874 2.91 5.43777 1.77096C6.5768 0.631929 8.42353 0.631929 9.56256 1.77096"
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M0.833496 13.4167V14.25C0.833496 14.71 1.20683 15.0834 1.66683 15.0834H13.3335C13.7935 15.0834 14.1668 14.71 14.1668 14.25V13.4167C14.1668 10.895 10.8735 9.25671 7.50016 9.25671C4.12683 9.25671 0.833496 10.895 0.833496 13.4167Z"
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                            </Grid>
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FolderType}" Value="shared">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <Path
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5">
+                                                    <Path.Data>
+                                                        <EllipseGeometry
+                                                            Center="6.1654,4.09045"
+                                                            RadiusX="2.90954"
+                                                            RadiusY="2.90954" />
+                                                    </Path.Data>
+                                                </Path>
+                                                <Path
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5">
+                                                    <Path.Data>
+                                                        <EllipseGeometry
+                                                            Center="13.6682,4.91581"
+                                                            RadiusX="2.0842"
+                                                            RadiusY="2.0842" />
+                                                    </Path.Data>
+                                                </Path>
+                                                <Path
+                                                    Data="M1.16309 13.6694V12.8216C1.16309 10.9875 2.64954 9.50104 4.48364 9.50104H7.8467C9.6808 9.50104 11.1673 10.9875 11.1673 12.8216V13.6694"
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M13.6685 9.50104H14.5872C16.4213 9.50104 17.9077 10.9875 17.9077 12.8216V13.6694"
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                            </Grid>
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FolderType}" Value="folder">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <Path
+                                                    Data="M10.8333 6.66667H2.5"
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M17.5 14.7934V8.33331C17.5 7.41284 16.7538 6.66665 15.8333 6.66665H10.8333L9.10589 4.07548C8.79679 3.61182 8.27641 3.33332 7.71917 3.33331H4.16667C3.24619 3.33331 2.5 4.07951 2.5 4.99998V15C2.5 15.9205 3.24619 16.6666 4.16667 16.6666H15.8333C16.7538 16.6666 17.5 15.9205 17.5 15"
+                                                    Stroke="#484B5B"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                            </Grid>
+                                        </Grid>
+                                        <!--<Image
                                             Grid.Column="0"
                                             Height="20"
                                             Margin="6,4">
@@ -97,16 +203,29 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Image.Style>
-                                        </Image>
+                                        </Image>-->
                                         <TextBlock
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
                                             Text="{Binding Name}" />
-                                        <Image
+                                        <Grid
+                                            Grid.Column="2"
+                                            Height="12"
+                                            Margin="8,4">
+                                            <Path
+                                                Data="M2 2L4.61431 4.6143C4.82732 4.82732 4.82732 5.17268 4.61431 5.38569L2 8"
+                                                Stroke="#484B5B"
+                                                StrokeEndLineCap="Round"
+                                                StrokeLineJoin="round"
+                                                StrokeStartLineCap="round"
+                                                StrokeThickness="1.5" />
+                                        </Grid>
+                                        
+                                        <!--<Image
                                             Grid.Column="2"
                                             Height="12"
                                             Margin="8,4"
-                                            Source="/Images/arrow-button.png" />
+                                            Source="/Images/arrow-button.png" />-->
                                         <Rectangle
                                             Grid.Column="1"
                                             Grid.ColumnSpan="2"

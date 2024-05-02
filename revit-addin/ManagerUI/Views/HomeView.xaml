@@ -16,15 +16,15 @@
     </UserControl.Resources>
     <DockPanel>
         <Grid Height="40" DockPanel.Dock="Bottom">
-            <Grid>
+            <!--<Grid>
                 <TextBlock
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Foreground="{StaticResource Colors/Neutral/600}"
                     Text="{Binding CurrentVersion, StringFormat='Version {0}', Mode=OneTime}"
                     Visibility="{Binding Updated, Converter={StaticResource BoolToVisibility}}" />
-            </Grid>
-            <!--<Border
+            </Grid>-->
+            <Border
                 BorderBrush="{StaticResource Colors/Neutral/100}"
                 BorderThickness="0,1,0,0"
                 Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}">
@@ -52,7 +52,7 @@
                         </Button.Content>
                     </Button>
                 </Grid>
-            </Border>-->
+            </Border>
         </Grid>
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
             <Button

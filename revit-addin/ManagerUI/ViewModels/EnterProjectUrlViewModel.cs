@@ -59,6 +59,7 @@ namespace ManagerUI.ViewModels
 
         private async Task ValidateURL()
         {
+            //WPFTODO: VALIDATE URL
             if (uRL == "")
             {
                 await Task.Delay(100);
