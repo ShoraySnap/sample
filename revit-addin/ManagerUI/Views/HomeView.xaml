@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ManagerUI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DesignHeight="320"
+    d:DesignHeight="272"
     d:DesignWidth="560"
     Background="Transparent"
     FontFamily="{DynamicResource Inter}"
@@ -14,13 +14,46 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <DockPanel Margin="15">
-        <Label
-            HorizontalAlignment="Center"
-            DockPanel.Dock="Bottom"
-            Foreground="Gray">
-            Version 2.1
-        </Label>
+    <DockPanel>
+        <Grid Height="40" DockPanel.Dock="Bottom">
+            <Grid>
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource Colors/Neutral/600}"
+                    Text="{Binding CurrentVersion, StringFormat='Version {0}', Mode=OneTime}"
+                    Visibility="{Binding Updated, Converter={StaticResource BoolToVisibility}}" />
+            </Grid>
+            <!--<Border
+                BorderBrush="{StaticResource Colors/Neutral/100}"
+                BorderThickness="0,1,0,0"
+                Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}">
+                <Grid>
+                    <TextBlock
+                        Margin="16,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Foreground="{StaticResource Colors/Neutral/600}">
+                        <Run>Current version:</Run>
+                        <Run d:Text="2.1" Text="{Binding CurrentVersion, Mode=OneTime}" />
+                    </TextBlock>
+                    <Button
+                        Margin="8,0"
+                        HorizontalAlignment="Right"
+                        d:Content="Update v2.2"
+                        Command="{Binding UpdateCommand}"
+                        Style="{StaticResource Button_24}">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="White" Text="Update " />
+                                <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="v" />
+                                <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="{Binding UpdateVersion, Mode=OneTime}" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                </Grid>
+            </Border>-->
+        </Grid>
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
             <Button
                 Width="200"
@@ -29,10 +62,29 @@
                 Command="{Binding ImportCommand}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
-                    <Image
-                        Height="20"
-                        DockPanel.Dock="Top"
-                        Source="/Images/import.png" />
+                    <Grid HorizontalAlignment="Center">
+                        <Path
+                            Data="M13.4648 9.75903L10.5002 12.7236L7.53564 9.75903"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.25" />
+                        <Path
+                            Data="M10.5003 3.83081V12.7237"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.25" />
+                        <Path
+                            Data="M17.1695 14.2048C17.1695 15.8421 15.8422 17.1694 14.2049 17.1694H6.79513C5.15785 17.1694 3.83057 15.8421 3.83057 14.2048"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.25" />
+                    </Grid>
                     <TextBlock Margin="0,12,0,0" Foreground="{DynamicResource Colors/Neutral/800}">Import to Revit</TextBlock>
                 </StackPanel>
             </Button>
@@ -42,11 +94,30 @@
                 Command="{Binding ExportCommand}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
-                    <Image
-                        Height="20"
-                        DockPanel.Dock="Top"
-                        Source="/Images/export.png"
-                        Stretch="Uniform" />
+
+                    <Grid HorizontalAlignment="Center">
+                        <Path
+                            Data="M12.9643 6.7951L9.99972 3.83054L7.03516 6.7951"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.25" />
+                        <Path
+                            Data="M10.0003 12.7234V3.83052"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.25" />
+                        <Path
+                            Data="M16.6695 14.2048C16.6695 15.8421 15.3422 17.1693 13.7049 17.1693H6.29513C4.65785 17.1693 3.33057 15.8421 3.33057 14.2048"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.25" />
+                    </Grid>
                     <TextBlock Margin="0,12,0,0" Foreground="{DynamicResource Colors/Neutral/800}">Export to Snaptrude</TextBlock>
                 </StackPanel>
             </Button>

@@ -14,6 +14,7 @@
     <SolidColorBrush x:Key="Colors/Neutral/300" Color="#DDDEE4" />
     <SolidColorBrush x:Key="Colors/Neutral/200" Color="#E8E9ED" />
     <SolidColorBrush x:Key="Colors/Neutral/100" Color="#F4F4F6" />
+    <SolidColorBrush x:Key="Colors/Red/400" Color="#D24B4E" />
     <SolidColorBrush x:Key="Colors/Blue/300" Color="#1A5EE5" />
     <SolidColorBrush x:Key="Colors/Neutral/0" Color="#FFFFFF" />
     <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070" />
@@ -22,11 +23,41 @@
     <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6" />
     <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B" />
     <FontFamily x:Key="Inter">/Resources/#Inter</FontFamily>
+    <Storyboard x:Key="RotateStoryboard">
+        <DoubleAnimation
+            RepeatBehavior="Forever"
+            Storyboard.TargetName="rotationTransform"
+            Storyboard.TargetProperty="Angle"
+            From="0"
+            To="360"
+            Duration="0:0:1" />
+    </Storyboard>
     <Style x:Name="mainForeground" TargetType="{x:Type TextBlock}">
         <Style.Triggers>
             <DataTrigger Binding="{Binding ImageBackground}" Value="true">
                 <Setter Property="Foreground" Value="White" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding WhiteBackground}" Value="true">
+                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/900}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="animatedList" TargetType="FrameworkElement">
+        <Setter Property="Visibility" Value="Hidden" />
+        <Style.Triggers>
+            <Trigger Property="Visibility" Value="Visible">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation
+                                Storyboard.TargetProperty="Opacity"
+                                From="0.0"
+                                To="1.0"
+                                Duration="0:0:0.2" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+            </Trigger>
         </Style.Triggers>
     </Style>
     <converters:ProgressBarWidthConverter x:Key="ProgressBarWidthConverter" />
@@ -124,8 +155,7 @@
                     <Border
                         x:Name="border"
                         Background="{StaticResource Colors/Neutral/900}"
-                        CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        CornerRadius="6">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -133,15 +163,15 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="False" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                            <Setter TargetName="border" Property="Background" Value="#484B5B" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#484B5B" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
@@ -156,6 +186,50 @@
         </Setter>
     </Style>
 
+    <Style x:Key="Button_24" TargetType="{x:Type Button}">
+        <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/0}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        x:Name="border"
+                        Background="{StaticResource Colors/Neutral/900}"
+                        CornerRadius="6">
+                        <ContentPresenter
+                            x:Name="contentPresenter"
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Focusable="False"
+                            RecognizesAccessKey="True"
+                            SnapsToDevicePixels="False" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsDefaulted" Value="true">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="#484B5B" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#484B5B" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Style x:Key="ScrollViewerStyle" TargetType="ScrollViewer">
         <Style.Resources>
@@ -314,7 +388,7 @@
                         x:Name="border"
                         Background="Transparent"
                         CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="false">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -322,7 +396,7 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="false" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
@@ -349,7 +423,7 @@
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="Padding" Value="16,0" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Width" Value="Auto" />
         <Setter Property="FontSize" Value="13" />
@@ -362,7 +436,7 @@
                         BorderBrush="{StaticResource Colors/Neutral/300}"
                         BorderThickness="1"
                         CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="false">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -370,7 +444,7 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="false" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
@@ -396,7 +470,7 @@
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="Padding" Value="16,0" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Width" Value="Auto" />
         <Setter Property="FontSize" Value="13" />
@@ -409,7 +483,7 @@
                         Background="White"
                         BorderThickness="0"
                         CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="false">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -417,15 +491,15 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="false" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                            <Setter TargetName="border" Property="Background" Value="#DDDEE4" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#DDDEE4" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
@@ -457,7 +531,7 @@
                         BorderBrush="{StaticResource Colors/Neutral/200}"
                         BorderThickness="1"
                         CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="false">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -465,14 +539,14 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="false" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Neutral/400}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
@@ -501,7 +575,7 @@
                         x:Name="border"
                         Background="Transparent"
                         CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="false">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -509,7 +583,7 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="false" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
@@ -534,7 +608,7 @@
                         x:Name="border"
                         Background="Transparent"
                         CornerRadius="6"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="false">
                         <ContentPresenter
                             x:Name="contentPresenter"
                             Margin="{TemplateBinding Padding}"
@@ -542,7 +616,7 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="false" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
@@ -591,15 +665,19 @@
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="SVGCheckBox" TargetType="CheckBox">
+    <Style x:Key="SVGCheckBoxWithText" TargetType="CheckBox">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type CheckBox}">
                     <Grid
-                        Width="24"
                         Height="24"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <Grid x:Name="CheckedMark">
                             <Path
                                 HorizontalAlignment="Center"
@@ -634,6 +712,12 @@
                                     StrokeThickness="1.5" />
                             </Border>
                         </Grid>
+                        <TextBlock
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource Colors/Neutral/600}"
+                            SnapsToDevicePixels="True"
+                            Text="{TemplateBinding Content}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">

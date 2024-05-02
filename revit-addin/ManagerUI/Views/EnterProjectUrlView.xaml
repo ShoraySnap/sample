@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:ManagerUI.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vms="clr-namespace:ManagerUI.ViewModels"
-    d:DesignHeight="320"
+    d:DesignHeight="272"
     d:DesignWidth="560"
     FontFamily="{DynamicResource Inter}"
     FontSize="13"
@@ -22,22 +22,52 @@
         <Grid Width="280" Margin="0,52,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
             <Label
                 Grid.Row="0"
                 VerticalAlignment="Center"
-                Content="Enter Project URL:" />
-
+                Content="Enter Project URL:"
+                Foreground="#989DAE" />
             <Border
+                x:Name="URLBorder"
                 Grid.Row="1"
                 Margin="0,5,0,0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
-                BorderBrush="#FFC6C6C6"
                 BorderThickness="1"
                 CornerRadius="4">
+                <Border.Style>
+                    <Style TargetType="{x:Type Border}">
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding ElementName=URLTextBox, Path=Text.IsEmpty}" Value="True" />
+                                    <Condition Binding="{Binding ElementName=URLTextBox, Path=IsKeyboardFocusWithin}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="BorderBrush" Value="Transparent" />
+                                <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />
+                            </MultiDataTrigger>
+                            <DataTrigger Binding="{Binding ElementName=URLTextBox, Path=IsKeyboardFocusWithin}" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Validating">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <Grid Height="32">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -67,17 +97,57 @@
                             StrokeLineJoin="Round"
                             StrokeStartLineCap="Round" />
                     </Grid>
-                    <TextBox
-                        Grid.Column="1"
-                        Height="30"
-                        Margin="5,0"
-                        VerticalAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        d:Text="Paste link here"
-                        Background="Transparent"
-                        BorderThickness="0" />
-                    <Grid Grid.Column="2" Margin="0,6,8,6">
-                        <Grid>
+                    <Grid Grid.Column="1">
+                        <TextBox
+                            x:Name="URLTextBox"
+                            Height="30"
+                            Margin="5,0"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Text="{Binding URL, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                        <TextBlock
+                            Margin="10,0,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Foreground="DarkGray"
+                            IsHitTestVisible="False"
+                            Opacity=".8"
+                            Text="Paste link here">
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=URLTextBox}" Value="">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <Grid Grid.Column="2" Margin="0,6,6,6">
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid.RenderTransform>
+                                <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
+                            </Grid.RenderTransform>
+                            <Grid.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard Storyboard="{StaticResource RotateStoryboard}" />
+                                </EventTrigger>
+                            </Grid.Triggers>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RequestStatus}" Value="Validating">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <Path
                                 Data="M18.003 10H15.502"
                                 Stroke="#1A5EE5"
@@ -135,8 +205,17 @@
                                 StrokeStartLineCap="round"
                                 StrokeThickness="1.5" />
                         </Grid>
-                        <Grid />
                         <Grid>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <Path
                                 Fill="#1A5EE5"
                                 StrokeEndLineCap="round"
@@ -157,32 +236,96 @@
                                 StrokeStartLineCap="round"
                                 StrokeThickness="1.25" />
                         </Grid>
-                        <Grid
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
-                            <Path
-                                Data="M1 1L8.5 8.5M1 8.5L8.5 1"
-                                Stroke="white"
-                                StrokeEndLineCap="round"
-                                StrokeLineJoin="round"
-                                StrokeStartLineCap="round"
-                                StrokeThickness="1.25" />
+                        <Grid Width="20" Height="20">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                                <Path
+                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                    Stroke="{StaticResource Colors/Neutral/800}"
+                                    StrokeEndLineCap="round"
+                                    StrokeLineJoin="round"
+                                    StrokeStartLineCap="round"
+                                    StrokeThickness="1.25" />
+                            </Grid>
+
                         </Grid>
                     </Grid>
                 </Grid>
             </Border>
+            <Border
+                Grid.Row="2"
+                Margin="0,8,0,0"
+                Padding="8"
+                BorderBrush="{StaticResource Colors/Neutral/200}"
+                BorderThickness="1"
+                CornerRadius="6">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        Width="40"
+                        Height="40"
+                        CornerRadius="2">
+                        <Border.Background>
+                            <ImageBrush ImageSource="\Images\thumbnail.png" Stretch="UniformToFill" />
+                        </Border.Background>
+                    </Border>
+                    <TextBlock
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        FontWeight="DemiBold"
+                        Foreground="{StaticResource Colors/Neutral/600}"
+                        Text="WeWork Office Structure v2" />
+                </Grid>
+
+            </Border>
+            <TextBlock
+                Grid.Row="3"
+                Margin="0,8"
+                d:Text="Invalid URL"
+                Foreground="{StaticResource Colors/Red/400}"
+                Text="{Binding ErrorMessage}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
         </Grid>
         <Grid Grid.Row="1" Margin="16">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock
-                    VerticalAlignment="Center"
-                    d:Text="Select workspace to begin export"
-                    FontSize="13"
-                    FontWeight="Medium"
-                    Foreground="{StaticResource Colors/Neutral/600}"
-                    Text="{Binding SelectedWorkspaceString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-            </StackPanel>
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button
                     Command="{Binding BackCommand}"
@@ -192,9 +335,18 @@
                     Margin="8,0,0,0"
                     HorizontalAlignment="Center"
                     Command="{Binding BeginExportCommand}"
-                    Content="Begin export"
-                    IsEnabled="{Binding IsWorkspaceSelected}"
-                    Style="{DynamicResource Button_Primary}" />
+                    Content="Begin export">
+                    <Button.Style>
+                        <Style BasedOn="{StaticResource Button_Primary}" TargetType="Button">
+                            <Setter Property="IsEnabled" Value="False" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
             </StackPanel>
         </Grid>
     </Grid>

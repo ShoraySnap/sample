@@ -10,7 +10,6 @@ namespace ManagerUI.Commands
     {
         public override void Execute(object parameter)
         {
-            MainWindow.Instance.Close();
         }
     }
 }

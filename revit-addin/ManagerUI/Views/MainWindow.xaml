@@ -8,22 +8,38 @@
     xmlns:views="clr-namespace:ManagerUI.Views"
     xmlns:vms="clr-namespace:ManagerUI.ViewModels"
     Title="Snaptrude Manager"
-    Width="560"
-    Height="320"
+    Width="590"
+    Height="350"
     AllowsTransparency="True"
     Background="Transparent"
     FontFamily="{DynamicResource Inter}"
     FontSize="13"
     MouseDown="Window_MouseDown"
+    RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="NoResize"
+    SnapsToDevicePixels="False"
+    TextOptions.TextRenderingMode="Aliased"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </Window.Resources>
-    <Grid>
-        <Border Background="White" CornerRadius="10" />
+    <Grid Width="560" Height="320">
+        <Border
+            Background="White"
+            CornerRadius="10"
+            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="15"
+                    Direction="-90"
+                    Opacity=".5"
+                    RenderingBias="Quality"
+                    ShadowDepth="2"
+                    Color="Gray" />
+            </Border.Effect>
+        </Border>
         <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
@@ -35,6 +51,7 @@
                 </Border.Background>
             </Border>
         </Grid>
+
         <DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <DockPanel
@@ -42,17 +59,15 @@
                     Height="32"
                     Margin="8"
                     LastChildFill="False">
-                    <Grid Margin="8,0,0,0">
-                        <Image
-                            Width="10"
-                            Height="15.53"
-                            Source="/Images/snaptrudeLogoWhite.png"
-                            Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}" />
-                        <Image
-                            Width="10"
-                            Height="15.53"
-                            Source="/Images/snaptrudeLogoBlack.png"
-                            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
+                    <Grid Margin="8,0,0,0" VerticalAlignment="Center">
+                        <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+                            <Path Data="M4.14877 5.66669C4.14877 5.20198 4.26007 5.0523 4.71593 4.90457L7.30007 4.00842V0.233032L1.79981 2.09871C1.02264 2.36677 0.5 3.10444 0.5 3.93406V9.72579L3.70743 8.53124C3.97166 8.43341 4.14877 8.17611 4.14877 7.89141V5.66669Z" Fill="White" />
+                            <Path Data="M10.5 5.84262L7.48124 7.09146C7.23256 7.19374 7.06586 7.46273 7.06586 7.76037V10.0862C7.06586 10.5721 6.96111 10.7285 6.53207 10.883L4.09993 11.8199V15.7669L9.27665 13.8164C10.0081 13.5372 10.5 12.766 10.5 11.8976V5.84262Z" Fill="White" />
+                        </Grid>
+                        <Grid Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+                            <Path Data="M4.14877 5.66669C4.14877 5.20198 4.26007 5.0523 4.71593 4.90457L7.30007 4.00842V0.233032L1.79981 2.09871C1.02264 2.36677 0.5 3.10444 0.5 3.93406V9.72579L3.70743 8.53124C3.97166 8.43341 4.14877 8.17611 4.14877 7.89141V5.66669Z" Fill="{StaticResource Colors/Neutral/900}" />
+                            <Path Data="M10.5 5.84262L7.48124 7.09146C7.23256 7.19374 7.06586 7.46273 7.06586 7.76037V10.0862C7.06586 10.5721 6.96111 10.7285 6.53207 10.883L4.09993 11.8199V15.7669L9.27665 13.8164C10.0081 13.5372 10.5 12.766 10.5 11.8976V5.84262Z" Fill="#2C2E38" />
+                        </Grid>
                     </Grid>
                     <TextBlock
                         Margin="5,0,0,0"
@@ -63,9 +78,31 @@
                     <TextBlock
                         Margin="2,0,0,0"
                         VerticalAlignment="Center"
+                        FontWeight="DemiBold"
                         Opacity="0.66">
-                        Manager
+                        Manager v
                     </TextBlock>
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        d:Text="2.1"
+                        FontWeight="DemiBold"
+                        Opacity="0.66"
+                        Text="{Binding CurrentVersion}" />
+                    <Button
+                        Margin="16,0"
+                        VerticalAlignment="Center"
+                        d:Content="Update v2.2"
+                        Command="{Binding UpdateCommand}"
+                        Style="{StaticResource Button_24}"
+                        Visibility="{Binding HaveUpdateAvailable, Converter={StaticResource BoolToVisibility}}">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="White" Text="Update " />
+                                <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="v" />
+                                <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="{Binding UpdateVersion, Mode=OneTime}" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
                     <Button
                         Padding="10"
                         Background="Transparent"
@@ -140,6 +177,15 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vms:SelectTrudeFileViewModel}">
                         <views:SelectTrudeFileView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:WarningViewModel}">
+                        <views:WarningView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:IncompatibleTrudeViewModel}">
+                        <views:IncompatibleTrudeView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:ModelExportedViewModel}">
+                        <views:ModelExportedView />
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>

@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="ManagerUI.Views.SelectTrudeFileView"
+    x:Class="ManagerUI.Views.ModelExportedView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -13,10 +13,17 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/ManagerUI;component/Resources/ResourcesDictionary.xaml" />
     </UserControl.Resources>
-    <TextBlock
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Foreground="{StaticResource Colors/Neutral/800}">
-        .trude file selection from computer
-    </TextBlock>
+    <StackPanel VerticalAlignment="Center">
+        <TextBlock
+            Width="300"
+            Text="The model was exported successfully!"
+            TextAlignment="Center"
+            TextWrapping="Wrap" />
+        <Button
+            Margin="20"
+            HorizontalAlignment="Center"
+            Command="{Binding LaunchCommand}"
+            Content="Launch Snaptrude"
+            Style="{DynamicResource Button_Primary}" />
+    </StackPanel>
 </UserControl>

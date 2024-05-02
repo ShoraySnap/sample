@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ManagerUI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DesignHeight="320"
+    d:DesignHeight="272"
     d:DesignWidth="560"
     FontFamily="{DynamicResource Inter}"
     FontSize="13"
@@ -17,21 +17,28 @@
         <TextBlock
             Width="400"
             Margin="0,0,0,15"
+            d:Text="Version 2.2 is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude"
             DockPanel.Dock="Bottom"
             Foreground="White"
+            Text="{Binding Message}"
             TextAlignment="Center"
-            TextWrapping="Wrap">
-            <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersion}" />
-            <Run Text="is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude" />
-        </TextBlock>
+            TextWrapping="Wrap" />
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
             <Button
+                Width="120"
                 Margin="0,0,10,0"
                 Command="{Binding UpdateCommand}"
                 Style="{DynamicResource Button_Quaternary}">
-                <TextBlock>
-                    <Run Text="Version v" /><d:Run Text="2.2" /><Run Text="{Binding UpdateVersion}" />
-                </TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        d:Text="Update"
+                        Foreground="{StaticResource Colors/Neutral/800}"
+                        Text="{Binding UpdateButtonText}" />
+                    <TextBlock
+                        d:Text=" v2.2"
+                        Foreground="{StaticResource Colors/Neutral/500}"
+                        Text="{Binding UpdateVersion}" />
+                </StackPanel>
             </Button>
             <Button
                 HorizontalAlignment="Center"

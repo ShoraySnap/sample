@@ -19,6 +19,19 @@ namespace ManagerUI.ViewModels
             Import,
             Update
         }
+
+        private string progressMessage;
+
+        public string ProgressMessage
+        {
+            get { return progressMessage; }
+            set
+            {
+                progressMessage = value;
+                OnPropertyChanged("ProgressMessage");
+            }
+        }
+
         private int progressValue;
 
         public int ProgressValue
@@ -60,31 +73,33 @@ namespace ManagerUI.ViewModels
             {
                 case ProgressViewType.Export:
                     StartProgressCommand = new RelayCommand(async (o) => await StartExport());
+                    progressMessage = "Export in progress, please don’t close this window.";
                     break;
                 case ProgressViewType.Import:
                     StartProgressCommand = new RelayCommand(async (o) => await StartImport());
+                    progressMessage = "Import in progress, please don’t close this window.";
                     break;
                 case ProgressViewType.Update:
+                    MainWindowViewModel.Instance.WhiteBackground = false;
                     WhiteBackground = false;
                     StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
+                    progressMessage = "Update in progress, please don’t close this window.";
                     break;
                 default:
                     break;
             }
-            StartProgressCommand.Execute(new object());
+
+            StartProgressCommand.Execute(null);
         }
 
         private async Task StartExport()
         {
+            
             for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
                 await Task.Delay(50);
-                //if (i == 15)
-                //{
-                //    FailureCommand.Execute(new object());
-                //    return;
-                //}
+                
             }
             SuccessCommand.Execute(new object());
         }
@@ -101,11 +116,19 @@ namespace ManagerUI.ViewModels
 
         private async Task StartUpdate()
         {
+            Random random = new Random();
+            int randomResult = random.Next(2);
             for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
-                await Task.Delay(50);
+                await Task.Delay(10);
+                if (i == 15 && randomResult == 0)
+                {
+                    FailureCommand.Execute(new object());
+                    return;
+                }
             }
+            MainWindowViewModel.Instance.CurrentVersion = MainWindowViewModel.Instance.UpdateVersion;
             SuccessCommand.Execute(new object());
         }
 

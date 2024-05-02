@@ -14,12 +14,14 @@ namespace ManagerUI.ViewModels
     {
         public ICommand ExportCommand { get; }
         public ICommand ImportCommand { get; }
-        public HomeViewModel(NavigationService importNavigationService, NavigationService exportNavigationService)
+        public ICommand UpdateCommand { get; }
+        public HomeViewModel(NavigationService importNavigationService, NavigationService exportNavigationService, NavigationService updateNavigationService)
         {
-            MainWindowViewModel.Instance.ImageBackground = false;
+            //MainWindowViewModel.Instance.ImageBackground = false;
             MainWindowViewModel.Instance.WhiteBackground = true;
             ExportCommand = new NavigateCommand(exportNavigationService);
             ImportCommand = new NavigateCommand(importNavigationService);
+            UpdateCommand = new NavigateCommand(updateNavigationService);
         }
     }
 }

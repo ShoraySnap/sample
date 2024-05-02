@@ -14,6 +14,14 @@ namespace ManagerUI.ViewModels
         public ICommand SkipCommand { get; }
         public ICommand UpdateCommand { get; }
 
+        private string message;
+
+        public string Message
+        {
+            get { return message; }
+            set { message = value; OnPropertyChanged("Message"); }
+        }
+
         private string updateVersion;
 
         public string UpdateVersion
@@ -22,13 +30,32 @@ namespace ManagerUI.ViewModels
             set { updateVersion = value; OnPropertyChanged("UpdateVersion"); }
         }
 
-        public UpdateAvailableViewModel(NavigationService updateNowNavigationService, NavigationService skipUpdateNavigationService) 
+        private string updateButtonText;
+
+        public string UpdateButtonText
         {
-            //TO DO: GET UPDATES VERSION
-            UpdateVersion = "2.2";
+            get { return updateButtonText; }
+            set { updateButtonText = value; OnPropertyChanged("UpdateButtonText"); }
+        }
+
+        public UpdateAvailableViewModel(bool retry, NavigationService updateNowNavigationService, NavigationService skipUpdateNavigationService) 
+        {
+            if (retry)
+            {
+                UpdateButtonText = "Retry";
+                UpdateVersion = "";
+                Message = $"Something went wrong, please try again.\r\nContact us if the issue persists.";
+            }
+            else
+            {
+                UpdateButtonText = "Update";
+                //TO DO: GET UPDATES VERSION
+                UpdateVersion = $" v{MainWindowViewModel.Instance.UpdateVersion}";
+                Message = $"Version {MainWindowViewModel.Instance.UpdateVersion} is ready to install.Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude.";
+            }
 
             MainWindowViewModel.Instance.WhiteBackground = false;
-            MainWindowViewModel.Instance.ImageBackground = true;
+            //MainWindowViewModel.Instance.ImageBackground = true;
             SkipCommand = new NavigateCommand(skipUpdateNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
         }

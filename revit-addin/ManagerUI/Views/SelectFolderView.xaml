@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:ManagerUI.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vms="clr-namespace:ManagerUI.ViewModels"
-    d:DesignHeight="320"
+    d:DesignHeight="272"
     d:DesignWidth="560"
     FontFamily="{DynamicResource Inter}"
     FontSize="13"

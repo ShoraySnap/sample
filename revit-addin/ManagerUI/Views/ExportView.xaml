@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ManagerUI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DesignHeight="320"
+    d:DesignHeight="272"
     d:DesignWidth="560"
     FontFamily="{DynamicResource Inter}"
     FontSize="13"
@@ -35,7 +35,7 @@
                         <Image
                             Width="20"
                             Height="20"
-                            SnapsToDevicePixels="True"
+                            SnapsToDevicePixels="false"
                             Source="/Images/plus-medium.png" />
                         <Label
                             VerticalAlignment="Center"
