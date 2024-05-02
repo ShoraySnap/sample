@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAssemblies.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeRoofType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversionImpl.cs" />
     <Compile Include="..\TrudeSerializer\TrudeDebug\TrudeLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Uploader\Compressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\PreSignedURLResponse.cs" />
