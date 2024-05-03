@@ -36,7 +36,7 @@ namespace TrudeSerializer.Uploader
                 paths.Add(entry.Key, path);
             }
 
-            var presignedUrlsResponse = await GetPresignedURL(paths, config);
+            var presignedUrlsResponse = await GetPresignedURLs(paths, config);
             var presignedUrlsResponseData = await presignedUrlsResponse.Content.ReadAsStringAsync();
             Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
 
@@ -70,7 +70,7 @@ namespace TrudeSerializer.Uploader
             return uploadResponse;
         }
 
-        public static async Task<HttpResponseMessage> GetPresignedURL(Dictionary<string, string> fileNames, Config config)
+        public static async Task<HttpResponseMessage> GetPresignedURLs(Dictionary<string, string> fileNames, Config config)
         {
             var client = new HttpClient();
 
