@@ -11,12 +11,14 @@ namespace ManagerUI
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            // Create the startup window
 
+
+            //WPFTODO: CHECKFORUPDATES
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(navigationStore);
-            // Create initial ViewModel
 
+            MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(navigationStore, "2.1.1", "2.2.1");
+
+            // Create initial ViewModel
             navigationStore.CurrentViewModel = ViewModelCreater.CreateUpdateAvailableViewModel();
 
             MainWindow wnd = new MainWindow

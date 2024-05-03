@@ -36,7 +36,7 @@ namespace ManagerUI.ViewModels
             if ((bool)openFileDialog.ShowDialog())
             {
                 string sourcePath = openFileDialog.FileName;
-                //TO DO: INCOMPATIBLE LOGIC
+                //WPFTODO: INCOMPATIBLE LOGIC
                 if (sourcePath.Contains("IncompatibleTrude") && MainWindowViewModel.Instance.CurrentVersion != MainWindowViewModel.Instance.UpdateVersion) 
                     IncompatibleNavigateCommand.Execute(null);
                 else

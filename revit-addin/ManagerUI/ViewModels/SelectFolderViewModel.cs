@@ -14,6 +14,7 @@ namespace ManagerUI.ViewModels
 {
     public class SelectFolderViewModel : ViewModelBase
     {
+        //WPFTODO: CONNECT TO DB
         public List<Folder> Database = new List<Folder>
         {
             new Folder("1", "All Workspaces", "top"),
@@ -82,7 +83,7 @@ namespace ManagerUI.ViewModels
         private void LoadRootFolders()
         {
             Breadcrumb.Clear();
-            // TO DO: GET Workspaces
+            //WPFTODO: GET Workspaces
             Folder allWorksSpacesFolder = Database.First(x => x.Id == "1");
 
             FolderViewModel allWorksSpacesFolderViewModel = new FolderViewModel(allWorksSpacesFolder);
@@ -93,7 +94,7 @@ namespace ManagerUI.ViewModels
 
         private void GetSubFoldersAsync(FolderViewModel parentFolder)
         {
-            // TO DO: GET subfolders
+            //WPFTODO: GET subfolders
             var subFolders = Database.Where(x => x.ParentId == parentFolder.Id).ToList();
             var subFolderViewModels = new List<FolderViewModel>();
             foreach (var subFolder in subFolders)

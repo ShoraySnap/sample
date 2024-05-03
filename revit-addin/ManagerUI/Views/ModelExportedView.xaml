@@ -16,6 +16,8 @@
     <StackPanel VerticalAlignment="Center">
         <TextBlock
             Width="300"
+            FontWeight="Medium"
+            Foreground="{StaticResource Colors/Neutral/800}"
             Text="The model was exported successfully!"
             TextAlignment="Center"
             TextWrapping="Wrap" />

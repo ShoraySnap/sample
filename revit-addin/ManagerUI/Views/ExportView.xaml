@@ -34,7 +34,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Grid
                             Grid.Column="2"
-                            Margin="8,4"
+                            Margin="0,4,8,4"
                             VerticalAlignment="Center">
                             <Path
                                 Data="M0.666504 7.00001H12.3332"
@@ -65,7 +65,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Grid
                             Grid.Column="2"
-                            Margin="8,4"
+                            Margin="0,4,8,4"
                             VerticalAlignment="Center">
                             <Path
                                 Data="M11.2474 3.08088L9.75229 1.58579C9.37722 1.21071 8.86851 1 8.33808 1H3.1665C2.06193 1 1.1665 1.89543 1.1665 3V11C1.1665 12.1046 2.06193 13 3.1665 13H9.83317C10.9377 13 11.8332 12.1046 11.8332 11V4.49509C11.8332 3.96466 11.6225 3.45595 11.2474 3.08088Z"

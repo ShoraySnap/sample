@@ -98,7 +98,7 @@ namespace ManagerUI.ViewModels
             for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
-                await Task.Delay(50);
+                await Task.Delay(20);
                 
             }
             SuccessCommand.Execute(new object());
@@ -109,7 +109,7 @@ namespace ManagerUI.ViewModels
             for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
-                await Task.Delay(50);
+                await Task.Delay(20);
             }
             SuccessCommand.Execute(new object());
         }

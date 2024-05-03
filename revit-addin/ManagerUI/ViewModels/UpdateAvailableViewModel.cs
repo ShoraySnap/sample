@@ -49,7 +49,6 @@ namespace ManagerUI.ViewModels
             else
             {
                 UpdateButtonText = "Update";
-                //TO DO: GET UPDATES VERSION
                 UpdateVersion = $" v{MainWindowViewModel.Instance.UpdateVersion}";
                 Message = $"Version {MainWindowViewModel.Instance.UpdateVersion} is ready to install.Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude.";
             }

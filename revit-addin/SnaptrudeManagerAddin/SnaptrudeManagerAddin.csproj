@@ -97,6 +97,10 @@
 	  <Page Include="Views\FamilyUploadMVVM.xaml" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="UI\" />
+	</ItemGroup>
+
 	<Target Name="CleanRevitAddin" BeforeTargets="CoreClean">
 		<Message Text="Clean Revit Addin Files" Importance="high" />
 	</Target>

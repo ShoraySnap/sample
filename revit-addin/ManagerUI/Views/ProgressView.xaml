@@ -50,6 +50,7 @@
             Margin="0,0,0,15"
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
+            FontWeight="Regular"
             d:Text="Update in progress, please don’t close this window."
             Text="{Binding ProgressMessage}">
             <TextBlock.Style>

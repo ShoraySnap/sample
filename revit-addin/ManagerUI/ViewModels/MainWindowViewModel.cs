@@ -16,7 +16,7 @@ namespace ManagerUI.ViewModels
 
         private readonly NavigationStore navigationStore;
 
-        private string currentVersion = "2.1";
+        private string currentVersion;
 
         public string CurrentVersion
         {
@@ -24,7 +24,7 @@ namespace ManagerUI.ViewModels
             set { currentVersion = value; OnPropertyChanged("CurrentVersion"); }
         }
 
-        private string updateVersion = "2.2";
+        private string updateVersion;
 
         public string UpdateVersion
         {
@@ -48,22 +48,29 @@ namespace ManagerUI.ViewModels
 
         public ICommand CloseCommand { get; }
         public ICommand UpdateCommand { get; }
+        public ICommand SwitchAccountCommand { get; }
+        public ICommand LogOutCommand { get; }
         public Action CloseAction { get; set; }
 
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
+        public bool LoginButtonVisible => !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && CurrentViewModel.GetType().Name != "ProgressViewModel";
 
-        public MainWindowViewModel(NavigationStore navigationStore)
+        public MainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion)
         {
+            CurrentVersion = currentVersion;
+            UpdateVersion = updateVersion;
             Instance = this;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
             CloseCommand = new RelayCommand(new Action<object>((o) => MainWindow.Instance.Close()));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreater.CreateUpdateProgressViewModel));
+            LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreater.CreateLoginViewModel));
         }
 
         private void OnCurrentViewModelChanged()
         {
             OnPropertyChanged(nameof(CurrentViewModel));
+            OnPropertyChanged(nameof(LoginButtonVisible));
         }
     }
 }

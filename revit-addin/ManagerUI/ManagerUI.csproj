@@ -63,6 +63,7 @@
     <Compile Include="Commands\NavigateCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Converters\ProgressBarWidthConverter.cs" />
+    <Compile Include="CustomItems\AnimatedContentControl.cs" />
     <Compile Include="IniFileUtils.cs" />
     <Compile Include="Models\Folder.cs" />
     <Compile Include="Services\NavigationService.cs" />
@@ -137,6 +138,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -236,6 +238,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\thumbnail.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\user-icon-blank.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
