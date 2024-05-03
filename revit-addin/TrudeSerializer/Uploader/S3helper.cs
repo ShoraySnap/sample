@@ -25,7 +25,7 @@ namespace TrudeSerializer.Uploader
             string projectFloorKey = config.floorKey;
 
             List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
-            List<string> paths = new List<string>();
+            Dictionary<string, string> paths = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in jsonData)
             {
@@ -33,7 +33,7 @@ namespace TrudeSerializer.Uploader
                 compressedJsonData.Add(entry.Key, compressedString);
 
                 string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
-                paths.Add(path);
+                paths.Add(entry.Key, path);
             }
 
             var presignedUrlsResponse = await GetPresignedURL(paths, config);
@@ -70,7 +70,7 @@ namespace TrudeSerializer.Uploader
             return uploadResponse;
         }
 
-        public static async Task<HttpResponseMessage> GetPresignedURL(List<string> fileNames, Config config)
+        public static async Task<HttpResponseMessage> GetPresignedURL(Dictionary<string, string> fileNames, Config config)
         {
             var client = new HttpClient();
 
