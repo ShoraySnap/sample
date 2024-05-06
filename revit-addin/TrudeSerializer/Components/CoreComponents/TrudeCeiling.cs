@@ -50,14 +50,11 @@ namespace TrudeSerializer.Components
 
             Parameter heightOffsetParam = ceiling.LookupParameter("Height Offset From Level");
             double heightOffset = 0;
+            TRUDE_UNIT_TYPE unit_type = UnitConversion.GetTrudeUnitFromParameter(heightOffsetParam);
             if(heightOffsetParam.HasValue)
             {
                 heightOffset = heightOffsetParam.AsDouble();
-#if REVIT2019 || REVIT2020
-                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, heightOffsetParam.DisplayUnitType);
-#else
-                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, heightOffsetParam.GetUnitTypeId());
-#endif
+                heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, unit_type);
             }
             var (outline, voids, isDifferentCurve) = GetOutline(element);
             SetCeilingType(importData, ceiling);
