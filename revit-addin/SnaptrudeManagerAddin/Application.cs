@@ -3,17 +3,12 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using SnaptrudeManagerAddin.ViewModels;
-using SnaptrudeManagerAddin.Views;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using TrudeImporter;
+using System.Windows.Threading;
 
 namespace SnaptrudeManagerAddin
 {
@@ -24,6 +19,9 @@ namespace SnaptrudeManagerAddin
         public static Application Instance;
 
         public MainWindow MainWindow = null;
+
+        //Seperate thread to run the UI
+        private Thread _uiThread;
 
         internal void ShowMainWindowUI()
         {
@@ -95,6 +93,31 @@ namespace SnaptrudeManagerAddin
             PngBitmapDecoder bd = new PngBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
 
             return bd.Frames[0];
+        }
+
+        public void ShowFormSeperateThread(UIApplication uiapp)
+        {
+            // If we do not have a thread started or has been terminated start a new one
+            if (!(_uiThread is null) && _uiThread.IsAlive) return;
+
+            _uiThread = new Thread(() =>
+            {
+                //Set the sync context
+                SynchronizationContext.SetSynchronizationContext(
+                    new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+
+                ShowMainWindowUI();
+
+                //Shut down the dispatcher while closing
+                MainWindow.Closed += (s, e) => Dispatcher.CurrentDispatcher.InvokeShutdown();
+
+                MainWindow.Show();
+                Dispatcher.Run();
+            });
+
+            _uiThread.SetApartmentState(ApartmentState.STA);
+            _uiThread.IsBackground = true;
+            _uiThread.Start();
         }
     }
 }

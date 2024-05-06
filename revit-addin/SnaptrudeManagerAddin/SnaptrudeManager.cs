@@ -67,7 +67,7 @@ namespace SnaptrudeManagerAddin
                 else
                     navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
 
-                Application.Instance.ShowMainWindowUI();
+                Application.Instance.ShowFormSeperateThread(uiapp);
 
                 log("Calling UI");
                 writeAndClose();
