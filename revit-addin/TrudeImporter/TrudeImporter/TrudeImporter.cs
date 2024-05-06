@@ -20,7 +20,6 @@ namespace TrudeImporter
 
             GlobalVariables.MissingDoorIndexes.Clear();
             GlobalVariables.MissingWindowIndexes.Clear();
-
             ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
             ImportBeams(trudeProperties.Beams); // these are structural components of the building

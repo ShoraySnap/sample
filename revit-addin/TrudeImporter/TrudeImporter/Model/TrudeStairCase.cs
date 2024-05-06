@@ -194,6 +194,7 @@ namespace TrudeImporter
                 }
             }
             List<StaircaseBlockProperties> StairRunBlocks = StaircaseBlocks.Where(b => b.Type != "Landing").ToList();
+            List<StaircaseBlockProperties> StairRunLandingBlocks = StaircaseBlocks.Where(b => b.Type == "Landing").ToList();
             List<ElementId> createdRunIds = new List<ElementId>();
 
             GlobalVariables.Transaction.Start();
@@ -208,7 +209,69 @@ namespace TrudeImporter
             {
                 try
                 {
-                    StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
+                    IList<ElementId> createdAutoLandings= StairsLanding.CreateAutomaticLanding(GlobalVariables.Document, createdRunIds[i - 1], createdRunIds[i]);
+                    Tuple <XYZ, XYZ> startEndPoints = runStartEndPoints[createdRunIds[i - 1]];
+                    XYZ direction = (startEndPoints.Item2 - startEndPoints.Item1).Normalize();
+                    foreach (ElementId landingId in createdAutoLandings)
+                    {
+                        StairsLanding landing = doc.GetElement(landingId) as StairsLanding;
+                        if (landing != null)
+                        {
+                            CurveLoop landingLoop = landing.GetFootprintBoundary();
+                            IDictionary<int, Line> landingBoundaries = new Dictionary<int, Line>();
+                            CurveLoop extendedLandingBoundary = new CurveLoop();
+                            int landingBoundaryIndex = 0;
+
+                            //create a CurveLoopIterator to iterate through the CurveLoop
+                            CurveLoopIterator curveLoopIterator = landingLoop.GetCurveLoopIterator();
+                            // move to 5th curve
+                            curveLoopIterator.MoveNext();
+                            curveLoopIterator.MoveNext();
+                            curveLoopIterator.MoveNext();
+                            curveLoopIterator.MoveNext();
+                            curveLoopIterator.MoveNext();
+
+                            // get the length of the 5th curve
+                            Curve fifthCurve = curveLoopIterator.Current;
+                            double fifthCurveLength = fifthCurve.ApproximateLength;
+                            System.Diagnostics.Debug.WriteLine("LandingWidth: " + LandingWidth);
+                            System.Diagnostics.Debug.WriteLine("fifthCurveLength: " + fifthCurveLength);
+                            double multiplier = LandingWidth / fifthCurveLength;
+                            System.Diagnostics.Debug.WriteLine("Multiplier: " + multiplier);
+
+
+                            foreach (Curve curve in landingLoop)
+                            {   
+                                XYZ startPoint = curve.GetEndPoint(0);
+                                XYZ endPoint = curve.GetEndPoint(1);
+                                if (landingBoundaryIndex == 3)
+                                {
+                                    endPoint += direction * multiplier;
+                                }
+                                else if (landingBoundaryIndex == 4)
+                                {
+                                    startPoint += direction * multiplier;
+                                }
+                                else if (landingBoundaryIndex == 5)
+                                {
+                                    startPoint += direction * multiplier;
+                                    Line farEdgeTemp = landingBoundaries[4];
+                                    landingBoundaries[4] = Line.CreateBound(farEdgeTemp.GetEndPoint(0), startPoint);
+                                }
+                                landingBoundaries.Add(landingBoundaryIndex, Line.CreateBound(startPoint, endPoint));
+                                landingBoundaryIndex++;
+                            }
+
+                            foreach (KeyValuePair<int, Line> boundary in landingBoundaries)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Boundary " + boundary.Key + ": " + boundary.Value.GetEndPoint(0) + " - " + boundary.Value.GetEndPoint(1));
+                                extendedLandingBoundary.Append(boundary.Value);
+                            }
+                            StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, extendedLandingBoundary, landing.BaseElevation);
+                            doc.Delete(landingId);
+                        }
+                    }
+                    System.Diagnostics.Debug.WriteLine("\n");
                 }
                 catch (Exception ex)
                 {
@@ -223,6 +286,18 @@ namespace TrudeImporter
                 CreateEdgeLanding(createdRunIds[createdRunIds.Count - 1], createdRunIds[createdRunIds.Count % 4]);
             }
 
+            //ICollection<ElementId> CreatedLandings = CreatedStaircase.GetStairsLandings();
+            //foreach (ElementId landingId in CreatedLandings)
+            //{
+            //    StairsLanding landing = doc.GetElement(landingId) as StairsLanding;
+            //    if (landing != null)
+            //    {
+            //        //convert landing to sketched landing
+
+
+            //    }
+            //    System.Diagnostics.Debug.WriteLine("\n");
+            //}
 
             GlobalVariables.Transaction.Commit();
             GlobalVariables.StairsEditScope.Commit(new StairsFailurePreprocessor());
