@@ -5,6 +5,8 @@
 		<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<OutputType>Library</OutputType>
+		<ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+		<UseWPF>true</UseWPF>
 		<Configurations>2019;2020;2021;2022;2023;2024</Configurations>
 	</PropertyGroup>
 
@@ -63,13 +65,30 @@
 	  <None Remove="Icons\logo16.png" />
 	  <None Remove="Icons\logo24.png" />
 	  <None Remove="Icons\logo32.png" />
-	  <None Remove="Views\FamilyUploadMVVM.xaml" />
+	  <None Remove="UI\Images\arrow-button.png" />
+	  <None Remove="UI\Images\close.png" />
+	  <None Remove="UI\Images\document-file-blank.png" />
+	  <None Remove="UI\Images\export.png" />
+	  <None Remove="UI\Images\folder-modern-style-3.png" />
+	  <None Remove="UI\Images\import.png" />
+	  <None Remove="UI\Images\logoutLogo.png" />
+	  <None Remove="UI\Images\plus-medium.png" />
+	  <None Remove="UI\Images\Snaptrude Manager.png" />
+	  <None Remove="UI\Images\SnaptrudeLogo256.png" />
+	  <None Remove="UI\Images\thumbnail.png" />
+	  <None Remove="UI\Images\user-icon-blank.png" />
+	  <None Remove="UI\Images\user-profile.png" />
+	  <None Remove="UI\Images\userLogo.png" />
+	  <None Remove="UI\Images\users-profile-group.png" />
+	  <None Remove="UI\Resources\Inter.ttf" />
+
 	</ItemGroup>
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Icons\logo16.png" />
 	  <EmbeddedResource Include="Icons\logo24.png" />
 	  <EmbeddedResource Include="Icons\logo32.png" />
+	  <EmbeddedResource Include="Icons\logo256.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -93,12 +112,24 @@
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Page Include="Views\FamilyUploadMVVM.xaml" />
-	</ItemGroup>
+
 
 	<ItemGroup>
-	  <Folder Include="UI\" />
+	  <Resource Include="UI\Images\arrow-button.png" />
+	  <Resource Include="UI\Images\close.png" />
+	  <Resource Include="UI\Images\document-file-blank.png" />
+	  <Resource Include="UI\Images\export.png" />
+	  <Resource Include="UI\Images\folder-modern-style-3.png" />
+	  <Resource Include="UI\Images\import.png" />
+	  <Resource Include="UI\Images\logoutLogo.png" />
+	  <Resource Include="UI\Images\plus-medium.png" />
+	  <Resource Include="UI\Images\Snaptrude Manager.png" />
+	  <Resource Include="UI\Images\thumbnail.png" />
+	  <Resource Include="UI\Images\user-icon-blank.png" />
+	  <Resource Include="UI\Images\user-profile.png" />
+	  <Resource Include="UI\Images\userLogo.png" />
+	  <Resource Include="UI\Images\users-profile-group.png" />
+	  <Resource Include="UI\Resources\Inter.ttf" />
 	</ItemGroup>
 
 	<Target Name="CleanRevitAddin" BeforeTargets="CoreClean">

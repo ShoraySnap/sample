@@ -34,6 +34,7 @@ namespace TrudeImporter
         public static List<int> MissingWindowIndexes = new List<int>();
         public static List<int> MissingFurnitureIndexes = new List<int>();
 
+        public static bool ViewIs3D { get; internal set; }
 
         public static void cleanGlobalVariables()
         {

@@ -5,7 +5,10 @@ using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 using System.Windows.Forms;
 using System.Reflection;
+
+
 #if !FORGE
+using SnaptrudeManagerAddin.ViewModels;
 using SnaptrudeManagerAddin;
 #endif
 

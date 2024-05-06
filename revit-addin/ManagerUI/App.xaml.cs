@@ -1,6 +1,4 @@
-﻿using ManagerUI.Stores;
-using ManagerUI.ViewModels;
-using System.Windows;
+﻿using System.Windows;
 
 namespace ManagerUI
 {
@@ -13,20 +11,7 @@ namespace ManagerUI
         {
 
 
-            //WPFTODO: CHECKFORUPDATES
-            NavigationStore navigationStore = NavigationStore.Instance;
-
-            MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(navigationStore, "2.1.1", "2.2.1");
-
-            // Create initial ViewModel
-            navigationStore.CurrentViewModel = ViewModelCreater.CreateUpdateAvailableViewModel();
-
-            MainWindow wnd = new MainWindow
-            {
-                DataContext = mainWindowViewModel
-            };
-            // Show the window
-            wnd.Show();
+            
         }
     }
 }

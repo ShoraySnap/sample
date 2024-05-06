@@ -1,5 +1,9 @@
 ﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Events;
+using SnaptrudeManagerAddin.ViewModels;
+using SnaptrudeManagerAddin.Views;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
 {
@@ -16,11 +21,33 @@ namespace SnaptrudeManagerAddin
     [Regeneration(RegenerationOption.Manual)]
     public class Application : IExternalApplication
     {
+        public static Application Instance;
+
+        public MainWindow MainWindow = null;
+
+        internal void ShowMainWindowUI()
+        {
+            if (MainWindow == null || MainWindow.IsLoaded == false)
+            {
+                MainWindow = new MainWindow();
+                if (MainWindow.IsInitialized)
+                {
+                    MainWindow.Show();
+                }
+            }
+            else
+            {
+                MainWindow.Focus();
+            }
+        }
+
         public Result OnStartup(UIControlledApplication application)
         {
+            Instance = this;
+
+            application.ViewActivated += OnViewActivated;
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
-
 
             string tabName = "Snaptrude";
             string panelName = "Snaptrude";
@@ -35,16 +62,31 @@ namespace SnaptrudeManagerAddin
             string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.SnaptrudeManager));
             PushButtonData buttonData = new PushButtonData("Export", "Snaptrude Manager", assemblyPath, className);
             PushButton button = panel.AddItem(buttonData) as PushButton;
-            button.Image = GetEmbeddedImage(myAssembly, "SnaptrudeManagerAddin.Icons.logo16.png");
-            button.LargeImage = GetEmbeddedImage(myAssembly, "SnaptrudeManagerAddin.Icons.logo24.png");
+            
+            BitmapIcons bitmapIcons = new BitmapIcons(Assembly.GetExecutingAssembly(), "SnaptrudeManagerAddin.Icons.logo256.png", application);
+            button.Image = bitmapIcons.MediumBitmap();
+            button.LargeImage = bitmapIcons.LargeBitmap();
             button.ToolTip = "Export the model to Snaptrude";
+
 
             return Result.Succeeded;
         }
 
         public Result OnShutdown(UIControlledApplication application)
         {
+            application.ViewActivated -= OnViewActivated;
             return Result.Succeeded;
+        }
+
+        private void OnViewActivated(object sender, ViewActivatedEventArgs e)
+        {
+            View currentView = e.CurrentActiveView;
+            UpdateButtonState(currentView is View3D);
+        }
+
+        private void UpdateButtonState(bool is3DView)
+        {
+            MainWindowViewModel.Instance.IsActiveView3D = is3DView;
         }
 
         private ImageSource GetEmbeddedImage(System.Reflection.Assembly assemb, string imageName)
