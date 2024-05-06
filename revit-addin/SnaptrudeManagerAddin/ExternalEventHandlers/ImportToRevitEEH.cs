@@ -38,7 +38,6 @@ namespace SnaptrudeManagerAddin
             GlobalVariables.ForForge = false;
 
             uiapp.Application.FailuresProcessing += Application_FailuresProcessing;
-            MainWindowViewModel.Instance.ProgressViewModel.StartExport();
             try
             {
                 bool status = false;

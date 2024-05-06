@@ -82,6 +82,7 @@ namespace SnaptrudeManagerAddin.ViewModels
                 case ProgressViewType.Import:
                     StartProgressCommand = new RelayCommand(async (o) => await StartImport());
                     progressMessage = "Import in progress, please don’t close this window.";
+                    StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Update:
                     MainWindowViewModel.Instance.WhiteBackground = false;
@@ -99,7 +100,6 @@ namespace SnaptrudeManagerAddin.ViewModels
 
         public async Task StartExport()
         {
-            MainWindowViewModel.Instance.ImportEvent.Raise();
             for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
@@ -107,19 +107,15 @@ namespace SnaptrudeManagerAddin.ViewModels
             }
         }
 
-        public async Task UpdateProgressValue()
-        {
-            ProgressValue += 10;
-            await Task.Delay(20);
-        }
-
         private async Task StartImport()
         {
-            for (int i = 0; i <= 90; i++)
+            MainWindowViewModel.Instance.ImportEvent.Raise();
+            for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
                 await Task.Delay(1000);
             }
+            SuccessCommand.Execute(null);
         }
 
         private async Task StartUpdate()
@@ -129,7 +125,7 @@ namespace SnaptrudeManagerAddin.ViewModels
             for (int i = 0; i <= 100; i++)
             {
                 ProgressValue = i;
-                await Task.Delay(10);
+                await Task.Delay(50);
                 if (i == 15 && randomResult == 0)
                 {
                     FailureCommand.Execute(new object());
