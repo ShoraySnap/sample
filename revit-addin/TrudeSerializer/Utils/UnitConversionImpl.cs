@@ -133,6 +133,10 @@ namespace TrudeSerializer.Utils
             {
                 return TRUDE_UNIT_TYPE.CENTIMETER;
             }
+            else if(unit.Equals(UnitTypeId.Millimeters))
+            {
+                return TRUDE_UNIT_TYPE.MILLIMETER;
+            }
 
             return TRUDE_UNIT_TYPE._INVALID;
         }
@@ -193,7 +197,7 @@ namespace TrudeSerializer.Utils
 
         public double ConvertToSnaptrudeAreaUnits(double areaValue)
         {
-            return areaValue * GlobalConstants.FEET_TO_SNAPTRUDEAREA;
+            return areaValue * GlobalConstants.SQF_TO_SNAP_AREA;
         }
 
         public double ConvertToSnaptrudeUnits(double value, object unit)
@@ -285,6 +289,10 @@ namespace TrudeSerializer.Utils
             else if (unit.Equals(DisplayUnitType.DUT_CENTIMETERS))
             {
                 return TRUDE_UNIT_TYPE.CENTIMETER;
+            }
+            else if(unit.Equals(DisplayUnitType.DUT_MILLIMETERS))
+            {
+                return TRUDE_UNIT_TYPE.MILLIMETER;
             }
 
             return TRUDE_UNIT_TYPE._INVALID;
