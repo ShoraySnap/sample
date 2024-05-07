@@ -6,9 +6,9 @@
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vms="clr-namespace:SnaptrudeManagerAddin.ViewModels"
+    d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -26,15 +26,17 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Label
+            <TextBlock
                 Grid.Row="0"
                 VerticalAlignment="Center"
-                Content="Enter Project URL:"
-                Foreground="#989DAE" />
+                FontFamily="{StaticResource Inter500}"
+                Foreground="{StaticResource Colors/Neutral/800}"
+                Text="Enter Project URL:" />
             <Border
                 x:Name="URLBorder"
                 Grid.Row="1"
-                Margin="0,5,0,0"
+                Height="32"
+                Margin="0,12,0,0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
                 BorderThickness="1"
@@ -68,7 +70,7 @@
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <Grid Height="32">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -100,7 +102,6 @@
                     <Grid Grid.Column="1">
                         <TextBox
                             x:Name="URLTextBox"
-                            Height="30"
                             Margin="5,0"
                             VerticalAlignment="Center"
                             VerticalContentAlignment="Center"
@@ -111,10 +112,12 @@
                             Margin="10,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
+                            FontFamily="{StaticResource Inter400}"
                             Foreground="DarkGray"
                             IsHitTestVisible="False"
                             Opacity=".8"
-                            Text="Paste link here">
+                            Text="Paste link here"
+                            Typography.StylisticAlternates="1">
                             <TextBlock.Style>
                                 <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Visibility" Value="Collapsed" />
@@ -298,7 +301,7 @@
                     <TextBlock
                         Grid.Column="2"
                         VerticalAlignment="Center"
-                        FontWeight="DemiBold"
+                        FontFamily="{StaticResource Inter500}"
                         Foreground="{StaticResource Colors/Neutral/600}"
                         Text="WeWork Office Structure v2" />
                 </Grid>
@@ -338,7 +341,7 @@
                     VerticalAlignment="Center"
                     FontWeight="Regular"
                     Foreground="{StaticResource Colors/Neutral/600}"
-                    Text="Switch to 3D view to enable export"
+                    Text="Switch to 3D view to enable export."
                     TextWrapping="Wrap"
                     Visibility="{Binding ViewIsNot3D, Converter={StaticResource BoolToVisibility}}" />
                 <Button

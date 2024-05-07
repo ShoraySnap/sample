@@ -7,7 +7,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -15,11 +14,13 @@
     </UserControl.Resources>
     <DockPanel>
         <TextBlock
-            Width="400"
+            Width="380"
             Margin="0,0,0,15"
             d:Text="Version 2.2 is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude"
             DockPanel.Dock="Bottom"
+            FontFamily="{StaticResource Inter400}"
             Foreground="White"
+            LineHeight="18"
             Text="{Binding Message}"
             TextAlignment="Center"
             TextWrapping="Wrap" />
@@ -32,15 +33,18 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock
                         d:Text="Update"
+                        FontFamily="{StaticResource Inter500}"
                         Foreground="{StaticResource Colors/Neutral/800}"
                         Text="{Binding UpdateButtonText}" />
                     <TextBlock
                         d:Text=" v2.2"
+                        FontFamily="{StaticResource Inter500}"
                         Foreground="{StaticResource Colors/Neutral/500}"
                         Text="{Binding UpdateVersion}" />
                 </StackPanel>
             </Button>
             <Button
+                Width="120"
                 HorizontalAlignment="Center"
                 Command="{Binding SkipCommand}"
                 Content="Skip for later"

@@ -5,10 +5,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
     Background="Transparent"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -16,7 +16,7 @@
     </UserControl.Resources>
     <Grid>
         <StackPanel
-            Margin="0,40,0,0"
+            Margin="0,38,0,0"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             Orientation="Horizontal">
@@ -44,7 +44,12 @@
                         <Path Data="M10.5003 3.83081V12.7237" />
                         <Path Data="M17.1695 14.2048C17.1695 15.8421 15.8422 17.1694 14.2049 17.1694H6.79513C5.15785 17.1694 3.83057 15.8421 3.83057 14.2048" />
                     </Grid>
-                    <TextBlock Margin="0,12,0,0">Import to Revit</TextBlock>
+                    <TextBlock
+                        Margin="0,12,0,0"
+                        FontFamily="{StaticResource Inter500}"
+                        Typography.StylisticAlternates="1">
+                        Import to Revit
+                    </TextBlock>
                 </StackPanel>
             </Button>
             <Button
@@ -81,18 +86,23 @@
                         <Path Data="M10.0003 12.7234V3.83052" />
                         <Path Data="M16.6695 14.2048C16.6695 15.8421 15.3422 17.1693 13.7049 17.1693H6.29513C4.65785 17.1693 3.33057 15.8421 3.33057 14.2048" />
                     </Grid>
-                    <TextBlock Margin="0,12,0,0">Export to Snaptrude</TextBlock>
+                    <TextBlock
+                        Margin="0,12,0,0"
+                        FontFamily="{StaticResource Inter500}"
+                        Typography.StylisticAlternates="1">
+                        Export to Snaptrude
+                    </TextBlock>
                 </StackPanel>
             </Button>
         </StackPanel>
         <StackPanel VerticalAlignment="Bottom">
-            <Grid Height="40" DockPanel.Dock="Bottom">
+            <Grid Height="50" DockPanel.Dock="Bottom">
                 <TextBlock
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     FontWeight="Regular"
                     Foreground="{StaticResource Colors/Neutral/600}"
-                    Text="Export is not supported in this view. Switch to 3D view to enable export"
+                    Text="Export is not supported in this view. Switch to 3D view to enable export."
                     Visibility="{Binding ViewIsNot3D, Converter={StaticResource BoolToVisibility}}" />
             </Grid>
             <Grid Height="40" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}">
@@ -109,14 +119,16 @@
                         <Button
                             Margin="8,0"
                             HorizontalAlignment="Right"
-                            d:Content="Update v2.2"
                             Command="{Binding UpdateCommand}"
+                            FontFamily="{StaticResource Inter500}"
                             Style="{StaticResource Button_24}">
                             <Button.Content>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Foreground="White" Text="Update " />
-                                    <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="v" />
-                                    <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="{Binding UpdateVersion, Mode=OneTime}" />
+                                    <TextBlock
+                                        d:Text="v2.2"
+                                        Foreground="{StaticResource Colors/Neutral/500}"
+                                        Text="{Binding UpdateVersion, Mode=OneTime, StringFormat='v{0}'}" />
                                 </StackPanel>
                             </Button.Content>
                         </Button>

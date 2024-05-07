@@ -5,9 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -74,6 +74,7 @@
                     DockPanel.Dock="Bottom"
                     FontSize="16"
                     Foreground="{StaticResource Colors/Neutral/800}"
+                    LineHeight="23"
                     Text="{Binding WarningMessage}"
                     TextWrapping="Wrap" />
             </StackPanel>
@@ -83,8 +84,10 @@
                 <CheckBox
                     Margin="0,0,5,0"
                     Content="Don't show again"
+                    FontFamily="{StaticResource Inter400}"
                     IsChecked="{Binding DontShowAgain}"
-                    Style="{StaticResource SVGCheckBoxWithText}" />
+                    Style="{StaticResource SVGCheckBoxWithText}"
+                    Typography.StylisticAlternates="1" />
 
 
             </StackPanel>

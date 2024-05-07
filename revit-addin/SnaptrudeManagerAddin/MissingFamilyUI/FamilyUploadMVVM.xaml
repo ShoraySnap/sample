@@ -11,6 +11,7 @@
     MaxHeight="600"
     AllowsTransparency="True"
     Background="{x:Null}"
+    FontFamily="{DynamicResource Inter400}"
     FontSize="13"
     Loaded="Window_Loaded"
     MouseDown="Window_MouseDown"
@@ -43,8 +44,8 @@
                     <TextBlock
                         Width="Auto"
                         VerticalAlignment="Center"
+                        FontFamily="{StaticResource Inter500}"
                         FontSize="13"
-                        FontWeight="Medium"
                         Foreground="#767B93"
                         Text="Assets not found" />
                 </Grid>
@@ -69,8 +70,8 @@
                                             Padding="24,0,40,0">
                                             <TextBlock
                                                 VerticalAlignment="Center"
+                                                FontFamily="{StaticResource Inter500}"
                                                 FontSize="20"
-                                                FontWeight="Medium"
                                                 Foreground="{StaticResource Colors/Neutral/800}"
                                                 Text="Missing RFAs" />
                                         </Border>
@@ -108,8 +109,8 @@
                                                                 Style="{StaticResource SVGCheckBox}" />
                                                             <TextBlock
                                                                 VerticalAlignment="Center"
+                                                                FontFamily="{StaticResource Inter500}"
                                                                 FontSize="13"
-                                                                FontWeight="Medium"
                                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                                 Text="RFA name" />
                                                         </StackPanel>
@@ -171,11 +172,13 @@
                                                                         HorizontalAlignment="Left"
                                                                         VerticalAlignment="Center"
                                                                         d:Text="Family Name"
+                                                                        FontFamily="{StaticResource Inter400}"
                                                                         FontSize="13"
                                                                         Foreground="{StaticResource Colors/Neutral/600}"
                                                                         Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                                         TextTrimming="CharacterEllipsis"
-                                                                        ToolTip="{Binding FamilyName}" />
+                                                                        ToolTip="{Binding FamilyName}"
+                                                                        Typography.StylisticAlternates="1" />
                                                                 </DataTemplate>
                                                             </DataGridTemplateColumn.CellTemplate>
                                                         </DataGridTemplateColumn>
@@ -216,7 +219,8 @@
                                                                             VerticalAlignment="Center"
                                                                             FontSize="13"
                                                                             Foreground="{StaticResource Colors/Neutral/800}"
-                                                                            Text="Missing from model" />
+                                                                            Text="Missing from model"
+                                                                            Typography.StylisticAlternates="1" />
                                                                     </StackPanel>
                                                                 </DataTemplate>
                                                             </DataGridTemplateColumn.CellTemplate>
@@ -249,9 +253,10 @@
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Bottom"
                                                 d:Text="5"
-                                                FontWeight="Medium"
+                                                FontFamily="{StaticResource Inter500}"
                                                 Foreground="{StaticResource Colors/Neutral/800}"
-                                                Text="{Binding TotalSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                Text="{Binding TotalSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Typography.StylisticAlternates="1" />
                                         </Border>
                                         <TextBlock
                                             VerticalAlignment="Center"
@@ -266,12 +271,14 @@
                                         <Button
                                             Margin="0,0,10,0"
                                             Click="Skip_Button_Click"
-                                            Content="Skip All"
+                                            Content="Skip all"
+                                            FontFamily="{StaticResource Inter500}"
                                             Style="{StaticResource Button_Secondary}" />
                                         <Button
                                             x:Name="Link_Button"
                                             Click="Link_Button_Click"
                                             Content="Link missing RFAs"
+                                            FontFamily="{StaticResource Inter500}"
                                             IsEnabled="{Binding LinkButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                             Style="{StaticResource Button_Primary}" />
                                     </StackPanel>
@@ -296,8 +303,8 @@
                                                 <TextBlock
                                                     HorizontalAlignment="Left"
                                                     VerticalAlignment="Center"
+                                                    FontFamily="{StaticResource Inter500}"
                                                     FontSize="20"
-                                                    FontWeight="Medium"
                                                     Foreground="{StaticResource Colors/Neutral/800}"
                                                     Text="Link RFAs" />
                                                 <Button
@@ -305,6 +312,7 @@
                                                     VerticalAlignment="Center"
                                                     Click="Select_Folder_Click"
                                                     Content="Select folder"
+                                                    FontFamily="{StaticResource Inter500}"
                                                     Style="{StaticResource Button_Primary}" />
                                             </Grid>
                                         </Border>
@@ -337,8 +345,8 @@
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock
                                                                 VerticalAlignment="Center"
+                                                                FontFamily="{StaticResource Inter500}"
                                                                 FontSize="13"
-                                                                FontWeight="Medium"
                                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                                 Text="RFA name" />
                                                         </StackPanel>
@@ -367,6 +375,7 @@
                                                     BorderThickness="0"
                                                     CanUserAddRows="False"
                                                     CellStyle="{StaticResource TransparentCell}"
+                                                    FontFamily="{StaticResource Inter400}"
                                                     GridLinesVisibility="None"
                                                     HeadersVisibility="None"
                                                     HorizontalScrollBarVisibility="Disabled"
@@ -479,7 +488,8 @@
                                                                                         Foreground="{StaticResource Colors/Neutral/600}"
                                                                                         Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                                                         TextTrimming="CharacterEllipsis"
-                                                                                        ToolTip="{Binding FamilyName}" />
+                                                                                        ToolTip="{Binding FamilyName}"
+                                                                                        Typography.StylisticAlternates="1" />
                                                                                 </StackPanel>
                                                                                 <Button
                                                                                     Margin="0,0,16,0"
@@ -487,8 +497,9 @@
                                                                                     VerticalAlignment="Center"
                                                                                     Click="Select_File_Click"
                                                                                     Content="Choose File"
+                                                                                    FontFamily="{StaticResource Inter500}"
                                                                                     FontSize="13"
-                                                                                    Style="{StaticResource Button_Tertiary}" />
+                                                                                    Style="{StaticResource Button_Transparent600}" />
                                                                             </Grid>
                                                                             <Grid Height="32" VerticalAlignment="Bottom">
                                                                                 <TextBlock
@@ -498,10 +509,12 @@
                                                                                     VerticalAlignment="Center"
                                                                                     d:Text="C:/Users/ROG/Desktop/E16RFAs"
                                                                                     FontSize="13"
+                                                                                    FontFamily="{StaticResource Inter400}"
                                                                                     Foreground="{StaticResource Colors/Neutral/500}"
                                                                                     Text="{Binding FamilyPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                                                     TextTrimming="CharacterEllipsis"
-                                                                                    ToolTip="{Binding FamilyPath}" />
+                                                                                    ToolTip="{Binding FamilyPath}"
+                                                                                    Typography.StylisticAlternates="1" />
                                                                             </Grid>
                                                                         </Grid>
                                                                     </Border>
@@ -564,10 +577,12 @@
                                             Margin="0,0,10,0"
                                             Click="Back_Button_Click"
                                             Content="Back"
+                                            FontFamily="{StaticResource Inter500}"
                                             Style="{StaticResource Button_Secondary}" />
                                         <Button
                                             Click="Done_Button_Click"
                                             Content="Done"
+                                            FontFamily="{StaticResource Inter500}"
                                             IsEnabled="{Binding DoneButtonIsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                             Style="{StaticResource Button_Primary}" />
                                     </StackPanel>

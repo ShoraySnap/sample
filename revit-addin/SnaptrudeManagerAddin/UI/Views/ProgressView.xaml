@@ -6,9 +6,9 @@
     xmlns:gif="http://wpfanimatedgif.codeplex.com"
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -16,9 +16,9 @@
     </UserControl.Resources>
     <Grid Margin="10" Background="Transparent">
         <StackPanel
-            Margin="0,0,0,90"
+            Margin="0,0,0,40"
             HorizontalAlignment="Center"
-            VerticalAlignment="Bottom"
+            VerticalAlignment="Center"
             Orientation="Vertical">
             <!--<Grid
                 Width="32"
@@ -40,7 +40,6 @@
                 Width="100"
                 Height="100"
                 gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerAddin;component/UI/Images/loader.gif"
-                gif:ImageBehavior.RepeatBehavior="10000x"
                 Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar
                 Width="240"
@@ -66,8 +65,9 @@
             Margin="0,0,0,15"
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
-            FontWeight="Regular"
             d:Text="Update in progress, please don’t close this window."
+            FontFamily="{StaticResource Inter400}"
+            FontWeight="Regular"
             Text="{Binding ProgressMessage}">
             <TextBlock.Style>
                 <Style TargetType="{x:Type TextBlock}">

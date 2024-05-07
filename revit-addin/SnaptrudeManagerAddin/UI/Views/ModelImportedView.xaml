@@ -5,9 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -16,6 +16,7 @@
     <StackPanel VerticalAlignment="Center">
         <TextBlock
             Width="300"
+            FontFamily="{StaticResource Inter500}"
             FontWeight="Medium"
             Foreground="{StaticResource Colors/Neutral/800}"
             Text="The model was imported successfully!"

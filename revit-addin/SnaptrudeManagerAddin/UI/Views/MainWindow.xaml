@@ -12,7 +12,6 @@
     Height="350"
     AllowsTransparency="True"
     Background="Transparent"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     MouseDown="Window_MouseDown"
     RenderOptions.BitmapScalingMode="HighQuality"
@@ -42,18 +41,17 @@
                     Color="Gray" />
             </Border.Effect>
         </Border>
-        <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+        <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
                 <Border.Background>
                     <ImageBrush
-                        ImageSource="/SnaptrudeManagerAddin;component/UI/Images/Snaptrude Manager.png"
+                        ImageSource="/SnaptrudeManagerAddin;component/UI/Images/background.png"
                         Opacity="1"
                         Stretch="Fill" />
                 </Border.Background>
             </Border>
         </Grid>
-
         <DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <DockPanel
@@ -72,22 +70,21 @@
                         </Grid>
                     </Grid>
                     <TextBlock
-                        Margin="5,0,0,0"
+                        Margin="6,0,0,0"
                         VerticalAlignment="Center"
-                        FontWeight="Bold">
+                        FontFamily="{StaticResource Inter600}">
                         Snaptrude
                     </TextBlock>
                     <TextBlock
                         Margin="2,0,0,0"
                         VerticalAlignment="Center"
-                        FontWeight="DemiBold"
-                        Opacity="0.66">
+                        FontFamily="{StaticResource Inter600}">
                         Manager
                     </TextBlock>
                     <TextBlock
                         VerticalAlignment="Center"
                         d:Text=" v2.1"
-                        FontWeight="Regular"
+                        FontFamily="{StaticResource Inter400}"
                         Opacity="0.66"
                         Text="{Binding CurrentVersion, StringFormat=' v{0}'}" />
 
@@ -108,7 +105,7 @@
                                     StrokeStartLineCap="round"
                                     StrokeThickness="1.25" />
                             </Grid>
-                            <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+                            <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
                                 <Path
                                     Data="M1 1L8.5 8.5M1 8.5L8.5 1"
                                     Stroke="white"
@@ -121,7 +118,7 @@
                     </Button>
                     <Button
                         x:Name="LoginButton"
-                        Margin="25,0"
+                        Margin="8,0"
                         Padding="8"
                         BorderBrush="WhiteSmoke"
                         BorderThickness="1"
@@ -161,6 +158,7 @@
                                         <TextBlock
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
+                                            FontFamily="{StaticResource Inter500}"
                                             Foreground="{StaticResource Colors/Neutral/800}"
                                             Text="Pooja G." />
                                         <Grid
@@ -194,7 +192,7 @@
                     <Popup
                         Name="popup"
                         AllowsTransparency="True"
-                        Placement="Bottom"
+                        Placement="Relative"
                         PlacementTarget="{Binding ElementName=LoginButton}"
                         PopupAnimation="Fade"
                         StaysOpen="False">
@@ -243,7 +241,6 @@
                                             </Grid>
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontWeight="Regular"
                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                 Text="Switch account" />
                                         </StackPanel>
@@ -291,7 +288,6 @@
                                             </Grid>
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontWeight="Regular"
                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                 Text="Log out" />
                                         </StackPanel>

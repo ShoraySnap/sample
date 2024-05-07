@@ -34,10 +34,10 @@ namespace TrudeImporter
             UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 50);
             UpdateProgress(() => ImportDoors(trudeProperties.Doors), "Importing Doors...", 60);
             UpdateProgress(() => ImportWindows(trudeProperties.Windows), "Importing Windows...", 70);
-            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing masses...", 80);
-            UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing furniture...", 90);
+            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing Masses...", 80);
+            UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing Furniture...", 90);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
-                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Importing missing furniture...", 95);
+                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Please link missing rfas in the other window...", 90);
 
         }
 
@@ -589,6 +589,7 @@ namespace TrudeImporter
             var result = familyUploadMVVM.ShowDialog();
             if (!familyUploadMVVM.WindowViewModel._skipAll)
             {
+                MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(95, "Importing missing families...");
                 System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {

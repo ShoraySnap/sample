@@ -22,7 +22,10 @@
     <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1" />
     <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6" />
     <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B" />
-    <FontFamily x:Key="Inter">/Resources/#Inter</FontFamily>
+    <FontFamily x:Key="Inter400">pack://application:,,,/SnaptrudeManagerAddin;component/UI/Fonts/InterDisplay-Regular/#Inter Display</FontFamily>
+    <FontFamily x:Key="Inter500">pack://application:,,,/SnaptrudeManagerAddin;component/UI/Fonts/InterDisplay-Medium/#Inter Display</FontFamily>
+    <FontFamily x:Key="Inter600">pack://application:,,,/SnaptrudeManagerAddin;component/UI/Fonts/InterDisplay-SemiBold/#Inter Display</FontFamily>
+    <FontFamily x:Key="Inter700">pack://application:,,,/SnaptrudeManagerAddin;component/UI/Fonts/InterDisplay-Bold/#Inter Display</FontFamily>
     <Storyboard x:Key="RotateStoryboard">
         <DoubleAnimation
             RepeatBehavior="Forever"
@@ -32,7 +35,9 @@
             To="360"
             Duration="0:0:1.5" />
     </Storyboard>
-    <Style x:Name="mainForeground" TargetType="{x:Type TextBlock}">
+    <Style TargetType="{x:Type TextBlock}">
+        <Setter Property="Typography.StylisticAlternates" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource Inter400}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding ImageBackground}" Value="true">
                 <Setter Property="Foreground" Value="White" />
@@ -42,6 +47,12 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
+    <Style TargetType="{x:Type Button}">
+        <Setter Property="Typography.StylisticAlternates" Value="1" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
+    </Style>
+
+
     <Style x:Key="animatedList" TargetType="FrameworkElement">
         <Setter Property="Visibility" Value="Hidden" />
         <Style.Triggers>
@@ -148,7 +159,7 @@
         <Setter Property="Padding" Value="14,0" />
         <Setter Property="Height" Value="32" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{DynamicResource Inter500}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
@@ -163,7 +174,8 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="False" />
+                            SnapsToDevicePixels="False"
+                            Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
@@ -194,6 +206,8 @@
         <Setter Property="Height" Value="24" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
+        <Setter Property="Typography.StylisticAlternates" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
@@ -379,6 +393,7 @@
         <Setter Property="Padding" Value="14,0" />
         <Setter Property="Height" Value="32" />
         <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Template">
             <Setter.Value>
@@ -395,7 +410,8 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="false" />
+                            SnapsToDevicePixels="false"
+                            Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsDefaulted" Value="true">
@@ -440,6 +456,7 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Height" Value="28" />
         <Setter Property="Width" Value="Auto" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Template">
@@ -453,7 +470,8 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="false" />
+                            SnapsToDevicePixels="false"
+                            Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
@@ -472,11 +490,63 @@
     </Style>
 
     <Style x:Key="Button_Tertiary" TargetType="{x:Type Button}">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="16,0" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
+        <Setter Property="Typography.StylisticAlternates" Value="1" />
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        x:Name="border"
+                        BorderBrush="{StaticResource Colors/Neutral/300}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="false">
+                        <ContentPresenter
+                            x:Name="contentPresenter"
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Focusable="False"
+                            RecognizesAccessKey="True"
+                            SnapsToDevicePixels="false" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsDefaulted" Value="true">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Button_Transparent600" TargetType="{x:Type Button}">
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="16,0" />
         <Setter Property="Height" Value="32" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
+        <Setter Property="Typography.StylisticAlternates" Value="1" />
         <Setter Property="Width" Value="Auto" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
@@ -525,8 +595,9 @@
         <Setter Property="Padding" Value="16,0" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Width" Value="Auto" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
+        <Setter Property="Typography.StylisticAlternates" Value="1" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
@@ -571,6 +642,7 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="14,0" />
         <Setter Property="Height" Value="32" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
         <Setter Property="Width" Value="Auto" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
@@ -591,17 +663,18 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="false" />
+                            SnapsToDevicePixels="false"
+                            Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="Background" Value="#E8E9ED" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#E8E9ED" />
                         </Trigger>
-                        
+
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -613,6 +686,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="4,4" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Regular" />
         <Setter Property="Template">
@@ -630,7 +704,8 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="false" />
+                            SnapsToDevicePixels="false"
+                            Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
@@ -646,6 +721,7 @@
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Template">
@@ -663,7 +739,8 @@
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Focusable="False"
                             RecognizesAccessKey="True"
-                            SnapsToDevicePixels="false" />
+                            SnapsToDevicePixels="false"
+                            Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">

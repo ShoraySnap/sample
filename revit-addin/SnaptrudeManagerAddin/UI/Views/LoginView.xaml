@@ -7,7 +7,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -15,9 +14,11 @@
     </UserControl.Resources>
     <DockPanel Margin="15">
         <TextBlock
-            Width="300"
+            Width="296"
             DockPanel.Dock="Bottom"
+            FontFamily="{StaticResource Inter400}"
             Foreground="White"
+            LineHeight="18"
             Text="Login to your Snaptrude account and start importing/exporting Revit files"
             TextAlignment="Center"
             TextWrapping="Wrap" />
@@ -25,6 +26,7 @@
             HorizontalAlignment="Center"
             Command="{Binding LoginCommand}"
             Content="Login to Snaptrude"
+            FontFamily="{StaticResource Inter500}"
             Style="{DynamicResource Button_Quaternary}" />
     </DockPanel>
 </UserControl>

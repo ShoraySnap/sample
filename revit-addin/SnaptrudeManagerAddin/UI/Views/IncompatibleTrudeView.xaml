@@ -5,9 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
-    FontFamily="{DynamicResource Inter}"
     FontSize="13"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -51,13 +51,15 @@
                     </Grid>
                     <TextBlock
                         VerticalAlignment="Center"
+                        FontFamily="{DynamicResource Inter500}"
                         FontSize="16"
-                        Foreground="{StaticResource Colors/Neutral/800}">
-                        Incompatible Snaptrude file
+                        Foreground="{StaticResource Colors/Neutral/800}"
+                        Text="Incompatible Snaptrude file">
+                        <Run />
                     </TextBlock>
                 </StackPanel>
                 <StackPanel Width="464" Orientation="Horizontal">
-                    <BulletDecorator Margin="8,6">
+                    <BulletDecorator Margin="10,6">
                         <BulletDecorator.Bullet>
                             <Ellipse
                                 Width="6"
@@ -68,8 +70,9 @@
                     <TextBlock
                         Width="442"
                         d:Text="The selected file cannot be imported as it is incompatible with this version of Snaptrude Manager (v2.1)."
-                        FontSize="14"
+                        FontSize="16"
                         Foreground="{StaticResource Colors/Neutral/600}"
+                        LineHeight="23"
                         Text="{Binding CurrentVersion, StringFormat='The selected file cannot be imported as it is incompatible with this version of Snaptrude Manager (v{0}).'}"
                         TextWrapping="Wrap" />
                 </StackPanel>
@@ -88,8 +91,9 @@
                     <TextBlock
                         Width="442"
                         d:Text="Please use the .trude file compatible with Snaptrude Manager (v2.1), or update to the latest version of the software."
-                        FontSize="14"
+                        FontSize="16"
                         Foreground="{StaticResource Colors/Neutral/600}"
+                        LineHeight="23"
                         Text="{Binding CurrentVersion, StringFormat='Please use the .trude file compatible with Snaptrude Manager (v{0}), or update to the latest version of the software.'}"
                         TextWrapping="WrapWithOverflow" />
                 </StackPanel>
@@ -99,6 +103,8 @@
             <TextBlock
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
+                FontFamily="{DynamicResource Inter400}"
+                FontSize="12"
                 Foreground="{StaticResource Colors/Neutral/600}">
                 <Run>Current version:</Run>
                 <Run d:Text="2.1" Text="{Binding CurrentVersion, Mode=OneTime}" />
@@ -118,7 +124,10 @@
                     Style="{StaticResource Button_Primary}">
                     <Button.Content>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Foreground="White" Text="Update " />
+                            <TextBlock
+                                FontFamily="{DynamicResource Inter500}"
+                                Foreground="White"
+                                Text="Update " />
                             <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="v" />
                             <TextBlock Foreground="{StaticResource Colors/Neutral/500}" Text="{Binding UpdateVersion, Mode=OneTime}" />
                         </StackPanel>

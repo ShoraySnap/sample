@@ -25,7 +25,7 @@ namespace SnaptrudeManagerAddin.Views
         public event EventHandler OnSuccessfulExport;
         public ProgressView()
         {
-            WpfAnimatedGif.ImageAnimationController a = null;
+            WpfAnimatedGif.ImageAnimationController a;
             InitializeComponent();
         }
         //private void export(object sender, RoutedEventArgs e)

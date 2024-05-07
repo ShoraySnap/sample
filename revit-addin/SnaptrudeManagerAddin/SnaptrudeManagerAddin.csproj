@@ -65,7 +65,12 @@
 	  <None Remove="Icons\logo16.png" />
 	  <None Remove="Icons\logo24.png" />
 	  <None Remove="Icons\logo32.png" />
+	  <None Remove="UI\Fonts\InterDisplay-Bold.ttf" />
+	  <None Remove="UI\Fonts\InterDisplay-Medium.ttf" />
+	  <None Remove="UI\Fonts\InterDisplay-Regular.ttf" />
+	  <None Remove="UI\Fonts\InterDisplay-SemiBold.ttf" />
 	  <None Remove="UI\Images\arrow-button.png" />
+	  <None Remove="UI\Images\background.png" />
 	  <None Remove="UI\Images\close.png" />
 	  <None Remove="UI\Images\document-file-blank.png" />
 	  <None Remove="UI\Images\export.png" />
@@ -74,7 +79,6 @@
 	  <None Remove="UI\Images\loader.gif" />
 	  <None Remove="UI\Images\logoutLogo.png" />
 	  <None Remove="UI\Images\plus-medium.png" />
-	  <None Remove="UI\Images\Snaptrude Manager.png" />
 	  <None Remove="UI\Images\SnaptrudeLogo256.png" />
 	  <None Remove="UI\Images\thumbnail.png" />
 	  <None Remove="UI\Images\user-icon-blank.png" />
@@ -117,6 +121,18 @@
 
 
 	<ItemGroup>
+	  <Resource Include="UI\Fonts\InterDisplay-Bold\InterDisplay-Bold.ttf">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="UI\Fonts\InterDisplay-Medium\InterDisplay-Medium.ttf">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="UI\Fonts\InterDisplay-Regular\InterDisplay-Regular.ttf">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="UI\Fonts\InterDisplay-SemiBold\InterDisplay-SemiBold.ttf">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
 	  <Resource Include="UI\Images\arrow-button.png" />
 	  <Resource Include="UI\Images\close.png" />
 	  <Resource Include="UI\Images\document-file-blank.png" />
@@ -128,7 +144,7 @@
 	  </Resource>
 	  <Resource Include="UI\Images\logoutLogo.png" />
 	  <Resource Include="UI\Images\plus-medium.png" />
-	  <Resource Include="UI\Images\Snaptrude Manager.png" />
+	  <Resource Include="UI\Images\background.png" />
 	  <Resource Include="UI\Images\thumbnail.png" />
 	  <Resource Include="UI\Images\user-icon-blank.png" />
 	  <Resource Include="UI\Images\user-profile.png" />

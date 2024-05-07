@@ -22,8 +22,6 @@ namespace SnaptrudeManagerAddin
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static MainWindow Instance = null;
-        
         public MainWindow()
         {
             DataContext = MainWindowViewModel.Instance;

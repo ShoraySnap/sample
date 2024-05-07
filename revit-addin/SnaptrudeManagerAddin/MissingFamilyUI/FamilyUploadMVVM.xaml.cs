@@ -102,6 +102,11 @@ namespace SnaptrudeManagerAddin
         {
             WindowViewModel.UpdateSelectedCount();
         }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 
     public class WindowViewModel : ViewModelBase
