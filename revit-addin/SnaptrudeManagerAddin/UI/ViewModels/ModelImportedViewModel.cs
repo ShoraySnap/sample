@@ -14,6 +14,7 @@ namespace SnaptrudeManagerAddin.ViewModels
     {
         public ModelImportedViewModel()
         {
+            MainWindowViewModel.Instance.TopMost = true;
         }
     }
 }

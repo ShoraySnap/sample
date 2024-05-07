@@ -15,6 +15,7 @@ namespace SnaptrudeManagerAddin.ViewModels
         public ICommand LaunchCommand { get; }
         public ModelExportedViewModel()
         {
+            MainWindowViewModel.Instance.TopMost = true;
             LaunchCommand = new RelayCommand(new Action<object>((o) => OpenSnaptrudeModel()));
         }
 

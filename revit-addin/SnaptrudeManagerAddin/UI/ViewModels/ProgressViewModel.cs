@@ -80,6 +80,7 @@ namespace SnaptrudeManagerAddin.ViewModels
                     StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Import:
+                    MainWindowViewModel.Instance.TopMost = false;
                     StartProgressCommand = new RelayCommand(async (o) => await StartImport());
                     progressMessage = "Import in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);

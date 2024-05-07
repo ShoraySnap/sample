@@ -20,7 +20,7 @@
     ShowInTaskbar="True"
     SnapsToDevicePixels="False"
     TextOptions.TextRenderingMode="Aliased"
-    Topmost="True"
+    Topmost="{Binding TopMost}"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">

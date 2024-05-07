@@ -91,8 +91,19 @@ namespace SnaptrudeManagerAddin.ViewModels
             !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
+        private bool topMost = true;
+        public bool TopMost
+        {
+            get { return topMost; }
+            set
+            {
+                topMost = value; OnPropertyChanged("TopMost");
+            }
+        }
+
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
         {
+            TopMost = true;
             IsActiveView3D = isActiveView3D;
             CurrentVersion = currentVersion;
             UpdateVersion = updateVersion;
