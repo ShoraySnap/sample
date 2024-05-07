@@ -86,7 +86,10 @@ namespace SnaptrudeManagerAddin.ViewModels
 
         public Action CloseAction { get; set; }
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
-        public bool LoginButtonVisible => !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && CurrentViewModel.GetType().Name != "ProgressViewModel";
+        public bool LoginButtonVisible => 
+            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && 
+            !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
+            CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
         {
