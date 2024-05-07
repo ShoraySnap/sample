@@ -48,7 +48,7 @@ namespace SnaptrudeManagerAddin
                     {
                         GlobalVariables.Transaction = t;
                         t.Start();
-                        status = ParseTrude();
+                        status = ImportTrude();
                         t.Commit();
                     }
                     tg.Assimilate();
@@ -78,57 +78,15 @@ namespace SnaptrudeManagerAddin
             fa.DeleteAllWarnings();
         }
 
-        private bool ParseTrude()
+        private bool ImportTrude()
         {
             GlobalVariables.LevelIdByNumber.Clear();
             FamilyLoader.LoadedFamilies.Clear();
 
-            FileOpenDialog trudeFileOpenDialog = new FileOpenDialog("Trude (*.trude)|*.trude");
-
-            trudeFileOpenDialog.Show();
-
-            if (trudeFileOpenDialog.GetSelectedModelPath() == null)
-            {
-                ShowTrudeFileNotSelectedDialogue();
-
-                return false;
-            }
-
-            if (GlobalVariables.Document.IsReadOnly)
-            {
-                ShowReadOnlyDialogue();
-
-                return false;
-            }
-
-            String path = ModelPathUtils.ConvertModelPathToUserVisiblePath(trudeFileOpenDialog.GetSelectedModelPath());
-
-            JObject trudeData = JObject.Parse(File.ReadAllText(path));
-            GlobalVariables.TrudeFileName = Path.GetFileName(path);
-            GlobalVariables.materials = trudeData["materials"] as JArray;
-            GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
-
-            //JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
-            //JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
-
-            Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
-            {
-                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
-            };
-            serializer.Converters.Add(new XyzConverter());
-            TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
-
-            //WPFTODO CHECK FOR INCOMPATIBLE TRUDE FILE
-            if (true)
-            {
-
-            }
-
             _ = new FetchTextures.FetchTextures();
-            deleteRemovedElements(trudeProperties.DeletedElements);
+            deleteRemovedElements(GlobalVariables.TrudeProperties.DeletedElements);
 
-            TrudeImporterMain.Import(trudeProperties);
+            TrudeImporterMain.Import(GlobalVariables.TrudeProperties);
 
             FamilyLoader.LoadedFamilies.Clear();
             GlobalVariables.LevelIdByNumber.Clear();
