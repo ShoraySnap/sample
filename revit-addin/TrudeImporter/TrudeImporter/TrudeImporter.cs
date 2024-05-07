@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
-using System.Windows.Forms;
-using System.Reflection;
-
 
 #if !FORGE
 using SnaptrudeManagerAddin.ViewModels;
@@ -24,23 +21,32 @@ namespace TrudeImporter
             GlobalVariables.MissingDoorIndexes.Clear();
             GlobalVariables.MissingWindowIndexes.Clear();
 
-            ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport);
-            ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
-            ImportFloors(trudeProperties.Floors);
-#if REVIT2019 || REVIT2020|| REVIT2021
-                ImportFloors(trudeProperties.Ceilings);
+            UpdateProgress(() => ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport), "Importing Stories...", 5);
+            UpdateProgress(() => ImportWalls(trudeProperties.Walls), "Importing Walls...", 10);
+            UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 15);
+            UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 20);
+            UpdateProgress(() => ImportFloors(trudeProperties.Floors), "Importing Floors...", 30);
+#if REVIT2019 || REVIT2020 || REVIT2021
+                UpdateProgress(() => ImportFloors(trudeProperties.Ceilings), "Importing Ceilings...", 40);
 #else
-                ImportCeilings(trudeProperties.Ceilings);
+            UpdateProgress(() => ImportCeilings(trudeProperties.Ceilings), "Importing Ceilings...", 40);
 #endif
-            ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
-            ImportDoors(trudeProperties.Doors);
-            ImportWindows(trudeProperties.Windows);
-            ImportMasses(trudeProperties.Masses);
-            ImportFurniture(trudeProperties.Furniture);
+            UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 50);
+            UpdateProgress(() => ImportDoors(trudeProperties.Doors), "Importing Doors...", 60);
+            UpdateProgress(() => ImportWindows(trudeProperties.Windows), "Importing Windows...", 70);
+            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing masses...", 80);
+            UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing furniture...", 90);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
-                ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture);
+                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Importing missing furniture...", 95);
+
+        }
+
+        private static void UpdateProgress(Action task, string message, int progress)
+        {
+#if !FORGE
+            MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(progress, message);
+#endif
+            task();
         }
 
         private static void ImportStories(List<StoreyProperties> propsList, bool isRevitImport)
@@ -102,7 +108,7 @@ namespace TrudeImporter
                         {
                             TrudeStorey firstStorey = storiesToCreate.Any() ? storiesToCreate[0] : storiesWithMatchingLevelIds[0].Storey;
                             t.Start();
-                            
+
                             levelAssociatedWithActiveView.Name = firstStorey.RevitName;
                             levelAssociatedWithActiveView.Elevation = firstStorey.Elevation;
                             GlobalVariables.LevelIdByNumber.Add(firstStorey.LevelNumber, levelAssociatedWithActiveView.Id);
@@ -287,7 +293,7 @@ namespace TrudeImporter
                     }
                     else
                     {
-                            new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
+                        new TrudeBeam(beam, GlobalVariables.LevelIdByNumber[beam.Storey]);
                     }
 
                     deleteOld(beam.ExistingElementId);
@@ -426,7 +432,7 @@ namespace TrudeImporter
 
         private static void ImportDoors(List<DoorProperties> propsList)
         {
-            foreach (var (door,index) in propsList.WithIndex())
+            foreach (var (door, index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -434,7 +440,7 @@ namespace TrudeImporter
                     deleteOld(door.ExistingElementId);
                     try
                     {
-                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey],index);
+                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -451,7 +457,7 @@ namespace TrudeImporter
 
         private static void ImportWindows(List<WindowProperties> propsList)
         {
-            foreach (var (window,index) in propsList.WithIndex())
+            foreach (var (window, index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
@@ -459,7 +465,7 @@ namespace TrudeImporter
                     deleteOld(window.ExistingElementId);
                     try
                     {
-                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey],index);
+                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
                         if (t.Commit() != TransactionStatus.Committed)
                         {
                             t.RollBack();
@@ -582,7 +588,8 @@ namespace TrudeImporter
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
             var result = familyUploadMVVM.ShowDialog();
             if (!familyUploadMVVM.WindowViewModel._skipAll)
-            {   System.Diagnostics.Debug.WriteLine("Importing Missing Families");
+            {
+                System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
                     t.Start();

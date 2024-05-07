@@ -99,6 +99,12 @@ namespace SnaptrudeManagerAddin.ViewModels
             //StartProgressCommand.Execute(null);
         }
 
+        public void UpdateProgress(int Value, string message)
+        {
+            ProgressValue = Value;
+            ProgressMessage = message;
+        }
+
         public async Task StartExport()
         {
             for (int i = 0; i <= 100; i++)
@@ -106,17 +112,12 @@ namespace SnaptrudeManagerAddin.ViewModels
                 ProgressValue = i;
                 await Task.Delay(20);
             }
+            SuccessCommand.Execute(new object());
         }
 
         private async Task StartImport()
         {
             MainWindowViewModel.Instance.ImportEvent.Raise();
-            for (int i = 0; i <= 100; i++)
-            {
-                ProgressValue = i;
-                await Task.Delay(1000);
-            }
-            SuccessCommand.Execute(null);
         }
 
         private async Task StartUpdate()
