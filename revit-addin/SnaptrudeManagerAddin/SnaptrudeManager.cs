@@ -17,6 +17,9 @@ namespace SnaptrudeManagerAddin
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive) 
+                return Result.Succeeded;
+
             StringBuilder sb = new StringBuilder();
             string logFileName = @"revit.log";
             string logFilePath = getAppDataPath(logFileName);
@@ -67,7 +70,7 @@ namespace SnaptrudeManagerAddin
                 else
                     navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
 
-                Application.Instance.ShowFormSeperateThread(uiapp);
+                Application.Instance.ShowUISeperateThread(uiapp);
 
                 log("Calling UI");
                 writeAndClose();

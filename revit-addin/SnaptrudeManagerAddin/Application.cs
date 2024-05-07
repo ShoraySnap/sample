@@ -18,29 +18,14 @@ namespace SnaptrudeManagerAddin
     {
         public static Application Instance;
 
-        public MainWindow MainWindow = null;
+        public MainWindow MainWindow;
 
         //Seperate thread to run the UI
-        private Thread _uiThread;
-
-        internal void ShowMainWindowUI()
-        {
-            if (MainWindow == null || MainWindow.IsLoaded == false)
-            {
-                MainWindow = new MainWindow();
-                if (MainWindow.IsInitialized)
-                {
-                    MainWindow.Show();
-                }
-            }
-            else
-            {
-                MainWindow.Focus();
-            }
-        }
+        public Thread uiThread;
 
         public Result OnStartup(UIControlledApplication application)
         {
+            MainWindow = null;
             Instance = this;
 
             application.ViewActivated += OnViewActivated;
@@ -60,7 +45,7 @@ namespace SnaptrudeManagerAddin
             string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.SnaptrudeManager));
             PushButtonData buttonData = new PushButtonData("Export", "Snaptrude Manager", assemblyPath, className);
             PushButton button = panel.AddItem(buttonData) as PushButton;
-            
+
             BitmapIcons bitmapIcons = new BitmapIcons(Assembly.GetExecutingAssembly(), "SnaptrudeManagerAddin.Icons.logo256.png", application);
             button.Image = bitmapIcons.MediumBitmap();
             button.LargeImage = bitmapIcons.LargeBitmap();
@@ -95,18 +80,19 @@ namespace SnaptrudeManagerAddin
             return bd.Frames[0];
         }
 
-        public void ShowFormSeperateThread(UIApplication uiapp)
+        public void ShowUISeperateThread(UIApplication uiapp)
         {
             // If we do not have a thread started or has been terminated start a new one
-            if (!(_uiThread is null) && _uiThread.IsAlive) return;
+            if (!(uiThread is null) && uiThread.IsAlive) return;
 
-            _uiThread = new Thread(() =>
+            uiThread = new Thread(() =>
             {
                 //Set the sync context
                 SynchronizationContext.SetSynchronizationContext(
                     new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
 
-                ShowMainWindowUI();
+                MainWindow = new MainWindow();
+                MainWindow.Show();
 
                 //Shut down the dispatcher while closing
                 MainWindow.Closed += (s, e) => Dispatcher.CurrentDispatcher.InvokeShutdown();
@@ -115,9 +101,9 @@ namespace SnaptrudeManagerAddin
                 Dispatcher.Run();
             });
 
-            _uiThread.SetApartmentState(ApartmentState.STA);
-            _uiThread.IsBackground = true;
-            _uiThread.Start();
+            uiThread.SetApartmentState(ApartmentState.STA);
+            uiThread.IsBackground = true;
+            uiThread.Start();
         }
     }
 }
