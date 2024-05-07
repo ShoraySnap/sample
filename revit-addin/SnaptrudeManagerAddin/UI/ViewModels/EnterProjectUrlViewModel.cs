@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
+using System.ComponentModel;
 
 namespace SnaptrudeManagerAddin.ViewModels
 {
@@ -30,7 +31,7 @@ namespace SnaptrudeManagerAddin.ViewModels
         public URLValidationStatus RequestStatus
         {
             get { return requestStatus; }
-            set { requestStatus = value; OnPropertyChanged("RequestStatus"); }
+            set { requestStatus = value; OnPropertyChanged("RequestStatus"); OnPropertyChanged("ExportIsEnable"); }
         }
 
         private string errorMessage;
@@ -86,8 +87,23 @@ namespace SnaptrudeManagerAddin.ViewModels
             }
         }
 
+        public bool ExportIsEnable => ViewIs3D && RequestStatus == URLValidationStatus.Validated;
+
+        public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
+        public bool ViewIsNot3D => !ViewIs3D;
+
+        private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
+            {
+                OnPropertyChanged(nameof(ViewIs3D));
+                OnPropertyChanged(nameof(ViewIsNot3D));
+                OnPropertyChanged(nameof(ExportIsEnable));
+            }
+        }
         public EnterProjectUrlViewModel(NavigationService backNavigationService, NavigationService exportToExistingNavigationService)
         {
+            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
             BackCommand = new NavigateCommand(backNavigationService);
             BeginExportCommand = new NavigateCommand(exportToExistingNavigationService);
         }

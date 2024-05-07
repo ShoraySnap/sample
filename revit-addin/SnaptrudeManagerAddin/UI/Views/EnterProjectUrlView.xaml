@@ -326,12 +326,28 @@
             </TextBlock>
         </Grid>
         <Grid Grid.Row="1" Margin="16">
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Margin="12,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontWeight="Regular"
+                    Foreground="{StaticResource Colors/Neutral/600}"
+                    Text="Switch to 3D view to enable export"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding ViewIsNot3D, Converter={StaticResource BoolToVisibility}}" />
                 <Button
+                    Grid.Column="1"
                     Command="{Binding BackCommand}"
                     Content="Back"
                     Style="{DynamicResource Button_Secondary}" />
                 <Button
+                    Grid.Column="2"
                     Margin="8,0,0,0"
                     HorizontalAlignment="Center"
                     Command="{Binding BeginExportCommand}"
@@ -340,14 +356,14 @@
                         <Style BasedOn="{StaticResource Button_Primary}" TargetType="Button">
                             <Setter Property="IsEnabled" Value="False" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                <DataTrigger Binding="{Binding ExportIsEnable}" Value="True">
                                     <Setter Property="IsEnabled" Value="True" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
                 </Button>
-            </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

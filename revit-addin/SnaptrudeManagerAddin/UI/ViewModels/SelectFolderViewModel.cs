@@ -64,11 +64,26 @@ namespace SnaptrudeManagerAddin.ViewModels
         public bool IsWorkspaceSelected
         {
             get { return isWorkspaceSelected; }
-            set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); }
+            set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); OnPropertyChanged("ExportIsEnable"); }
         }
 
+        public bool ExportIsEnable => ViewIs3D && IsWorkspaceSelected;
+
+        public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
+        public bool ViewIsNot3D => !ViewIs3D;
+
+        private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
+            {
+                OnPropertyChanged(nameof(ViewIs3D));
+                OnPropertyChanged(nameof(ViewIsNot3D));
+                OnPropertyChanged(nameof(ExportIsEnable));
+            }
+        }
         public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService)
         {
+            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
             BeginExportCommand = new NavigateCommand(exportNavigationService);
             BackCommand = new NavigateCommand(backNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
