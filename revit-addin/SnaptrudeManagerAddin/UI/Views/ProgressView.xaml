@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gif="http://wpfanimatedgif.codeplex.com"
     xmlns:local="clr-namespace:SnaptrudeManagerAddin.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="272"
@@ -15,17 +16,32 @@
     </UserControl.Resources>
     <Grid Margin="10" Background="Transparent">
         <StackPanel
+            Margin="0,0,0,90"
             HorizontalAlignment="Center"
-            VerticalAlignment="Center"
+            VerticalAlignment="Bottom"
             Orientation="Vertical">
-            <Grid
+            <!--<Grid
                 Width="32"
                 Height="32"
                 Margin="0,0,0,24"
                 Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
                 <Path Data="M13.92 12.9357C13.92 12.1537 14.1074 11.9018 14.8751 11.6532L19.2269 10.1451V3.79191L9.96431 6.93148C8.65552 7.38259 7.77539 8.62392 7.77539 10.02V19.7663L13.1768 17.7562C13.6217 17.5915 13.92 17.1585 13.92 16.6795V12.9357Z" Fill="black" />
                 <Path Data="M25.2249 13.2337L19.8235 15.2438C19.3785 15.4085 19.0803 15.8414 19.0803 16.3205V20.0643C19.0803 20.8463 18.8928 21.0982 18.1252 21.3468L13.7734 22.8549V29.2081L23.036 26.0685C24.3448 25.619 25.2249 24.3777 25.2249 22.98V13.2337Z" Fill="black" />
-            </Grid>
+            </Grid>-->
+            <!--<MediaElement
+                Name="mediaElement"
+                Width="100"
+                Height="100"
+                LoadedBehavior="Play"
+                MediaEnded="OnMediaEnded"
+                Source="pack://application:,,,/SnaptrudeManagerAddin;component/UI/Images/loader.gif"
+                UnloadedBehavior="Manual" />-->
+            <Image
+                Width="100"
+                Height="100"
+                gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerAddin;component/UI/Images/loader.gif"
+                gif:ImageBehavior.RepeatBehavior="10000x"
+                Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar
                 Width="240"
                 Margin="0,0,0,12"

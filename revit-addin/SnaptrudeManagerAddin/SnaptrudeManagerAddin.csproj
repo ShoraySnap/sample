@@ -71,6 +71,7 @@
 	  <None Remove="UI\Images\export.png" />
 	  <None Remove="UI\Images\folder-modern-style-3.png" />
 	  <None Remove="UI\Images\import.png" />
+	  <None Remove="UI\Images\loader.gif" />
 	  <None Remove="UI\Images\logoutLogo.png" />
 	  <None Remove="UI\Images\plus-medium.png" />
 	  <None Remove="UI\Images\Snaptrude Manager.png" />
@@ -110,6 +111,7 @@
 		<Reference Include="RevitAPIUI" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
+		<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
 	</ItemGroup>
 
 
@@ -121,6 +123,9 @@
 	  <Resource Include="UI\Images\export.png" />
 	  <Resource Include="UI\Images\folder-modern-style-3.png" />
 	  <Resource Include="UI\Images\import.png" />
+	  <Resource Include="UI\Images\loader.gif">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
 	  <Resource Include="UI\Images\logoutLogo.png" />
 	  <Resource Include="UI\Images\plus-medium.png" />
 	  <Resource Include="UI\Images\Snaptrude Manager.png" />

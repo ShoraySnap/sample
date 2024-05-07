@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WpfAnimatedGif;
+
 
 namespace SnaptrudeManagerAddin.Views
 {
@@ -23,6 +25,7 @@ namespace SnaptrudeManagerAddin.Views
         public event EventHandler OnSuccessfulExport;
         public ProgressView()
         {
+            WpfAnimatedGif.ImageAnimationController a = null;
             InitializeComponent();
         }
         //private void export(object sender, RoutedEventArgs e)
