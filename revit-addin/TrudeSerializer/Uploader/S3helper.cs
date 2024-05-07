@@ -13,9 +13,11 @@ namespace TrudeSerializer.Uploader
     internal class S3helper
     {
         static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
+        static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
         public static async void UploadAndRedirectToSnaptrude(SerializedTrudeData serializedData)
         {
             Dictionary<string, string> jsonData = serializedData.GetSerializedObject();
+            Dictionary<string, byte[]> compressedJsonData = new Dictionary<string, byte[]>();
 
             Config config = Config.GetConfigObject();
 
@@ -23,18 +25,25 @@ namespace TrudeSerializer.Uploader
             string projectFloorKey = config.floorKey;
 
             List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
+            Dictionary<string, string> paths = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in jsonData)
             {
                 byte[] compressedString = Compressor.CompressString(entry.Value);
-                string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
+                compressedJsonData.Add(entry.Key, compressedString);
 
-                var presignedUrlResponse = await GetPresignedURL(path, config);
-                var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
-                PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-                uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
+                string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
+                paths.Add(entry.Key, path);
             }
 
+            var presignedUrlsResponse = await GetPresignedURLs(paths, config);
+            var presignedUrlsResponseData = await presignedUrlsResponse.Content.ReadAsStringAsync();
+            Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
+
+            foreach (KeyValuePair<string, PreSignedURLResponse> presignedURL in presignedURLs)
+            {
+                uploadTasks.Add(UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value));
+            }
             await Task.WhenAll(uploadTasks);
 
             string requestURL = "snaptrude://finish?name=" + projectFloorKey;
@@ -61,6 +70,30 @@ namespace TrudeSerializer.Uploader
             return uploadResponse;
         }
 
+        public static async Task<HttpResponseMessage> GetPresignedURLs(Dictionary<string, string> fileNames, Config config)
+        {
+            var client = new HttpClient();
+
+            string snaptrudeDjangoUrl = URLsConfig.GetSnaptrudeDjangoUrl();
+
+            string url = snaptrudeDjangoUrl + GET_PRESIGNED_URLS;
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            string accessToken = "Bearer " + config.accessToken;
+            request.Headers.Add("Auth", accessToken);
+
+            string serializedFileNames = JsonConvert.SerializeObject(fileNames);
+
+            var content = new MultipartFormDataContent
+            {
+                { new StringContent(serializedFileNames), "object_names" }
+            };
+            request.Content = content;
+            var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return response;
+        }
+
         public static async Task<HttpResponseMessage> GetPresignedURL(string fileName, Config config)
         {
             var client = new HttpClient();
@@ -72,6 +105,7 @@ namespace TrudeSerializer.Uploader
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             string accessToken = "Bearer " + config.accessToken;
             request.Headers.Add("Auth", accessToken);
+
             var content = new MultipartFormDataContent
             {
                 { new StringContent(fileName), "object_name" }
@@ -100,7 +134,6 @@ namespace TrudeSerializer.Uploader
             var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
             PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
             uploadTask = UploadUsingPresignedURL(data, presignedURL);
-
 
             await uploadTask;
         }
