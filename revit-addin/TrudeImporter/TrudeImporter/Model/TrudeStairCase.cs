@@ -229,19 +229,16 @@ namespace TrudeImporter
                                 XYZ absoluteDirection = new XYZ(Math.Abs(direction.X), Math.Abs(direction.Y), Math.Abs(direction.Z));
                                 XYZ scalar = absoluteDirection * (1 + ((LandingWidth - fifthCurveLength) / fifthCurveLength));
 
-                                System.Diagnostics.Debug.WriteLine("Scalar: " + scalar);
                                 foreach (Curve curve in landingLoop)
                                 {
                                     XYZ startPoint = curve.GetEndPoint(0);
                                     XYZ endPoint = curve.GetEndPoint(1);
                                     XYZ newStartPoint = new XYZ(startPoint.X, startPoint.Y, startPoint.Z);
                                     XYZ newEndPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z);
-                                    System.Diagnostics.Debug.WriteLine("Old Boundary " + landingBoundaryIndex + ": " + startPoint + " - " + endPoint);
+
                                     if (landingBoundaryIndex == 3)
                                     {
                                         double xDiff = Math.Abs(startPoint.X - endPoint.X)- firstCurveLength;
-                                        System.Diagnostics.Debug.WriteLine("X Diff: " + xDiff);
-
                                         double additive = xDiff * scalar.X - xDiff;
                                         if (direction.X == 1 || direction.X == -1)
                                         {
@@ -268,13 +265,11 @@ namespace TrudeImporter
 
                                 foreach (KeyValuePair<int, Line> boundary in landingBoundaries)
                                 {
-                                    System.Diagnostics.Debug.WriteLine("New Boundary " + boundary.Key + ": " + boundary.Value.GetEndPoint(0) + " - " + boundary.Value.GetEndPoint(1));
                                     extendedLandingBoundary.Append(boundary.Value);
                                 }
                                 StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, extendedLandingBoundary, landing.BaseElevation);
                                 doc.Delete(landingId);
                             }
-                            System.Diagnostics.Debug.WriteLine("\n");
                         }
                     }
                 }
