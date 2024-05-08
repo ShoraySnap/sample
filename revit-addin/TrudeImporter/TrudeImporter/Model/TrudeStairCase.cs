@@ -224,92 +224,65 @@ namespace TrudeImporter
                                 CurveLoop extendedLandingBoundary = new CurveLoop();
                                 int landingBoundaryIndex = 0;
 
-                                CurveLoopIterator curveLoopIterator = landingLoop.GetCurveLoopIterator();
-                                curveLoopIterator.MoveNext();
-                                curveLoopIterator.MoveNext();
-                                curveLoopIterator.MoveNext();
-                                curveLoopIterator.MoveNext();
-                                curveLoopIterator.MoveNext();
-                                curveLoopIterator.MoveNext();
+                                double fifthCurveLength = GetFifthCurve(landingLoop).ApproximateLength;
+                                XYZ absoluteDirection = new XYZ(Math.Abs(direction.X), Math.Abs(direction.Y), Math.Abs(direction.Z));
+                                XYZ scalar = absoluteDirection * (1 + ((LandingWidth - fifthCurveLength) / fifthCurveLength));
 
-                                Curve fifthCurve = curveLoopIterator.Current;
-                                double fifthCurveLength = fifthCurve.ApproximateLength;
-                                double multiplier = 1 + ((LandingWidth - fifthCurveLength) / fifthCurveLength);
-                                XYZ scalar = direction * multiplier;
-                                System.Diagnostics.Debug.WriteLine("scalar: " + scalar);
-                                
-
+                                System.Diagnostics.Debug.WriteLine("Scalar: " + scalar);
                                 foreach (Curve curve in landingLoop)
                                 {
                                     XYZ startPoint = curve.GetEndPoint(0);
                                     XYZ endPoint = curve.GetEndPoint(1);
                                     XYZ newStartPoint = new XYZ(startPoint.X, startPoint.Y, startPoint.Z);
                                     XYZ newEndPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z);
+                                    System.Diagnostics.Debug.WriteLine("Old Boundary " + landingBoundaryIndex + ": " + startPoint + " - " + endPoint);
                                     if (landingBoundaryIndex == 3)
                                     {
-                                        //endPoint += scalar;
-                                        if (direction.X == 1)
+                                        double xDiff = Math.Abs(startPoint.X - endPoint.X);
+                                        System.Diagnostics.Debug.WriteLine("X Diff: " + xDiff);
+
+                                        double additive = xDiff * scalar.X - xDiff;
+                                        if (direction.X == 1 || direction.X == -1)
                                         {
-                                            newEndPoint = new XYZ(endPoint.X * scalar.X, endPoint.Y, endPoint.Z);
+                                            newEndPoint = new XYZ(endPoint.X >= 0 ? endPoint.X + additive : endPoint.X - additive, endPoint.Y, endPoint.Z);
                                         }
-                                        if (direction.Y == 1)
-                                        {
-                                            newEndPoint = new XYZ(endPoint.X, endPoint.Y * scalar.Y, endPoint.Z);
-                                        }
-                                        if (direction.Z == 1)
-                                        {
-                                            newEndPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z * scalar.Z);
-                                        }
+                                        //if (direction.Y == 1 || direction.Y == -1)
+                                        //{
+                                        //    newEndPoint = new XYZ(endPoint.X, endPoint.Y * scalar.Y, endPoint.Z);
+                                        //}
+                                        //if (direction.Z == 1|| direction.Z == -1)
+                                        //{
+                                        //    newEndPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z * scalar.Z);
+                                        //}
                                     }
-                                    else if (landingBoundaryIndex == 4)
+                                    else if (landingBoundaryIndex == 4 || landingBoundaryIndex == 5)
                                     {
-                                        //startPoint += scalar;
-                                        if (direction.X == 1)
+                                        if (landingBoundaryIndex == 4)
                                         {
-                                            newStartPoint = new XYZ(startPoint.X * scalar.X, startPoint.Y, startPoint.Z);
+                                            newStartPoint = new XYZ(landingBoundaries[3].GetEndPoint(1).X, startPoint.Y, startPoint.Z);
+                                            newEndPoint = new XYZ(newStartPoint.X, endPoint.Y, endPoint.Z);
                                         }
-                                        if (direction.Y == 1)
+                                        
+                                        if (landingBoundaryIndex == 5)
                                         {
-                                            newStartPoint = new XYZ(startPoint.X, startPoint.Y * scalar.Y, startPoint.Z);
+                                            newStartPoint = new XYZ(landingBoundaries[4].GetEndPoint(1).X, startPoint.Y, startPoint.Z);
+                                            newEndPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z);
                                         }
-                                        if (direction.Z == 1)
-                                        {
-                                            newStartPoint = new XYZ(startPoint.X, startPoint.Y, startPoint.Z * scalar.Z);
-                                        }
-                                    }
-                                    else if (landingBoundaryIndex == 5)
-                                    {
-                                        //startPoint += scalar;
-                                        if (direction.X == 1)
-                                        {
-                                            newStartPoint = new XYZ(startPoint.X * scalar.X, startPoint.Y, startPoint.Z);
-                                        }
-                                        if (direction.Y == 1)
-                                        {
-                                            newStartPoint = new XYZ(startPoint.X, startPoint.Y * scalar.Y, startPoint.Z);
-                                        }
-                                        if (direction.Z == 1)
-                                        {
-                                            newStartPoint = new XYZ(startPoint.X, startPoint.Y, startPoint.Z * scalar.Z);
-                                        }
-                                        Line farEdgeTemp = landingBoundaries[4];
-                                        landingBoundaries[4] = Line.CreateBound(farEdgeTemp.GetEndPoint(0), newStartPoint);
                                     }
                                     landingBoundaries.Add(landingBoundaryIndex, Line.CreateBound(newStartPoint, newEndPoint));
                                     landingBoundaryIndex++;
-
                                 }
 
                                 foreach (KeyValuePair<int, Line> boundary in landingBoundaries)
                                 {
-                                    System.Diagnostics.Debug.WriteLine("Boundary " + boundary.Key + ": " + boundary.Value.GetEndPoint(0) + " - " + boundary.Value.GetEndPoint(1));
+                                    System.Diagnostics.Debug.WriteLine("New Boundary " + boundary.Key + ": " + boundary.Value.GetEndPoint(0) + " - " + boundary.Value.GetEndPoint(1));
                                     extendedLandingBoundary.Append(boundary.Value);
                                 }
                                 StairsLanding newLanding = StairsLanding.CreateSketchedLanding(doc, stairsId, extendedLandingBoundary, landing.BaseElevation);
                                 doc.Delete(landingId);
                             }
+                            System.Diagnostics.Debug.WriteLine("\n");
                         }
-                        System.Diagnostics.Debug.WriteLine("\n");
                     }
                 }
                 catch (Exception ex)
@@ -496,6 +469,15 @@ namespace TrudeImporter
             Level level = Level.Create(doc, elevation);
             level.Name = "Temp Level " + storey;
             return level;
+        }
+        private Curve GetFifthCurve(CurveLoop landingLoop)
+        {
+            CurveLoopIterator curveLoopIterator = landingLoop.GetCurveLoopIterator();
+            for (int i = 0; i < 6; i++)
+            {
+                curveLoopIterator.MoveNext();
+            }
+            return curveLoopIterator.Current;
         }
     }
 }
