@@ -224,6 +224,7 @@ namespace TrudeImporter
                                 CurveLoop extendedLandingBoundary = new CurveLoop();
                                 int landingBoundaryIndex = 0;
 
+                                double firstCurveLength = GetFirstCurve(landingLoop).ApproximateLength;
                                 double fifthCurveLength = GetFifthCurve(landingLoop).ApproximateLength;
                                 XYZ absoluteDirection = new XYZ(Math.Abs(direction.X), Math.Abs(direction.Y), Math.Abs(direction.Z));
                                 XYZ scalar = absoluteDirection * (1 + ((LandingWidth - fifthCurveLength) / fifthCurveLength));
@@ -238,7 +239,7 @@ namespace TrudeImporter
                                     System.Diagnostics.Debug.WriteLine("Old Boundary " + landingBoundaryIndex + ": " + startPoint + " - " + endPoint);
                                     if (landingBoundaryIndex == 3)
                                     {
-                                        double xDiff = Math.Abs(startPoint.X - endPoint.X);
+                                        double xDiff = Math.Abs(startPoint.X - endPoint.X)- firstCurveLength;
                                         System.Diagnostics.Debug.WriteLine("X Diff: " + xDiff);
 
                                         double additive = xDiff * scalar.X - xDiff;
@@ -246,14 +247,6 @@ namespace TrudeImporter
                                         {
                                             newEndPoint = new XYZ(endPoint.X >= 0 ? endPoint.X + additive : endPoint.X - additive, endPoint.Y, endPoint.Z);
                                         }
-                                        //if (direction.Y == 1 || direction.Y == -1)
-                                        //{
-                                        //    newEndPoint = new XYZ(endPoint.X, endPoint.Y * scalar.Y, endPoint.Z);
-                                        //}
-                                        //if (direction.Z == 1|| direction.Z == -1)
-                                        //{
-                                        //    newEndPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z * scalar.Z);
-                                        //}
                                     }
                                     else if (landingBoundaryIndex == 4 || landingBoundaryIndex == 5)
                                     {
@@ -469,6 +462,16 @@ namespace TrudeImporter
             Level level = Level.Create(doc, elevation);
             level.Name = "Temp Level " + storey;
             return level;
+        }
+
+        private Curve GetFirstCurve(CurveLoop landingLoop)
+        {
+            CurveLoopIterator curveLoopIterator = landingLoop.GetCurveLoopIterator();
+            for (int i = 0; i < 2; i++)
+            {
+                curveLoopIterator.MoveNext();
+            }
+            return curveLoopIterator.Current;
         }
         private Curve GetFifthCurve(CurveLoop landingLoop)
         {
