@@ -25,6 +25,8 @@ namespace SnaptrudeManagerAddin
 
         //Seperate thread to run the UI
         public Thread uiThread;
+        public ManualResetEventSlim waitHandle;
+        DispatcherProcessingDisabled _prevDisable;
 
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -89,15 +91,8 @@ namespace SnaptrudeManagerAddin
             return bd.Frames[0];
         }
 
-        public void ShowUISeperateThread(UIApplication uiapp)
+        public void CreateUISeparateThread(UIApplication uiapp)
         {
-            // If we do not have a thread started or has been terminated start a new one
-            if (!(uiThread is null) && uiThread.IsAlive)
-            {
-                MainWindow.Show();
-                return;
-            }
-
             uiThread = new Thread(() =>
             {
                 logger.Info($"Thread ID Start: {Dispatcher.CurrentDispatcher.Thread.ManagedThreadId}");
@@ -105,15 +100,25 @@ namespace SnaptrudeManagerAddin
                 SynchronizationContext.SetSynchronizationContext(
                     new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
 
-                MainWindow = new MainWindow();
-                MainWindow.Show();
+                waitHandle = new ManualResetEventSlim(true);
+                while(true)
+                {
+                    waitHandle.Wait();
+                    MainWindow = new MainWindow();
+                    MainWindow.Closed += MainWindow_Closed;
 
-                //Shut down the dispatcher while closing
-                MainWindow.Closed += MainWindow_Closed;
-                MainWindow.Show();
+                    MainWindow.Dispatcher.Invoke(() => {
+                        MainWindow.Show();
+                    });
+                    MainWindow.Dispatcher.Invoke(() => { 
+                        waitHandle.Wait();
 
-                if(Dispatcher.CurrentDispatcher.CheckAccess())
-                    Dispatcher.Run();
+                        _prevDisable.Dispose();
+
+                        Dispatcher.Run();
+                    });
+                }
+
             });
 
             uiThread.SetApartmentState(ApartmentState.STA);
@@ -121,12 +126,19 @@ namespace SnaptrudeManagerAddin
             uiThread.Start();
         }
 
+        public void ShowUIThread()
+        {
+            waitHandle.Set();
+        }
+
         private void MainWindow_Closed(object sender, EventArgs e)
         {
-            logger.Info($"Thread ID Shutdown: {Dispatcher.CurrentDispatcher.Thread.ManagedThreadId}");
+            logger.Info($"Thread ID For Window: {Dispatcher.CurrentDispatcher.Thread.ManagedThreadId}");
+            logger.Info("Main window closed!");
+            waitHandle.Reset();
             Dispatcher.ExitAllFrames();
-            MainWindow.Dispatcher.InvokeShutdown();
-            SynchronizationContext.SetSynchronizationContext(null);
+            _prevDisable = Dispatcher.CurrentDispatcher.DisableProcessing();
         }
+
     }
 }

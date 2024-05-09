@@ -22,6 +22,7 @@ namespace SnaptrudeManagerAddin
             if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive)
             {
                 logger.Warn("External command already running! Return.");
+                Application.Instance.ShowUIThread();
                 return Result.Succeeded;
             } 
 
@@ -77,7 +78,7 @@ namespace SnaptrudeManagerAddin
                 else
                     navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
 
-                Application.Instance.ShowUISeperateThread(uiapp);
+                Application.Instance.CreateUISeparateThread(uiapp);
 
                 log("Calling UI");
 
