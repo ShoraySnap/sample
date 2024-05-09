@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using NLog;
 using SnaptrudeManagerAddin.Stores;
 using SnaptrudeManagerAddin.ViewModels;
 using System;
@@ -15,10 +16,15 @@ namespace SnaptrudeManagerAddin
     [Regeneration(RegenerationOption.Manual)]
     public class SnaptrudeManager : IExternalCommand
     {
+        static Logger logger = LogManager.GetCurrentClassLogger();
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive) 
+            if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive)
+            {
+                logger.Warn("External command already running! Return.");
                 return Result.Succeeded;
+            } 
+
 
             StringBuilder sb = new StringBuilder();
             string logFileName = @"revit.log";
@@ -58,6 +64,7 @@ namespace SnaptrudeManagerAddin
                 string fileType = doc.IsFamilyDocument ? "rfa" : "rvt";
 
                 log("Revit addin clicked");
+                logger.Info("Revit addin clicked!");
 
                 //WPFTODO: CHECKFORUPDATES
                 var currentVersion = "2.1";
@@ -73,14 +80,18 @@ namespace SnaptrudeManagerAddin
                 Application.Instance.ShowUISeperateThread(uiapp);
 
                 log("Calling UI");
+
+                logger.Info("Calling UI!");
                 writeAndClose();
 
             }
             catch (Exception ex)
             {
+                logger.Error(ex.Message);
                 message = ex.Message;
                 return Result.Failed;
             }
+
             return Result.Succeeded;
 
         }
@@ -97,6 +108,7 @@ namespace SnaptrudeManagerAddin
             TaskDialogResult tResult = mainDialog.Show();
         }
 
+        // TODO: Move this to common assembly
         private string getAppDataPath(string fileName)
         {
             string snaptrudeManagerPath = "snaptrude-manager";

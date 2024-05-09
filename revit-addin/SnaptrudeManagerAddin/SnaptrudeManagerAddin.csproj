@@ -114,6 +114,7 @@
 		</Reference>
 		<Reference Include="RevitAPIUI" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="NLog" Version="5.3.2" />
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
 		<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
 	</ItemGroup>
