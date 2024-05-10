@@ -2,8 +2,6 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using NLog;
-using SnaptrudeManagerAddin.Stores;
-using SnaptrudeManagerAddin.ViewModels;
 using System;
 using System.IO;
 using System.IO.Pipes;
@@ -22,7 +20,6 @@ namespace SnaptrudeManagerAddin
             if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive)
             {
                 logger.Warn("External command already running! Return.");
-                Application.Instance.ShowUIThread();
                 return Result.Succeeded;
             } 
 
@@ -71,16 +68,9 @@ namespace SnaptrudeManagerAddin
                 var currentVersion = "2.1";
                 var updateVersion = "2.2";
 
-                NavigationStore navigationStore = NavigationStore.Instance;
-                MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, doc.ActiveView is View3D);
-                if (currentVersion != updateVersion)
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
-                else
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
-
-                Application.Instance.CreateUISeparateThread(uiapp);
 
                 log("Calling UI");
+                // TODO: CALL UI
 
                 logger.Info("Calling UI!");
                 writeAndClose();

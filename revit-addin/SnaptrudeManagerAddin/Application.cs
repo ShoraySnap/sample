@@ -4,7 +4,6 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using NLog;
 using SnaptrudeManagerAddin.Logging;
-using SnaptrudeManagerAddin.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Reflection;
@@ -21,8 +20,6 @@ namespace SnaptrudeManagerAddin
     {
         public static Application Instance;
 
-        public MainWindow MainWindow;
-
         //Seperate thread to run the UI
         public Thread uiThread;
         public ManualResetEventSlim waitHandle;
@@ -33,7 +30,6 @@ namespace SnaptrudeManagerAddin
         public Result OnStartup(UIControlledApplication application)
         {
             LogsConfig.Initialize();
-            MainWindow = null;
             Instance = this;
 
             application.ViewActivated += OnViewActivated;
@@ -80,7 +76,7 @@ namespace SnaptrudeManagerAddin
 
         private void UpdateButtonState(bool is3DView)
         {
-            MainWindowViewModel.Instance.IsActiveView3D = is3DView;
+            //MainWindowViewModel.Instance.IsActiveView3D = is3DView;
         }
 
         private ImageSource GetEmbeddedImage(System.Reflection.Assembly assemb, string imageName)
@@ -89,55 +85,6 @@ namespace SnaptrudeManagerAddin
             PngBitmapDecoder bd = new PngBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
 
             return bd.Frames[0];
-        }
-
-        public void CreateUISeparateThread(UIApplication uiapp)
-        {
-            uiThread = new Thread(() =>
-            {
-                logger.Info($"Thread ID Start: {Dispatcher.CurrentDispatcher.Thread.ManagedThreadId}");
-                //Set the sync context
-                SynchronizationContext.SetSynchronizationContext(
-                    new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
-
-                waitHandle = new ManualResetEventSlim(true);
-                while(true)
-                {
-                    waitHandle.Wait();
-                    MainWindow = new MainWindow();
-                    MainWindow.Closed += MainWindow_Closed;
-
-                    MainWindow.Dispatcher.Invoke(() => {
-                        MainWindow.Show();
-                    });
-                    MainWindow.Dispatcher.Invoke(() => { 
-                        waitHandle.Wait();
-
-                        _prevDisable.Dispose();
-
-                        Dispatcher.Run();
-                    });
-                }
-
-            });
-
-            uiThread.SetApartmentState(ApartmentState.STA);
-            uiThread.IsBackground = true;
-            uiThread.Start();
-        }
-
-        public void ShowUIThread()
-        {
-            waitHandle.Set();
-        }
-
-        private void MainWindow_Closed(object sender, EventArgs e)
-        {
-            logger.Info($"Thread ID For Window: {Dispatcher.CurrentDispatcher.Thread.ManagedThreadId}");
-            logger.Info("Main window closed!");
-            waitHandle.Reset();
-            Dispatcher.ExitAllFrames();
-            _prevDisable = Dispatcher.CurrentDispatcher.DisableProcessing();
         }
 
     }

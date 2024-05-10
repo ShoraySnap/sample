@@ -5,7 +5,6 @@ using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 
 #if !FORGE
-using SnaptrudeManagerAddin.ViewModels;
 using SnaptrudeManagerAddin;
 #endif
 
@@ -44,7 +43,8 @@ namespace TrudeImporter
         private static void UpdateProgress(Action task, string message, int progress)
         {
 #if !FORGE
-            MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(progress, message);
+            //TODO: Update progress with IPC
+            //MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(progress, message);
 #endif
             task();
         }
@@ -589,7 +589,8 @@ namespace TrudeImporter
             var result = familyUploadMVVM.ShowDialog();
             if (!familyUploadMVVM.WindowViewModel._skipAll)
             {
-                MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(95, "Importing missing families...");
+                // TODO: IPC HERE
+                //MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(95, "Importing missing families...");
                 System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {

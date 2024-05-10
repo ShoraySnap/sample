@@ -6,7 +6,6 @@ using Autodesk.Revit.DB.ExtensibleStorage;
 using Autodesk.Revit.DB.Visual;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
-using SnaptrudeManagerAddin.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -55,8 +54,8 @@ namespace SnaptrudeManagerAddin
                 }
 
 
-                //if (status) ShowSuccessDialogue();
-                if (status) MainWindowViewModel.Instance.ProgressViewModel.SuccessCommand.Execute(null);
+                if (status) ShowSuccessDialogue();
+                //if (status) MainWindowViewModel.Instance.ProgressViewModel.SuccessCommand.Execute(null);
                 GlobalVariables.cleanGlobalVariables();
             }
             catch (Exception ex)

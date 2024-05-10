@@ -1,0 +1,109 @@
+﻿<UserControl
+    x:Class="SnaptrudeManagerUI.Views.WarningView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SnaptrudeManagerUI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
+    d:DesignHeight="272"
+    d:DesignWidth="560"
+    FontSize="13"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="64" />
+        </Grid.RowDefinitions>
+        <Border
+            Margin="16,8,16,0"
+            Padding="24,24,40,40"
+            BorderBrush="{DynamicResource Colors/Neutral/200}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Grid Margin="0,0,8,0">
+                        <Path
+                            Stroke="#767B93"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round">
+                            <Path.Data>
+                                <EllipseGeometry
+                                    Center="8.50006,8"
+                                    RadiusX="6.0025"
+                                    RadiusY="6.0025" />
+                            </Path.Data>
+                        </Path>
+                        <Path
+                            Data="M7.83301 10.3343H9.37321"
+                            Stroke="#767B93"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="0.8" />
+                        <Path
+                            Data="M8.60634 10.3343V7.49979H7.83936"
+                            Stroke="#767B93"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round" />
+                        <Path
+                            Data="M8.56661 5.49713C8.56661 5.58922 8.49196 5.66387 8.39988 5.66387C8.30779 5.66387 8.23314 5.58922 8.23314 5.49713C8.23314 5.40504 8.30779 5.33039 8.39988 5.33039"
+                            Stroke="#767B93"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round" />
+                        <Path
+                            Data="M8.40001 5.33039C8.49209 5.33039 8.56674 5.40504 8.56674 5.49713"
+                            Stroke="#767B93"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round" />
+                    </Grid>
+                    <TextBlock Foreground="{StaticResource Colors/Neutral/600}">Note:</TextBlock>
+                </StackPanel>
+                <TextBlock
+                    Width="464"
+                    Margin="0,12,0,16"
+                    d:Text="All the visible parts of the model will export to Snaptrude. Hide or remove any elements that you don’t wish to export before proceeding. "
+                    DockPanel.Dock="Bottom"
+                    FontSize="16"
+                    Foreground="{StaticResource Colors/Neutral/800}"
+                    LineHeight="23"
+                    Text="{Binding WarningMessage}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="1" Margin="16">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox
+                    Margin="0,0,5,0"
+                    Content="Don't show again"
+                    FontFamily="{StaticResource Inter400}"
+                    IsChecked="{Binding DontShowAgain}"
+                    Style="{StaticResource SVGCheckBoxWithText}"
+                    Typography.StylisticAlternates="1" />
+
+
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button
+                    Command="{Binding BackCommand}"
+                    Content="Back"
+                    Style="{DynamicResource Button_Secondary}" />
+                <Button
+                    Margin="8,0,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding IUnderstandCommand}"
+                    Content="I understand"
+                    Style="{DynamicResource Button_Primary}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
+
