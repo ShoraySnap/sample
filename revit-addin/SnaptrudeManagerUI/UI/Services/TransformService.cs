@@ -6,22 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SnaptrudeManagerUI.UI.Services
+namespace SnaptrudeManagerUI.Services
 {
     public class TransformService
     {
-        private readonly NavigationStore navigationStore;
+        private readonly ViewModelBase viewModel;
         private readonly Func<ViewModelBase, ViewModelBase> transformViewModel;
 
-        public TransformService(NavigationStore navigationStore, Func<ViewModelBase, ViewModelBase> transformViewModel)
+        public TransformService(ViewModelBase viewModel, Func<ViewModelBase, ViewModelBase> transformViewModel)
         {
-            this.navigationStore = navigationStore;
+            this.viewModel = viewModel;
             this.transformViewModel = transformViewModel;
         }
 
         public void Transform()
         {
-            navigationStore.CurrentViewModel = transformViewModel(navigationStore.CurrentViewModel);
+            transformViewModel(viewModel);
         }
     }
 }

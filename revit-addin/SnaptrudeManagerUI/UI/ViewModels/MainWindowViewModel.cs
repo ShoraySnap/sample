@@ -32,7 +32,7 @@ namespace SnaptrudeManagerUI.ViewModels
         }
         public ProgressViewModel ProgressViewModel;
 
-        private NavigationStore navigationStore = NavigationStore.Instance;
+        private NavigationStore navigationStore;
 
         private string currentVersion;
 

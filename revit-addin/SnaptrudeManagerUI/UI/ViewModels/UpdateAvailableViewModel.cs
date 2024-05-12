@@ -53,7 +53,14 @@ namespace SnaptrudeManagerUI.ViewModels
                 Message = $"Version {MainWindowViewModel.Instance.UpdateVersion} is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude.";
             }
 
-            MainWindowViewModel.Instance.WhiteBackground = false;
+            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
+                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                {
+                    ((MainWindowViewModel)viewmodel).WhiteBackground = false;
+                    return viewmodel;
+                }));
+            transformMainWindowViewModelCommand.Execute(new object());
+
             SkipCommand = new NavigateCommand(skipUpdateNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
         }

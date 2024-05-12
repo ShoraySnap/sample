@@ -83,7 +83,13 @@ namespace SnaptrudeManagerUI.ViewModels
         }
         public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService)
         {
-            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
+            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
+                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                {
+                    ((MainWindowViewModel)viewmodel).PropertyChanged += MainWindowViewModel_PropertyChanged;
+                    return viewmodel;
+                }));
+            transformMainWindowViewModelCommand.Execute(new object());
             BeginExportCommand = new NavigateCommand(exportNavigationService);
             BackCommand = new NavigateCommand(backNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();

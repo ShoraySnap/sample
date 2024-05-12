@@ -34,8 +34,14 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public HomeViewModel(NavigationService importNavigationService, NavigationService exportNavigationService, NavigationService updateNavigationService)
         {
-            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
-            MainWindowViewModel.Instance.WhiteBackground = true;
+            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
+                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                {
+                    ((MainWindowViewModel)viewmodel).PropertyChanged += MainWindowViewModel_PropertyChanged;
+                    ((MainWindowViewModel)viewmodel).WhiteBackground = true;
+                    return viewmodel;
+                }));
+            transformMainWindowViewModelCommand.Execute(new object());
             ExportCommand = new NavigateCommand(exportNavigationService);
             ImportCommand = new NavigateCommand(importNavigationService);
             UpdateCommand = new NavigateCommand(updateNavigationService);

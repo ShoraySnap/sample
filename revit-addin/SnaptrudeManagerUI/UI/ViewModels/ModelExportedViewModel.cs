@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Diagnostics;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -15,14 +16,24 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand LaunchCommand { get; }
         public ModelExportedViewModel()
         {
-            MainWindowViewModel.Instance.TopMost = true;
+            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
+                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                {
+                    ((MainWindowViewModel)viewmodel).TopMost = true;
+                    return viewmodel;
+                }));
+            transformMainWindowViewModelCommand.Execute(new object());
             LaunchCommand = new RelayCommand(new Action<object>((o) => OpenSnaptrudeModel()));
         }
 
         private void OpenSnaptrudeModel()
         {
-            System.Diagnostics.Process.Start("https://app.snaptrude.com");
-            MainWindowViewModel.Instance.CloseCommand.Execute(null);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://app.snaptrude.com",
+                UseShellExecute = true
+            });
+            App.Current.Shutdown();
         }
     }
 }

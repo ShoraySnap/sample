@@ -45,21 +45,12 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        private bool whiteBackground = true;
-
-        public bool WhiteBackground
-        {
-            get { return whiteBackground; }
-            set
-            {
-                whiteBackground = value;
-                OnPropertyChanged("WhiteBackground");
-            }
-        }
+        public bool WhiteBackground => MainWindowViewModel.Instance.WhiteBackground;
 
         public ICommand StartProgressCommand { get; set; }
         public ICommand SuccessCommand { get; set; }
         public ICommand FailureCommand { get; set; }
+        public ICommand TransformCommand { get; set; }
 
         /// <summary>
         /// ProgressVIew for Revit Export
@@ -78,14 +69,26 @@ namespace SnaptrudeManagerUI.ViewModels
                     StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Import:
-                    MainWindowViewModel.Instance.TopMost = false;
+                    TransformCommand = new TransformCommand(
+                        new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                        {
+                            ((MainWindowViewModel)viewmodel).TopMost = false;
+                            return viewmodel;
+                        }));
+                    TransformCommand.Execute(new object());
                     StartProgressCommand = new RelayCommand(async (o) => await StartImport());
                     progressMessage = "Import in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Update:
-                    MainWindowViewModel.Instance.WhiteBackground = false;
-                    WhiteBackground = false;
+                    TransformCommand = new TransformCommand(
+                        new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                        {
+                            ((MainWindowViewModel)viewmodel).WhiteBackground = false;
+                            return viewmodel;
+                        }));
+                    TransformCommand.Execute(new object());
+                    OnPropertyChanged(nameof(WhiteBackground));
                     StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
                     progressMessage = "Update in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);

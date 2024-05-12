@@ -15,7 +15,13 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand LoginCommand { get; }
         public LoginViewModel(NavigationService homeNavigationService, NavigationService updateAvailableNavigationService)
         {
-            MainWindowViewModel.Instance.WhiteBackground = false;
+            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
+                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
+                {
+                    ((MainWindowViewModel)viewmodel).WhiteBackground = false;
+                    return viewmodel;
+                }));
+            transformMainWindowViewModelCommand.Execute(new object());
             LoginCommand = new NavigateCommand(homeNavigationService);
         }
 
