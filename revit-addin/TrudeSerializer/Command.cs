@@ -7,7 +7,6 @@ using System.Linq;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
-using TrudeSerializer.Utils.Screenshot;
 
 namespace TrudeSerializer
 {
