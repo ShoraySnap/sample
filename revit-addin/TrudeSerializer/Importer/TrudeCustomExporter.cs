@@ -163,6 +163,12 @@ namespace TrudeSerializer
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
             Element element = doc.GetElement(elementId);
+            string category = element?.Category?.Name;
+            if(category == "Levels")
+            {
+                return RenderNodeAction.Skip;
+            }
+
             TrudeComponent component = null;
             if (isRevitLink)
             {
@@ -187,7 +193,7 @@ namespace TrudeSerializer
                         return RenderNodeAction.Skip;
                     }
 
-                    ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component);
+                    ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component, element);
                 }
                 catch (Exception e)
                 {

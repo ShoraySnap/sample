@@ -49,8 +49,10 @@ namespace TrudeSerializer.Importer
         */
         public void AddLevelsToSerializedData(SerializedTrudeData serializedData, Document doc)
         {
+            
             foreach (Level level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>())
             {
+                TrudeLogger.Instance.CountInput(level);
                 if (level == null)
                 {
                     continue;
@@ -58,6 +60,7 @@ namespace TrudeSerializer.Importer
                 TrudeLevel levelComponent = TrudeLevel.GetSerializedComponent(level);
                 if (levelComponent.elementId != "-1")
                 {
+                    TrudeLogger.Instance.CountOutput(levelComponent, level);
                     serializedData.AddLevel(levelComponent);
                 }
             }
@@ -125,11 +128,12 @@ namespace TrudeSerializer.Importer
         * Add the TrudeComponent object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler::GetComponent) to the `serializedData`
         * @param serializedData
         * @param component
+        * @param element
         */
-        public void AddComponent(SerializedTrudeData serializedData, TrudeComponent component)
+        public void AddComponent(SerializedTrudeData serializedData, TrudeComponent component, Element element)
         {
             string instanceId = component.elementId.ToString();
-            if (component is TrudeWall)
+            if (component is TrudeWall) 
             {
                 TrudeWall wall = component as TrudeWall;
                 serializedData.AddWall(wall);
@@ -190,7 +194,7 @@ namespace TrudeSerializer.Importer
                 serializedData.AddWindowInstance(instanceId, windowInstance);
             }
 
-            TrudeLogger.Instance.CountOutput(component);
+            TrudeLogger.Instance.CountOutput(component, element);
         }
 
         /*! 

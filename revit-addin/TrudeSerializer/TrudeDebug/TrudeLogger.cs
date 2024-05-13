@@ -1,18 +1,9 @@
-using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Events;
+﻿using Autodesk.Revit.DB;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Windows.Markup;
 using TrudeSerializer.Components;
-using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
-using TrudeSerializer.Debug;
 
 namespace TrudeSerializer.Debug
 {
@@ -49,6 +40,8 @@ namespace TrudeSerializer.Debug
         public const string MASSES_KEY = "masses";
         public const string GENERIC_MODELS_KEY = "generic";
         public const string BASIC_ROOF_KEY = "BasicRoof";
+        public const string BASIC_LEVEL_KEY = "Level";
+        public Dictionary<string, CountData> levels = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> walls = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> floors = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> ceilings = new Dictionary<string, CountData>();
@@ -64,6 +57,7 @@ namespace TrudeSerializer.Debug
 
         public ComponentLogData()
         {
+            levels.Add(BASIC_LEVEL_KEY, new CountData());
             walls.Add(BASIC_WALL_KEY, new CountData());
             floors.Add(BASIC_FLOOR_KEY, new CountData());
             ceilings.Add(BASIC_CEILING_KEY, new CountData());
@@ -221,8 +215,15 @@ namespace TrudeSerializer.Debug
             {
                 CountInputComponent(data.components.roofs, ComponentLogData.BASIC_ROOF_KEY);
             }
+            else if(element is Level)
+            {
+                CountInputComponent(data.components.levels, ComponentLogData.BASIC_LEVEL_KEY);
+            }
             else
             {
+                bool ignoreCategory = ToIgnoreUnrecognizedCategories(element);
+                if (ignoreCategory) return;
+
                 CountInputComponent(data.components.unrecognizedComponents, ComponentLogData.MASSES_KEY);
             }
         }
@@ -235,7 +236,7 @@ namespace TrudeSerializer.Debug
         {
             CountOutputComponent(data.components.revitLinks, false); // Always non-parametric for now
         }
-        public void CountOutput(TrudeComponent component)
+        public void CountOutput(TrudeComponent component, Element element)
         {
             if (component == null) return;
 
@@ -294,6 +295,9 @@ namespace TrudeSerializer.Debug
                 {
                     CountOutputComponent(data.components.furniture, component.isParametric);
                 }
+            }else if(component is TrudeLevel level)
+            {
+                CountOutputComponent(data.components.levels, component.isParametric);
             }
         }
 
@@ -314,6 +318,14 @@ namespace TrudeSerializer.Debug
             {
                 data.components.genericModels["generic"] = newCountData;
             }
+        }
+
+        public static bool ToIgnoreUnrecognizedCategories(Element element)
+        {
+            string elementCategory = element?.Category?.Name;
+            if (elementCategory == null) return true;
+            string[] ignoreCategories = new string[] { "Cameras", "Levels" };
+            return Array.Exists(ignoreCategories, elementCategory.Contains);
         }
     }
 }
