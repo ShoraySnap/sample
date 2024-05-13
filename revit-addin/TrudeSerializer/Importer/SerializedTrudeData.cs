@@ -53,16 +53,6 @@ namespace TrudeSerializer.Importer
 
         public void CleanSerializedData()
         {
-            foreach (var key in this.Masses.Keys.ToList())
-            {
-                if (this.Masses[key].geometries.Count == 0)
-                {
-                    this.Masses.Remove(key);
-                }
-            }
-            // TODO: CLEANUP UPDATE LISTENER INSTEAD OF THIS
-            CountData massCountData = new CountData() { parametric = 0, nonParametric = this.Masses.Count, total = this.Masses.Count };
-            TrudeLogger.Instance.CleanupCount(ComponentLogData.MASSES_KEY, massCountData);
 
             foreach (var revitLinkKey in this.RevitLinks.Keys.ToList())
             {
