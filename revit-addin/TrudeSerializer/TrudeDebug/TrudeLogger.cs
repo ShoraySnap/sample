@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Events;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -189,21 +189,33 @@ namespace TrudeSerializer.Debug
             {
                 CountInputComponent(data.components.columns, ComponentLogData.BASIC_COLUMN_KEY);
             }
-            else if (TrudeDoor.IsDoor(element) && !FamilyInstanceUtils.HasParentElement(element, true))
+            else if (TrudeDoor.IsDoor(element))
             {
-                CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element, true, true))
+                {
+                    CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
+                }
             }
-            else if (TrudeWindow.IsWindow(element) && !FamilyInstanceUtils.HasParentElement(element, true))
+            else if (TrudeWindow.IsWindow(element))
             {
-                CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element, true, true))
+                {
+                    CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
+                }
             }
             else if (TrudeFurniture.IsFurnitureCategory(element))
             {
-                CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element, true, false))
+                {
+                    CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
+                }
             }
-            else if (TrudeGenericModel.IsGenericModel(element) && !FamilyInstanceUtils.HasParentElement(element))
+            else if (TrudeGenericModel.IsGenericModel(element))
             {
-                CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element))
+                {
+                    CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
+                }
             }
             else if (element is RoofBase)
             {
@@ -278,7 +290,10 @@ namespace TrudeSerializer.Debug
             }
             else if (component is TrudeFurniture furniture)
             {
-                CountOutputComponent(data.components.furniture, component.isParametric);
+                if (!furniture.hasParentElement || FamilyInstanceUtils.HasParentElement(element, true))
+                {
+                    CountOutputComponent(data.components.furniture, component.isParametric);
+                }
             }
         }
 

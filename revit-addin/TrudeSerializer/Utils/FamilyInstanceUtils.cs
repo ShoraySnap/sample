@@ -6,7 +6,7 @@ namespace TrudeSerializer.Utils
 {
     internal class FamilyInstanceUtils
     {
-        public static bool HasParentElement(Element element, bool ignoreModelGroupAndAssemblies = false)
+        public static bool HasParentElement(Element element, bool ignoreAssemblies = false, bool ignoreModelGroups = false)
         {
             bool hasParentElement = false;
 
@@ -18,27 +18,30 @@ namespace TrudeSerializer.Utils
                     hasParentElement = true;
                 }
 
-                if (ignoreModelGroupAndAssemblies)
+            }
+
+            if (!ignoreAssemblies)
+            {
+                ElementId assemblySuperComponent = element?.AssemblyInstanceId;
+
+                bool HasAssemblySuperComponent = assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1";
+
+                if (HasAssemblySuperComponent)
                 {
-                    return hasParentElement;
+                    hasParentElement = true;
                 }
             }
 
-            ElementId assemblySuperComponent = element?.AssemblyInstanceId;
-
-            bool HasAssemblySuperComponent = assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1";
-
-            if (HasAssemblySuperComponent)
+            if(!ignoreModelGroups)
             {
-                hasParentElement = true;
-            }
+                // Group (SuperComponent)
+                ElementId groupId = element?.GroupId;
+                bool hasGroupSuperComponent = groupId != null && groupId.IntegerValue.ToString() != "-1";
 
-            ElementId groupId = element?.GroupId;
-            bool hasGroupSuperComponent = groupId != null && groupId.IntegerValue.ToString() != "-1";
-
-            if (hasGroupSuperComponent)
-            {
-                hasParentElement = true;
+                if (hasGroupSuperComponent)
+                {
+                    hasParentElement = true;
+                }
             }
 
             return hasParentElement;

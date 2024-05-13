@@ -26,7 +26,8 @@ namespace TrudeSerializer.Components
         "Mechanical Equipment",
         "Plumbing Fixtures",
         "Electrical Equipment",
-        "Sprinklers"
+        "Sprinklers",
+        "Telephone Devices",
         };
 
         public static bool IsFurnitureCategory(Element element)
