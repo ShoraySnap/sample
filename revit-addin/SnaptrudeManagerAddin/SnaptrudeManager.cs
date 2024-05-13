@@ -2,7 +2,9 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using NLog;
+using SnaptrudeManagerAddin.IPC;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
@@ -15,6 +17,7 @@ namespace SnaptrudeManagerAddin
     public class SnaptrudeManager : IExternalCommand
     {
         static Logger logger = LogManager.GetCurrentClassLogger();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive)
@@ -70,9 +73,13 @@ namespace SnaptrudeManagerAddin
 
 
                 log("Calling UI");
-                // TODO: CALL UI
-
                 logger.Info("Calling UI!");
+
+                // WAIT FOR COMMANDS
+                /// ====
+                // IMPORT COMMAND -> IMPORT FLOW ->
+
+
                 writeAndClose();
 
             }

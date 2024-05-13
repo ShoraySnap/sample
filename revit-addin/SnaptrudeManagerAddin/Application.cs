@@ -3,9 +3,11 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using NLog;
+using SnaptrudeManagerAddin.IPC;
 using SnaptrudeManagerAddin.Logging;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Media;
@@ -24,6 +26,7 @@ namespace SnaptrudeManagerAddin
         public Thread uiThread;
         public ManualResetEventSlim waitHandle;
         DispatcherProcessingDisabled _prevDisable;
+
 
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -46,8 +49,9 @@ namespace SnaptrudeManagerAddin
             RibbonPanel panel = application.CreateRibbonPanel(tabName, panelName);
 
             // Create the push button
-            string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.SnaptrudeManager));
-            PushButtonData buttonData = new PushButtonData("Export", "Snaptrude Manager", assemblyPath, className);
+            string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.IPC.IPCCommand));
+            string commandName = typeof(IPCCommand).FullName;
+            PushButtonData buttonData = new PushButtonData(commandName, "Snaptrude Manager", assemblyPath, className);
             PushButton button = panel.AddItem(buttonData) as PushButton;
 
             BitmapIcons bitmapIcons = new BitmapIcons(Assembly.GetExecutingAssembly(), "SnaptrudeManagerAddin.Icons.logo256.png", application);
@@ -57,16 +61,24 @@ namespace SnaptrudeManagerAddin
 
             logger.Info("<<<STARTUP>>>");
 
+
             return Result.Succeeded;
         }
 
+
+
+
         public Result OnShutdown(UIControlledApplication application)
         {
+            IPCManager.CleanUp();
+            application.ViewActivated -= OnViewActivated;
+
+
             logger.Info("<<<SHUTDOWN>>>");
             LogsConfig.Shutdown();
-            application.ViewActivated -= OnViewActivated;
             return Result.Succeeded;
         }
+
 
         private void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {

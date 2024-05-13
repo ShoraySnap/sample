@@ -103,13 +103,7 @@ namespace SnaptrudeManagerUI.ViewModels
         }
         public EnterProjectUrlViewModel(NavigationService backNavigationService, NavigationService exportToExistingNavigationService)
         {
-            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
-                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
-                {
-                    ((MainWindowViewModel)viewmodel).PropertyChanged += MainWindowViewModel_PropertyChanged;
-                    return viewmodel;
-                }));
-            transformMainWindowViewModelCommand.Execute(new object());
+            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
             BackCommand = new NavigateCommand(backNavigationService);
             BeginExportCommand = new NavigateCommand(exportToExistingNavigationService);
         }

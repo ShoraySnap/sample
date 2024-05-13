@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using SnaptrudeManagerUI.Stores;
 using SnaptrudeManagerUI.ViewModels;
+using SnaptrudeManagerUI.IPC;
 
 namespace SnaptrudeManagerUI
 {
@@ -34,6 +35,9 @@ namespace SnaptrudeManagerUI
         {
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
+
+            if(e.ChangedButton == MouseButton.Right)
+                IPCManager.PostMessage();
         }
     }
 }
