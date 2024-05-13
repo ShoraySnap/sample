@@ -1,8 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using TrudeSerializer.Importer;
 
 namespace TrudeSerializer.Utils
 {
@@ -136,6 +134,9 @@ namespace TrudeSerializer.Utils
             else if(unit.Equals(UnitTypeId.Millimeters))
             {
                 return TRUDE_UNIT_TYPE.MILLIMETER;
+            }else if (unit.Equals(UnitTypeId.FeetFractionalInches))
+            {
+                return TRUDE_UNIT_TYPE.FEET;
             }
 
             return TRUDE_UNIT_TYPE._INVALID;
@@ -168,7 +169,7 @@ namespace TrudeSerializer.Utils
     {
         public List<double> ConvertSnaptrudeUnitsFromXYZFromFeet(XYZ value)
         {
-            return new List<double> { 
+            return new List<double> {
                 ConvertToSnaptrudeUnits(value.X, DisplayUnitType.DUT_DECIMAL_FEET),
                 ConvertToSnaptrudeUnits(value.Z, DisplayUnitType.DUT_DECIMAL_FEET),
                 ConvertToSnaptrudeUnits(value.Y, DisplayUnitType.DUT_DECIMAL_FEET) };
@@ -232,7 +233,7 @@ namespace TrudeSerializer.Utils
 
         public double[] ConvertToSnaptrudeUnitsFromFeet(double[] values)
         {
-            return new double[] { 
+            return new double[] {
                 ConvertToSnaptrudeUnits(values[0], DisplayUnitType.DUT_DECIMAL_FEET),
                 ConvertToSnaptrudeUnits(values[1], DisplayUnitType.DUT_DECIMAL_FEET),
                 ConvertToSnaptrudeUnits(values[2], DisplayUnitType.DUT_DECIMAL_FEET) };
@@ -245,7 +246,7 @@ namespace TrudeSerializer.Utils
 
         public object GetRevitUnit(TRUDE_UNIT_TYPE type)
         {
-            switch(type)
+            switch (type)
             {
                 case TRUDE_UNIT_TYPE.INCH:
                     return DisplayUnitType.DUT_DECIMAL_INCHES;
@@ -290,9 +291,13 @@ namespace TrudeSerializer.Utils
             {
                 return TRUDE_UNIT_TYPE.CENTIMETER;
             }
-            else if(unit.Equals(DisplayUnitType.DUT_MILLIMETERS))
+            else if (unit.Equals(DisplayUnitType.DUT_MILLIMETERS))
             {
                 return TRUDE_UNIT_TYPE.MILLIMETER;
+            }
+            else if (unit.Equals(DisplayUnitType.DUT_FEET_FRACTIONAL_INCHES))
+            {
+                return TRUDE_UNIT_TYPE.FEET;
             }
 
             return TRUDE_UNIT_TYPE._INVALID;
