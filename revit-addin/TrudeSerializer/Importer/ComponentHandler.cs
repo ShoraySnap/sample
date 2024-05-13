@@ -49,7 +49,6 @@ namespace TrudeSerializer.Importer
         */
         public void AddLevelsToSerializedData(SerializedTrudeData serializedData, Document doc)
         {
-            
             foreach (Level level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>())
             {
                 TrudeLogger.Instance.CountInput(level);
