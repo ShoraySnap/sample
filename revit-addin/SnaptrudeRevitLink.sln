@@ -13,7 +13,9 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TrudeSerializer", "TrudeSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{C2A18941-D339-46C9-AAA7-448D4AAECACA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnaptrudeManagerUI", "SnaptrudeManagerUI\SnaptrudeManagerUI.csproj", "{8C8A23C3-3045-4B30-ADED-8A3DDB6840ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnaptrudeManagerUI", "SnaptrudeManagerUI\SnaptrudeManagerUI.csproj", "{8C8A23C3-3045-4B30-ADED-8A3DDB6840ED}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TrudeCommon", "TrudeCommon\TrudeCommon.shproj", "{0CC4E0E8-D40C-48DE-8085-A862FE788C8B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -172,9 +174,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		TrudeImporter\TrudeImporter.projitems*{0a89a8dd-10c0-40d0-8225-12cae6df19b2}*SharedItemsImports = 5
+		TrudeCommon\TrudeCommon.projitems*{0cc4e0e8-d40c-48de-8085-a862fe788c8b}*SharedItemsImports = 13
 		TrudeImporter\TrudeImporter.projitems*{32cc7e8c-1571-4044-9eb7-4d662c104917}*SharedItemsImports = 13
+		TrudeCommon\TrudeCommon.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 5
 		TrudeImporter\TrudeImporter.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 5
 		TrudeSerializer\TrudeSerializer.projitems*{8554e5c2-b113-4298-8af3-fcb0bc6251e8}*SharedItemsImports = 5
+		TrudeCommon\TrudeCommon.projitems*{8c8a23c3-3045-4b30-aded-8a3ddb6840ed}*SharedItemsImports = 5
 		TrudeSerializer\TrudeSerializer.projitems*{8d197602-7456-410d-b7e9-a9069a7eae81}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

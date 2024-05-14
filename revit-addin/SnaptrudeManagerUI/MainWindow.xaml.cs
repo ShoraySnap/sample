@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using SnaptrudeManagerUI.Stores;
 using SnaptrudeManagerUI.ViewModels;
-using SnaptrudeManagerUI.IPC;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI
 {
@@ -37,7 +37,9 @@ namespace SnaptrudeManagerUI
                 this.DragMove();
 
             if(e.ChangedButton == MouseButton.Right)
-                IPCManager.PostMessage();
+            {
+                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
+            }
         }
     }
 }

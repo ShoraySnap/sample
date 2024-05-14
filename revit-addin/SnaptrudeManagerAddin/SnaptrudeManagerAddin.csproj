@@ -162,6 +162,8 @@
 
 	<Import Project="..\TrudeSerializer\TrudeSerializer.projitems" Label="Shared" />
 
+	<Import Project="..\TrudeCommon\TrudeCommon.projitems" Label="Shared" />
+
 	<PropertyGroup>
 		<Optimize>False</Optimize>
 		<DebugSymbols>true</DebugSymbols>

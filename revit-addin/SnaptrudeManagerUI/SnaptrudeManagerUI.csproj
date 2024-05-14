@@ -113,4 +113,6 @@
     <Resource Include="UI\Resources\Inter.ttf" />
   </ItemGroup>
 
+  <Import Project="..\TrudeCommon\TrudeCommon.projitems" Label="Shared" />
+
 </Project>

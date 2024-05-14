@@ -3,16 +3,14 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using NLog;
-using SnaptrudeManagerAddin.IPC;
-using SnaptrudeManagerAddin.Logging;
-using System;
+using SnaptrudeManagerAddin.Launcher;
+using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
+using TrudeCommon.Events;
+using TrudeCommon.Logging;
 
 namespace SnaptrudeManagerAddin
 {
@@ -21,23 +19,17 @@ namespace SnaptrudeManagerAddin
     public class Application : IExternalApplication
     {
         public static Application Instance;
-
-        //Seperate thread to run the UI
-        public Thread uiThread;
-        public ManualResetEventSlim waitHandle;
-        DispatcherProcessingDisabled _prevDisable;
-
-
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Result OnStartup(UIControlledApplication application)
         {
-            LogsConfig.Initialize();
+            LogsConfig.Initialize("ManagerAddin");
             Instance = this;
 
             application.ViewActivated += OnViewActivated;
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
+            application.Idling += OnRevitIdling;
 
             string tabName = "Snaptrude";
             string panelName = "Snaptrude";
@@ -49,8 +41,8 @@ namespace SnaptrudeManagerAddin
             RibbonPanel panel = application.CreateRibbonPanel(tabName, panelName);
 
             // Create the push button
-            string className = TypeDescriptor.GetClassName(typeof(SnaptrudeManagerAddin.IPC.IPCCommand));
-            string commandName = typeof(IPCCommand).FullName;
+            string className = TypeDescriptor.GetClassName(typeof(LauncherCommand));
+            string commandName = typeof(LauncherCommand).FullName;
             PushButtonData buttonData = new PushButtonData(commandName, "Snaptrude Manager", assemblyPath, className);
             PushButton button = panel.AddItem(buttonData) as PushButton;
 
@@ -60,20 +52,41 @@ namespace SnaptrudeManagerAddin
             button.ToolTip = "Export the model to Snaptrude";
 
             logger.Info("<<<STARTUP>>>");
-
+            TrudeEventSystem.Instance.Init();
+            TrudeEventSystem.Instance.AddEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
+            TrudeEventSystem.Instance.AddEvent(TRUDE_EVENT.MANAGER_UI_CLOSE);
+            TrudeEventSystem.Instance.AddEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
+            TrudeEventSystem.Instance.Start();
 
             return Result.Succeeded;
         }
 
-
-
+        private void OnRevitIdling(object sender, IdlingEventArgs e)
+        {
+            ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
+            while(!eventQueue.IsEmpty)
+            {
+                if(eventQueue.TryDequeue(out TRUDE_EVENT eventType))
+                {
+                    logger.Info("Processing event from main queue: {0}", TrudeEventUtils.GetEventName(eventType));
+                    switch(eventType)
+                    {
+                        case TRUDE_EVENT.MANAGER_UI_OPEN:
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_CLOSE:
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
+                            break;
+                    }
+                }
+            }
+        }
 
         public Result OnShutdown(UIControlledApplication application)
         {
-            IPCManager.CleanUp();
+            SnaptrudeManagerAddin.Launcher.LaunchProcess.CleanUp();
             application.ViewActivated -= OnViewActivated;
-
-
+            TrudeEventSystem.Instance.Shutdown();
             logger.Info("<<<SHUTDOWN>>>");
             LogsConfig.Shutdown();
             return Result.Succeeded;
@@ -86,9 +99,12 @@ namespace SnaptrudeManagerAddin
             UpdateButtonState(currentView is View3D);
         }
 
-        private void UpdateButtonState(bool is3DView)
+        public static void UpdateButtonState(bool is3DView)
         {
-            //MainWindowViewModel.Instance.IsActiveView3D = is3DView;
+            if (is3DView)
+                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);
+            else
+                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
         }
 
         private ImageSource GetEmbeddedImage(System.Reflection.Assembly assemb, string imageName)

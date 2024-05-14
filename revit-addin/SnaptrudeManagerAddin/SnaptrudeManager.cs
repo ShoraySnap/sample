@@ -2,7 +2,6 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using NLog;
-using SnaptrudeManagerAddin.IPC;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -20,13 +19,6 @@ namespace SnaptrudeManagerAddin
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive)
-            {
-                logger.Warn("External command already running! Return.");
-                return Result.Succeeded;
-            } 
-
-
             StringBuilder sb = new StringBuilder();
             string logFileName = @"revit.log";
             string logFilePath = getAppDataPath(logFileName);
@@ -70,14 +62,6 @@ namespace SnaptrudeManagerAddin
                 //WPFTODO: CHECKFORUPDATES
                 var currentVersion = "2.1";
                 var updateVersion = "2.2";
-
-
-                log("Calling UI");
-                logger.Info("Calling UI!");
-
-                // WAIT FOR COMMANDS
-                /// ====
-                // IMPORT COMMAND -> IMPORT FLOW ->
 
 
                 writeAndClose();
