@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SnaptrudeManagerUI.API
+{
+    public static class Constants
+    {
+        public static string PERSONAL_WORKSPACE_ID = "";
+        public static string PERSONAL_WORKSPACE_NAME = "My Workspace";
+        public static string ROOT_FOLDER_ID = "root";
+    }
+}
