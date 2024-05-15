@@ -230,7 +230,7 @@ namespace SnaptrudeManagerUI.API
 
         public static async Task<List<Dictionary<string, string>>> GetFoldersAsync(string teamId, string currentFolderId)
         {
-            bool fetchFromPersonalWorkspace = teamId == Constants.PERSONAL_WORKSPACE_ID;
+            bool fetchFromPersonalWorkspace = teamId == "-1";
 
             string endPoint = fetchFromPersonalWorkspace
                 ? "/folderWithoutProject/"
