@@ -14,16 +14,14 @@ namespace SnaptrudeManagerUI.ViewModels
     public class FolderViewModel : ViewModelBase
     {
         public string Name { get; }
-        public FolderViewModel ParentFolder { get; }
         public Constants.WorkspaceType FolderType { get; }
         public string Id { get; }
         public string TeamId { get; }
 
-        public FolderViewModel(Folder folder, FolderViewModel parent = null)
+        public FolderViewModel(Folder folder)
         {
             Id = folder.Id;
             Name = folder.Name;
-            ParentFolder = parent;
             FolderType = folder.FolderType;
             TeamId = folder.TeamId;
         }

@@ -24,7 +24,7 @@ namespace SnaptrudeManagerUI.API
       {
         WorkspaceType workspaceType = workspaceData["type"] == "workspace" ? WorkspaceType.Personal : WorkspaceType.Shared;
         string teamId = workspaceData["type"] == "workspace" ? "-1" : workspaceData["id"];
-        Folder workspace = new Folder(workspaceData["id"], workspaceData["name"], workspaceType, null, teamId);
+        Folder workspace = new Folder(workspaceData["id"], workspaceData["name"], workspaceType, teamId);
         workspaces.Add(workspace);
       }
 
@@ -39,7 +39,7 @@ namespace SnaptrudeManagerUI.API
 
             foreach (Dictionary<string, string> folderData in foldersData)
             {
-                Folder folder = new Folder(folderData["id"], folderData["name"], WorkspaceType.Folder, null, selectedFolder.TeamId);
+                Folder folder = new Folder(folderData["id"], folderData["name"], WorkspaceType.Folder, selectedFolder.TeamId);
                 folders.Add(folder);
             }
 

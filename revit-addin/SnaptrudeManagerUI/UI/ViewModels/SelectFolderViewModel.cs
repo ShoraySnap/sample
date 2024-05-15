@@ -18,7 +18,11 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand BeginExportCommand { get; private set; }
 
         private bool isLoaderVisible = true;
-        public bool IsLoaderVisible => isLoaderVisible;
+        public bool IsLoaderVisible
+        {
+            get { return isLoaderVisible; }
+            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("ExportIsEnable"); }
+        }
 
         private bool addBreadcrumbs = true;
 
@@ -30,7 +34,7 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); OnPropertyChanged("ExportIsEnable"); }
         }
 
-        public bool ExportIsEnable => ViewIs3D && IsWorkspaceSelected;
+        public bool ExportIsEnable => ViewIs3D && IsWorkspaceSelected && !IsLoaderVisible;
 
         public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
         public bool ViewIsNot3D => !ViewIs3D;
@@ -74,8 +78,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             if (parameter is FolderViewModel parentFolder)
             {
-                isLoaderVisible = true;
-                OnPropertyChanged("IsLoaderVisible");
+                IsLoaderVisible = true;
 
                 List<Folder> subFolders = new List<Folder>();
                 var subFolderViewModels = new List<FolderViewModel>();
@@ -95,18 +98,17 @@ namespace SnaptrudeManagerUI.ViewModels
                     subFolderViewModels = new List<FolderViewModel>();
                     foreach (var subFolder in subFolders)
                     {
-                        subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
+                        subFolderViewModels.Add(new FolderViewModel(subFolder));
                     }
                 }
                 PopulateSubFolders(subFolderViewModels);
-                setExportButton();
                 if (addBreadcrumbs == true)
                 {
                     Breadcrumb.Add(parentFolder);
+                    setExportButton();
                 }
                 addBreadcrumbs = true;
-                isLoaderVisible = false;
-                OnPropertyChanged("IsLoaderVisible");
+                IsLoaderVisible = false;
             }
         }
 
