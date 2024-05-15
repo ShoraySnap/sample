@@ -9,6 +9,7 @@ using NLog;
 using SnaptrudeManagerUI.API;
 using static SnaptrudeManagerUI.API.Constants;
 using SnaptrudeManagerUI.Models;
+using SnaptrudeManagerUI.ViewModels;
 
 namespace SnaptrudeManagerUI.API
 {
@@ -22,11 +23,27 @@ namespace SnaptrudeManagerUI.API
       foreach (Dictionary<string, string> workspaceData in workspacesData)
       {
         WorkspaceType workspaceType = workspaceData["type"] == "workspace" ? WorkspaceType.Personal : WorkspaceType.Shared;
-        Folder workspace = new Folder(workspaceData["id"], workspaceData["name"], workspaceType, "-1");
+        string teamId = workspaceData["type"] == "workspace" ? "-1" : workspaceData["id"];
+        Folder workspace = new Folder(workspaceData["id"], workspaceData["name"], workspaceType, null, teamId);
         workspaces.Add(workspace);
       }
 
       return workspaces;
     }
-  }
+
+        public static async Task<List<Folder>> GetSubFoldersAsync(FolderViewModel selectedFolder)
+        {
+            string currentFolderId = selectedFolder.FolderType != WorkspaceType.Folder ? "root" : selectedFolder.Id;
+            List<Dictionary<string, string>> foldersData = await SnaptrudeService.GetFoldersAsync(selectedFolder.TeamId, currentFolderId);
+            List<Folder> folders = new List<Folder>();
+
+            foreach (Dictionary<string, string> folderData in foldersData)
+            {
+                Folder folder = new Folder(folderData["id"], folderData["name"], WorkspaceType.Folder, null, selectedFolder.TeamId);
+                folders.Add(folder);
+            }
+
+            return folders;
+        }
+    }
 }

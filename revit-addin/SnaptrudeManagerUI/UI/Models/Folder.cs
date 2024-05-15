@@ -14,14 +14,16 @@ namespace SnaptrudeManagerUI.Models
         public Constants.WorkspaceType FolderType { get; set; }
         public string ParentId { get; set; }
         public List<Folder> SubFolders { get; set; }
+        public string TeamId { get; set; }
 
-        public Folder(string id, string name, Constants.WorkspaceType type, string parentId = null)
+        public Folder(string id, string name, Constants.WorkspaceType type, string parentId = null, string teamId = "-1")
         {
             Id = id;
             Name = name;
             FolderType = type;
             SubFolders = new List<Folder>();
             ParentId = parentId;
+            TeamId = teamId;
         }
     }
 }

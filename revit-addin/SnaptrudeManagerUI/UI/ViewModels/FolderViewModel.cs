@@ -17,6 +17,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public FolderViewModel ParentFolder { get; }
         public Constants.WorkspaceType FolderType { get; }
         public string Id { get; }
+        public string TeamId { get; }
 
         public FolderViewModel(Folder folder, FolderViewModel parent = null)
         {
@@ -24,6 +25,7 @@ namespace SnaptrudeManagerUI.ViewModels
             Name = folder.Name;
             ParentFolder = parent;
             FolderType = folder.FolderType;
+            TeamId = folder.TeamId;
         }
     }
 }

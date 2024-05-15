@@ -60,7 +60,8 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        public bool IisVisible => CurrentPathFolders.Count < 1;
+        private bool isLoaderVisible = true;
+        public bool IsLoaderVisible => isLoaderVisible;
 
         private bool isWorkspaceSelected;
 
@@ -97,7 +98,7 @@ namespace SnaptrudeManagerUI.ViewModels
             BackCommand = new NavigateCommand(backNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             Breadcrumb = new ObservableCollection<FolderViewModel>();
-            OpenFolderCommand = new RelayCommand(OpenFolder);
+            OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);
             SelectedWorkspaceString = "Select workspace to begin export";
             // Initialize with root folders
@@ -107,37 +108,47 @@ namespace SnaptrudeManagerUI.ViewModels
         private async void LoadRootFolders()
         {
             Breadcrumb.Clear();
-            //WPFTODO: GET Workspaces
-            Folder allWorksSpacesFolder = Database.First(x => x.Id == "-1");
+            Folder allWorksSpacesFolder = new Folder("-1", "All Workspaces", Constants.WorkspaceType.Top, "-1");
 
             FolderViewModel allWorksSpacesFolderViewModel = new FolderViewModel(allWorksSpacesFolder);
-            Breadcrumb.Add(allWorksSpacesFolderViewModel);
             /*await*/
             GetSubFoldersAsync(allWorksSpacesFolderViewModel);
-           
+
         }
 
-        private async void GetSubFoldersAsync(FolderViewModel parentFolder)
+        private async void GetSubFoldersAsync(object parameter)
         {
-            //WPFTODO: GET subfolders
-            var subFolders = Database.Where(x => x.ParentId == parentFolder.Id).ToList();
-            var subFolderViewModels = new List<FolderViewModel>();
-            foreach (var subFolder in subFolders)
+            if (parameter is FolderViewModel parentFolder)
             {
-                subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
-            }
-
-            if (parentFolder.FolderType == Constants.WorkspaceType.Top && parentFolder.ParentFolder == null)
-            {
-                subFolders = await SnaptrudeRepo.GetUserWorkspacesAsync();
-                subFolderViewModels = new List<FolderViewModel>();
-                foreach (var subFolder in subFolders)
+                List<Folder> subFolders = new List<Folder>();
+                var subFolderViewModels = new List<FolderViewModel>();
+                if (parentFolder.FolderType == Constants.WorkspaceType.Top)
                 {
-                    subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
+                    subFolders = await SnaptrudeRepo.GetUserWorkspacesAsync();
+                    subFolderViewModels = new List<FolderViewModel>();
+                    foreach (var subFolder in subFolders)
+                    {
+                        subFolderViewModels.Add(new FolderViewModel(subFolder));
+                    }
                 }
+                else
+                {
+                    CurrentPathFolders.Clear();
+                    isLoaderVisible = true;
+                    OnPropertyChanged("IsLoaderVisible");
+                    subFolders = await SnaptrudeRepo.GetSubFoldersAsync(parentFolder);
+                    subFolderViewModels = new List<FolderViewModel>();
+                    foreach (var subFolder in subFolders)
+                    {
+                        subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
+                    }
+                }
+                PopulateSubFolders(subFolderViewModels);
+                Breadcrumb.Add(parentFolder);
+                SetStringAndButtonEnable();
+                isLoaderVisible = false;
+                OnPropertyChanged("IsLoaderVisible");
             }
-            PopulateSubFolders(subFolderViewModels);
-            OnPropertyChanged("IisVisible");
         }
 
         private void PopulateSubFolders(List<FolderViewModel> subFolders)
@@ -148,19 +159,6 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        private void OpenFolder(object parameter)
-        {
-            if (parameter is FolderViewModel folder)
-            {
-                CurrentPathFolders.Clear();
-                foreach (var subFolder in Database.Where(x => x.ParentId == folder.Id))
-                {
-                    CurrentPathFolders.Add(new FolderViewModel(subFolder, folder));
-                }
-                Breadcrumb.Add(folder);
-            }
-            SetStringAndButtonEnable();
-        }
 
         private void NavigateToFolder(object parameter)
         {
@@ -195,6 +193,7 @@ namespace SnaptrudeManagerUI.ViewModels
             Breadcrumb.Clear();
             var currentFolder = folder;
 
+            // IMPROVE LATER
             while (currentFolder != null)
             {
                 Breadcrumb.Insert(0, currentFolder);

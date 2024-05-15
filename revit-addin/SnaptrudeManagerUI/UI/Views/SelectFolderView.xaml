@@ -226,7 +226,7 @@
             Width="519" 
             Height="1" 
             Margin="0,0,0,191"
-            Visibility="{Binding IisVisible, Converter={StaticResource BoolToVisibility}}"
+            Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}"
             >
             <ProgressBar
                 Foreground="#2d6be6"

@@ -235,6 +235,7 @@ namespace SnaptrudeManagerUI.API
             string endPoint = fetchFromPersonalWorkspace
                 ? "/folderWithoutProject/"
                 : $"/team/{teamId}/folderWithoutProject/";
+
             var data = new Dictionary<string, string>
             {
                 { "limit", "1000" },
@@ -244,7 +245,7 @@ namespace SnaptrudeManagerUI.API
 
             var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
 
-            if (response != null && response.IsSuccessStatusCode)
+            if (response != null)
             {
                 var responseData = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
