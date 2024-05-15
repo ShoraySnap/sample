@@ -74,6 +74,9 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             if (parameter is FolderViewModel parentFolder)
             {
+                isLoaderVisible = true;
+                OnPropertyChanged("IsLoaderVisible");
+
                 List<Folder> subFolders = new List<Folder>();
                 var subFolderViewModels = new List<FolderViewModel>();
                 if (parentFolder.FolderType == Constants.WorkspaceType.Top)
@@ -88,8 +91,6 @@ namespace SnaptrudeManagerUI.ViewModels
                 else
                 {
                     CurrentPathFolders.Clear();
-                    isLoaderVisible = true;
-                    OnPropertyChanged("IsLoaderVisible");
                     subFolders = await SnaptrudeRepo.GetSubFoldersAsync(parentFolder);
                     subFolderViewModels = new List<FolderViewModel>();
                     foreach (var subFolder in subFolders)
@@ -99,7 +100,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 }
                 PopulateSubFolders(subFolderViewModels);
                 setExportButton();
-                if(addBreadcrumbs == true)
+                if (addBreadcrumbs == true)
                 {
                     Breadcrumb.Add(parentFolder);
                 }
@@ -139,7 +140,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void UpdateBreadcrumb(FolderViewModel folder)
         {
-            for(int i = Breadcrumb.Count - 1; i >= 0; i--)
+            for (int i = Breadcrumb.Count - 1; i >= 0; i--)
             {
                 var topBreadcrumb = Breadcrumb[i];
                 if (topBreadcrumb.Id == folder.Id && topBreadcrumb.FolderType == folder.FolderType)
