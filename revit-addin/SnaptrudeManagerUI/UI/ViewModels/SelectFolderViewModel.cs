@@ -20,6 +20,8 @@ namespace SnaptrudeManagerUI.ViewModels
         private bool isLoaderVisible = true;
         public bool IsLoaderVisible => isLoaderVisible;
 
+        private bool addBreadcrumbs = true;
+
         private bool isWorkspaceSelected;
 
         public bool IsWorkspaceSelected
@@ -97,7 +99,11 @@ namespace SnaptrudeManagerUI.ViewModels
                 }
                 PopulateSubFolders(subFolderViewModels);
                 setExportButton();
-                Breadcrumb.Add(parentFolder);
+                if(addBreadcrumbs == true)
+                {
+                    Breadcrumb.Add(parentFolder);
+                }
+                addBreadcrumbs = true;
                 isLoaderVisible = false;
                 OnPropertyChanged("IsLoaderVisible");
             }
@@ -119,6 +125,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 // Update the list of current path folders
                 CurrentPathFolders.Clear();
                 UpdateBreadcrumb(folder);
+                addBreadcrumbs = false;
                 GetSubFoldersAsync(folder);
                 // Update the breadcrumb
             }
@@ -135,11 +142,11 @@ namespace SnaptrudeManagerUI.ViewModels
             for(int i = Breadcrumb.Count - 1; i >= 0; i--)
             {
                 var topBreadcrumb = Breadcrumb[i];
-                Breadcrumb.RemoveAt(i);
-                if (topBreadcrumb.Id == folder.Id)
+                if (topBreadcrumb.Id == folder.Id && topBreadcrumb.FolderType == folder.FolderType)
                 {
                     break;
                 }
+                Breadcrumb.RemoveAt(i);
             }
         }
     }
