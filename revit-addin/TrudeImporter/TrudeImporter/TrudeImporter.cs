@@ -45,6 +45,7 @@ namespace TrudeImporter
 #if !FORGE
             //TODO: Update progress with IPC
             //MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(progress, message);
+            Application.Instance.UpdateProgressForImport(progress, message);
 #endif
             task();
         }

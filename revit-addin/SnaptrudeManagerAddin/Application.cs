@@ -4,12 +4,13 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using NLog;
 using SnaptrudeManagerAddin.Launcher;
+using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using TrudeCommon.DataChannel;
+using TrudeCommon.DataTransfer;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
 using TrudeImporter;
@@ -22,18 +23,17 @@ namespace SnaptrudeManagerAddin
     {
         public static Application Instance;
         private static Logger logger = LogManager.GetCurrentClassLogger();
-
-        private DataChannel dataChannel;
+        public static DataTransferManager TransferManager;
 
         public Result OnStartup(UIControlledApplication application)
         {
             LogsConfig.Initialize("ManagerAddin");
+            logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
 
             application.ViewActivated += OnViewActivated;
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
-            application.Idling += OnRevitIdling;
 
             string tabName = "Snaptrude";
             string panelName = "Snaptrude";
@@ -55,9 +55,10 @@ namespace SnaptrudeManagerAddin
             button.LargeImage = bitmapIcons.LargeBitmap();
             button.ToolTip = "Export the model to Snaptrude";
 
-            logger.Info("<<<STARTUP>>>");
             SetupDataChannels();
             SetupEvents();
+            application.Idling += OnRevitIdling;
+
 
             return Result.Succeeded;
         }
@@ -69,11 +70,10 @@ namespace SnaptrudeManagerAddin
 
         public Result OnShutdown(UIControlledApplication application)
         {
+            logger.Info("Shutting down Snaptrude Manager Addin...");
             application.ViewActivated -= OnViewActivated;
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_CLOSED);
-
             TrudeEventSystem.Instance.Shutdown();
-            logger.Info("<<<SHUTDOWN>>>");
             LogsConfig.Shutdown();
             return Result.Succeeded;
         }
@@ -103,7 +103,7 @@ namespace SnaptrudeManagerAddin
 
         private void SetupDataChannels()
         {
-            dataChannel = new DataChannel("MMF_1", 2048);
+            TransferManager = new DataTransferManager("REVIT_IN_UI_OUT", "REVIT_OUT_UI_IN");
         }
 
         private void SetupEvents()
@@ -113,6 +113,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_CLOSE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
 
             TrudeEventSystem.Instance.Start();
@@ -135,8 +136,20 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
                             break;
+                        case TRUDE_EVENT.DATA_FROM_MANAGER_UI:
+                            {
+                                logger.Info("Got data incoming from ui!");
+                                string data = TransferManager.ReadString();
+                                logger.Info("data : \"{0}\"", data);
+                            }
+                            break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT:
                             {
+                                string path = TransferManager.ReadString();
+                                logger.Info("Got path from UI: {0}", path);
+
+                                // START THE IMPORT
+                                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
                             }
                             break;
                     }
@@ -145,5 +158,8 @@ namespace SnaptrudeManagerAddin
 
         }
 
+        internal void UpdateProgressForImport(int progress, string message)
+        {
+        }
     }
 }

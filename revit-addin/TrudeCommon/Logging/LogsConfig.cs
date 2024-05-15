@@ -10,7 +10,7 @@ namespace TrudeCommon.Logging
 {
     static class LogsConfig
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public static void Initialize(string logFileName)
         {
             var configuration = new NLog.Config.LoggingConfiguration();
@@ -24,10 +24,16 @@ namespace TrudeCommon.Logging
             configuration.AddRule(LogLevel.Trace, LogLevel.Fatal, logfile);
 
             NLog.LogManager.Configuration = configuration;
+
+            logger.Info("<<<STARTUP>>>");
+            logger.Info("===================");
+            logger.Info("Time : {0}", DateTime.Now.ToString());
+            logger.Info("===================\n");
         }
 
         public static void Shutdown()
         {
+            logger.Info("<<<SHUTDOWN>>>\n");
             LogManager.Flush();
             LogManager.Shutdown();
         }

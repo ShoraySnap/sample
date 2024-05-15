@@ -9,7 +9,8 @@
     <Import_RootNamespace>TrudeCommon</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)DataChannel\DataChannel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataTransfer\DataChannel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataTransfer\DataTransferManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventEmitter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEvents.cs" />

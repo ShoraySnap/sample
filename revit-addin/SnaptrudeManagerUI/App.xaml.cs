@@ -8,7 +8,7 @@ using NLog;
 using SnaptrudeManagerUI.IPC;
 using TrudeCommon.Logging;
 using TrudeCommon.Events;
-using TrudeCommon.DataChannel;
+using TrudeCommon.DataTransfer;
 using System.Collections.Concurrent;
 
 namespace SnaptrudeManagerUI
@@ -19,7 +19,8 @@ namespace SnaptrudeManagerUI
     public partial class App : Application
     {
         static Logger logger = LogManager.GetCurrentClassLogger();
-        static DataChannel? dataChannel = null;
+        public static DataTransferManager TransferManager;
+
         private DispatcherTimer timer = new DispatcherTimer();
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -37,7 +38,7 @@ namespace SnaptrudeManagerUI
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             else
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
-            logger.Info("UI Initialized!");
+            logger.Info("<<<UI Initialized!>>>");
 
             SetupDataChannels();
             SetupEvents();
@@ -79,6 +80,7 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.REVIT_CLOSED:
                             {
                                 logger.Info("Revit closed, closing UI...");
+                                // TODO: Loader / Dialog / Show message
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     Application.Current.Shutdown();
@@ -88,8 +90,8 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.DATA_FROM_PLUGIN:
                             {
                                 logger.Info("Got data incoming from plugin!");
-                                string? data = dataChannel?.ReadDataAsString();
-                                logger.Info("data : \"{0}\"", data?.ToString().Trim());
+                                string data = TransferManager.ReadString();
+                                logger.Info("data : \"{0}\"", data);
                             }
                             break;
                     }
@@ -101,14 +103,15 @@ namespace SnaptrudeManagerUI
         protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
-            logger.Info("UI Shutdown!");
+            logger.Info("Snaptrude Manager UI Shutting Down...");
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_CLOSE);
+            TrudeEventSystem.Instance.Shutdown();
             LogsConfig.Shutdown();
         }
 
         private void SetupDataChannels()
         {
-            dataChannel = new DataChannel("MMF_1", 2048);
+            TransferManager = new DataTransferManager("REVIT_OUT_UI_IN", "REVIT_IN_UI_OUT");
         }
 
         private void SetupEvents()

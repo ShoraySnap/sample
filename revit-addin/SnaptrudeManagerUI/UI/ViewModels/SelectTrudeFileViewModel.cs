@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -38,7 +39,7 @@ namespace SnaptrudeManagerUI.ViewModels
             var dialogOpened = openFileDialog.ShowDialog();
             if (dialogOpened.HasValue && dialogOpened.Value)
             {
-                //string sourcePath = openFileDialog.FileName;
+                string sourcePath = openFileDialog.FileName;
                 //JObject trudeData = JObject.Parse(File.ReadAllText(sourcePath));
                 ////WPFTODO: INCOMPATIBLE LOGIC
                 //GlobalVariables.TrudeFileName = Path.GetFileName(sourcePath);
@@ -53,6 +54,9 @@ namespace SnaptrudeManagerUI.ViewModels
                 //serializer.Converters.Add(new XyzConverter());
                 //GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
                 //StartImportNavigateCommand.Execute(null);
+
+                App.TransferManager.WriteString(sourcePath);
+                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
             }
             else
             {
