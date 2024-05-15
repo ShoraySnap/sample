@@ -72,7 +72,11 @@ namespace TrudeImporter
                 {
                     TrudeStorey storey = new TrudeStorey(storeyProperties);
                     storeyNames.Add(storey.RevitName);
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
                     var levelWithSameId = existingLevels.FirstOrDefault(l => l.Id.IntegerValue == storeyProperties.LowerLevelElementId);
+#else
+                    var levelWithSameId = existingLevels.FirstOrDefault(l => l.Id.Value == storeyProperties.LowerLevelElementId);
+#endif
                     if (!levelWithSameId.IsNull())
                         storiesWithMatchingLevelIds.Add((storey, levelWithSameId));
                     else

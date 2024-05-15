@@ -78,6 +78,9 @@ Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userapp
 ;2024
 Source: "{#RevitAddinDllPath}\2024\SnaptrudeManagerAddin.dll"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2024'))
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{userappdata}\Autodesk\Revit\Addins\2024"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2024'))
+;2025
+Source: "{#RevitAddinDllPath}\2025\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2025\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2025'))
+Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2025"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{userappdata}\Autodesk\Revit\Addins\2025'))
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
