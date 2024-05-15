@@ -189,3 +189,6 @@ if ($branch -eq "master") {
 }
 
 git tag -a $version -m $version
+
+$folderPath = Join-Path -Path $currentScriptPath -ChildPath "..\build-installer\out"
+Start-Process explorer.exe -ArgumentList $folderPath
