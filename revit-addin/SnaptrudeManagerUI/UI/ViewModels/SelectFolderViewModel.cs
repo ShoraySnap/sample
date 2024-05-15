@@ -1,6 +1,7 @@
 ﻿using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Models;
 using SnaptrudeManagerUI.Services;
+using SnaptrudeManagerUI.API;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,27 +18,27 @@ namespace SnaptrudeManagerUI.ViewModels
         //WPFTODO: CONNECT TO DB
         public List<Folder> Database = new List<Folder>
         {
-            new Folder("1", "All Workspaces", "top"),
-            new Folder("2", "Personal", "personal", "1"),
-            new Folder("3", "Snaptrude Team 1", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("5", "Folder 1", "folder", "2"),
-            new Folder("6", "Folder 2", "folder", "2"),
-            new Folder("7", "Folder 3", "folder", "2"),
-            new Folder("8", "Folder 4", "folder", "2"),
-            new Folder("9", "Folder 5", "folder", "2"),
-            new Folder("10", "Folder 6", "folder", "2"),
-            new Folder("11", "Folder 7", "folder", "2"),
-            new Folder("12", "Folder 1", "folder", "3"),
-            new Folder("13", "Child Folder", "folder", "5"),
-            new Folder("14", "Child Folder", "folder", "13"),
-            new Folder("15", "Child Folder", "folder", "14"),
-            new Folder("16", "Child Folder", "folder", "15"),
-            new Folder("17", "Child Folder", "folder", "16"),
-            new Folder("18", "Child Folder", "folder", "17"),
+            new Folder("-1", "All Workspaces", Constants.WorkspaceType.Top),
+            new Folder("2", "Personal", Constants.WorkspaceType.Personal, "1"),
+            new Folder("3", "Snaptrude Team 1", Constants.WorkspaceType.Shared, "1"),
+            new Folder("4", "Snaptrude Team 2", Constants.WorkspaceType.Shared, "1"),
+            new Folder("4", "Snaptrude Team 2", Constants.WorkspaceType.Shared, "1"),
+            new Folder("4", "Snaptrude Team 2", Constants.WorkspaceType.Shared, "1"),
+            new Folder("4", "Snaptrude Team 2", Constants.WorkspaceType.Shared, "1"),
+            new Folder("5", "Folder 1", Constants.WorkspaceType.Folder, "2"),
+            new Folder("6", "Folder 2", Constants.WorkspaceType.Folder, "2"),
+            new Folder("7", "Folder 3", Constants.WorkspaceType.Folder, "2"),
+            new Folder("8", "Folder 4", Constants.WorkspaceType.Folder, "2"),
+            new Folder("9", "Folder 5", Constants.WorkspaceType.Folder, "2"),
+            new Folder("10", "Folder 6", Constants.WorkspaceType.Folder, "2"),
+            new Folder("11", "Folder 7", Constants.WorkspaceType.Folder, "2"),
+            new Folder("12", "Folder 1", Constants.WorkspaceType.Folder, "3"),
+            new Folder("13", "Child Folder", Constants.WorkspaceType.Folder, "5"),
+            new Folder("14", "Child Folder", Constants.WorkspaceType.Folder, "13"),
+            new Folder("15", "Child Folder", Constants.WorkspaceType.Folder, "14"),
+            new Folder("16", "Child Folder", Constants.WorkspaceType.Folder, "15"),
+            new Folder("17", "Child Folder", Constants.WorkspaceType.Folder, "16"),
+            new Folder("18", "Child Folder", Constants.WorkspaceType.Folder, "17"),
         };
 
         public ObservableCollection<FolderViewModel> CurrentPathFolders { get; private set; }
@@ -52,12 +53,14 @@ namespace SnaptrudeManagerUI.ViewModels
         public string SelectedWorkspaceString
         {
             get { return selectedWorkspaceString; }
-            set 
+            set
             {
                 selectedWorkspaceString = value;
                 OnPropertyChanged("SelectedWorkspaceString");
             }
         }
+
+        public bool IisVisible => CurrentPathFolders.Count < 1;
 
         private bool isWorkspaceSelected;
 
@@ -101,19 +104,20 @@ namespace SnaptrudeManagerUI.ViewModels
             LoadRootFolders();
         }
 
-        private void LoadRootFolders()
+        private async void LoadRootFolders()
         {
             Breadcrumb.Clear();
             //WPFTODO: GET Workspaces
-            Folder allWorksSpacesFolder = Database.First(x => x.Id == "1");
+            Folder allWorksSpacesFolder = Database.First(x => x.Id == "-1");
 
             FolderViewModel allWorksSpacesFolderViewModel = new FolderViewModel(allWorksSpacesFolder);
             Breadcrumb.Add(allWorksSpacesFolderViewModel);
             /*await*/
             GetSubFoldersAsync(allWorksSpacesFolderViewModel);
+           
         }
 
-        private void GetSubFoldersAsync(FolderViewModel parentFolder)
+        private async void GetSubFoldersAsync(FolderViewModel parentFolder)
         {
             //WPFTODO: GET subfolders
             var subFolders = Database.Where(x => x.ParentId == parentFolder.Id).ToList();
@@ -123,7 +127,17 @@ namespace SnaptrudeManagerUI.ViewModels
                 subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
             }
 
+            if (parentFolder.FolderType == Constants.WorkspaceType.Top && parentFolder.ParentFolder == null)
+            {
+                subFolders = await SnaptrudeRepo.GetUserWorkspacesAsync();
+                subFolderViewModels = new List<FolderViewModel>();
+                foreach (var subFolder in subFolders)
+                {
+                    subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
+                }
+            }
             PopulateSubFolders(subFolderViewModels);
+            OnPropertyChanged("IisVisible");
         }
 
         private void PopulateSubFolders(List<FolderViewModel> subFolders)

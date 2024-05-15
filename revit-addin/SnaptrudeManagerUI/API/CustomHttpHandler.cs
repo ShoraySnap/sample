@@ -41,7 +41,7 @@ namespace SnaptrudeManagerUI.API
                 var responseData = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
 
-                if (result.ContainsKey("error") && result["isTokenExpired"])
+                if (result.ContainsKey("error") && result.ContainsKey("isTokenExpired") && result["isTokenExpired"])
                 {
                     // Handle token expired
                     var accessToken = Store.Get("accessToken") as string;

@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Models;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,7 +15,7 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         public string Name { get; }
         public FolderViewModel ParentFolder { get; }
-        public string FolderType { get; }
+        public Constants.WorkspaceType FolderType { get; }
         public string Id { get; }
 
         public FolderViewModel(Folder folder, FolderViewModel parent = null)

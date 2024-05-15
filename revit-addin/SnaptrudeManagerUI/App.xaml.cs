@@ -27,18 +27,18 @@ namespace SnaptrudeManagerUI
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             else
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
-            SnaptrudeService snaptrudeService = new SnaptrudeService();
+            // SnaptrudeService snaptrudeService = new SnaptrudeService();
 
-            bool isLoggedIn = await snaptrudeService.CheckIfUserLoggedInAsync();
+            bool isLoggedIn = await SnaptrudeService.CheckIfUserLoggedInAsync();
             Console.WriteLine($"Is user logged in: {isLoggedIn}");
 
-            var workspaces = await snaptrudeService.GetUserWorkspacesAsync();
+            var workspaces = await SnaptrudeService.GetUserWorkspacesAsync();
             foreach (var workspace in workspaces)
             {
-                Console.WriteLine($"Workspace ID: {workspace["id"]}, Name: {workspace["name"]}");
+                System.Diagnostics.Debug.WriteLine($"Workspace ID: {workspace["id"]}, Name: {workspace["name"]}");
             }
 
-            bool isPaidUser = await snaptrudeService.IsPaidUserAccountAsync();
+            bool isPaidUser = await SnaptrudeService.IsPaidUserAccountAsync();
             Console.WriteLine($"Is paid user: {isPaidUser}");
         }
     }

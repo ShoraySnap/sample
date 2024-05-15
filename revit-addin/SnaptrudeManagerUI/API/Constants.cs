@@ -11,5 +11,13 @@ namespace SnaptrudeManagerUI.API
         public static string PERSONAL_WORKSPACE_ID = "";
         public static string PERSONAL_WORKSPACE_NAME = "My Workspace";
         public static string ROOT_FOLDER_ID = "root";
+
+        public enum WorkspaceType
+        {
+            Top,
+            Personal,
+            Shared,
+            Folder
+        }
     }
 }

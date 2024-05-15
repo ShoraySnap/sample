@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
 using SnaptrudeManagerUI.API;
+using static SnaptrudeManagerUI.API.Constants;
 
 namespace SnaptrudeManagerUI.API
 {
-    public class SnaptrudeService
+    public static class SnaptrudeService
     {
         private static readonly HttpClient httpClient;
         static Logger logger = LogManager.GetCurrentClassLogger();
@@ -28,7 +29,7 @@ namespace SnaptrudeManagerUI.API
             httpClient.DefaultRequestHeaders.Add("User-Agent", "SnaptrudeService");
         }
 
-        private async Task<HttpResponseMessage> CallApiAsync(string endPoint, HttpMethod httpMethod, Dictionary<string, string> data = null)
+        private static async Task<HttpResponseMessage> CallApiAsync(string endPoint, HttpMethod httpMethod, Dictionary<string, string> data = null)
         {
             string djangoUrl = Urls.Get("snaptrudeDjangoUrl");
             HttpResponseMessage response = null;
@@ -46,7 +47,7 @@ namespace SnaptrudeManagerUI.API
             return response;
         }
 
-        public async Task<string> CreateProjectAsync()
+        public static async Task<string> CreateProjectAsync()
         {
             logger.Info("Creating Snaptrude project");
             string endPoint = "/newBlankProject";
@@ -69,25 +70,36 @@ namespace SnaptrudeManagerUI.API
             return null;
         }
 
-        public async Task<List<Dictionary<string, string>>> GetUserWorkspacesAsync()
+        public static async Task<List<Dictionary<string, string>>> GetUserWorkspacesAsync()
         {
-            string endPoint = "/user/teams/active";
+            string endPoint = "/user/workspaces/valid-teams";
             var response = await CallApiAsync(endPoint, HttpMethod.Get);
 
-            if (response != null && response.IsSuccessStatusCode)
+            if (response != null)
             {
                 var responseData = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-                var validTeams = await GetValidTeamsAsync(result["teams"].ToObject<List<Dictionary<string, string>>>());
+
                 var workspaces = new List<Dictionary<string, string>>();
 
-                foreach (var team in validTeams)
+                foreach (var workspace in result["myWorkspace"])
                 {
                     workspaces.Add(new Dictionary<string, string>
+                    {
+                        { "id", Constants.PERSONAL_WORKSPACE_ID },
+                        { "name", Constants.PERSONAL_WORKSPACE_NAME },
+                        { "type", "workspace"}
+                    });
+                }
+
+                foreach (var team in result["teams"])
                 {
-                    { "id", team["id"].ToString() },
-                    { "name", team["name"].ToString() }
-                });
+                    workspaces.Add(new Dictionary<string, string>
+                    {
+                        { "id", team["id"].ToString() },
+                        { "name", team["name"].ToString() },
+                        { "type", "team" }
+                    });
                 }
 
                 return workspaces;
@@ -96,7 +108,7 @@ namespace SnaptrudeManagerUI.API
             return null;
         }
 
-        private async Task<List<Dictionary<string, string>>> GetValidTeamsAsync(List<Dictionary<string, string>> teams)
+        private static async Task<List<Dictionary<string, string>>> GetValidTeamsAsync(List<Dictionary<string, string>> teams)
         {
             var validTeams = new List<Dictionary<string, string>>();
             foreach (var team in teams)
@@ -133,7 +145,7 @@ namespace SnaptrudeManagerUI.API
             return validTeams;
         }
 
-        private async Task<bool> CheckRoleForPermissionToCreateProjectAsync(Dictionary<string, string> team)
+        private static async Task<bool> CheckRoleForPermissionToCreateProjectAsync(Dictionary<string, string> team)
         {
             if (team["role"] == "viewer" || team["role"] == "editor")
             {
@@ -167,7 +179,7 @@ namespace SnaptrudeManagerUI.API
             return true;
         }
 
-        public async Task<bool> CheckIfUserLoggedInAsync()
+        public static async Task<bool> CheckIfUserLoggedInAsync()
         {
             string accessToken = Store.GetData()["accessToken"];
             string refreshToken = Store.GetData()["refreshToken"];
@@ -197,7 +209,7 @@ namespace SnaptrudeManagerUI.API
             return false;
         }
 
-        public async Task<bool> IsPaidUserAccountAsync()
+        public static async Task<bool> IsPaidUserAccountAsync()
         {
             string endPoint = "/getuserprofile/";
             var response = await CallApiAsync(endPoint, HttpMethod.Get);
@@ -216,7 +228,7 @@ namespace SnaptrudeManagerUI.API
             return false;
         }
 
-        public async Task<List<Dictionary<string, string>>> GetFoldersAsync(string teamId, string currentFolderId)
+        public static async Task<List<Dictionary<string, string>>> GetFoldersAsync(string teamId, string currentFolderId)
         {
             bool fetchFromPersonalWorkspace = teamId == Constants.PERSONAL_WORKSPACE_ID;
 
@@ -253,7 +265,7 @@ namespace SnaptrudeManagerUI.API
             return null;
         }
 
-        public async Task<bool> CheckPersonalWorkspacesAsync()
+        public static async Task<bool> CheckPersonalWorkspacesAsync()
         {
             try
             {
@@ -269,7 +281,7 @@ namespace SnaptrudeManagerUI.API
             }
         }
 
-        private async Task<int> GetProjectInPersonalWorkSpaceAsync()
+        private static async Task<int> GetProjectInPersonalWorkSpaceAsync()
         {
             string endPoint = "/getprojects/";
             var data = new Dictionary<string, string>
@@ -290,7 +302,7 @@ namespace SnaptrudeManagerUI.API
             return 0;
         }
 
-        public async Task<Dictionary<string, dynamic>> CheckModelUrlAsync(string floorkey)
+        public static async Task<Dictionary<string, dynamic>> CheckModelUrlAsync(string floorkey)
         {
             string endPoint = $"/import/permission/?floorkey={floorkey}";
             var data = new Dictionary<string, string>

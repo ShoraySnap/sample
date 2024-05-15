@@ -221,6 +221,21 @@
                 </ScrollViewer>
             </DockPanel>
         </Border>
+        <Border 
+            CornerRadius="5" 
+            Width="519" 
+            Height="1" 
+            Margin="0,0,0,191"
+            Visibility="{Binding IisVisible, Converter={StaticResource BoolToVisibility}}"
+            >
+            <ProgressBar
+                Foreground="#2d6be6"
+                Background="{DynamicResource Colors/Neutral/200}"
+                BorderThickness="0"
+                IsIndeterminate="True"
+                >
+            </ProgressBar>
+        </Border>
         <Grid Grid.Row="1" Margin="16">
             <!--<TextBlock
                     VerticalAlignment="Center"
