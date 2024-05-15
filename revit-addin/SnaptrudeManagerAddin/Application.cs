@@ -9,8 +9,10 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using TrudeCommon.DataChannel;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
+using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
 {
@@ -20,6 +22,8 @@ namespace SnaptrudeManagerAddin
     {
         public static Application Instance;
         private static Logger logger = LogManager.GetCurrentClassLogger();
+
+        private DataChannel dataChannel;
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -52,40 +56,22 @@ namespace SnaptrudeManagerAddin
             button.ToolTip = "Export the model to Snaptrude";
 
             logger.Info("<<<STARTUP>>>");
-            TrudeEventSystem.Instance.Init();
-            TrudeEventSystem.Instance.AddEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
-            TrudeEventSystem.Instance.AddEvent(TRUDE_EVENT.MANAGER_UI_CLOSE);
-            TrudeEventSystem.Instance.AddEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
-            TrudeEventSystem.Instance.Start();
+            SetupDataChannels();
+            SetupEvents();
 
             return Result.Succeeded;
         }
 
         private void OnRevitIdling(object sender, IdlingEventArgs e)
         {
-            ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
-            while(!eventQueue.IsEmpty)
-            {
-                if(eventQueue.TryDequeue(out TRUDE_EVENT eventType))
-                {
-                    logger.Info("Processing event from main queue: {0}", TrudeEventUtils.GetEventName(eventType));
-                    switch(eventType)
-                    {
-                        case TRUDE_EVENT.MANAGER_UI_OPEN:
-                            break;
-                        case TRUDE_EVENT.MANAGER_UI_CLOSE:
-                            break;
-                        case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
-                            break;
-                    }
-                }
-            }
+            ProcessEventQueue();
         }
 
         public Result OnShutdown(UIControlledApplication application)
         {
-            SnaptrudeManagerAddin.Launcher.LaunchProcess.CleanUp();
             application.ViewActivated -= OnViewActivated;
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_CLOSED);
+
             TrudeEventSystem.Instance.Shutdown();
             logger.Info("<<<SHUTDOWN>>>");
             LogsConfig.Shutdown();
@@ -113,6 +99,50 @@ namespace SnaptrudeManagerAddin
             PngBitmapDecoder bd = new PngBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
 
             return bd.Frames[0];
+        }
+
+        private void SetupDataChannels()
+        {
+            dataChannel = new DataChannel("MMF_1", 2048);
+        }
+
+        private void SetupEvents()
+        {
+            TrudeEventSystem.Instance.Init();
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_CLOSE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
+
+            TrudeEventSystem.Instance.Start();
+
+        }
+
+        private void ProcessEventQueue()
+        {
+            ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
+            while(!eventQueue.IsEmpty)
+            {
+                if(eventQueue.TryDequeue(out TRUDE_EVENT eventType))
+                {
+                    logger.Info("Processing event from main queue: {0}", TrudeEventUtils.GetEventName(eventType));
+                    switch(eventType)
+                    {
+                        case TRUDE_EVENT.MANAGER_UI_OPEN:
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_CLOSE:
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT:
+                            {
+                            }
+                            break;
+                    }
+                }
+            }
+
         }
 
     }

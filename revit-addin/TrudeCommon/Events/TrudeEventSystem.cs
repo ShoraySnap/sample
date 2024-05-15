@@ -40,7 +40,7 @@ namespace TrudeCommon.Events
             initialized = true;
         }
 
-        public void AddEventHandler(TRUDE_EVENT name, Action handler)
+        public void AddThreadEventHandler(TRUDE_EVENT name, Action handler)
         {
             if (!initialized)
             {
@@ -50,7 +50,7 @@ namespace TrudeCommon.Events
             eventManager.AddEventHandler(name, handler);
         }
 
-        public void AddEvent(TRUDE_EVENT name)
+        public void SubscribeToEvent(TRUDE_EVENT name)
         {
             if (!initialized)
             {

@@ -60,12 +60,13 @@ namespace SnaptrudeManagerAddin.Launcher
 
         }
 
-        public static void CleanUp()
+        public static void Kill()
         {
             if (process != null && !process.HasExited)
             {
                 process.Kill();
             }
+            process = null;
         }
 
     }

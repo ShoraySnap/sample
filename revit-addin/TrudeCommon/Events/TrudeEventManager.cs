@@ -88,6 +88,7 @@ namespace TrudeCommon.Events
                 {
                     () =>
                     {
+                        logger.Info("Enqueuing event: {0}", TrudeEventUtils.GetEventName(eventType));
                         eventQueue.Enqueue(eventType);
                     }
                 };
@@ -102,6 +103,7 @@ namespace TrudeCommon.Events
             data.eventData = eventData;
 
             eventListenerThread = new Thread(new ParameterizedThreadStart(ThreadFunc));
+            eventListenerThread.IsBackground = true;
             eventListenerThread.Start(data);
         }
 
