@@ -55,8 +55,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 //GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
                 //StartImportNavigateCommand.Execute(null);
 
-                App.TransferManager.WriteString(sourcePath);
-                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
+                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT, sourcePath, App.TransferManager);
             }
             else
             {

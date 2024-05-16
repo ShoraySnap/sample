@@ -39,8 +39,7 @@ namespace SnaptrudeManagerUI
             if(e.ChangedButton == MouseButton.Right)
             {
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
-                App.TransferManager.WriteString("Hello from Manager UI!");
-                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
+                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.DATA_FROM_MANAGER_UI, "Hello from UI!", App.TransferManager);
             }
         }
     }

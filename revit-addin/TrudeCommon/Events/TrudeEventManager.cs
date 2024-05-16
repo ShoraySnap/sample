@@ -103,7 +103,7 @@ namespace TrudeCommon.Events
             data.eventData = eventData;
 
             eventListenerThread = new Thread(new ParameterizedThreadStart(ThreadFunc));
-            eventListenerThread.IsBackground = true;
+            eventListenerThread.IsBackground = true; // IMPORTANT
             eventListenerThread.Start(data);
         }
 
@@ -111,7 +111,15 @@ namespace TrudeCommon.Events
         {
             if(eventListenerThread != null)
             {
-                eventListenerThread.Abort();
+                try
+                {
+                    eventListenerThread.Abort();
+                } 
+                catch (PlatformNotSupportedException ex)
+                {
+                    logger.Warn(ex);
+                    logger.Warn("Platform doesn't support thread abort. Make sure thread is background!");
+                }
             }
         }
 

@@ -103,7 +103,7 @@ namespace SnaptrudeManagerAddin
 
         private void SetupDataChannels()
         {
-            TransferManager = new DataTransferManager("REVIT_IN_UI_OUT", "REVIT_OUT_UI_IN");
+            TransferManager = new DataTransferManager();
         }
 
         private void SetupEvents()
@@ -117,7 +117,6 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
 
             TrudeEventSystem.Instance.Start();
-
         }
 
         private void ProcessEventQueue()
@@ -139,13 +138,13 @@ namespace SnaptrudeManagerAddin
                         case TRUDE_EVENT.DATA_FROM_MANAGER_UI:
                             {
                                 logger.Info("Got data incoming from ui!");
-                                string data = TransferManager.ReadString();
+                                string data = TransferManager.ReadString(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
                                 logger.Info("data : \"{0}\"", data);
                             }
                             break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT:
                             {
-                                string path = TransferManager.ReadString();
+                                string path = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
                                 logger.Info("Got path from UI: {0}", path);
 
                                 // START THE IMPORT

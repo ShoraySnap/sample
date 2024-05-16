@@ -90,7 +90,7 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.DATA_FROM_PLUGIN:
                             {
                                 logger.Info("Got data incoming from plugin!");
-                                string data = TransferManager.ReadString();
+                                string data = TransferManager.ReadString(TRUDE_EVENT.DATA_FROM_PLUGIN);
                                 logger.Info("data : \"{0}\"", data);
                             }
                             break;
@@ -111,7 +111,7 @@ namespace SnaptrudeManagerUI
 
         private void SetupDataChannels()
         {
-            TransferManager = new DataTransferManager("REVIT_OUT_UI_IN", "REVIT_IN_UI_OUT");
+            TransferManager = new DataTransferManager();
         }
 
         private void SetupEvents()
@@ -121,7 +121,7 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_PLUGIN);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_CLOSED);
-            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_CLOSED);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
 
             TrudeEventSystem.Instance.Start();
 

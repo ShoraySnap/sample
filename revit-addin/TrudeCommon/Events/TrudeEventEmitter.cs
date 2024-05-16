@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using TrudeCommon.DataTransfer;
 
 namespace TrudeCommon.Events
 {
@@ -29,6 +30,13 @@ namespace TrudeCommon.Events
                 logger.Info("Event found! Emitting.: {0}", name);
                 handle.Set();
             }
+        }
+
+        public static void EmitEventWithStringData(TRUDE_EVENT type, string data, DataTransferManager manager)
+        {
+            logger.Info("Transferring data for event: {0} data: {1}", TrudeEventUtils.GetEventName(type), data);
+            manager.WriteString(type, data);
+            EmitEvent(type);
         }
     }
 }
