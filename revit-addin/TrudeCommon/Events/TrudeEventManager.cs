@@ -74,6 +74,7 @@ namespace TrudeCommon.Events
             }
             eventData[eventType].handlers.Add(handler);
         }
+
         public void AddEvent(TRUDE_EVENT eventType, ConcurrentQueue<TRUDE_EVENT> eventQueue)
         {
             if(eventData.ContainsKey(eventType))

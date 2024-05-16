@@ -2,11 +2,13 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
+using Newtonsoft.Json.Linq;
 using NLog;
 using SnaptrudeManagerAddin.Launcher;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -148,7 +150,22 @@ namespace SnaptrudeManagerAddin
                                 logger.Info("Got path from UI: {0}", path);
 
                                 // START THE IMPORT
+                                JObject trudeData = JObject.Parse(File.ReadAllText(path));
+                                GlobalVariables.TrudeFileName = Path.GetFileName(path);
+                                GlobalVariables.materials = trudeData["materials"] as JArray;
+                                GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
+
+                                Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
+                                {
+                                    NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                                    DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
+                                };
+                                serializer.Converters.Add(new XyzConverter());
+                                GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
+
                                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
+                                ExternalEvent evt = ExternalEvent.Create(new ImportToRevitEEH());
+                                evt.Raise();
                             }
                             break;
                     }
@@ -159,6 +176,8 @@ namespace SnaptrudeManagerAddin
 
         internal void UpdateProgressForImport(int progress, string message)
         {
+            string data = progress + ";" + message;
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
         }
     }
 }

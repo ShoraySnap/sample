@@ -94,6 +94,29 @@ namespace SnaptrudeManagerUI
                                 logger.Info("data : \"{0}\"", data);
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START:
+                            {
+                                logger.Info("Import to revit started!");
+                            }
+                            break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE:
+                            {
+                                string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
+                                string[] progressData = data.Split(";");
+                                logger.Info("Import to revit progress {0}  {1}", progressData[0], progressData[1]);
+                                if(progressData.Length >= 2)
+                                {
+                                    MainWindowViewModel.Instance.ProgressViewModel.ProgressValue = int.Parse(progressData[0]);
+                                    MainWindowViewModel.Instance.ProgressViewModel.ProgressMessage = progressData[1];
+                                }
+                            }
+                            break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS:
+                            {
+                                logger.Info("Import to revit finished!");
+                                MainWindowViewModel.Instance.ProgressViewModel.FinishImportToRevit();
+                            }
+                            break;
                     }
                 }
             }
@@ -121,7 +144,10 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_PLUGIN);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_CLOSED);
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
 
             TrudeEventSystem.Instance.Start();
 

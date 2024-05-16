@@ -106,6 +106,11 @@ namespace SnaptrudeManagerUI.ViewModels
             ProgressMessage = message;
         }
 
+        public void FinishImportToRevit()
+        {
+            SuccessCommand.Execute(new object());
+        }
+
         public async Task StartExport()
         {
             for (int i = 0; i <= 100; i++)

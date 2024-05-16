@@ -40,22 +40,8 @@ namespace SnaptrudeManagerUI.ViewModels
             if (dialogOpened.HasValue && dialogOpened.Value)
             {
                 string sourcePath = openFileDialog.FileName;
-                //JObject trudeData = JObject.Parse(File.ReadAllText(sourcePath));
-                ////WPFTODO: INCOMPATIBLE LOGIC
-                //GlobalVariables.TrudeFileName = Path.GetFileName(sourcePath);
-                //GlobalVariables.materials = trudeData["materials"] as JArray;
-                //GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
-
-                //Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
-                //{
-                //    NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                //    DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
-                //};
-                //serializer.Converters.Add(new XyzConverter());
-                //GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
-                //StartImportNavigateCommand.Execute(null);
-
                 TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT, sourcePath, App.TransferManager);
+                StartImportNavigateCommand.Execute(null);
             }
             else
             {
