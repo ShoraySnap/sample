@@ -22,6 +22,8 @@ namespace SnaptrudeManagerUI
         public static DataTransferManager TransferManager;
 
         private DispatcherTimer timer = new DispatcherTimer();
+
+        public static Action<int, string> OnProgressUpdate;
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -106,8 +108,7 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Import to revit progress {0}  {1}", progressData[0], progressData[1]);
                                 if(progressData.Length >= 2)
                                 {
-                                    MainWindowViewModel.Instance.ProgressViewModel.ProgressValue = int.Parse(progressData[0]);
-                                    MainWindowViewModel.Instance.ProgressViewModel.ProgressMessage = progressData[1];
+                                    OnProgressUpdate?.Invoke(int.Parse(progressData[0]), progressData[1]);
                                 }
                             }
                             break;

@@ -50,14 +50,14 @@ namespace TrudeCommon.Events
             eventManager.AddEventHandler(name, handler);
         }
 
-        public void SubscribeToEvent(TRUDE_EVENT name)
+        public void SubscribeToEvent(TRUDE_EVENT name, bool queue = true)
         {
             if (!initialized)
             {
                 logger.Error("Event System Uninitialized!");
                 return;
             }
-            eventManager.AddEvent(name, eventQueue);
+            eventManager.AddEvent(name, eventQueue, queue);
         }
 
         public ConcurrentQueue<TRUDE_EVENT> GetQueue()

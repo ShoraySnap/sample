@@ -51,7 +51,10 @@ namespace TrudeCommon.DataTransfer
             using (MemoryMappedViewAccessor viewAccessor = mmf.CreateViewAccessor())
             {
                 viewAccessor.WriteArray(0, data, 0, data.Length);
-                logger.Info("Write to memory mapped file \"{0}\" data length : {1} bytes", filename, data.Length);
+                // Write zeros after the data
+                int zerosLength = capacity - data.Length; // Specify the number of zeros you want to write
+                byte[] zeros = new byte[zerosLength]; // Create an array of zeros
+                viewAccessor.WriteArray(data.Length, zeros, 0, zeros.Length); logger.Info("Write to memory mapped file \"{0}\" data length : {1} bytes", filename, data.Length);
             }
             mutex.ReleaseMutex();
         }

@@ -98,6 +98,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }
 
             //StartProgressCommand.Execute(null);
+            App.OnProgressUpdate += UpdateProgress;
         }
 
         public void UpdateProgress(int Value, string message)

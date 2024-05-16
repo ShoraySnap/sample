@@ -75,7 +75,7 @@ namespace TrudeCommon.Events
             eventData[eventType].handlers.Add(handler);
         }
 
-        public void AddEvent(TRUDE_EVENT eventType, ConcurrentQueue<TRUDE_EVENT> eventQueue)
+        public void AddEvent(TRUDE_EVENT eventType, ConcurrentQueue<TRUDE_EVENT> eventQueue, bool queue = true)
         {
             if(eventData.ContainsKey(eventType))
             {
@@ -85,13 +85,16 @@ namespace TrudeCommon.Events
             {
                 eventData.Add(eventType, new EventData());
                 eventData[eventType].waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset, TrudeEventUtils.GetEventName(eventType));
-                eventData[eventType].handlers = new List<Action>
+                eventData[eventType].handlers = new List<Action>();
+
+                if(queue)
                 {
+                    eventData[eventType].handlers.Add(
                     () =>
                     {
                         logger.Info("Enqueuing event: {0}", TrudeEventUtils.GetEventName(eventType));
                         eventQueue.Enqueue(eventType);
-                    }
+                    });
                 };
             }
         }
