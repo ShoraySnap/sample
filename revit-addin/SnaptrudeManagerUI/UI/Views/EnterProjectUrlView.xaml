@@ -298,12 +298,20 @@
                             <ImageBrush ImageSource="/SnaptrudeManagerUI;component/UI/Images/thumbnail.png" Stretch="UniformToFill" />
                         </Border.Background>
                     </Border>
+                    <Border
+                        Width="40"
+                        Height="40"
+                        CornerRadius="2">
+                        <Border.Background>
+                            <ImageBrush ImageSource="{Binding Image}" Stretch="UniformToFill" />
+                        </Border.Background>
+                    </Border>
                     <TextBlock
                         Grid.Column="2"
                         VerticalAlignment="Center"
                         FontFamily="{StaticResource Inter500}"
                         Foreground="{StaticResource Colors/Neutral/600}"
-                        Text="WeWork Office Structure v2" />
+                        Text="{Binding ProjectName}" />
                 </Grid>
 
             </Border>

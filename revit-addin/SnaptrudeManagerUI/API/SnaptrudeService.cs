@@ -108,42 +108,65 @@ namespace SnaptrudeManagerUI.API
             return null;
         }
 
-        private static async Task<List<Dictionary<string, string>>> GetValidTeamsAsync(List<Dictionary<string, string>> teams)
+        public static async Task<List<Dictionary<string, string>>> GetFoldersAsync(string teamId, string currentFolderId)
         {
-            var validTeams = new List<Dictionary<string, string>>();
-            foreach (var team in teams)
+            bool fetchFromPersonalWorkspace = teamId == "-1";
+
+            string endPoint = fetchFromPersonalWorkspace
+                ? "/folderWithoutProject/"
+                : $"/team/{teamId}/folderWithoutProject/";
+
+            var data = new Dictionary<string, string>
             {
-                var isPermissionToCreateProject = await CheckRoleForPermissionToCreateProjectAsync(team);
-                if (!isPermissionToCreateProject) continue;
-                if (bool.Parse(team["isManuallyPaid"].ToString()))
-                {
-                    validTeams.Add(team);
-                    continue;
-                }
-                string endPoint = $"/team/{team["id"]}/project?";
-                var data = new Dictionary<string, string>
-                {
-                    { "limit", "10" },
-                    { "offset", "0" }
-                };
+                { "limit", "1000" },
+                { "offset", "0" },
+                { "folder", currentFolderId }
+            };
 
-                var queryParams = new FormUrlEncodedContent(data);
-                var response = await CallApiAsync(endPoint + queryParams.ReadAsStringAsync().Result, HttpMethod.Get, data);
+            var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
 
-                if (response != null && response.IsSuccessStatusCode)
+            if (response != null)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
+                var folders = new List<Dictionary<string, string>>();
+
+                foreach (var folder in result["folders"])
                 {
-                    var responseData = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-                    int projectsCount = result["projects"].Count;
-                    if (projectsCount < 1)
+                    folders.Add(new Dictionary<string, string>
                     {
-                        validTeams.Add(team);
-                    }
+                        { "id", folder["id"].ToString() },
+                        { "name", folder["name"].ToString() }
+                    });
                 }
+
+                return folders;
             }
 
-            return validTeams;
+            return null;
         }
+
+
+        public static async Task<Dictionary<string, string>> ValidateURLAsync(string floorkey)
+        {
+            string endPoint = "/import/permission/?floorkey=" + floorkey;
+            var data = new Dictionary<string, string>
+            {
+                { "floorkey", floorkey }
+            };
+            var response = await CallApiAsync(endPoint, HttpMethod.Get, data);
+
+            if (response != null)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseData);
+                return result;
+            }
+
+            return null;
+        }
+
+
 
         private static async Task<bool> CheckRoleForPermissionToCreateProjectAsync(Dictionary<string, string> team)
         {
@@ -228,43 +251,7 @@ namespace SnaptrudeManagerUI.API
             return false;
         }
 
-        public static async Task<List<Dictionary<string, string>>> GetFoldersAsync(string teamId, string currentFolderId)
-        {
-            bool fetchFromPersonalWorkspace = teamId == "-1";
 
-            string endPoint = fetchFromPersonalWorkspace
-                ? "/folderWithoutProject/"
-                : $"/team/{teamId}/folderWithoutProject/";
-
-            var data = new Dictionary<string, string>
-            {
-                { "limit", "1000" },
-                { "offset", "0" },
-                { "folder", currentFolderId }
-            };
-
-            var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
-
-            if (response != null)
-            {
-                var responseData = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-                var folders = new List<Dictionary<string, string>>();
-
-                foreach (var folder in result["folders"])
-                {
-                    folders.Add(new Dictionary<string, string>
-                    {
-                        { "id", folder["id"].ToString() },
-                        { "name", folder["name"].ToString() }
-                    });
-                }
-
-                return folders;
-            }
-
-            return null;
-        }
 
         public static async Task<bool> CheckPersonalWorkspacesAsync()
         {
