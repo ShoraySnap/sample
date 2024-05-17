@@ -16,13 +16,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand LaunchCommand { get; }
         public ModelExportedViewModel()
         {
-            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
-                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
-                {
-                    ((MainWindowViewModel)viewmodel).TopMost = true;
-                    return viewmodel;
-                }));
-            transformMainWindowViewModelCommand.Execute(new object());
+            MainWindowViewModel.Instance.TopMost = true;
             LaunchCommand = new RelayCommand(new Action<object>((o) => OpenSnaptrudeModel()));
         }
 

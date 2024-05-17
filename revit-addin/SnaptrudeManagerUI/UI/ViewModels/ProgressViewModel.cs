@@ -69,25 +69,11 @@ namespace SnaptrudeManagerUI.ViewModels
                     StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Import:
-                    TransformCommand = new TransformCommand(
-                        new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
-                        {
-                            ((MainWindowViewModel)viewmodel).TopMost = false;
-                            return viewmodel;
-                        }));
-                    TransformCommand.Execute(new object());
-                    StartProgressCommand = new RelayCommand(async (o) => await StartImport());
+                    MainWindowViewModel.Instance.TopMost = false;
                     progressMessage = "Import in progress, please don’t close this window.";
-                    StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Update:
-                    TransformCommand = new TransformCommand(
-                        new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
-                        {
-                            ((MainWindowViewModel)viewmodel).WhiteBackground = false;
-                            return viewmodel;
-                        }));
-                    TransformCommand.Execute(new object());
+                    MainWindowViewModel.Instance.WhiteBackground = false;
                     OnPropertyChanged(nameof(WhiteBackground));
                     StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
                     progressMessage = "Update in progress, please don’t close this window.";

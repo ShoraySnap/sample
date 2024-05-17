@@ -14,13 +14,7 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         public ModelImportedViewModel()
         {
-            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
-                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
-                {
-                    ((MainWindowViewModel)viewmodel).TopMost = true;
-                    return viewmodel;
-                }));
-            transformMainWindowViewModelCommand.Execute(new object());
+            MainWindowViewModel.Instance.TopMost = true;
         }
     }
 }
