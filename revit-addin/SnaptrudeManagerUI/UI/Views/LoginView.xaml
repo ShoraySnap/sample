@@ -24,7 +24,7 @@
             TextWrapping="Wrap" />
         <Button
             HorizontalAlignment="Center"
-            Command="{Binding LoginCommand}"
+            Command="{Binding AuthCommand}"
             Content="Login to Snaptrude"
             FontFamily="{StaticResource Inter500}"
             Style="{DynamicResource Button_Quaternary}" />
