@@ -42,11 +42,12 @@ namespace SnaptrudeManagerUI
                 using (RegistryKey commandKey = key.CreateSubKey(@"shell\open\command"))
                 {
                     string location = Assembly.GetExecutingAssembly().Location;
-                    location.Replace(".dll", ".exe");
+                    location = location.Replace(".dll", ".exe");
                     commandKey.SetValue(string.Empty, $"\"{location}\" \"%1\"");
                 }
             }
         }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             if (e.Args.Length > 0)
