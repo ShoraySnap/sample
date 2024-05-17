@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -104,7 +105,20 @@ namespace SnaptrudeManagerUI.ViewModels
             UpdateVersion = updateVersion;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
-            CloseCommand = new RelayCommand(new Action<object>((o) => App.Current.Shutdown()));
+            CloseCommand = new RelayCommand(new Action<object>((o) =>
+            {
+                //TO DO: ABORT FOR OTHER OPERATIONS
+                if (CurrentViewModel.GetType().Name == typeof(ProgressViewModel).Name)
+                {
+                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
+                    ProgressViewModel.UpdateProgress(0, "Rolling back changes...");
+                    ProgressViewModel.IsProgressBarIndeterminate = true;
+                }
+                else
+                {
+                    App.Current.Shutdown();
+                }
+            }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
             LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
         }

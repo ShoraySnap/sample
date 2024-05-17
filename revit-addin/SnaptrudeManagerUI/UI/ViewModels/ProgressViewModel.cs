@@ -45,6 +45,21 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private bool isProgressBarIndeterminate;
+
+        public bool IsProgressBarIndeterminate
+        {
+            get { return isProgressBarIndeterminate; }
+            set
+            {
+                isProgressBarIndeterminate = value;
+                OnPropertyChanged("IsProgressBarIndeterminate");
+                OnPropertyChanged("IsProgressValueVisible");
+            }
+        }
+
+        public bool IsProgressValueVisible => !isProgressBarIndeterminate;
+
         public bool WhiteBackground => MainWindowViewModel.Instance.WhiteBackground;
 
         public ICommand StartProgressCommand { get; set; }
@@ -59,6 +74,7 @@ namespace SnaptrudeManagerUI.ViewModels
         /// <param name="failureNavigationService"></param>
         public ProgressViewModel(ProgressViewType progressViewType, NavigationService successNavigationService, NavigationService failureNavigationService)
         {
+            IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
             FailureCommand = new NavigateCommand(failureNavigationService);
             switch (progressViewType)
@@ -85,10 +101,12 @@ namespace SnaptrudeManagerUI.ViewModels
 
             //StartProgressCommand.Execute(null);
             App.OnProgressUpdate += UpdateProgress;
+            App.OnAbortImport += AbortImportToRevit;
         }
 
         public void UpdateProgress(int Value, string message)
         {
+            App.Current.MainWindow.Focus();
             ProgressValue = Value;
             ProgressMessage = message;
         }
@@ -96,6 +114,11 @@ namespace SnaptrudeManagerUI.ViewModels
         public void FinishImportToRevit()
         {
             SuccessCommand.Execute(new object());
+        }
+
+        public void AbortImportToRevit()
+        {
+            FailureCommand.Execute(new object());
         }
 
         public async Task StartExport()

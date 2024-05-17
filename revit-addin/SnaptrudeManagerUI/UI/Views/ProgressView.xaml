@@ -43,12 +43,26 @@
                 Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar
                 Width="240"
+                Height="3"
                 Margin="0,0,0,12"
                 d:Maximum="100"
                 d:Value="64"
+                BorderBrush="Transparent"
+                BorderThickness="0"
+                IsIndeterminate="{Binding IsProgressBarIndeterminate}"
                 Style="{StaticResource RoundedProgressBar}"
-                Value="{Binding ProgressValue}" />
-            <TextBlock HorizontalAlignment="Center" TextOptions.TextRenderingMode="Aliased">
+                Value="{Binding ProgressValue}">
+                <ProgressBar.Clip>
+                    <RectangleGeometry
+                        RadiusX="1.5"
+                        RadiusY="1.5"
+                        Rect="0,0,240,3" />
+                </ProgressBar.Clip>
+            </ProgressBar>
+            <TextBlock
+                HorizontalAlignment="Center"
+                TextOptions.TextRenderingMode="Aliased"
+                Visibility="{Binding IsProgressValueVisible, Converter={StaticResource BoolToVisibility}}">
                 <Run Text="{Binding ProgressValue}" /><Run d:Text="64%" Text="%" />
                 <TextBlock.Style>
                     <Style TargetType="{x:Type TextBlock}">

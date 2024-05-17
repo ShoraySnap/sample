@@ -33,6 +33,7 @@ namespace TrudeImporter
 
         public static void Import(TrudeProperties trudeProperties)
         {
+            Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
             GlobalVariables.MissingWindowFamiliesCount.Clear();
 
@@ -72,7 +73,10 @@ namespace TrudeImporter
             }
             else
             {
-                // TODO: ROLLBACK IMPORTS
+                if (GlobalVariables.Transaction.GetStatus() == TransactionStatus.Started)
+                {
+                    GlobalVariables.Transaction.RollBack();
+                }
             }
 #endif
         }

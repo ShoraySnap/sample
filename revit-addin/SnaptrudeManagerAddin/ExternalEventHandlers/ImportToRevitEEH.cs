@@ -49,18 +49,26 @@ namespace SnaptrudeManagerAddin
                         GlobalVariables.Transaction = t;
                         t.Start();
                         status = ImportTrude();
-                        t.Commit();
+                        if (!t.HasEnded()) t.Commit();
                     }
-                    tg.Assimilate();
+                    if (TrudeImporterMain.Abort)
+                    {
+                        tg.RollBack();
+                    }
+                    else
+                    {
+                        tg.Assimilate();
+                    }
                 }
 
-
-                if (status)
+                if (status && !TrudeImporterMain.Abort)
                 {
-                    ShowSuccessDialogue();
                     TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
                 }
-                //if (status) MainWindowViewModel.Instance.ProgressViewModel.SuccessCommand.Execute(null);
+                else
+                {
+                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
+                }
                 GlobalVariables.cleanGlobalVariables();
             }
             catch (Exception ex)

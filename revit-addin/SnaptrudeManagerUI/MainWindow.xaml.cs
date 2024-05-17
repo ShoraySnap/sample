@@ -39,8 +39,7 @@ namespace SnaptrudeManagerUI
             if(e.ChangedButton == MouseButton.Right)
             {
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
-                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
-                MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(0, "Aborting");
+                
             }
         }
     }

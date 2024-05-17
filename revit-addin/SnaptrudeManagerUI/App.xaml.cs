@@ -24,6 +24,7 @@ namespace SnaptrudeManagerUI
         private DispatcherTimer timer = new DispatcherTimer();
 
         public static Action<int, string> OnProgressUpdate;
+        public static Action OnAbortImport;
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -118,6 +119,12 @@ namespace SnaptrudeManagerUI
                                 MainWindowViewModel.Instance.ProgressViewModel.FinishImportToRevit();
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED:
+                            {
+                                logger.Info("Import to revit finished!");
+                                OnAbortImport?.Invoke();
+                            }
+                            break;
                     }
                 }
             }
@@ -149,6 +156,7 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
 
             TrudeEventSystem.Instance.Start();
 

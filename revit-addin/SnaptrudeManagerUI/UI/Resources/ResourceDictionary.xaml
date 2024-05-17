@@ -73,85 +73,15 @@
     </Style>
     <converters:ProgressBarWidthConverter x:Key="ProgressBarWidthConverter" />
     <Style x:Key="RoundedProgressBar" TargetType="{x:Type ProgressBar}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ProgressBar}">
-                    <Grid
-                        Height="4"
-                        MinWidth="50"
-                        Background="{TemplateBinding Background}">
-                        <Border
-                            x:Name="PART_Track"
-                            Width="238"
-                            Height="2"
-                            Background="{StaticResource Colors/Neutral/300}"
-                            BorderThickness="0"
-                            CornerRadius="1" />
-                        <Border
-                            x:Name="PART_Back"
-                            Margin="{TemplateBinding BorderThickness}"
-                            HorizontalAlignment="Left"
-                            Background="{StaticResource Colors/Blue/300}"
-                            BorderThickness="0"
-                            CornerRadius="1">
-                            <Border.Width>
-                                <MultiBinding Converter="{StaticResource ProgressBarWidthConverter}">
-                                    <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}" />
-                                    <Binding Path="Minimum" RelativeSource="{RelativeSource TemplatedParent}" />
-                                    <Binding Path="Maximum" RelativeSource="{RelativeSource TemplatedParent}" />
-                                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource TemplatedParent}" />
-                                </MultiBinding>
-                            </Border.Width>
-                        </Border>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <DataTrigger Binding="{Binding WhiteBackground}" Value="false">
-                            <Setter TargetName="PART_Track" Property="Background" Value="{StaticResource Colors/Neutral/600}" />
-                            <Setter TargetName="PART_Back" Property="Background" Value="White" />
-                        </DataTrigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+        <Setter Property="Foreground" Value="{StaticResource Colors/Blue/300}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding WhiteBackground}" Value="false">
+                <Setter Property="Background" Value="{StaticResource Colors/Neutral/600}" />
+                <Setter Property="Foreground" Value="White" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
-    <Style x:Key="RoundedWhiteProgressBar" TargetType="{x:Type ProgressBar}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ProgressBar}">
-                    <Grid
-                        Height="4"
-                        MinWidth="50"
-                        Background="{TemplateBinding Background}">
-                        <Border
-                            x:Name="PART_Track"
-                            Width="238"
-                            Height="2"
-                            Background="{StaticResource Colors/Neutral/600}"
-                            BorderThickness="0"
-                            CornerRadius="1" />
-                        <Border
-                            Margin="{TemplateBinding BorderThickness}"
-                            HorizontalAlignment="Left"
-                            Background="White"
-                            BorderThickness="0"
-                            CornerRadius="1">
-                            <Border.Width>
-                                <MultiBinding Converter="{StaticResource ProgressBarWidthConverter}">
-                                    <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}" />
-                                    <Binding Path="Minimum" RelativeSource="{RelativeSource TemplatedParent}" />
-                                    <Binding Path="Maximum" RelativeSource="{RelativeSource TemplatedParent}" />
-                                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource TemplatedParent}" />
-                                </MultiBinding>
-                            </Border.Width>
-                        </Border>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Background" Value="Transparent" />
-    </Style>
-
     <Style x:Key="Button_Primary" TargetType="{x:Type Button}">
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/0}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
