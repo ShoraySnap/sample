@@ -24,6 +24,12 @@ namespace SnaptrudeManagerUI.ViewModels
             MainWindowViewModel.Instance.WhiteBackground = false;
             LoginCommand = new NavigateCommand(homeNavigationService);
             AuthCommand = new RelayCommand(Login);
+            App.OnSuccessfullLogin += OnSuccessfullLogin;
+        }
+
+        private void OnSuccessfullLogin()
+        {
+            LoginCommand.Execute(new object());
         }
 
         private async void Login(object parameter)
@@ -38,27 +44,6 @@ namespace SnaptrudeManagerUI.ViewModels
                     Verb = "open"
                 };
                 Process.Start(ps);
-
-                int currentTry = 0;
-                int limitTries = 60;
-                while (!File.Exists("text.txt"))
-                {
-                    if (currentTry > limitTries)
-                    {
-                        break;
-                    }
-                    else if (currentTry < limitTries)
-                    {
-
-                    }
-
-                    await Task.Delay(1000);
-
-                    currentTry++;
-                }
-
-                //userCredentials = GetSavedUserCredentials();
-                LoginCommand.Execute(parameter);
             });
         }
     }

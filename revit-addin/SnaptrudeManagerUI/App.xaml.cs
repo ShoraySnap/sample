@@ -30,6 +30,7 @@ namespace SnaptrudeManagerUI
         private DispatcherTimer timer = new DispatcherTimer();
 
         public static Action<int, string> OnProgressUpdate;
+        public static Action OnSuccessfullLogin;
         public static Action OnAbortImport;
 
         public static void RegisterProtocol()
@@ -130,6 +131,14 @@ namespace SnaptrudeManagerUI
                                 logger.Info("data : \"{0}\"", data);
                             }
                             break;
+                        case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
+                            {
+                                logger.Info("Got data incoming from browser!");
+                                string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
+                                logger.Info("data : \"{0}\"", data);
+                                OnSuccessfullLogin?.Invoke();
+                            }
+                            break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START:
                             {
                                 logger.Info("Import to revit started!");
@@ -181,6 +190,9 @@ namespace SnaptrudeManagerUI
         private void SetupEvents()
         {
             TrudeEventSystem.Instance.Init();
+            
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
+
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_PLUGIN);

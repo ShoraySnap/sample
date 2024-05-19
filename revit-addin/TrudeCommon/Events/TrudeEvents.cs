@@ -25,6 +25,9 @@ namespace TrudeCommon.Events
         // COMMUNICATION EVENTS
         DATA_FROM_PLUGIN,
         DATA_FROM_MANAGER_UI,
+
+        // BROWSER EVENTS
+        BROWSER_LOGIN_CREDENTIALS
     }
 
     public static class TrudeEventUtils
