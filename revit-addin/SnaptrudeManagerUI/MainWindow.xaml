@@ -87,13 +87,13 @@
                         FontFamily="{StaticResource Inter400}"
                         Opacity="0.66"
                         Text="{Binding CurrentVersion, StringFormat=' v{0}'}" />
-
                     <Button
                         Padding="10"
                         Background="Transparent"
                         BorderThickness="0"
                         Command="{Binding CloseCommand}"
                         DockPanel.Dock="Right"
+                        Visibility="{Binding CloseButtonVisible, Converter={StaticResource BoolToVisibility}}"
                         Style="{DynamicResource Button_6}">
                         <Grid>
                             <Grid Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">

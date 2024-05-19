@@ -82,6 +82,9 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public Action CloseAction { get; set; }
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
+        public bool CloseButtonVisible =>
+            CurrentViewModel.GetType().Name != "ProgressViewModel";
+
         public bool LoginButtonVisible => 
             !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && 
             !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
@@ -107,17 +110,7 @@ namespace SnaptrudeManagerUI.ViewModels
             this.navigationStore = navigationStore;
             CloseCommand = new RelayCommand(new Action<object>((o) =>
             {
-                //TO DO: ABORT FOR OTHER OPERATIONS
-                if (CurrentViewModel.GetType().Name == typeof(ProgressViewModel).Name)
-                {
-                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
-                    ProgressViewModel.UpdateProgress(0, "Rolling back changes...");
-                    ProgressViewModel.IsProgressBarIndeterminate = true;
-                }
-                else
-                {
-                    App.Current.Shutdown();
-                }
+                App.Current.Shutdown();
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
             LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
@@ -127,6 +120,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             OnPropertyChanged(nameof(CurrentViewModel));
             OnPropertyChanged(nameof(LoginButtonVisible));
+            OnPropertyChanged(nameof(CloseButtonVisible));
         }
     }
 }
