@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Stores;
 using System;
@@ -34,6 +35,14 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
+
+        public string Username
+        {
+            get
+            {
+                return Store.GetData()["fullname"];
+            }
+        }
 
         private string currentVersion;
 

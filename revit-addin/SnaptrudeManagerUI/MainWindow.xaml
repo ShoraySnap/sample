@@ -160,7 +160,7 @@
                                             VerticalAlignment="Center"
                                             FontFamily="{StaticResource Inter500}"
                                             Foreground="{StaticResource Colors/Neutral/800}"
-                                            Text="Pooja G." />
+                                            Text="{Binding Username}" />
                                         <Grid
                                             Grid.Column="2"
                                             Margin="8,0"
