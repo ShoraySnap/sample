@@ -89,6 +89,7 @@ namespace TrudeSerializer.Utils
             }
             for (int i = 0; i < keys.Count; i++)
             {
+                if (keys[i] == "") continue;
                 dataDict.Add(keys[i], data[i]);
             }
 
