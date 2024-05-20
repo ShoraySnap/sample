@@ -13,6 +13,7 @@ namespace TrudeSerializer.Components
         public string subCategory;
         public bool hasParentElement;
         public List<string> subComponent;
+        public double offset;
         public static bool IsGenericModel(Element element)
         {
             string category = element?.Category?.Name;
@@ -23,7 +24,7 @@ namespace TrudeSerializer.Components
             return category.Contains("Generic Models");
         }
 
-        public TrudeGenericModel(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, bool hasParentElement, List<string> subComponents) : base(elementId, "GenericModel", family, level)
+        public TrudeGenericModel(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, bool hasParentElement, List<string> subComponents, double offset) : base(elementId, "GenericModel", family, level)
         {
             this.subType = subType;
             this.subCategory = subCategory;
@@ -32,6 +33,7 @@ namespace TrudeSerializer.Components
             this.isInstance = true;
             this.subComponent = subComponents;
             this.hasParentElement = hasParentElement;
+            this.offset = offset;
         }
 
         public static TrudeGenericModel GetSerializedComponent(SerializedTrudeData serializedData, Element element)
@@ -60,6 +62,8 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
+            double offset = InstanceUtility.GetOffset(element);
+
             bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
@@ -84,7 +88,7 @@ namespace TrudeSerializer.Components
                 ComponentHandler.Instance.AddFamily(serializedData, ComponentHandler.FamilyFolder.GenericModel, familyName, genericModel);
             }
 
-            TrudeGenericModel instance = new TrudeGenericModel(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);
+            TrudeGenericModel instance = new TrudeGenericModel(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents, offset);
 
             return instance;
         }
