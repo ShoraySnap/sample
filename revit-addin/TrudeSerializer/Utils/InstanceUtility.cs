@@ -1,12 +1,21 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
     internal class InstanceUtility
     {
+        private static Random random = new Random();
+
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
         public static string GetRevitName(string subType, string family, Dimensions dimension, bool isFaceFlipped)
         {
             string name = subType;
@@ -155,6 +164,10 @@ namespace TrudeSerializer.Components
                 if (element is FamilyInstance familyInstance)
                 {
                     family = familyInstance?.Symbol?.FamilyName;
+                }
+                else if (element is DirectShape directShape)
+                {
+                    family = RandomString(5);
                 }
             }
             catch (Exception e)
