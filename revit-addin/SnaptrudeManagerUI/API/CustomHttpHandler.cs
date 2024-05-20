@@ -31,6 +31,7 @@ namespace SnaptrudeManagerUI.API
                 if (!string.IsNullOrEmpty(accessToken))
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    request.Headers.Add("auth", "Bearer " + accessToken);
                 }
             }
 
@@ -57,7 +58,9 @@ namespace SnaptrudeManagerUI.API
                         if (tokenResult.ContainsKey("accessToken"))
                         {
                             // Update access token and retry the original request
+                            //TODO: update config.json with refreshtoken, fullname and userId; and not just accessToken
                             Store.Set("accessToken", tokenResult["accessToken"]);
+                            Store.Save();
 
                             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult["accessToken"]);
                             return await base.SendAsync(request, cancellationToken);

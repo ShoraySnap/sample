@@ -16,6 +16,7 @@ using TrudeCommon.Logging;
 using TrudeCommon.Events;
 using TrudeCommon.DataTransfer;
 using System.Collections.Concurrent;
+using System.IO;
 
 namespace SnaptrudeManagerUI
 {
@@ -51,20 +52,28 @@ namespace SnaptrudeManagerUI
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            if (e.Args.Length > 0)
-            {
-                var queryParams = HttpUtility.ParseQueryString(new Uri(e.Args[0]).Query);
-                var dataEncoded = queryParams["data"];
-                var data = HttpUtility.UrlDecode(dataEncoded);
-                UserCredentialsModel userCredentialsModel = JsonConvert.DeserializeObject<UserCredentialsModel>(data);
-            }
-
-            base.OnStartup(e);
-            LogsConfig.Initialize("ManagerUI");
-
             //WPFTODO: CHECKFORUPDATES
             var currentVersion = "2.2";
             var updateVersion = "2.3";
+
+            if (e.Args.Length > 0)
+            {
+                try
+                {
+                    var queryParams = HttpUtility.ParseQueryString(new Uri(e.Args[0]).Query);
+                    var dataEncoded = queryParams["data"];
+                    var data = HttpUtility.UrlDecode(dataEncoded);
+                    File.WriteAllText(Constants.AUTH_FILE, data);
+                    App.Current.Shutdown();
+                }
+                catch (Exception ex)
+                {
+                    updateVersion = ex.ToString();
+                }
+            }
+            base.OnStartup(e);
+            LogsConfig.Initialize("ManagerUI");
+
 
             RegisterProtocol();
 

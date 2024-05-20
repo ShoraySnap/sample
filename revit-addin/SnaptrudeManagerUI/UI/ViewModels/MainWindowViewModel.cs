@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Stores;
 using System;
@@ -36,6 +37,15 @@ namespace SnaptrudeManagerUI.ViewModels
         private NavigationStore navigationStore;
         
         public string ImportPath { get; set; }
+
+        public string Username
+        {
+            get
+            {
+                return Store.GetData()["fullname"];
+            }
+        }
+
         private string currentVersion;
 
         public string CurrentVersion
