@@ -5,6 +5,7 @@ using System.Windows;
 using TrudeCommon.DataTransfer;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
+using System.Web;
 
 namespace SnaptrudeManagerUI
 {
@@ -32,8 +33,10 @@ namespace SnaptrudeManagerUI
             {
                 LogsConfig.Initialize("DummyManagerUI");
                 TransferManager = new DataTransferManager();
-                string arguments = string.Join(" ", args);
-                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS, arguments, TransferManager);
+                var queryParams = HttpUtility.ParseQueryString(new Uri(args[0]).Query);
+                var dataEncoded = queryParams["data"];
+                var data = HttpUtility.UrlDecode(dataEncoded) + "";
+                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS, data, TransferManager);
                 Thread.Sleep(10000);
                 LogsConfig.Shutdown();
             }

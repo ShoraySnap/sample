@@ -38,11 +38,18 @@ namespace SnaptrudeManagerUI.ViewModels
         
         public string ImportPath { get; set; }
 
+        private string username;
         public string Username
         {
             get
             {
-                return Store.GetData()["fullname"];
+                username = Store.GetData()["fullname"];
+                return username;
+            }
+            set
+            {
+                username = value;
+                OnPropertyChanged("Username");
             }
         }
 
@@ -96,8 +103,8 @@ namespace SnaptrudeManagerUI.ViewModels
         public bool CloseButtonVisible =>
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
-        public bool LoginButtonVisible => 
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && 
+        public bool LoginButtonVisible =>
+            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" &&
             !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 

@@ -34,48 +34,14 @@ namespace SnaptrudeManagerUI
         public static Action OnSuccessfullLogin;
         public static Action OnAbortImport;
 
-        public static void RegisterProtocol()
-        {
-            using (RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Classes\\" + Constants.SNAPTRUDE_PROTOCOL))
-            {
-                key.SetValue(string.Empty, "URL:Snaptrude Manager");
-                key.SetValue("URL Protocol", string.Empty);
-
-                using (RegistryKey commandKey = key.CreateSubKey(@"shell\open\command"))
-                {
-                    string location = Assembly.GetExecutingAssembly().Location;
-                    location = location.Replace(".dll", ".exe");
-                    commandKey.SetValue(string.Empty, $"\"{location}\" \"%1\"");
-                }
-            }
-        }
-
         protected override void OnStartup(StartupEventArgs e)
         {
-            //WPFTODO: CHECKFORUPDATES
-            var currentVersion = "2.2";
-            var updateVersion = "2.3";
-
-            if (e.Args.Length > 0)
-            {
-                try
-                {
-                    var queryParams = HttpUtility.ParseQueryString(new Uri(e.Args[0]).Query);
-                    var dataEncoded = queryParams["data"];
-                    var data = HttpUtility.UrlDecode(dataEncoded);
-                    File.WriteAllText(Constants.AUTH_FILE, data);
-                    App.Current.Shutdown();
-                }
-                catch (Exception ex)
-                {
-                    updateVersion = ex.ToString();
-                }
-            }
             base.OnStartup(e);
             LogsConfig.Initialize("ManagerUI");
 
-
-            RegisterProtocol();
+            //WPFTODO: CHECKFORUPDATES
+            var currentVersion = "2.2";
+            var updateVersion = "2.3";
 
             NavigationStore navigationStore = NavigationStore.Instance;
             MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, true);
@@ -145,6 +111,9 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Got data incoming from browser!");
                                 string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
                                 logger.Info("data : \"{0}\"", data);
+                                Dictionary<string, string> userCredentialsModel = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+                                Store.SetAllAndSave(userCredentialsModel);
+                                MainWindowViewModel.Instance.Username = Store.GetData()["fullname"];
                                 OnSuccessfullLogin?.Invoke();
                             }
                             break;
@@ -199,7 +168,7 @@ namespace SnaptrudeManagerUI
         private void SetupEvents()
         {
             TrudeEventSystem.Instance.Init();
-            
+
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);

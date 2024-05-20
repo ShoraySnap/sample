@@ -30,7 +30,7 @@ namespace SnaptrudeManagerUI.API
                 var accessToken = Store.GetData()["accessToken"];
                 if (!string.IsNullOrEmpty(accessToken))
                 {
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    //request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                     request.Headers.Add("auth", "Bearer " + accessToken);
                 }
             }

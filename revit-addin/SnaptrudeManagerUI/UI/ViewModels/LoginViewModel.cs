@@ -35,8 +35,6 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private async void Login(object parameter)
         {
-            UserCredentialsModel userCredentials = null;
-
             await Task.Run(async () =>
             {
                 var ps = new ProcessStartInfo(Urls.Get("snaptrudeReactUrl") + "/login?externalAuth=revit")
@@ -45,25 +43,6 @@ namespace SnaptrudeManagerUI.ViewModels
                     Verb = "open"
                 };
                 Process.Start(ps);
-
-                int currentTry = 0;
-                int limitTries = 60;
-                while (currentTry < limitTries)
-                {
-                    if (File.Exists(Constants.AUTH_FILE))
-                        break;
-
-                    await Task.Delay(1000);
-                    currentTry++;
-                }
-                if (File.Exists(Constants.AUTH_FILE))
-                {
-                    string data = File.ReadAllText(Constants.AUTH_FILE);
-                    Dictionary<string, string> userCredentialsModel = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
-                    Store.SetAllAndSave(userCredentialsModel);
-                    File.Delete(Constants.AUTH_FILE);
-                    LoginCommand.Execute(parameter);
-                }
             });
         }
     }
