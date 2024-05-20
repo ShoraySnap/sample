@@ -1,6 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
-using System.Linq;
+using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Utils
 {
@@ -17,7 +17,6 @@ namespace TrudeSerializer.Utils
                 {
                     hasParentElement = true;
                 }
-
             }
 
             if (!ignoreAssemblies)
@@ -32,7 +31,7 @@ namespace TrudeSerializer.Utils
                 }
             }
 
-            if(!ignoreModelGroups)
+            if (!ignoreModelGroups)
             {
                 // Group (SuperComponent)
                 ElementId groupId = element?.GroupId;
@@ -51,8 +50,6 @@ namespace TrudeSerializer.Utils
         {
             List<string> subComponentIds = new List<string> { };
 
-            IList<ElementId> dependantElements = element.GetDependentElements(null);
-
             if (element is FamilyInstance)
             {
                 ICollection<ElementId> subComponents = (element as FamilyInstance).GetSubComponentIds();
@@ -67,20 +64,21 @@ namespace TrudeSerializer.Utils
                 }
             }
 
-            if (element is AssemblyInstance)
+            if (element is AssemblyInstance || element is Group)
             {
-                if (dependantElements.Count > 0)
-                {
-                    subComponentIds = dependantElements.Select(dependantElement => dependantElement.ToString()).ToList();
-                    return subComponentIds;
-                }
-            }
+                IList<ElementId> dependantElements = element.GetDependentElements(null);
 
-            if (element is Group)
-            {
                 if (dependantElements.Count > 0)
                 {
-                    subComponentIds = dependantElements.Select(dependantElement => dependantElement.ToString()).ToList();
+                    for (int i = 0; i < dependantElements.Count; i++)
+                    {
+                        Element dependantElement = GlobalVariables.CurrentDocument.GetElement(dependantElements[i]);
+                        if (TrudeFurniture.IsFurnitureCategory(dependantElement))
+                        {
+                            subComponentIds.Add(dependantElement.Id.ToString());
+                        }
+                    }
+
                     return subComponentIds;
                 }
             }
