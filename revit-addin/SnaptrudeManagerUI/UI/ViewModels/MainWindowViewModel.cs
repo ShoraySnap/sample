@@ -34,7 +34,8 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
-
+        
+        public string ImportPath { get; set; }
         private string currentVersion;
 
         public string CurrentVersion
