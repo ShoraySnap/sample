@@ -13,6 +13,7 @@ namespace TrudeSerializer.Components
         public string subCategory;
         public bool hasParentElement;
         public List<string> subComponent;
+
         public static bool IsGenericModel(Element element)
         {
             string category = element?.Category?.Name;
@@ -60,13 +61,13 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
-            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
+            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element, true, true);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
             string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
 
             bool isFamilyPresent = serializedData.GenericModel.HasFamily(familyName);
-            TrudeFamily genericModel;
+            TrudeFamily genericModel = null;
             bool shouldUpdateFamily = false;
             if (isFamilyPresent)
             {
@@ -85,7 +86,6 @@ namespace TrudeSerializer.Components
             }
 
             TrudeGenericModel instance = new TrudeGenericModel(elementId, level, family, subType, subCategory, dimension, transform, hasParentElement, subComponents);
-
             return instance;
         }
     }
