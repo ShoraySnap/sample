@@ -42,7 +42,7 @@ namespace TrudeSerializer.Importer
             }
         }
 
-        /*! 
+        /*!
         * extracts levels from the document and adds them to the `serializedData`
         * @param serializedData
         * @param doc document
@@ -51,7 +51,6 @@ namespace TrudeSerializer.Importer
         {
             foreach (Level level in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>())
             {
-                TrudeLogger.Instance.CountInput(level);
                 if (level == null)
                 {
                     continue;
@@ -59,13 +58,12 @@ namespace TrudeSerializer.Importer
                 TrudeLevel levelComponent = TrudeLevel.GetSerializedComponent(level);
                 if (levelComponent.elementId != "-1")
                 {
-                    TrudeLogger.Instance.CountOutput(levelComponent, level);
                     serializedData.AddLevel(levelComponent);
                 }
             }
         }
 
-        /*! 
+        /*!
         * Determines the type of the element and creates the corresponding TrudeComponent
         * Also sets the family type in `serializedData`, if it exists for that element type
         * @param serializedData
@@ -123,7 +121,7 @@ namespace TrudeSerializer.Importer
             return TrudeMass.GetSerializedComponent(serializedData, element);
         }
 
-        /*! 
+        /*!
         * Add the TrudeComponent object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler::GetComponent) to the `serializedData`
         * @param serializedData
         * @param component
@@ -132,7 +130,7 @@ namespace TrudeSerializer.Importer
         public void AddComponent(SerializedTrudeData serializedData, TrudeComponent component, Element element)
         {
             string instanceId = component.elementId.ToString();
-            if (component is TrudeWall) 
+            if (component is TrudeWall)
             {
                 TrudeWall wall = component as TrudeWall;
                 serializedData.AddWall(wall);
@@ -196,7 +194,7 @@ namespace TrudeSerializer.Importer
             TrudeLogger.Instance.CountOutput(component, element);
         }
 
-        /*! 
+        /*!
         * Add the RevitLink's TrudeMass object received from [GetComponent](@ref TrudeSerializer.Importer::ComponentHandler::GetComponent) to the `serializedData`
         * @param serializedData
         * @param mass
@@ -206,7 +204,6 @@ namespace TrudeSerializer.Importer
         public void AddComponent(SerializedTrudeData serializedData, TrudeMass mass, string revitLink, string elementId)
         {
             serializedData.RevitLinks[revitLink].Add(elementId, mass);
-            TrudeLogger.Instance.CountOutputRevitLink();
         }
 
         /*!
@@ -218,18 +215,20 @@ namespace TrudeSerializer.Importer
         */
         public void AddFamily(SerializedTrudeData serializedData, FamilyFolder folder, string familyName, TrudeFamily family)
         {
-
             switch (folder)
             {
                 case FamilyFolder.Furniture:
                     serializedData.AddFurnitureFamily(familyName, family);
                     break;
+
                 case FamilyFolder.GenericModel:
                     serializedData.AddGenericModelFamily(familyName, family);
                     break;
+
                 case FamilyFolder.Doors:
                     serializedData.AddDoorFamily(familyName, family);
                     break;
+
                 case FamilyFolder.Windows:
                     serializedData.AddWindowFamily(familyName, family);
                     break;
@@ -249,12 +248,15 @@ namespace TrudeSerializer.Importer
                 case FamilyFolder.Furniture:
                     serializedData.Furniture.RemoveFamily(familyName);
                     break;
+
                 case FamilyFolder.GenericModel:
                     serializedData.GenericModel.RemoveFamily(familyName);
                     break;
+
                 case FamilyFolder.Doors:
                     serializedData.Doors.RemoveFamily(familyName);
                     break;
+
                 case FamilyFolder.Windows:
                     serializedData.Windows.RemoveFamily(familyName);
                     break;

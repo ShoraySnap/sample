@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
-using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
@@ -105,7 +104,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * Init for RevitLink element export - sets current doc and currentLink, checks for circular dependency. 
+        * Init for RevitLink element export - sets current doc and currentLink, checks for circular dependency.
         * Part of the export pipeline, called after onElementBegin at the start each time a linked project element is encountered.
         * @param node the current LinkNode
         * @return RenderNodeAction Proceed or Skip
@@ -164,7 +163,7 @@ namespace TrudeSerializer
         {
             Element element = doc.GetElement(elementId);
             string category = element?.Category?.Name;
-            if(category == "Levels")
+            if (category == "Levels")
             {
                 return RenderNodeAction.Skip;
             }
@@ -177,7 +176,6 @@ namespace TrudeSerializer
                 {
                     return RenderNodeAction.Skip;
                 }
-                TrudeLogger.Instance.CountInputRevitLink(currentLink.name);
             }
             else
             {
@@ -239,7 +237,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * Adds revitLink element to serializedSnaptrudeData. 
+        * Adds revitLink element to serializedSnaptrudeData.
         * Also checks of undesirable elements like Levels, Model Groups, Divisions
         * @param elementId
         * @param element
@@ -309,7 +307,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * Used to extract material from the face. 
+        * Used to extract material from the face.
         * Part of the export pipeline, called after onElementBegin / onInstanceBegin for each element encountered.
         * @param node MaterialNode
         */
@@ -331,7 +329,7 @@ namespace TrudeSerializer
         }
 
         /*!
-        * Used to extract vertices, faces and uvs for the current face. 
+        * Used to extract vertices, faces and uvs for the current face.
         * Part of the export pipeline, called after assigning material to the elemnt.
         * @param node PolymeshTopology
         */
