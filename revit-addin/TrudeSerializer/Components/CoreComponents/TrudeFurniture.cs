@@ -37,7 +37,17 @@ namespace TrudeSerializer.Components
             {
                 return false;
             }
+
             return Array.Exists(funitureSubCategories, element.Category.Name.Contains);
+        }
+
+        public static bool IsValidFurnitureCategoryForCount(Element element)
+        {
+            // Skiping count of group and assemblies
+            bool isFurnitureCategory = IsFurnitureCategory(element);
+            if (!isFurnitureCategory) return false;
+            if (element is Group || element is AssemblyInstance) return false;
+            return isFurnitureCategory;
         }
 
         public Dimensions dimension;
@@ -70,6 +80,15 @@ namespace TrudeSerializer.Components
             string family = InstanceUtility.GetFamily(element);
             string subCategory = element.Category.Name;
 
+            List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
+            if (element is Group || element is AssemblyInstance)
+            {
+                if (subComponents.Count == 0)
+                {
+                    return GetDefaultComponent();
+                }
+            }
+
             List<double> position = InstanceUtility.GetPosition(element);
             double rotation = InstanceUtility.GetRotation(element);
             List<double> center = InstanceUtility.GetCustomCenterPoint(element);
@@ -88,8 +107,7 @@ namespace TrudeSerializer.Components
 
             double offset = InstanceUtility.GetOffset(element);
 
-            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
-            List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
+            bool hasParentElement = HasParentElement(element);
 
             string familyName = InstanceUtility.GetRevitName(subType, family, dimension, isFaceFlipped);
 
@@ -117,5 +135,25 @@ namespace TrudeSerializer.Components
             return instance;
         }
 
+        private static bool HasParentElement(Element element)
+        {
+            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element);
+            FamilyInstance instance = element as FamilyInstance;
+            if (instance == null)
+            {
+                return hasParentElement;
+            }
+
+            Element superComponent = instance.SuperComponent;
+            if (superComponent == null)
+            {
+                return hasParentElement;
+            }
+
+            bool isParentFurniture = IsFurnitureCategory(superComponent);
+            hasParentElement = isParentFurniture;
+
+            return hasParentElement;
+        }
     }
 }
