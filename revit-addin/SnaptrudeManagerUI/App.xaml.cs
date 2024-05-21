@@ -34,8 +34,25 @@ namespace SnaptrudeManagerUI
         public static Action OnSuccessfullLogin;
         public static Action OnAbortImport;
 
+        public static void RegisterProtocol()
+        {
+            using (RegistryKey key = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Classes\\" + Constants.SNAPTRUDE_PROTOCOL))
+            {
+                key.SetValue(string.Empty, "URL:Snaptrude Manager");
+                key.SetValue("URL Protocol", string.Empty);
+
+                using (RegistryKey commandKey = key.CreateSubKey(@"shell\open\command"))
+                {
+                    string location = Assembly.GetExecutingAssembly().Location;
+                    location = location.Replace(".dll", ".exe");
+                    commandKey.SetValue(string.Empty, $"\"{location}\" \"%1\"");
+                }
+            }
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            RegisterProtocol();
             base.OnStartup(e);
             LogsConfig.Initialize("ManagerUI");
 
