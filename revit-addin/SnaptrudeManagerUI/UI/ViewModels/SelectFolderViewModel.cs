@@ -104,6 +104,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 PopulateSubFolders(subFolderViewModels);
                 if (addBreadcrumbs == true)
                 {
+                    parentFolder.Name = parentFolder.Name.Replace("_", "__"); //https://www.charlespetzold.com/blog/2006/01/061004.html
                     Breadcrumb.Add(parentFolder);
                     setExportButton();
                 }
