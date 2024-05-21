@@ -35,7 +35,9 @@ namespace SnaptrudeManagerUI.API
             try
             {
                 var jsonData = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonData);
+                var parsedData = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonData);
+                if (parsedData == null) throw new Exception("parsed config.json data is null.");
+                return parsedData;
             }
             catch (Exception ex)
             {
@@ -94,6 +96,19 @@ namespace SnaptrudeManagerUI.API
         public static void Flush()
         {
             CreateEmptyConfig();
+        }
+
+        public static bool isDataValid()
+        {
+            if (!data.ContainsKey("fullname") ||
+                !data.ContainsKey("accessToken") ||
+                !data.ContainsKey("refreshToken"))
+            {
+
+                CreateEmptyConfig();
+                return false;
+            }
+            return true;
         }
     }
 

@@ -126,12 +126,26 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
                             {
                                 logger.Info("Got data incoming from browser!");
-                                string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
-                                logger.Info("data : \"{0}\"", data);
-                                Dictionary<string, string> userCredentialsModel = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
-                                Store.SetAllAndSave(userCredentialsModel);
-                                MainWindowViewModel.Instance.Username = Store.GetData()["fullname"];
-                                OnSuccessfullLogin?.Invoke();
+                                try
+                                {
+                                    string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
+                                    logger.Info("data : \"{0}\"", data);
+                                    Dictionary<string, string> userCredentialsModel = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+                                    Store.SetAllAndSave(userCredentialsModel);
+
+                                    if (!Store.isDataValid())
+                                    {
+                                        throw new Exception("Missing required data in login credentials.");
+                                    }
+
+                                    MainWindowViewModel.Instance.Username = Store.GetData()["fullname"];
+                                    OnSuccessfullLogin?.Invoke();
+                                }
+                                catch (Exception ex)
+                                {
+                                    logger.Error(ex.Message);
+                                    // TODO: that failed. try again UI.
+                                }
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START:

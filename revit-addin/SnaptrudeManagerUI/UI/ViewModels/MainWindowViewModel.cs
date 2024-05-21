@@ -44,7 +44,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             get
             {
-                username = Store.GetData()["fullname"];
+                username = Store.Get("fullname") as string;
                 return username;
             }
             set
