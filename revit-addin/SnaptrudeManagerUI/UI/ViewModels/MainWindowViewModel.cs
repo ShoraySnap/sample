@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TrudeCommon.Events;
+using SnaptrudeManagerUI.UI.Helpers;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -35,7 +36,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
-        
+
         public string ImportPath { get; set; }
 
         private string username;
@@ -132,6 +133,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
             LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
+            SwitchAccountCommand = new RelayCommand(LoginHelper.Login);
         }
 
         private void OnCurrentViewModelChanged()

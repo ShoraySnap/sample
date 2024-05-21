@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json;
+using SnaptrudeManagerUI.UI.Helpers;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -24,26 +25,13 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             MainWindowViewModel.Instance.WhiteBackground = false;
             LoginCommand = new NavigateCommand(homeNavigationService);
-            AuthCommand = new RelayCommand(Login);
+            AuthCommand = new RelayCommand(LoginHelper.Login);
             App.OnSuccessfullLogin += OnSuccessfullLogin;
         }
 
         private void OnSuccessfullLogin()
         {
             LoginCommand.Execute(new object());
-        }
-
-        private async void Login(object parameter)
-        {
-            await Task.Run(async () =>
-            {
-                var ps = new ProcessStartInfo(Urls.Get("snaptrudeReactUrl") + "/login?externalAuth=revit")
-                {
-                    UseShellExecute = true,
-                    Verb = "open"
-                };
-                Process.Start(ps);
-            });
         }
     }
 }
