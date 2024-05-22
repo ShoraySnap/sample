@@ -44,11 +44,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             get
             {
-<<<<<<< Updated upstream
-                username = Store.Get("fullname") as string;
-=======
                 username = Store.Get("fullname")?.ToString();
->>>>>>> Stashed changes
                 return username;
             }
             set
