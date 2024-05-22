@@ -12,7 +12,7 @@ namespace TrudeSerializer
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    public class Command : IExternalEventHandler
+    public class ExportToSnaptrudeEEH : IExternalEventHandler
     {
         internal bool isDone = false;
         internal Action<string, UIApplication, Document> OnInit;

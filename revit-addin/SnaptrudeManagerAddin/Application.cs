@@ -15,7 +15,6 @@ using System.Windows.Media.Imaging;
 using TrudeCommon.DataTransfer;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
-using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
 {
@@ -118,10 +117,13 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
 
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
+
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
             {
-                TrudeImporterMain.Abort = true; // TODO: Mutexed this flag, but don't know if better structure is required, but it WORKS
+                TrudeImporter.TrudeImporterMain.Abort = true; // TODO: Mutexed this flag, but don't know if better structure is required, but it WORKS
             });
 
             TrudeEventSystem.Instance.Start();
@@ -157,22 +159,37 @@ namespace SnaptrudeManagerAddin
 
                                 // START THE IMPORT
                                 JObject trudeData = JObject.Parse(File.ReadAllText(data[0]));
-                                GlobalVariables.TrudeFileName = Path.GetFileName(data[0]);
-                                GlobalVariables.materials = trudeData["materials"] as JArray;
-                                GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
-                                GlobalVariables.ImportLabels = data[1] == "True";
+                                TrudeImporter.GlobalVariables.TrudeFileName = Path.GetFileName(data[0]);
+                                TrudeImporter.GlobalVariables.materials = trudeData["materials"] as JArray;
+                                TrudeImporter.GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
+                                TrudeImporter.GlobalVariables.ImportLabels = data[1] == "True";
 
                                 Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
                                 {
                                     NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
                                     DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
                                 };
-                                serializer.Converters.Add(new XyzConverter());
-                                GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
+                                serializer.Converters.Add(new TrudeImporter.XyzConverter());
+                                TrudeImporter.GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeImporter.TrudeProperties>(serializer);
 
                                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
                                 ExternalEvent evt = ExternalEvent.Create(new ImportToRevitEEH());
                                 evt.Raise();
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE:
+                            {
+                                string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE).Split(';');
+                                logger.Info("Got data from UI: {0}", data);
+
+                                logger.Info("Export to snaptrude start");
+                                ExternalEvent evt = ExternalEvent.Create(new TrudeSerializer.ExportToSnaptrudeEEH());
+                                evt.Raise();
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT:
+                            {
+                                logger.Info("Abort export");
                             }
                             break;
                     }
@@ -182,6 +199,12 @@ namespace SnaptrudeManagerAddin
         }
 
         internal void UpdateProgressForImport(int progress, string message)
+        {
+            string data = progress + ";" + message;
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
+        }
+
+        internal void UpdateProgressForExport(int progress, string message)
         {
             string data = progress + ";" + message;
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);

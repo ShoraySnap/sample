@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,8 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         public enum ProgressViewType
         {
-            Export,
+            ExportToNew,
+            ExportToExisting,
             Import,
             Update
         }
@@ -72,7 +74,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand CancelCommand { get; set; }
 
         /// <summary>
-        /// ProgressVIew for Revit Export
+        /// ProgressVIew for Revit ExportToNew
         /// </summary>
         /// <param name="successNavigationService"></param>
         /// <param name="failureNavigationService"></param>
@@ -83,9 +85,15 @@ namespace SnaptrudeManagerUI.ViewModels
             FailureCommand = new NavigateCommand(failureNavigationService);
             switch (progressViewType)
             {
-                case ProgressViewType.Export:
-                    progressViewType = ProgressViewType.Export;
-                    StartProgressCommand = new RelayCommand(async (o) => await StartExport());
+                case ProgressViewType.ExportToNew:
+                    progressViewType = ProgressViewType.ExportToNew;
+                    StartProgressCommand = new RelayCommand(async (o) => await StartExportNew());
+                    progressMessage = "Export in progress, please don’t close this window.";
+                    StartProgressCommand.Execute(null);
+                    break;
+                case ProgressViewType.ExportToExisting:
+                    progressViewType = ProgressViewType.ExportToNew;
+                    StartProgressCommand = new RelayCommand(async (o) => await StartExportExisting());
                     progressMessage = "Export in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);
                     break;
@@ -133,14 +141,17 @@ namespace SnaptrudeManagerUI.ViewModels
             FailureCommand.Execute(new object());
         }
 
-        public async Task StartExport()
+        public async Task StartExportNew()
         {
-            for (int i = 0; i <= 100; i++)
-            {
-                ProgressValue = i;
-                await Task.Delay(20);
-            }
-            SuccessCommand.Execute(new object());
+            Store.Set("floorkey", await SnaptrudeService.CreateProjectAsync());
+            Store.Save();
+
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "NEW", App.TransferManager);
+        }
+
+        public async Task StartExportExisting()
+        {
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "EXISTING", App.TransferManager);
         }
 
         private async Task StartImport()

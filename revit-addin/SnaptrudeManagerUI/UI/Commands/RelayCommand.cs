@@ -11,6 +11,7 @@ namespace SnaptrudeManagerUI.Commands
     {
         private readonly Action<object> _execute;
         private readonly Predicate<object> _canExecute;
+        private Action beginExport;
 
         public event EventHandler CanExecuteChanged
         {
@@ -22,6 +23,11 @@ namespace SnaptrudeManagerUI.Commands
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
+        }
+
+        public RelayCommand(Action beginExport)
+        {
+            this.beginExport = beginExport;
         }
 
         public bool CanExecute(object parameter)

@@ -27,7 +27,7 @@ namespace SnaptrudeManagerUI.API
 
             if (!ignorePaths.Contains(path))
             {
-                var accessToken = Store.GetData()["accessToken"];
+                var accessToken = Store.Get("accessToken")?.ToString();
                 if (!string.IsNullOrEmpty(accessToken))
                 {
                     //request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

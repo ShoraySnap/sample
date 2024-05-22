@@ -55,6 +55,8 @@ namespace SnaptrudeManagerUI.API
 
         public static object? Get(string key)
         {
+            if (data == null) CreateEmptyConfig();
+
             data.TryGetValue(key, out var value);
             return value;
         }
@@ -90,6 +92,7 @@ namespace SnaptrudeManagerUI.API
 
         public static Dictionary<string, string> GetData()
         {
+            if (data == null) CreateEmptyConfig();
             return new Dictionary<string, string>(data);
         }
 

@@ -82,11 +82,21 @@ namespace SnaptrudeManagerUI.ViewModels
         public static ProgressViewModel CreateExportProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
-                ProgressViewModel.ProgressViewType.Export,
+                ProgressViewModel.ProgressViewType.ExportToNew,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
+
+        public static ProgressViewModel CreateExportToExistingProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                ProgressViewModel.ProgressViewType.ExportToExisting,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+
         public static ProgressViewModel CreateImportProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(

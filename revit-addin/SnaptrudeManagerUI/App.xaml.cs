@@ -126,6 +126,7 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
                             {
                                 logger.Info("Got data incoming from browser!");
+<<<<<<< Updated upstream
                                 try
                                 {
                                     string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
@@ -146,6 +147,14 @@ namespace SnaptrudeManagerUI
                                     logger.Error(ex.Message);
                                     // TODO: that failed. try again UI.
                                 }
+=======
+                                string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
+                                logger.Info("data : \"{0}\"", data);
+                                Dictionary<string, string> userCredentialsModel = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+                                Store.SetAllAndSave(userCredentialsModel);
+                                MainWindowViewModel.Instance.Username = Store.Get("fullname")?.ToString();
+                                OnSuccessfullLogin?.Invoke();
+>>>>>>> Stashed changes
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START:
