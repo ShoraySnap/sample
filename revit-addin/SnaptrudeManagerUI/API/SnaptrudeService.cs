@@ -54,7 +54,7 @@ namespace SnaptrudeManagerUI.API
             string endPoint = "/newBlankProject/";
             var data = new Dictionary<string, string>
             {
-                { "project_name", Store.Get("projectName").ToString() } // TODO: Change this to project name
+                { "project_name", Store.Get("projectName").ToString() }
             };
 
             var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
