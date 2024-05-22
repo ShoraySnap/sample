@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -20,6 +21,8 @@ namespace SnaptrudeManagerUI.ViewModels
             Import,
             Update
         }
+
+        public static ProgressViewType progressViewType;
 
         private string progressMessage;
 
@@ -45,21 +48,28 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        private bool whiteBackground = true;
+        private bool isProgressBarIndeterminate;
 
-        public bool WhiteBackground
+        public bool IsProgressBarIndeterminate
         {
-            get { return whiteBackground; }
+            get { return isProgressBarIndeterminate; }
             set
             {
-                whiteBackground = value;
-                OnPropertyChanged("WhiteBackground");
+                isProgressBarIndeterminate = value;
+                OnPropertyChanged("IsProgressBarIndeterminate");
+                OnPropertyChanged("IsProgressValueVisible");
             }
         }
+
+        public bool IsProgressValueVisible => !isProgressBarIndeterminate;
+
+        public bool WhiteBackground => MainWindowViewModel.Instance.WhiteBackground;
 
         public ICommand StartProgressCommand { get; set; }
         public ICommand SuccessCommand { get; set; }
         public ICommand FailureCommand { get; set; }
+        public ICommand TransformCommand { get; set; }
+        public ICommand CancelCommand { get; set; }
 
         /// <summary>
         /// ProgressVIew for Revit Export
@@ -68,24 +78,32 @@ namespace SnaptrudeManagerUI.ViewModels
         /// <param name="failureNavigationService"></param>
         public ProgressViewModel(ProgressViewType progressViewType, NavigationService successNavigationService, NavigationService failureNavigationService)
         {
+            IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
             FailureCommand = new NavigateCommand(failureNavigationService);
             switch (progressViewType)
             {
                 case ProgressViewType.Export:
+                    progressViewType = ProgressViewType.Export;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExport());
                     progressMessage = "Export in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Import:
+                    progressViewType = ProgressViewType.Import;
                     MainWindowViewModel.Instance.TopMost = false;
-                    StartProgressCommand = new RelayCommand(async (o) => await StartImport());
                     progressMessage = "Import in progress, please don’t close this window.";
-                    StartProgressCommand.Execute(null);
+                    CancelCommand = new RelayCommand(new Action<object>((o) =>
+                    {
+                        TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
+                        UpdateProgress(0, "Rolling back changes...");
+                        IsProgressBarIndeterminate = true;
+                    }));
                     break;
                 case ProgressViewType.Update:
+                    progressViewType = ProgressViewType.Update;
                     MainWindowViewModel.Instance.WhiteBackground = false;
-                    WhiteBackground = false;
+                    OnPropertyChanged(nameof(WhiteBackground));
                     StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
                     progressMessage = "Update in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);
@@ -93,14 +111,26 @@ namespace SnaptrudeManagerUI.ViewModels
                 default:
                     break;
             }
-
             //StartProgressCommand.Execute(null);
+            App.OnProgressUpdate += UpdateProgress;
+            App.OnAbortImport += AbortImportToRevit;
         }
 
         public void UpdateProgress(int Value, string message)
         {
+            App.Current.MainWindow.Focus();
             ProgressValue = Value;
             ProgressMessage = message;
+        }
+
+        public void FinishImportToRevit()
+        {
+            SuccessCommand.Execute(new object());
+        }
+
+        public void AbortImportToRevit()
+        {
+            FailureCommand.Execute(new object());
         }
 
         public async Task StartExport()

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Diagnostics;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -21,8 +22,12 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void OpenSnaptrudeModel()
         {
-            System.Diagnostics.Process.Start("https://app.snaptrude.com");
-            MainWindowViewModel.Instance.CloseCommand.Execute(null);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://app.snaptrude.com",
+                UseShellExecute = true
+            });
+            App.Current.Shutdown();
         }
     }
 }

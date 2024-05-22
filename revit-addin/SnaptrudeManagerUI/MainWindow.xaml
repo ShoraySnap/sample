@@ -87,14 +87,14 @@
                         FontFamily="{StaticResource Inter400}"
                         Opacity="0.66"
                         Text="{Binding CurrentVersion, StringFormat=' v{0}'}" />
-
                     <Button
                         Padding="10"
                         Background="Transparent"
                         BorderThickness="0"
                         Command="{Binding CloseCommand}"
                         DockPanel.Dock="Right"
-                        Style="{DynamicResource Button_6}">
+                        Style="{DynamicResource Button_6}"
+                        Visibility="{Binding CloseButtonVisible, Converter={StaticResource BoolToVisibility}}">
                         <Grid>
                             <Grid Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
                                 <Path
@@ -128,7 +128,6 @@
                             <ControlTemplate>
                                 <Border
                                     Height="28"
-                                    Background="Transparent"
                                     BorderBrush="{StaticResource Colors/Neutral/200}"
                                     BorderThickness="1"
                                     CornerRadius="14">
@@ -160,7 +159,7 @@
                                             VerticalAlignment="Center"
                                             FontFamily="{StaticResource Inter500}"
                                             Foreground="{StaticResource Colors/Neutral/800}"
-                                            Text="Pooja G." />
+                                            Text="{Binding Username}" />
                                         <Grid
                                             Grid.Column="2"
                                             Margin="8,0"
@@ -173,6 +172,16 @@
                                                 StrokeThickness="1.25" />
                                         </Grid>
                                     </Grid>
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}">
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="Button.IsMouseOver" Value="true">
+                                                    <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
                                 </Border>
                             </ControlTemplate>
                         </Button.Template>
@@ -191,27 +200,38 @@
 
                     <Popup
                         Name="popup"
+                        MinWidth="160"
                         AllowsTransparency="True"
                         Placement="Relative"
                         PlacementTarget="{Binding ElementName=LoginButton}"
                         PopupAnimation="Fade"
-                        StaysOpen="False">
+                        StaysOpen="False"
+                        VerticalOffset="2">
+                        <Popup.HorizontalOffset>
+                            <MultiBinding Converter="{StaticResource WidthToOffsetConverter}">
+                                <Binding ElementName="LoginButton" Path="ActualWidth" />
+                                <Binding Path="MinWidth" RelativeSource="{RelativeSource Self}" />
+                            </MultiBinding>
+                        </Popup.HorizontalOffset>
                         <Border
-                            Width="160"
+                            Width="{Binding ElementName=LoginButton, Path=ActualWidth}"
                             Height="72"
+                            MinWidth="160"
                             Background="White"
                             BorderBrush="{StaticResource Colors/Neutral/200}"
                             BorderThickness="1"
-                            CornerRadius="12">
-                            <StackPanel VerticalAlignment="Center" Background="#FFFFFF">
+                            CornerRadius="14">
+                            <StackPanel VerticalAlignment="Center">
                                 <Button
                                     Height="28"
                                     HorizontalContentAlignment="Left"
+                                    VerticalContentAlignment="Center"
                                     Command="{Binding SwitchAccountCommand}"
                                     Style="{StaticResource Button_Login}">
                                     <Grid
-                                        Width="160"
+                                        Width="400"
                                         Height="28"
+                                        VerticalAlignment="Center"
                                         Background="Transparent">
                                         <StackPanel
                                             Margin="12,0"
@@ -260,11 +280,13 @@
                                 <Button
                                     Height="28"
                                     HorizontalContentAlignment="Left"
+                                    VerticalContentAlignment="Center"
                                     Command="{Binding LogOutCommand}"
                                     Style="{StaticResource Button_Login}">
                                     <Grid
-                                        Width="160"
+                                        Width="400"
                                         Height="28"
+                                        VerticalAlignment="Center"
                                         Background="Transparent">
                                         <StackPanel Margin="12,0" Orientation="Horizontal">
                                             <Grid
@@ -334,8 +356,8 @@
                     <DataTemplate DataType="{x:Type vms:ProgressViewModel}">
                         <views:ProgressView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type vms:SelectTrudeFileViewModel}">
-                        <views:SelectTrudeFileView Style="{StaticResource AnimatedUserControl}" />
+                    <DataTemplate DataType="{x:Type vms:ImportLabelsViewModel}">
+                        <views:ImportLabelsView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vms:WarningViewModel}">
                         <views:WarningView Style="{StaticResource AnimatedUserControl}" />

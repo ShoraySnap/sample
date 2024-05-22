@@ -3,6 +3,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using NLog;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
@@ -15,15 +16,9 @@ namespace SnaptrudeManagerAddin
     public class SnaptrudeManager : IExternalCommand
     {
         static Logger logger = LogManager.GetCurrentClassLogger();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            if (!(Application.Instance.uiThread is null) && Application.Instance.uiThread.IsAlive)
-            {
-                logger.Warn("External command already running! Return.");
-                return Result.Succeeded;
-            } 
-
-
             StringBuilder sb = new StringBuilder();
             string logFileName = @"revit.log";
             string logFilePath = getAppDataPath(logFileName);
@@ -69,10 +64,6 @@ namespace SnaptrudeManagerAddin
                 var updateVersion = "2.2";
 
 
-                log("Calling UI");
-                // TODO: CALL UI
-
-                logger.Info("Calling UI!");
                 writeAndClose();
 
             }

@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Media3D;
 using System.Windows.Threading;
+using TrudeCommon.Events;
 using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
@@ -48,14 +49,26 @@ namespace SnaptrudeManagerAddin
                         GlobalVariables.Transaction = t;
                         t.Start();
                         status = ImportTrude();
-                        t.Commit();
+                        if (!t.HasEnded()) t.Commit();
                     }
-                    tg.Assimilate();
+                    if (TrudeImporterMain.Abort)
+                    {
+                        tg.RollBack();
+                    }
+                    else
+                    {
+                        tg.Assimilate();
+                    }
                 }
 
-
-                if (status) ShowSuccessDialogue();
-                //if (status) MainWindowViewModel.Instance.ProgressViewModel.SuccessCommand.Execute(null);
+                if (status && !TrudeImporterMain.Abort)
+                {
+                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
+                }
+                else
+                {
+                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
+                }
                 GlobalVariables.cleanGlobalVariables();
             }
             catch (Exception ex)

@@ -43,23 +43,50 @@
                 Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar
                 Width="240"
+                Height="3"
                 Margin="0,0,0,12"
                 d:Maximum="100"
                 d:Value="64"
+                BorderBrush="Transparent"
+                BorderThickness="0"
+                IsIndeterminate="{Binding IsProgressBarIndeterminate}"
                 Style="{StaticResource RoundedProgressBar}"
-                Value="{Binding ProgressValue}" />
-            <TextBlock HorizontalAlignment="Center" TextOptions.TextRenderingMode="Aliased">
-                <Run Text="{Binding ProgressValue}" /><Run d:Text="64%" Text="%" />
-                <TextBlock.Style>
-                    <Style TargetType="{x:Type TextBlock}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
-                                <Setter Property="Foreground" Value="White" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+                Value="{Binding ProgressValue}">
+                <ProgressBar.Clip>
+                    <RectangleGeometry
+                        RadiusX="1.5"
+                        RadiusY="1.5"
+                        Rect="0,0,240,3" />
+                </ProgressBar.Clip>
+            </ProgressBar>
+            <Grid Height="12">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    d:Text="64%"
+                    FontFamily="{DynamicResource Inter400}"
+                    Text="{Binding ProgressValue, StringFormat='{}{0}%'}"
+                    TextOptions.TextRenderingMode="Aliased"
+                    Visibility="{Binding IsProgressValueVisible, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
+                            <Setter Property="HorizontalAlignment" Value="Left" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
+                                    <Setter Property="Foreground" Value="White" />
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <Button
+                    HorizontalAlignment="Right"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel"
+                    Style="{StaticResource Button_Cancel}"
+                    Visibility="{Binding IsProgressValueVisible, Converter={StaticResource BoolToVisibility}}" />
+            </Grid>
         </StackPanel>
         <TextBlock
             Margin="0,0,0,15"
@@ -71,6 +98,7 @@
             Text="{Binding ProgressMessage}">
             <TextBlock.Style>
                 <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
                             <Setter Property="Foreground" Value="White" />

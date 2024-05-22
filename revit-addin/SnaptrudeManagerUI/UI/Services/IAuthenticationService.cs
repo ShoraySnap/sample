@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SnaptrudeManagerUI.UI.Services
+namespace SnaptrudeManagerUI.Services
 {
     public interface IAuthenticationService
     {

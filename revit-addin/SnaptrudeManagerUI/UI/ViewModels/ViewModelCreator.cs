@@ -114,9 +114,17 @@ namespace SnaptrudeManagerUI.ViewModels
         private static HomeViewModel CreateHomeViewModel()
         {
             return new HomeViewModel(
-                new NavigationService(NavigationStore.Instance, CreateSelectTrudeFileViewModel),
+                new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel),
+                new NavigationService(NavigationStore.Instance, CreateImportLabelsViewModel),
+                new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel),
                 new NavigationService(NavigationStore.Instance, CreateWarningAllVisiblePartsViewModel),
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel));
+        }
+
+        private static ImportLabelsViewModel CreateImportLabelsViewModel()
+        {
+            return new ImportLabelsViewModel(
+                new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel));
         }
 
         private static EnterProjectUrlViewModel CreateEnterProjectUrlViewModel()
@@ -131,15 +139,6 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
                 new NavigationService(NavigationStore.Instance, CreateWarningWillNotReconcileViewModel));
-        }
-
-        private static SelectTrudeFileViewModel CreateSelectTrudeFileViewModel()
-        {
-            return new SelectTrudeFileViewModel(
-                new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel)
-                );
         }
 
         private static IncompatibleTrudeViewModel CreateIncompatibleTrudeFileViewModel()

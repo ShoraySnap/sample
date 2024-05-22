@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Stores;
 using System;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -32,7 +34,24 @@ namespace SnaptrudeManagerUI.ViewModels
         }
         public ProgressViewModel ProgressViewModel;
 
-        private NavigationStore navigationStore = NavigationStore.Instance;
+        private NavigationStore navigationStore;
+        
+        public string ImportPath { get; set; }
+
+        private string username;
+        public string Username
+        {
+            get
+            {
+                username = Store.GetData()["fullname"];
+                return username;
+            }
+            set
+            {
+                username = value;
+                OnPropertyChanged("Username");
+            }
+        }
 
         private string currentVersion;
 
@@ -81,8 +100,11 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public Action CloseAction { get; set; }
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
-        public bool LoginButtonVisible => 
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && 
+        public bool CloseButtonVisible =>
+            CurrentViewModel.GetType().Name != "ProgressViewModel";
+
+        public bool LoginButtonVisible =>
+            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" &&
             !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
@@ -104,7 +126,10 @@ namespace SnaptrudeManagerUI.ViewModels
             UpdateVersion = updateVersion;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
-            CloseCommand = new RelayCommand(new Action<object>((o) => App.Current.Shutdown()));
+            CloseCommand = new RelayCommand(new Action<object>((o) =>
+            {
+                App.Current.Shutdown();
+            }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
             LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
         }
@@ -113,6 +138,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             OnPropertyChanged(nameof(CurrentViewModel));
             OnPropertyChanged(nameof(LoginButtonVisible));
+            OnPropertyChanged(nameof(CloseButtonVisible));
         }
     }
 }

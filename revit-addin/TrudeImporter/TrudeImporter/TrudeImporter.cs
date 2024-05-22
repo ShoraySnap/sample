@@ -12,41 +12,73 @@ namespace TrudeImporter
 {
     public class TrudeImporterMain
     {
+
+        static int prevProgress = 0;
+        private static bool abort = false;
+        private static object mutex = new object();
+        public static bool Abort
+        {
+            get
+            {
+                return abort;
+            }
+            set
+            {
+                lock(mutex)
+                {
+                    abort = value;
+                }
+            }
+        }
+
         public static void Import(TrudeProperties trudeProperties)
         {
+            Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
             GlobalVariables.MissingWindowFamiliesCount.Clear();
 
             GlobalVariables.MissingDoorIndexes.Clear();
             GlobalVariables.MissingWindowIndexes.Clear();
 
+            prevProgress = 0;
+
             UpdateProgress(() => ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport), "Importing Stories...", 5);
-            UpdateProgress(() => ImportWalls(trudeProperties.Walls), "Importing Walls...", 10);
-            UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 15);
-            UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 20);
-            UpdateProgress(() => ImportFloors(trudeProperties.Floors), "Importing Floors...", 30);
+            UpdateProgress(() => ImportWalls(trudeProperties.Walls), "Importing Walls...", 5);
+            UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 5);
+            UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 5);
+            UpdateProgress(() => ImportFloors(trudeProperties.Floors), "Importing Floors...", 10);
 #if REVIT2019 || REVIT2020 || REVIT2021
-                UpdateProgress(() => ImportFloors(trudeProperties.Ceilings), "Importing Ceilings...", 40);
+            UpdateProgress(() => ImportFloors(trudeProperties.Ceilings), "Importing Ceilings...", 10);
 #else
-            UpdateProgress(() => ImportCeilings(trudeProperties.Ceilings), "Importing Ceilings...", 40);
+            UpdateProgress(() => ImportCeilings(trudeProperties.Ceilings), "Importing Ceilings...", 10);
 #endif
-            UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 50);
-            UpdateProgress(() => ImportDoors(trudeProperties.Doors), "Importing Doors...", 60);
-            UpdateProgress(() => ImportWindows(trudeProperties.Windows), "Importing Windows...", 70);
-            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing Masses...", 80);
-            UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing Furniture...", 90);
+            UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 10);
+            UpdateProgress(() => ImportDoors(trudeProperties.Doors), "Importing Doors...", 10);
+            UpdateProgress(() => ImportWindows(trudeProperties.Windows), "Importing Windows...", 10);
+            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing Masses...", 10);
+            UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing Furniture...", 10);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
-                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Please link missing rfas in the other window...", 90);
+                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Please link missing rfas in the other window...", 10);
 
         }
 
         private static void UpdateProgress(Action task, string message, int progress)
         {
 #if !FORGE
-            //TODO: Update progress with IPC
-            //MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(progress, message);
+            if(!Abort)
+            {
+                Application.Instance.UpdateProgressForImport(prevProgress, message);
+                task();
+                prevProgress += progress;
+            }
+            else
+            {
+                if (GlobalVariables.Transaction.GetStatus() == TransactionStatus.Started)
+                {
+                    GlobalVariables.Transaction.RollBack();
+                }
+            }
 #endif
-            task();
         }
 
         private static void ImportStories(List<StoreyProperties> propsList, bool isRevitImport)
