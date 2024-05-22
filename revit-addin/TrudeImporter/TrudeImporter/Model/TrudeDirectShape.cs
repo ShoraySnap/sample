@@ -7,7 +7,7 @@ namespace TrudeImporter
 {
     public class TrudeDirectShape
     {
-        public static void GenerateObjectFromFaces(DirectShapeProperties directShapeProps, BuiltInCategory category)
+        public static DirectShape GenerateObjectFromFaces(DirectShapeProperties directShapeProps, BuiltInCategory category)
         {
             List<List<XYZ>> faces = directShapeProps.AllFaceVertices;
             List<int> faceMaterialIds = directShapeProps.FaceMaterialIds;
@@ -64,7 +64,7 @@ namespace TrudeImporter
                 combinedDirectShape.ApplicationDataId = "Combined Geometry object id";
                 combinedDirectShape.SetShape(allGeometry);
                 combinedDirectShape.Name = "Combined Trude DirectShape";
-
+                return combinedDirectShape;
             }
             catch (Exception e)
             {
