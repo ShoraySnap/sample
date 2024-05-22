@@ -20,8 +20,7 @@ namespace SnaptrudeManagerUI.ViewModels
         None,
         Validating,
         Validated,
-        InvalidURL,
-        PermissionDenied
+        Error
     }
 
     public class EnterProjectUrlViewModel : ViewModelBase
@@ -107,13 +106,13 @@ namespace SnaptrudeManagerUI.ViewModels
                     else
                     {
                         ErrorMessage = response.Message;
-                        RequestStatus = URLValidationStatus.InvalidURL;
+                        RequestStatus = URLValidationStatus.Error;
                     }
                 }
                 else
                 {
                     ErrorMessage = "Network error, try again.";
-                    RequestStatus = URLValidationStatus.InvalidURL;
+                    RequestStatus = URLValidationStatus.Error;
                 }
             }
         }
