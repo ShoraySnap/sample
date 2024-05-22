@@ -43,6 +43,7 @@ namespace TrudeImporter
             prevProgress = 0;
 
             UpdateProgress(() => ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport), "Importing Stories...", 5);
+            UpdateProgress(() => ImportStairCases(trudeProperties.Staircases), "Importing Stairs...", 5);
             UpdateProgress(() => ImportWalls(trudeProperties.Walls), "Importing Walls...", 5);
             UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 5);
             UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 5);
@@ -249,7 +250,7 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
-            if (!propsList.Any()) return;
+            if (propsList == null || !propsList.Any()) return;
             GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
             GlobalVariables.Transaction.Start();
             TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
@@ -272,7 +273,6 @@ namespace TrudeImporter
                         if (props.AllFaceVertices != null)
                         {
                             TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Walls);
-
                         }
                         else
                         {
@@ -310,7 +310,7 @@ namespace TrudeImporter
 
         private static void ImportBeams(List<BeamProperties> propsList)
         {
-            if (!propsList.Any()) return;
+            if (propsList == null || !propsList.Any()) return;
             GlobalVariables.Transaction.Commit();
 
             foreach (var beam in propsList)
@@ -347,6 +347,7 @@ namespace TrudeImporter
 
         private static void ImportColumns(List<ColumnProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var column in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -393,6 +394,7 @@ namespace TrudeImporter
 
         private static void ImportFloors(List<FloorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var floor in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -431,6 +433,7 @@ namespace TrudeImporter
 
         private static void ImportSlabs(List<SlabProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var slab in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -468,6 +471,7 @@ namespace TrudeImporter
 
         private static void ImportDoors(List<DoorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var (door, index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -493,6 +497,7 @@ namespace TrudeImporter
 
         private static void ImportWindows(List<WindowProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var (window, index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -518,6 +523,7 @@ namespace TrudeImporter
 
         private static void ImportFurniture(List<FurnitureProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             List<ElementId> sourceIdsToDelete = new List<ElementId>();
             foreach (var (furniture, index) in propsList.WithIndex())
             {
@@ -549,6 +555,8 @@ namespace TrudeImporter
 
         private static void ImportCeilings(List<FloorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
+
             foreach (var ceiling in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -587,6 +595,8 @@ namespace TrudeImporter
 
         private static void ImportMasses(List<MassProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
+
             foreach (var mass in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -618,15 +628,55 @@ namespace TrudeImporter
             }
         }
 
+        private static void ImportStairCases(List<StairCaseProperties> propsList)
+        {
+            if (propsList == null || !propsList.Any()) return;
+            if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Commit();
+
+            GlobalVariables.StairsEditScope = new StairsEditScope(GlobalVariables.Document, "Stairs");
+            foreach (var staircase in propsList)
+            {
+                try
+                {
+                    if (staircase.AllFaceVertices != null)
+                    {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        staircase.MaterialName,
+                        staircase.FaceMaterialIds,
+                        staircase.AllFaceVertices
+                    );
+                        GlobalVariables.Transaction.Start();
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Stairs);
+                        GlobalVariables.Transaction.Commit();
+                    }
+                    else
+                    {
+                        new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
+                    }
+
+                    deleteOld(staircase.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.RollBack();
+                    if (GlobalVariables.StairsEditScope.IsActive) GlobalVariables.StairsEditScope.Cancel();
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
+                }
+            }
+            if (!GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Start();
+
+        }
+
+
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
+            if (propsListDoors.Count == 0 && propsListWindows.Count == 0 && propsListFurniture.Count == 0) return;
+
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
             var result = familyUploadMVVM.ShowDialog();
             if (!familyUploadMVVM.WindowViewModel._skipAll)
             {
-                // TODO: IPC HERE
-                //MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(95, "Importing missing families...");
                 System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {
