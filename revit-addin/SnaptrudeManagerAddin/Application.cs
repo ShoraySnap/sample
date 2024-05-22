@@ -107,7 +107,7 @@ namespace SnaptrudeManagerAddin
                 { "fileType", fileType }
             };
             string serializedData = JsonConvert.SerializeObject(data);
-            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PROJECTNAME_AND_FILETYPE, serializedData, TransferManager);
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE, serializedData, TransferManager);
         }
 
         private ImageSource GetEmbeddedImage(System.Reflection.Assembly assemb, string imageName)
@@ -148,12 +148,12 @@ namespace SnaptrudeManagerAddin
         private void ProcessEventQueue()
         {
             ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
-            while(!eventQueue.IsEmpty)
+            while (!eventQueue.IsEmpty)
             {
-                if(eventQueue.TryDequeue(out TRUDE_EVENT eventType))
+                if (eventQueue.TryDequeue(out TRUDE_EVENT eventType))
                 {
                     logger.Info("Processing event from main queue: {0}", TrudeEventUtils.GetEventName(eventType));
-                    switch(eventType)
+                    switch (eventType)
                     {
                         case TRUDE_EVENT.MANAGER_UI_OPEN:
                             break;
