@@ -174,6 +174,7 @@ namespace SnaptrudeManagerUI
             logger.Info("Snaptrude Manager UI Shutting Down...");
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_CLOSE);
             TrudeEventSystem.Instance.Shutdown();
+            NavigationStore.Save();
             LogsConfig.Shutdown();
         }
 
