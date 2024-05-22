@@ -33,10 +33,27 @@ namespace SnaptrudeManagerUI
             {
                 LogsConfig.Initialize("DummyManagerUI");
                 TransferManager = new DataTransferManager();
-                var queryParams = HttpUtility.ParseQueryString(new Uri(args[0]).Query);
+                var uri = new Uri(args[0]);
+                var queryParams = HttpUtility.ParseQueryString(uri.Query);
                 var dataEncoded = queryParams["data"];
-                var data = HttpUtility.UrlDecode(dataEncoded) + "";
-                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS, data, TransferManager);
+                var data = HttpUtility.UrlDecode(dataEncoded);
+
+                var iEnd = uri.ToString().IndexOf("?");
+                var iStart = "snaptrude://".Length;
+                var path = uri.ToString().Substring(iStart, iEnd - iStart);
+                switch (path)
+                {
+                    case "loginSuccess":
+                        {
+                            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS, data, TransferManager);
+                        }
+                        break;
+                    default:
+                        {
+                            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS, data, TransferManager);
+                        }
+                        break;
+                }
                 Thread.Sleep(10000);
                 LogsConfig.Shutdown();
             }

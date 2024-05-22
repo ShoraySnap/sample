@@ -63,7 +63,7 @@ namespace SnaptrudeManagerUI.API
             {
                 var responseData = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<JToken>(responseData);
-                if(result != null)
+                if (result != null)
                 {
                     string floorKey = result["floorkey"].ToString();
                     logger.Info("Created Snaptrude project", floorKey);
@@ -228,6 +228,7 @@ namespace SnaptrudeManagerUI.API
                 if (result.ContainsKey("accessToken"))
                 {
                     Store.Set("accessToken", result["accessToken"]);
+                    Store.Save();
                     // Update user data in your application state here
                     return true;
                 }

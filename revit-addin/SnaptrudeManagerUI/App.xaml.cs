@@ -17,6 +17,9 @@ using TrudeCommon.Events;
 using TrudeCommon.DataTransfer;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Windows.Markup;
+using SnaptrudeManagerUI.Services;
+using SnaptrudeManagerUI.Commands;
 
 namespace SnaptrudeManagerUI
 {
@@ -141,6 +144,23 @@ namespace SnaptrudeManagerUI
                                 }
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS:
+                            {
+                                logger.Info("Export finished, opening browser.");
+                                try
+                                {
+                                    string floorkey = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
+                                    logger.Info("data : \"{0}\"", floorkey);
+
+                                    var navigateCmd = new NavigateCommand(new NavigationService(NavigationStore.Instance, ViewModelCreator.CreateModelExportedViewModel));
+                                    navigateCmd.Execute(new object());
+                                }
+                                catch (Exception ex)
+                                {
+                                    logger.Error(ex.Message);
+                                }
+                            }
+                            break;
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
                             {
                                 logger.Info("Got data incoming from browser!");
@@ -230,6 +250,8 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
 
             TrudeEventSystem.Instance.Start();
 

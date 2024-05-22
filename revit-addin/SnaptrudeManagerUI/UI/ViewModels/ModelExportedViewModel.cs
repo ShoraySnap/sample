@@ -25,7 +25,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = Urls.Get("snaptrudeReactUrl"),
+                FileName = Urls.Get("snaptrudeReactUrl") + "/model/" + Store.Get("floorkey"),
                 UseShellExecute = true
             });
             App.Current.Shutdown();
