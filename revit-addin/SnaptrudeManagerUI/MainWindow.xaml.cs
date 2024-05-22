@@ -33,11 +33,6 @@ namespace SnaptrudeManagerUI
             InitializeComponent();
 
             this.Title = "SnaptrudeManagerUI";
-            if (!Store.isDataValid())
-            {
-                var redirect = new NavigateCommand(new NavigationService(NavigationStore.Instance, ViewModelCreator.CreateLoginViewModel));
-                redirect.Execute(null);
-            }
         }
 
 

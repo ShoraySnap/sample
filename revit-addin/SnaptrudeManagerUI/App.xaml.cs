@@ -123,6 +123,24 @@ namespace SnaptrudeManagerUI
                                 logger.Info("data : \"{0}\"", data);
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PROJECTNAME_AND_FILETYPE:
+                            {
+                                logger.Info("Got data incoming to set projectname and filetype");
+                                try
+                                {
+                                    string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PROJECTNAME_AND_FILETYPE);
+                                    logger.Info("data : \"{0}\"", data);
+                                    Dictionary<string, string> parsedData = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+                                    Store.Set("projectName", parsedData["projectName"]);
+                                    Store.Set("fileType", parsedData["fileType"]);
+                                    Store.Save();
+                                }
+                                catch (Exception ex)
+                                {
+                                    logger.Error(ex.Message);
+                                }
+                            }
+                            break;
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
                             {
                                 logger.Info("Got data incoming from browser!");
@@ -205,6 +223,7 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_PLUGIN);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PROJECTNAME_AND_FILETYPE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_CLOSED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
