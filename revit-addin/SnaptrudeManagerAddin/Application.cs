@@ -152,14 +152,15 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT:
                             {
-                                string path = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
-                                logger.Info("Got path from UI: {0}", path);
+                                string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT).Split(';');
+                                logger.Info("Got data from UI: {0}", data);
 
                                 // START THE IMPORT
-                                JObject trudeData = JObject.Parse(File.ReadAllText(path));
-                                GlobalVariables.TrudeFileName = Path.GetFileName(path);
+                                JObject trudeData = JObject.Parse(File.ReadAllText(data[0]));
+                                GlobalVariables.TrudeFileName = Path.GetFileName(data[0]);
                                 GlobalVariables.materials = trudeData["materials"] as JArray;
                                 GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
+                                GlobalVariables.ImportLabels = data[1] == "True";
 
                                 Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
                                 {

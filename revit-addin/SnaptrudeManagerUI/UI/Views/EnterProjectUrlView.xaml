@@ -61,10 +61,7 @@
                             <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
                                 <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
-                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
                                 <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -245,10 +242,7 @@
                                     <Style TargetType="Grid">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
                                                 <Setter Property="Visibility" Value="Visible" />
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -298,12 +292,20 @@
                             <ImageBrush ImageSource="/SnaptrudeManagerUI;component/UI/Images/thumbnail.png" Stretch="UniformToFill" />
                         </Border.Background>
                     </Border>
+                    <Border
+                        Width="40"
+                        Height="40"
+                        CornerRadius="2">
+                        <Border.Background>
+                            <ImageBrush ImageSource="{Binding Image}" Stretch="UniformToFill" />
+                        </Border.Background>
+                    </Border>
                     <TextBlock
                         Grid.Column="2"
                         VerticalAlignment="Center"
                         FontFamily="{StaticResource Inter500}"
                         Foreground="{StaticResource Colors/Neutral/600}"
-                        Text="WeWork Office Structure v2" />
+                        Text="{Binding ProjectName}" />
                 </Grid>
 
             </Border>
@@ -317,10 +319,7 @@
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>

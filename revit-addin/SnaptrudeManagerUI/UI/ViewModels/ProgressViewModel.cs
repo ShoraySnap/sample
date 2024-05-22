@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -20,6 +21,8 @@ namespace SnaptrudeManagerUI.ViewModels
             Import,
             Update
         }
+
+        public static ProgressViewType progressViewType;
 
         private string progressMessage;
 
@@ -66,6 +69,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand SuccessCommand { get; set; }
         public ICommand FailureCommand { get; set; }
         public ICommand TransformCommand { get; set; }
+        public ICommand CancelCommand { get; set; }
 
         /// <summary>
         /// ProgressVIew for Revit Export
@@ -80,15 +84,24 @@ namespace SnaptrudeManagerUI.ViewModels
             switch (progressViewType)
             {
                 case ProgressViewType.Export:
+                    progressViewType = ProgressViewType.Export;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExport());
                     progressMessage = "Export in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);
                     break;
                 case ProgressViewType.Import:
+                    progressViewType = ProgressViewType.Import;
                     MainWindowViewModel.Instance.TopMost = false;
                     progressMessage = "Import in progress, please don’t close this window.";
+                    CancelCommand = new RelayCommand(new Action<object>((o) =>
+                    {
+                        TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
+                        UpdateProgress(0, "Rolling back changes...");
+                        IsProgressBarIndeterminate = true;
+                    }));
                     break;
                 case ProgressViewType.Update:
+                    progressViewType = ProgressViewType.Update;
                     MainWindowViewModel.Instance.WhiteBackground = false;
                     OnPropertyChanged(nameof(WhiteBackground));
                     StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
@@ -98,7 +111,6 @@ namespace SnaptrudeManagerUI.ViewModels
                 default:
                     break;
             }
-
             //StartProgressCommand.Execute(null);
             App.OnProgressUpdate += UpdateProgress;
             App.OnAbortImport += AbortImportToRevit;

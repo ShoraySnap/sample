@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Stores;
 using System;
@@ -8,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TrudeCommon.Events;
+using SnaptrudeManagerUI.UI.Helpers;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -34,6 +36,23 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
+
+        public string ImportPath { get; set; }
+
+        private string username;
+        public string Username
+        {
+            get
+            {
+                username = Store.Get("fullname") as string;
+                return username;
+            }
+            set
+            {
+                username = value;
+                OnPropertyChanged("Username");
+            }
+        }
 
         private string currentVersion;
 
@@ -82,8 +101,11 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public Action CloseAction { get; set; }
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
-        public bool LoginButtonVisible => 
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" && 
+        public bool CloseButtonVisible =>
+            CurrentViewModel.GetType().Name != "ProgressViewModel";
+
+        public bool LoginButtonVisible =>
+            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" &&
             !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
@@ -107,26 +129,18 @@ namespace SnaptrudeManagerUI.ViewModels
             this.navigationStore = navigationStore;
             CloseCommand = new RelayCommand(new Action<object>((o) =>
             {
-                //TO DO: ABORT FOR OTHER OPERATIONS
-                if (CurrentViewModel.GetType().Name == typeof(ProgressViewModel).Name)
-                {
-                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
-                    ProgressViewModel.UpdateProgress(0, "Rolling back changes...");
-                    ProgressViewModel.IsProgressBarIndeterminate = true;
-                }
-                else
-                {
-                    App.Current.Shutdown();
-                }
+                App.Current.Shutdown();
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
             LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
+            SwitchAccountCommand = new RelayCommand(LoginHelper.Login);
         }
 
         private void OnCurrentViewModelChanged()
         {
             OnPropertyChanged(nameof(CurrentViewModel));
             OnPropertyChanged(nameof(LoginButtonVisible));
+            OnPropertyChanged(nameof(CloseButtonVisible));
         }
     }
 }

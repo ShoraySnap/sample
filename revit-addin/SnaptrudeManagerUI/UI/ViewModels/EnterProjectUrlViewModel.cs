@@ -9,6 +9,9 @@ using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using System.ComponentModel;
+using SnaptrudeManagerUI.API;
+using System.Text.RegularExpressions;
+using System.Security.Policy;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -17,8 +20,7 @@ namespace SnaptrudeManagerUI.ViewModels
         None,
         Validating,
         Validated,
-        InvalidURL,
-        PermissionDenied
+        Error
     }
 
     public class EnterProjectUrlViewModel : ViewModelBase
@@ -58,10 +60,32 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private Uri image;
+        public Uri Image
+        {
+            get { return image; }
+            set
+            {
+                image = value;
+                OnPropertyChanged("Image");
+            }
+        }
+
+        private string projectName;
+        public string ProjectName
+        {
+            get { return projectName; }
+            set
+            {
+                projectName = value;
+                OnPropertyChanged("ProjectName");
+            }
+        }
+
         private async Task ValidateURL()
         {
-            //WPFTODO: VALIDATE URL
-            if (uRL == "")
+            //WPFTODO: UPDATE THE VALUE 10
+            if (uRL == "" || !ValidateUrlWithRegex(uRL))
             {
                 await Task.Delay(100);
                 RequestStatus = URLValidationStatus.None;
@@ -69,22 +93,54 @@ namespace SnaptrudeManagerUI.ViewModels
             else
             {
                 RequestStatus = URLValidationStatus.Validating;
-                await Task.Delay(500);
-                switch (URL)
+                string floorkey = extractFloorkey(uRL);
+                var response = await SnaptrudeRepo.ValidateURLAsync(floorkey);
+                if (response != null)
                 {
-                    case "ValidURL":
+                    if (response.Access)
+                    {
                         RequestStatus = URLValidationStatus.Validated;
-                        break;
-                    case "PermissionDenied":
-                        ErrorMessage = "Your account doesn’t have access to this file";
-                        RequestStatus = URLValidationStatus.PermissionDenied;
-                        break;
-                    default:
-                        ErrorMessage = "Invalid URL";
-                        RequestStatus = URLValidationStatus.InvalidURL;
-                        break;
+                        Image = new Uri(Urls.Get("snaptrudeDjangoUrl") + "/media/" + response.ImagePath);
+                        ProjectName = response.ProjectName;
+                    }
+                    else
+                    {
+                        ErrorMessage = response.Message;
+                        RequestStatus = URLValidationStatus.Error;
+                    }
+                }
+                else
+                {
+                    ErrorMessage = "Network error, try again.";
+                    RequestStatus = URLValidationStatus.Error;
                 }
             }
+        }
+
+        private string extractFloorkey(string url)
+        {
+            if (url.EndsWith("/"))
+                return url.Substring(url.Length - 7, 6);
+            return url.Substring(url.Length - 6);
+        }
+
+        private bool ValidateUrlWithRegex(string inputText)
+        {
+            var domain = Urls.Get("snaptrudeReactUrl");
+            domain = (domain == null) ? "" : domain;
+            if (domain.Substring(0, 8) == "https://" &&
+                inputText.Substring(0, 8) != "https://")
+            {
+                inputText = "https://" + inputText;
+            }
+            else if (domain.Substring(0, 7) == "http://" &&
+                inputText.Substring(0, 7) != "http://")
+            {
+                inputText = "http://" + inputText;
+            }
+
+            var pattern = new Regex("^" + domain + "/model/" + "\\w{6}/?$");
+            return pattern.IsMatch(inputText);
         }
 
         public bool ExportIsEnable => ViewIs3D && RequestStatus == URLValidationStatus.Validated;

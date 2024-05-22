@@ -221,6 +221,39 @@
                 </ScrollViewer>
             </DockPanel>
         </Border>
+        
+        <Border 
+            CornerRadius="5" 
+            Width="519" 
+            Height="1" 
+            Margin="0,0,0,191"
+            Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}"
+            >
+            <ProgressBar
+                Foreground="#2d6be6"
+                Background="{DynamicResource Colors/Neutral/200}"
+                BorderThickness="0"
+                IsIndeterminate="True"
+                >
+            </ProgressBar>
+        </Border>
+        
+        <Border
+            Visibility="{Binding ShowErrorMessage, Converter={StaticResource BoolToVisibility}}"
+            Margin="16,8,16,0"
+            Background="{DynamicResource Colors/Neutral/0}"
+            BorderBrush="{DynamicResource Colors/Neutral/200}"
+            BorderThickness="1"
+            CornerRadius="5">
+            <TextBlock
+                x:Name="ErrorBox"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                FontWeight="Regular"
+                Foreground="{DynamicResource Colors/Red/400}"
+                Text="An error occured."/>
+        </Border>
+
         <Grid Grid.Row="1" Margin="16">
             <!--<TextBlock
                     VerticalAlignment="Center"

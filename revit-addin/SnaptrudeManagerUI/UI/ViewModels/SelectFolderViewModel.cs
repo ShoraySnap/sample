@@ -1,45 +1,17 @@
 ﻿using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Models;
 using SnaptrudeManagerUI.Services;
-using System;
-using System.Collections.Generic;
+using SnaptrudeManagerUI.API;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
+using NLog;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class SelectFolderViewModel : ViewModelBase
     {
-        //WPFTODO: CONNECT TO DB
-        public List<Folder> Database = new List<Folder>
-        {
-            new Folder("1", "All Workspaces", "top"),
-            new Folder("2", "Personal", "personal", "1"),
-            new Folder("3", "Snaptrude Team 1", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("4", "Snaptrude Team 2", "shared", "1"),
-            new Folder("5", "Folder 1", "folder", "2"),
-            new Folder("6", "Folder 2", "folder", "2"),
-            new Folder("7", "Folder 3", "folder", "2"),
-            new Folder("8", "Folder 4", "folder", "2"),
-            new Folder("9", "Folder 5", "folder", "2"),
-            new Folder("10", "Folder 6", "folder", "2"),
-            new Folder("11", "Folder 7", "folder", "2"),
-            new Folder("12", "Folder 1", "folder", "3"),
-            new Folder("13", "Child Folder", "folder", "5"),
-            new Folder("14", "Child Folder", "folder", "13"),
-            new Folder("15", "Child Folder", "folder", "14"),
-            new Folder("16", "Child Folder", "folder", "15"),
-            new Folder("17", "Child Folder", "folder", "16"),
-            new Folder("18", "Child Folder", "folder", "17"),
-        };
-
+        static Logger logger = LogManager.GetCurrentClassLogger();
         public ObservableCollection<FolderViewModel> CurrentPathFolders { get; private set; }
         public ObservableCollection<FolderViewModel> Breadcrumb { get; private set; }
         public ICommand OpenFolderCommand { get; private set; }
@@ -47,17 +19,21 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand BackCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
 
-        private string selectedWorkspaceString;
-
-        public string SelectedWorkspaceString
+        private bool isLoaderVisible = true;
+        public bool IsLoaderVisible
         {
-            get { return selectedWorkspaceString; }
-            set 
-            {
-                selectedWorkspaceString = value;
-                OnPropertyChanged("SelectedWorkspaceString");
-            }
+            get { return isLoaderVisible; }
+            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("ExportIsEnable"); }
         }
+
+        private bool showErrorMessage = false;
+        public bool ShowErrorMessage
+        {
+            get { return showErrorMessage; }
+            set { showErrorMessage = value; OnPropertyChanged("ShowErrorMessage"); }
+        }
+
+        private bool addBreadcrumbs = true;
 
         private bool isWorkspaceSelected;
 
@@ -67,10 +43,11 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); OnPropertyChanged("ExportIsEnable"); }
         }
 
-        public bool ExportIsEnable => ViewIs3D && IsWorkspaceSelected;
+        public bool ExportIsEnable => ViewIs3D && IsWorkspaceSelected && !IsLoaderVisible && !ShowErrorMessage;
 
         public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
         public bool ViewIsNot3D => !ViewIs3D;
+        private FolderViewModel AllWorkspacesViewModel = new FolderViewModel(new Folder("-1", "All Workspaces", Constants.WorkspaceType.Top, "-1"));
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -94,36 +71,68 @@ namespace SnaptrudeManagerUI.ViewModels
             BackCommand = new NavigateCommand(backNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             Breadcrumb = new ObservableCollection<FolderViewModel>();
-            OpenFolderCommand = new RelayCommand(OpenFolder);
+            OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);
-            SelectedWorkspaceString = "Select workspace to begin export";
             // Initialize with root folders
             LoadRootFolders();
         }
 
-        private void LoadRootFolders()
+        private async void LoadRootFolders()
         {
             Breadcrumb.Clear();
-            //WPFTODO: GET Workspaces
-            Folder allWorksSpacesFolder = Database.First(x => x.Id == "1");
-
-            FolderViewModel allWorksSpacesFolderViewModel = new FolderViewModel(allWorksSpacesFolder);
-            Breadcrumb.Add(allWorksSpacesFolderViewModel);
-            /*await*/
-            GetSubFoldersAsync(allWorksSpacesFolderViewModel);
+            GetSubFoldersAsync(AllWorkspacesViewModel);
         }
 
-        private void GetSubFoldersAsync(FolderViewModel parentFolder)
+        private async void GetSubFoldersAsync(object parameter)
         {
-            //WPFTODO: GET subfolders
-            var subFolders = Database.Where(x => x.ParentId == parentFolder.Id).ToList();
-            var subFolderViewModels = new List<FolderViewModel>();
-            foreach (var subFolder in subFolders)
+            try
             {
-                subFolderViewModels.Add(new FolderViewModel(subFolder, parentFolder));
-            }
+                if (parameter is FolderViewModel parentFolder)
+                {
+                    IsLoaderVisible = true;
 
-            PopulateSubFolders(subFolderViewModels);
+                    List<Folder> subFolders = new List<Folder>();
+                    var subFolderViewModels = new List<FolderViewModel>();
+                    if (parentFolder.FolderType == Constants.WorkspaceType.Top)
+                    {
+                        subFolders = await SnaptrudeRepo.GetUserWorkspacesAsync();
+                        subFolderViewModels = new List<FolderViewModel>();
+                        foreach (var subFolder in subFolders)
+                        {
+                            subFolderViewModels.Add(new FolderViewModel(subFolder));
+                        }
+                    }
+                    else
+                    {
+                        CurrentPathFolders.Clear();
+                        subFolders = await SnaptrudeRepo.GetSubFoldersAsync(parentFolder);
+                        subFolderViewModels = new List<FolderViewModel>();
+                        foreach (var subFolder in subFolders)
+                        {
+                            subFolderViewModels.Add(new FolderViewModel(subFolder));
+                        }
+                    }
+                    PopulateSubFolders(subFolderViewModels);
+                    if (addBreadcrumbs == true)
+                    {
+                        parentFolder.Name = parentFolder.Name.Replace("_", "__"); //https://www.charlespetzold.com/blog/2006/01/061004.html
+                        Breadcrumb.Add(parentFolder);
+                        setExportButton();
+                    }
+                    addBreadcrumbs = true;
+                    IsLoaderVisible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (parameter is FolderViewModel parentFolder)
+                {
+                    logger.Error(parentFolder.Id + " " + parentFolder.Name + " " + parentFolder.FolderType.ToString() + " " + parentFolder.TeamId);
+                }
+                logger.Error(ex.Message);
+                ShowErrorMessage = true;
+                IsLoaderVisible = false;
+            }
         }
 
         private void PopulateSubFolders(List<FolderViewModel> subFolders)
@@ -134,19 +143,6 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        private void OpenFolder(object parameter)
-        {
-            if (parameter is FolderViewModel folder)
-            {
-                CurrentPathFolders.Clear();
-                foreach (var subFolder in Database.Where(x => x.ParentId == folder.Id))
-                {
-                    CurrentPathFolders.Add(new FolderViewModel(subFolder, folder));
-                }
-                Breadcrumb.Add(folder);
-            }
-            SetStringAndButtonEnable();
-        }
 
         private void NavigateToFolder(object parameter)
         {
@@ -154,37 +150,29 @@ namespace SnaptrudeManagerUI.ViewModels
             {
                 // Update the list of current path folders
                 CurrentPathFolders.Clear();
-                GetSubFoldersAsync(folder);
-
-                // Update the breadcrumb
                 UpdateBreadcrumb(folder);
+                addBreadcrumbs = false;
+                GetSubFoldersAsync(folder);
+                // Update the breadcrumb
             }
-            SetStringAndButtonEnable();
+            setExportButton();
         }
 
-        private void SetStringAndButtonEnable()
+        private void setExportButton()
         {
-            if (Breadcrumb.Count == 1)
-            {
-                SelectedWorkspaceString = "Select workspace to begin export";
-                IsWorkspaceSelected = false;
-            }
-            else
-            {
-                SelectedWorkspaceString = $"Workspace: {Breadcrumb[1].Name}";
-                IsWorkspaceSelected = true;
-            }
+            IsWorkspaceSelected = Breadcrumb.Count > 1;
         }
 
         private void UpdateBreadcrumb(FolderViewModel folder)
         {
-            Breadcrumb.Clear();
-            var currentFolder = folder;
-
-            while (currentFolder != null)
+            for (int i = Breadcrumb.Count - 1; i >= 0; i--)
             {
-                Breadcrumb.Insert(0, currentFolder);
-                currentFolder = currentFolder.ParentFolder;
+                var topBreadcrumb = Breadcrumb[i];
+                if (topBreadcrumb.Id == folder.Id && topBreadcrumb.FolderType == folder.FolderType)
+                {
+                    break;
+                }
+                Breadcrumb.RemoveAt(i);
             }
         }
     }

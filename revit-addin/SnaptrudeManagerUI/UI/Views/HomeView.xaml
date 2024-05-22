@@ -24,7 +24,7 @@
                 Width="200"
                 Height="144"
                 Margin="0,0,16,0"
-                Command="{Binding ImportCommand}"
+                Command="{Binding SelectTrudeFileCommand}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
                     <StackPanel.Resources>

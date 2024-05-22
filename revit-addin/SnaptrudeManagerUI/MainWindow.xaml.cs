@@ -16,6 +16,9 @@ using System.Windows.Shapes;
 using SnaptrudeManagerUI.Stores;
 using SnaptrudeManagerUI.ViewModels;
 using TrudeCommon.Events;
+using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
+using SnaptrudeManagerUI.Services;
 
 namespace SnaptrudeManagerUI
 {
@@ -28,6 +31,13 @@ namespace SnaptrudeManagerUI
         {
             DataContext = MainWindowViewModel.Instance;
             InitializeComponent();
+
+            this.Title = "SnaptrudeManagerUI";
+            if (!Store.isDataValid())
+            {
+                var redirect = new NavigateCommand(new NavigationService(NavigationStore.Instance, ViewModelCreator.CreateLoginViewModel));
+                redirect.Execute(null);
+            }
         }
 
 
@@ -36,10 +46,10 @@ namespace SnaptrudeManagerUI
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
 
-            if(e.ChangedButton == MouseButton.Right)
+            if (e.ChangedButton == MouseButton.Right)
             {
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
-                
+
             }
         }
     }

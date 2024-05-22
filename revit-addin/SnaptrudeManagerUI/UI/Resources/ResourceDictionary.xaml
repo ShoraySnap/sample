@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
 
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    <converters:WidthToOffsetConverter x:Key="WidthToOffsetConverter" />
     <SolidColorBrush x:Key="Colors/Neutral/900" Color="#2d2e37" />
     <SolidColorBrush x:Key="Colors/Neutral/800" Color="#484B5B" />
     <SolidColorBrush x:Key="Colors/Neutral/600" Color="#767B93" />
@@ -126,6 +127,35 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="Button_Cancel" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <TextBlock
+                        x:Name="Text"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="{DynamicResource Inter500}"
+                        FontSize="13"
+                        Foreground="{StaticResource Colors/Neutral/600}"
+                        Text="{TemplateBinding Content}" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="Text" Property="Foreground" Value="{StaticResource Colors/Neutral/900}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="Text" Property="Foreground" Value="Black" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
+                            <Setter TargetName="Text" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers />
     </Style>
 
     <Style x:Key="Button_24" TargetType="{x:Type Button}">
@@ -348,12 +378,10 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/100}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
@@ -405,10 +433,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#F4F4F6" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/100}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
@@ -453,12 +481,12 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FFB8B6B6" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FFB8B6B6" />
+                            <Setter TargetName="border" Property="Background" Value="#AAB8B6B6" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#AAB8B6B6" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="Background" Value="#AA5B5953" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#AA5B5953" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
@@ -551,12 +579,12 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#DDDEE4" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#DDDEE4" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Neutral/300}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#FF5B5953" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#FF5B5953" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/100}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Neutral/100}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
@@ -601,8 +629,8 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="#E8E9ED" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="#E8E9ED" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/200}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
                         </Trigger>
 
                     </ControlTemplate.Triggers>
