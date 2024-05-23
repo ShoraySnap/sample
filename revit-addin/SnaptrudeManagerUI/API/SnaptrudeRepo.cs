@@ -57,5 +57,24 @@ namespace SnaptrudeManagerUI.API
       ValidateUrl validateUrl = new ValidateUrl(response["access"] == "true", response["name"], response["image"], response["message"]);
       return validateUrl;
     }
-  }
+
+    public static async Task<string> CreateProjectAsync()
+    {
+        var folder_id = Store.Get("folder_id").ToString();
+        var team_id = Store.Get("team_id").ToString();
+        var project_name = Store.Get("projectName").ToString();
+
+        if (string.IsNullOrEmpty(folder_id) || string.Equals(folder_id, "-1"))
+            folder_id = "root";
+
+        if (string.IsNullOrEmpty(team_id) || string.Equals(team_id, "-1"))
+            team_id = "";
+
+        if (string.IsNullOrEmpty(project_name))
+            project_name = "Untitled";
+
+        var response = await SnaptrudeService.CreateProjectAsync(folder_id, team_id, project_name);
+        return response;
+    }
+    }
 }

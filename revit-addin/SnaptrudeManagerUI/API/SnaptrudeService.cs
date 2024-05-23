@@ -48,13 +48,16 @@ namespace SnaptrudeManagerUI.API
             return response;
         }
 
-        public static async Task<string> CreateProjectAsync()
+        public static async Task<string> CreateProjectAsync(string folder_id, string team_id, string project_name)
         {
             logger.Info("Creating Snaptrude project");
-            string endPoint = "/newBlankProject/";
+            string endPoint = "/import/project/";
+
             var data = new Dictionary<string, string>
             {
-                { "project_name", Store.Get("projectName").ToString() }
+                { "project_name", project_name },
+                { "team_id", team_id },
+                { "folder_id", folder_id }
             };
 
             var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
