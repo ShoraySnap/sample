@@ -103,6 +103,7 @@ namespace SnaptrudeManagerUI.API
 
         public static bool isDataValid()
         {
+            if (data == null) CreateEmptyConfig();
             if (!data.ContainsKey("fullname") ||
                 !data.ContainsKey("accessToken") ||
                 !data.ContainsKey("refreshToken"))

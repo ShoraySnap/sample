@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Services;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Stores;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,12 @@ namespace SnaptrudeManagerUI.ViewModels
         public static SelectFolderViewModel CreateSelectFolderViewModel()
         {
             return new SelectFolderViewModel(
-                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
+                new NavigationService(
+                    NavigationStore.Instance,
+                    String.Equals(Store.Get("fileType"), "rvt") ?
+                        CreateHomeViewModel :
+                        CreateExportViewModel
+                        ),
                 new NavigationService(NavigationStore.Instance, CreateExportProgressViewModel)
                 );
         }
@@ -33,12 +39,22 @@ namespace SnaptrudeManagerUI.ViewModels
             var iniFile = new IniFileUtils(IniFilePath);
             string result = iniFile.Read(WarningId.AllVisibleParts.ToString(), "Warnings");
             if (result == "Skip")
-                return CreateExportViewModel();
+            {
+                return String.Equals(Store.Get("fileType"), "rvt") ?
+                CreateSelectFolderViewModel() :
+                CreateExportViewModel();
+            }
+
             else
             {
                 return new WarningViewModel(WarningId.AllVisibleParts,
                     new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
-                    new NavigationService(NavigationStore.Instance, CreateExportViewModel)
+                    new NavigationService(
+                        NavigationStore.Instance,
+                        String.Equals(Store.Get("fileType"), "rvt") ?
+                        CreateSelectFolderViewModel :
+                        CreateExportViewModel
+                        )
                     );
             }
         }
@@ -52,7 +68,12 @@ namespace SnaptrudeManagerUI.ViewModels
             else
             {
                 return new WarningViewModel(WarningId.WillNotReconcile,
-                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
+                new NavigationService(
+                    NavigationStore.Instance,
+                String.Equals(Store.Get("fileType"), "rvt") ?
+                        CreateHomeViewModel :
+                        CreateExportViewModel
+                        ),
                 new NavigationService(NavigationStore.Instance, CreateEnterProjectUrlViewModel)
                 );
             }
@@ -121,14 +142,17 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
 
-        private static HomeViewModel CreateHomeViewModel()
+        private static ViewModelBase CreateHomeViewModel()
         {
-            return new HomeViewModel(
+            return
+            Store.isDataValid() ?
+             new HomeViewModel(
                 new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportLabelsViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel),
                 new NavigationService(NavigationStore.Instance, CreateWarningAllVisiblePartsViewModel),
-                new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel));
+                new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel))
+            : CreateLoginViewModel();
         }
 
         private static ImportLabelsViewModel CreateImportLabelsViewModel()

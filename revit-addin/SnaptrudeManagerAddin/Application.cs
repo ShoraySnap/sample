@@ -2,14 +2,17 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using SnaptrudeManagerAddin.Launcher;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TrudeCommon.DataTransfer;
@@ -84,6 +87,7 @@ namespace SnaptrudeManagerAddin
         {
             View currentView = e.CurrentActiveView;
             UpdateButtonState(currentView is View3D);
+            UpdateNameAndFiletype(e.Document.Title, e.Document.IsFamilyDocument ? "rfa" : "rvt");
         }
 
         public static void UpdateButtonState(bool is3DView)
@@ -92,6 +96,18 @@ namespace SnaptrudeManagerAddin
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);
             else
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
+        }
+
+        public static void UpdateNameAndFiletype(string projectName, string fileType)
+        {
+
+            Dictionary<string, string> data = new Dictionary<string, string>
+            {
+                { "projectName", projectName },
+                { "fileType", fileType }
+            };
+            string serializedData = JsonConvert.SerializeObject(data);
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE, serializedData, TransferManager);
         }
 
         private ImageSource GetEmbeddedImage(System.Reflection.Assembly assemb, string imageName)
@@ -132,12 +148,12 @@ namespace SnaptrudeManagerAddin
         private void ProcessEventQueue()
         {
             ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
-            while(!eventQueue.IsEmpty)
+            while (!eventQueue.IsEmpty)
             {
-                if(eventQueue.TryDequeue(out TRUDE_EVENT eventType))
+                if (eventQueue.TryDequeue(out TRUDE_EVENT eventType))
                 {
                     logger.Info("Processing event from main queue: {0}", TrudeEventUtils.GetEventName(eventType));
-                    switch(eventType)
+                    switch (eventType)
                     {
                         case TRUDE_EVENT.MANAGER_UI_OPEN:
                             break;

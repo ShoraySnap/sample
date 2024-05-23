@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
+using TrudeCommon.Events;
+using SnaptrudeManagerAddin;
 
 namespace TrudeSerializer.Uploader
 {
@@ -37,8 +39,7 @@ namespace TrudeSerializer.Uploader
 
             await Task.WhenAll(uploadTasks);
 
-            string requestURL = "snaptrude://finish?name=" + projectFloorKey;
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS, projectFloorKey, Application.TransferManager);
         }
 
         public static async Task<HttpResponseMessage> UploadUsingPresignedURL(byte[] compressedString, PreSignedURLResponse preSignedURLResponse)
