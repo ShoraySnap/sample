@@ -22,7 +22,11 @@ namespace SnaptrudeManagerUI.ViewModels
                         CreateHomeViewModel :
                         CreateExportViewModel
                         ),
-                new NavigationService(NavigationStore.Instance, CreateExportProgressViewModel)
+
+                new NavigationService(NavigationStore.Instance,
+                    String.Equals(Store.Get("fileType"), "rfa") ?
+                    CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
+                )
                 );
         }
 
@@ -100,10 +104,28 @@ namespace SnaptrudeManagerUI.ViewModels
             return new ModelExportedViewModel();
         }
 
-        public static ProgressViewModel CreateExportProgressViewModel()
+        public static ProgressViewModel CreateExportToRFANewProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
-                ProgressViewModel.ProgressViewType.ExportToNew,
+                ProgressViewModel.ProgressViewType.ExportRFANew,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+        public static ProgressViewModel CreateExportToRFAExistingProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                ProgressViewModel.ProgressViewType.ExportRFAExisting,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+
+
+        public static ProgressViewModel CreateExportToNewProjectProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                ProgressViewModel.ProgressViewType.ExportProjectNew,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
             return MainWindowViewModel.Instance.ProgressViewModel;
@@ -112,7 +134,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public static ProgressViewModel CreateExportToExistingProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
-                ProgressViewModel.ProgressViewType.ExportToExisting,
+                ProgressViewModel.ProgressViewType.ExportRFAExisting,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
             return MainWindowViewModel.Instance.ProgressViewModel;
@@ -165,7 +187,10 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             return new EnterProjectUrlViewModel(
                 new NavigationService(NavigationStore.Instance, CreateExportViewModel),
-                new NavigationService(NavigationStore.Instance, CreateExportProgressViewModel));
+                new NavigationService(NavigationStore.Instance,
+                String.Equals(Store.Get("fileType"), "rfa") ?
+                CreateExportToRFAExistingProgressViewModel :
+                CreateExportToNewProjectProgressViewModel));
         }
         private static ExportViewModel CreateExportViewModel()
         {

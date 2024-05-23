@@ -119,6 +119,18 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private bool isDocumentOpen;
+        public bool IsDocumentOpen
+        {
+            get { return isDocumentOpen; }
+            set
+            {
+                isDocumentOpen = value; OnPropertyChanged("IsDocumentOpen");
+            }
+        }
+
+
+
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
         {
             TopMost = true;

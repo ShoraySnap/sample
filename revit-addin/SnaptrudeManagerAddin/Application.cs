@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using Newtonsoft.Json;
@@ -18,6 +19,7 @@ using System.Windows.Media.Imaging;
 using TrudeCommon.DataTransfer;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
+using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
 {
@@ -67,6 +69,10 @@ namespace SnaptrudeManagerAddin
             return Result.Succeeded;
         }
 
+        private void DocumentClosed(object sender, DocumentClosedEventArgs e)
+        {
+        }
+
         private void OnRevitIdling(object sender, IdlingEventArgs e)
         {
             ProcessEventQueue();
@@ -86,8 +92,14 @@ namespace SnaptrudeManagerAddin
         private void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
             View currentView = e.CurrentActiveView;
+            e.Document.DocumentClosing += DocumentClosing;
             UpdateButtonState(currentView is View3D);
             UpdateNameAndFiletype(e.Document.Title, e.Document.IsFamilyDocument ? "rfa" : "rvt");
+        }
+
+        private void DocumentClosing(object sender, DocumentClosingEventArgs e)
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
         }
 
         public static void UpdateButtonState(bool is3DView)
@@ -96,6 +108,8 @@ namespace SnaptrudeManagerAddin
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);
             else
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
+
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
         }
 
         public static void UpdateNameAndFiletype(string projectName, string fileType)
@@ -224,6 +238,16 @@ namespace SnaptrudeManagerAddin
         {
             string data = progress + ";" + message;
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
+        }
+
+        internal void FinishExportSuccess(string floorkey)
+        {
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS, floorkey, TransferManager);
+        }
+
+        internal void FinishExportFailure()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
         }
     }
 }

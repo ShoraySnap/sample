@@ -38,8 +38,6 @@ namespace TrudeSerializer.Uploader
             }
 
             await Task.WhenAll(uploadTasks);
-
-            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS, projectFloorKey, Application.TransferManager);
         }
 
         public static async Task<HttpResponseMessage> UploadUsingPresignedURL(byte[] compressedString, PreSignedURLResponse preSignedURLResponse)

@@ -30,12 +30,19 @@ namespace SnaptrudeManagerUI.ViewModels
         public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
         public bool ViewIsNot3D => !ViewIs3D;
 
+        public bool IsDocumentOpen => MainWindowViewModel.Instance.IsDocumentOpen;
+
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
             {
                 OnPropertyChanged(nameof(ViewIs3D));
                 OnPropertyChanged(nameof(ViewIsNot3D));
+            }
+
+            if(e.PropertyName == nameof(MainWindowViewModel.Instance.IsDocumentOpen))
+            {
+                OnPropertyChanged(nameof(IsDocumentOpen));
             }
         }
 

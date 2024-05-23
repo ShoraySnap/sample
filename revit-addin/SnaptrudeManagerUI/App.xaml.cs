@@ -81,7 +81,7 @@ namespace SnaptrudeManagerUI
 
         }
 
-        private void ProcessEventQueue(object? sender, EventArgs e)
+        private async void ProcessEventQueue(object? sender, EventArgs e)
         {
             ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
             while (!eventQueue.IsEmpty)
@@ -149,8 +149,10 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Export finished, opening browser.");
                                 try
                                 {
-                                    string floorkey = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
+                                    string floorkey = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS).Trim();
                                     logger.Info("data : \"{0}\"", floorkey);
+
+                                    await MainWindowViewModel.Instance.ProgressViewModel.FinishExport(floorkey);
 
                                     var navigateCmd = new NavigateCommand(new NavigationService(NavigationStore.Instance, ViewModelCreator.CreateModelExportedViewModel));
                                     navigateCmd.Execute(new object());
@@ -195,7 +197,7 @@ namespace SnaptrudeManagerUI
                             {
                                 string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
                                 string[] progressData = data.Split(";");
-                                logger.Info("Import to revit progress {0}  {1}", progressData[0], progressData[1]);
+                                logger.Info("progress update {0}  {1}", progressData[0], progressData[1]);
                                 if (progressData.Length >= 2)
                                 {
                                     OnProgressUpdate?.Invoke(int.Parse(progressData[0]), progressData[1]);
@@ -214,6 +216,28 @@ namespace SnaptrudeManagerUI
                                 OnAbortImport?.Invoke();
                             }
                             break;
+
+                        case TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED:
+                            {
+                                logger.Info("Revit Document opened!");
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    MainWindowViewModel.Instance.IsDocumentOpen = true;
+                                });
+
+                            }
+                            break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED:
+                            {
+                                logger.Info("Revit Document closed!");
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    MainWindowViewModel.Instance.IsDocumentOpen = false;
+                                });
+
+                            }
+                            break;
+
                     }
                 }
             }
@@ -252,6 +276,9 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
 
             TrudeEventSystem.Instance.Start();
 

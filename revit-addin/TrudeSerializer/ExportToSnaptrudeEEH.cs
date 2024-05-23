@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
+using SnaptrudeManagerAddin;
 using System;
 using System.Linq;
 using TrudeSerializer.Debug;
@@ -53,9 +54,11 @@ namespace TrudeSerializer
                 //SetDetailViewToFine(doc, view);
                 OnView3D?.Invoke(view, doc);
 
+                Application.Instance.UpdateProgressForExport(0, "Serializing Revit project...");
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 serializedData.SetProcessId(processId);
 
+                Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
                 OnCleanSerializedTrudeData?.Invoke(serializedData);
 
@@ -64,18 +67,25 @@ namespace TrudeSerializer
 
                 logger.SerializeDone(true);
                 TrudeDebug.StoreSerializedData(serializedObject);
+
+                Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
                 try
                 {
+                    string floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
-                        Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                       Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
                     }
                     logger.UploadDone(true);
+
+                    Application.Instance.FinishExportSuccess(floorkey);
                 }
                 catch(Exception ex)
                 {
                     logger.UploadDone(false);
                     TaskDialog.Show("catch", ex.ToString());
+
+                    Application.Instance.FinishExportFailure();
                     return Result.Failed;
                 }
 

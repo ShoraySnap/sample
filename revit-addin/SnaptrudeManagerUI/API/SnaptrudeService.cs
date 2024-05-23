@@ -313,6 +313,27 @@ namespace SnaptrudeManagerUI.API
 
             return null;
         }
+
+        public static async Task<bool> SetRevitImportState(string floorkey, string state)
+        {
+            string endPoint = $"/import/state";
+            var data = new Dictionary<string, string>
+            {
+                { "floorkey", floorkey },
+                {"revitImportState", state },
+            };
+
+            var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
+
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                return true;
+            }
+
+            return false;
+
+        }
     }
 
 }
