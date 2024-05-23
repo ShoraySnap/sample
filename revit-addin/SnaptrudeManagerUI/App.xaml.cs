@@ -35,6 +35,7 @@ namespace SnaptrudeManagerUI
 
         public static Action<int, string> OnProgressUpdate;
         public static Action OnSuccessfullLogin;
+        public static Action OnFailedLogin;
         public static Action OnAbortImport;
 
         public static void RegisterProtocol()
@@ -182,7 +183,7 @@ namespace SnaptrudeManagerUI
                                 catch (Exception ex)
                                 {
                                     logger.Error(ex.Message);
-                                    // TODO: that failed. try again UI.
+                                    OnFailedLogin?.Invoke();
                                 }
                             }
                             break;
