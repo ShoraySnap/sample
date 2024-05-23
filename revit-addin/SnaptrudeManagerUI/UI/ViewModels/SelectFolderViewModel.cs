@@ -19,6 +19,9 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand BackCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
 
+        private string team_id = "";
+        private string folder_id = "";
+
         private bool isLoaderVisible = true;
         public bool IsLoaderVisible
         {
@@ -67,7 +70,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     return viewmodel;
                 }));
             transformMainWindowViewModelCommand.Execute(new object());
-            BeginExportCommand = new NavigateCommand(exportNavigationService);
+            BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportNavigationService); });
             BackCommand = new NavigateCommand(backNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             Breadcrumb = new ObservableCollection<FolderViewModel>();
@@ -75,6 +78,16 @@ namespace SnaptrudeManagerUI.ViewModels
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);
             // Initialize with root folders
             LoadRootFolders();
+        }
+
+        private void BeginExport(object param, NavigationService exportNavigationService) 
+        {
+            Store.Set("team_id", team_id);
+            Store.Set("folder_id", folder_id);
+            Store.Save();
+
+            var navCmd = new NavigateCommand(exportNavigationService);
+            navCmd.Execute(param);
         }
 
         private async void LoadRootFolders()
@@ -111,6 +124,8 @@ namespace SnaptrudeManagerUI.ViewModels
                         {
                             subFolderViewModels.Add(new FolderViewModel(subFolder));
                         }
+                        team_id = parentFolder.TeamId;
+                        folder_id = parentFolder.Id;
                     }
                     PopulateSubFolders(subFolderViewModels);
                     if (addBreadcrumbs == true)
