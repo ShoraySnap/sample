@@ -35,6 +35,7 @@ namespace SnaptrudeManagerUI
 
         public static Action<int, string> OnProgressUpdate;
         public static Action OnSuccessfullLogin;
+        public static Action OnFailedLogin;
         public static Action OnAbortImport;
 
         public static void RegisterProtocol()
@@ -166,6 +167,7 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
                             {
                                 logger.Info("Got data incoming from browser!");
+                                var backup = Store.GetData();
                                 try
                                 {
                                     string data = TransferManager.ReadString(TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS);
@@ -178,13 +180,13 @@ namespace SnaptrudeManagerUI
                                         throw new Exception("Missing required data in login credentials.");
                                     }
 
-                                    MainWindowViewModel.Instance.Username = Store.GetData()["fullname"];
                                     OnSuccessfullLogin?.Invoke();
                                 }
                                 catch (Exception ex)
                                 {
+                                    Store.SetAllAndSave(backup);
                                     logger.Error(ex.Message);
-                                    // TODO: that failed. try again UI.
+                                    OnFailedLogin?.Invoke();
                                 }
                             }
                             break;
