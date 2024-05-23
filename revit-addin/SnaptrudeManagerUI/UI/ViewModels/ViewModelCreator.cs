@@ -164,7 +164,7 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
 
-        private static ViewModelBase CreateHomeViewModel()
+        public static ViewModelBase CreateHomeViewModel()
         {
             return
             Store.isDataValid() ?

@@ -235,6 +235,10 @@ namespace SnaptrudeManagerUI
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     MainWindowViewModel.Instance.IsDocumentOpen = false;
+                                    if (MainWindowViewModel.Instance.WhiteBackground)
+                                    {
+                                        MainWindowViewModel.Instance.NavigateHomeCommand.Execute(null);
+                                    }
                                 });
 
                             }

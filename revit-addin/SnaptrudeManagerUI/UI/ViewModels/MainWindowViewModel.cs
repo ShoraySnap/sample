@@ -114,6 +114,7 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
         public ICommand CloseCommand { get; private set; }
+        public ICommand NavigateHomeCommand { get; private set; }
         public ICommand UpdateCommand { get; private set; }
         public ICommand SwitchAccountCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
@@ -162,6 +163,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
         {
+            NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
             IsActiveView3D = isActiveView3D;
             CurrentVersion = currentVersion;
