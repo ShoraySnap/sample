@@ -10,12 +10,18 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using TrudeCommon.Events;
 using SnaptrudeManagerUI.UI.Helpers;
+using Newtonsoft.Json;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private MainWindowViewModel() { }
+        private MainWindowViewModel() {
+            ShowUserIcon = true;
+            ShowLoader = false;
+            App.OnSuccessfullLogin += OnSuccessfulLogin;
+            App.OnFailedLogin += OnFailedLogin;
+        }
 
         private static readonly object padlock = new object();
         private static MainWindowViewModel instance = null;
@@ -33,6 +39,9 @@ namespace SnaptrudeManagerUI.ViewModels
                 }
             }
         }
+
+        public ICommand SwitchUserError;
+
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
@@ -51,6 +60,26 @@ namespace SnaptrudeManagerUI.ViewModels
             {
                 username = value;
                 OnPropertyChanged("Username");
+            }
+        }
+
+        private bool showUserIcon;
+        public bool ShowUserIcon
+        {
+            get { return showUserIcon; }
+            set
+            {
+                showUserIcon = value; OnPropertyChanged("ShowUserIcon");
+            }
+        }
+
+        private bool showLoader;
+        public bool ShowLoader
+        {
+            get { return showLoader; }
+            set
+            {
+                showLoader = value; OnPropertyChanged("ShowLoader");
             }
         }
 
@@ -133,7 +162,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
             LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
-            SwitchAccountCommand = new RelayCommand(LoginHelper.Login);
+            SwitchAccountCommand = new RelayCommand(SwitchAccount);
         }
 
         private void OnCurrentViewModelChanged()
@@ -141,6 +170,62 @@ namespace SnaptrudeManagerUI.ViewModels
             OnPropertyChanged(nameof(CurrentViewModel));
             OnPropertyChanged(nameof(LoginButtonVisible));
             OnPropertyChanged(nameof(CloseButtonVisible));
+        }
+
+        private void SwitchAccount(object parameter)
+        {
+            ShowUserIcon = false;
+            ShowLoader = true;
+            Store.Set("fullname", " Switching account");
+            Username = " Switching Account";
+            LoginHelper.Login(parameter);
+            if (SwitchUserError != null)
+            {
+                var param =
+                new Dictionary<string, string>{
+                    {"infotext", ""},
+                    {"infocolor", "#767B93"},
+                    {"showinfo", "false"}
+                };
+                SwitchUserError.Execute(param);
+            }
+        }
+
+        private void OnFailedLogin()
+        {
+            ShowUserIcon = true;
+            ShowLoader = false;
+            OnPropertyChanged("Username");
+
+            if (SwitchUserError != null)
+            {
+                var param =
+                new Dictionary<string, string>{
+                    {"infotext", "Failed to switch account. Please try again."},
+                    {"infocolor", "#D24B4E"},
+                    {"showinfo", "true"}
+                };
+                SwitchUserError.Execute(param);
+            }
+        }
+
+        private void OnSuccessfulLogin()
+        {
+            ShowUserIcon = true;
+            ShowLoader = false;
+            OnPropertyChanged("Username");
+
+
+            if (SwitchUserError != null)
+            {
+                var param =
+                new Dictionary<string, string>{
+                    {"infotext", ""},
+                    {"infocolor", "#767B93"},
+                    {"showinfo", "false"}
+                };
+                SwitchUserError.Execute(param);
+            }
         }
     }
 }

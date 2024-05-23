@@ -28,14 +28,53 @@ namespace SnaptrudeManagerUI.ViewModels
         public string UpdateVersion => MainWindowViewModel.Instance.UpdateVersion;
         public bool UpdateAvailable => CurrentVersion != UpdateVersion;
         public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
-        public bool ViewIsNot3D => !ViewIs3D;
+
+        private bool showInfoText;
+        public bool ShowInfoText
+        {
+            get { return showInfoText; }
+            set { showInfoText = value; OnPropertyChanged(nameof(ShowInfoText)); }
+        }
+
+
+        private string infoText;
+        public string InfoText
+        {
+            get { return infoText; }
+            set
+            {
+                infoText = value; OnPropertyChanged("InfoText");
+            }
+        }
+
+        private string infoColor;
+        public string InfoColor
+        {
+            get { return infoColor; }
+            set
+            {
+                infoColor = value; OnPropertyChanged("InfoColor");
+            }
+        }
+        public void UpdateInfoTextBlock(object param)
+        {
+            var _param = param as Dictionary<string, string>;
+            InfoText = _param["infotext"];
+            InfoColor = _param["infocolor"];
+            ShowInfoText = string.Equals(_param["showinfo"], "false") ? false : true;
+        }
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
             {
                 OnPropertyChanged(nameof(ViewIs3D));
-                OnPropertyChanged(nameof(ViewIsNot3D));
+                ShowInfoText = !ViewIs3D;
+                InfoColor = "#767B93";
+                if (ShowInfoText)
+                    InfoText = "Export is not supported in this view. Switch to 3D view to enable export.";
+                else
+                    InfoText = "";
             }
         }
 
@@ -43,12 +82,19 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             MainWindowViewModel.Instance.TopMost = true;
             MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
+            MainWindowViewModel.Instance.SwitchUserError = new RelayCommand((o) => { UpdateInfoTextBlock(o); });
             MainWindowViewModel.Instance.WhiteBackground = true;
             ExportCommand = new NavigateCommand(exportNavigationService);
             ImportCommand = new NavigateCommand(importNavigationService);
             LabelConfigCommand = new NavigateCommand(labelConfigNavigationService);
             UpdateCommand = new NavigateCommand(updateNavigationService);
             SelectTrudeFileCommand = new RelayCommand(async (o) => await SelectAndParseTrudeFile());
+            var param = new Dictionary<string, string>{
+                    {"infotext", ""},
+                    {"infocolor", "#767B93"},
+                    {"showinfo", "false"}
+                };
+            UpdateInfoTextBlock(param);
         }
         private async Task SelectAndParseTrudeFile()
         {
