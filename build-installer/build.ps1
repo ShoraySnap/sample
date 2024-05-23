@@ -33,7 +33,7 @@ function Restore-And-Build-Project {
         [string]$config
     )
 
-    $compileMessage = "Compiling ${projectName} (${config})..."
+    $compileMessage = "Building ${projectName} (${config})..."
 
     # Determine the TargetFramework based on the project and configuration year
     if ($projectName -eq "SnaptrudeManagerUI") {
@@ -56,43 +56,24 @@ function Restore-And-Build-Project {
         Clear-Line
         Write-Host "Restoring ${projectName} (${config}) - Error:" -ForegroundColor Red
         Write-Host $restoreOutput
-        return $false
+        exit 1
     }
 
     # Display the initial compilation message
     Clear-Line
     Write-Host "$compileMessage" -NoNewline
 
-    # Start build job
-    $job = Start-Job -ScriptBlock {
-        param($msBuildPath, $projectPath, $config, $targetFramework)
-        & $msBuildPath $projectPath /t:Rebuild /p:Configuration=$config /p:Platform="Any CPU" /p:TargetFramework=$targetFramework /m /clp:NoSummary
-    } -ArgumentList $msBuildPath, $projectPath, $config, $targetFramework
-
-    # Wait for the job to complete
-    while ($job.State -eq "Running") {
-        Start-Sleep -Milliseconds 100
-    }
-
-    # Ensure the job is stopped and removed
-    if ($job.State -ne "Completed") {
-        Stop-Job -Job $job
-    }
-    $result = Receive-Job -Job $job
-    Remove-Job -Job $job -Force
-
-    # Check for errors
-    $errors = ($result | Select-String "error MSB").Count
-    if ($errors -gt 0) {
+    # Run MSBuild and capture the output
+    $buildOutput = & $msBuildPath $projectPath /t:Rebuild /p:Configuration=$config /p:Platform="Any CPU" /p:TargetFramework=$targetFramework /m /clp:NoSummary
+    if ($LASTEXITCODE -ne 0) {
         Clear-Line
-        Write-Host "Compiling ${projectName} (${config}) - Error:" -ForegroundColor Red
-        $result | Where-Object { $_ -match "error MSB" } | ForEach-Object { Write-Host $_ -ForegroundColor Red }
-        return $false
+        Write-Host "Build failed for ${projectName} (${config}). Check for the error messages in this configuration." -ForegroundColor Red
+        exit 1
     }
 
     # Clear the line and output success message
     Clear-Line
-    Write-Host "Compiling ${projectName} (${config}) - Done" -ForegroundColor Green
+    Write-Host "Building ${projectName} (${config}) - Done" -ForegroundColor Green
     return $true
 }
 
@@ -170,22 +151,22 @@ if ($branch -eq "master") {
 
     $version = Get-Content -Path .\version.txt -TotalCount 1
 
-    Run-InnoSetup -name "Prod" -script "snaptrude-manager-prod.iss" -version $version
-    Run-InnoSetup -name "Wework" -script "snaptrude-manager-wework.iss" -version $version
-    Run-InnoSetup -name "Update" -script "snaptrude-manager-update.iss" -version $version
+    Run-InnoSetup -name "Prod" -script "..\build-installer\snaptrude-manager-prod.iss" -version $version
+    Run-InnoSetup -name "Wework" -script "..\build-installer\snaptrude-manager-wework.iss" -version $version
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
 
-    Sign-File -filePath "out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
-    Sign-File -filePath "out\snaptrude-manager-setup-$version-WeWork.exe" -certPath $certPath -plainPwd $plainPwd
-    Sign-File -filePath "out\snaptrude-manager-setup-$version-Update.exe" -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-WeWork.exe" -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-Update.exe" -certPath $certPath -plainPwd $plainPwd
 
 } elseif ($branch -eq "dev") {
     $version_number = Get-Content -Path .\version.txt -TotalCount 1
     $version = -join("dev-", $version_number)
-    Run-InnoSetup -name "Staging" -script "snaptrude-manager-staging.iss" -version $version
-    Run-InnoSetup -name "Update" -script "snaptrude-manager-update.iss" -version $version
+    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager-staging.iss" -version $version
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
 } else {
-    Run-InnoSetup -name "Staging" -script "snaptrude-manager-staging.iss" -version $version
-    Run-InnoSetup -name "Update" -script "snaptrude-manager-update.iss" -version $version
+    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager-staging.iss" -version $version
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
 }
 
 git tag -a $version -m $version
