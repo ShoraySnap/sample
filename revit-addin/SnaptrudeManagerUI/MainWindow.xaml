@@ -86,8 +86,7 @@
                         d:Text=" v2.1"
                         FontFamily="{StaticResource Inter400}"
                         Opacity="0.66"
-                        Foreground="{Binding InfoColor}"
-                        Text="{Binding InfoText}" />
+                        Text="{Binding CurrentVersion, StringFormat=' v{0}'}" />
                     <Button
                         Padding="10"
                         Background="Transparent"
