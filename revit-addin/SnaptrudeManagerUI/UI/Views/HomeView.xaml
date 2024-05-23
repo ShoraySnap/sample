@@ -67,7 +67,7 @@
                 Width="200"
                 Height="144"
                 Command="{Binding ExportCommand}"
-                IsEnabled="{Binding ViewIs3D}"
+                IsEnabled="{Binding IsExportButtonEnable}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
                     <StackPanel.Resources>
@@ -78,7 +78,7 @@
                             <Setter Property="StrokeStartLineCap" Value="round" />
                             <Setter Property="StrokeThickness" Value="1.25" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding ViewIs3D}" Value="false">
+                                <DataTrigger Binding="{Binding IsExportButtonEnable}" Value="false">
                                     <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/400}" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -86,7 +86,7 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding ViewIs3D}" Value="false">
+                                <DataTrigger Binding="{Binding IsExportButtonEnable}" Value="false">
                                     <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
                                 </DataTrigger>
                             </Style.Triggers>

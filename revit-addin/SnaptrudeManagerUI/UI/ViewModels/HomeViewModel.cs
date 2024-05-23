@@ -27,7 +27,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public string CurrentVersion => MainWindowViewModel.Instance.CurrentVersion;
         public string UpdateVersion => MainWindowViewModel.Instance.UpdateVersion;
         public bool UpdateAvailable => CurrentVersion != UpdateVersion;
-        public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
+        public bool IsView3D => MainWindowViewModel.Instance.IsActiveView3D;
 
         private bool showInfoText;
         public bool ShowInfoText
@@ -65,23 +65,23 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
         public bool IsDocumentOpen => MainWindowViewModel.Instance.IsDocumentOpen;
+        public bool IsExportButtonEnable => IsDocumentOpen && IsView3D;
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
+            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D) ||
+                e.PropertyName == nameof(MainWindowViewModel.Instance.IsDocumentOpen))
             {
-                OnPropertyChanged(nameof(ViewIs3D));
-                ShowInfoText = !ViewIs3D;
+                ShowInfoText = !IsDocumentOpen || !IsView3D;
                 InfoColor = "#767B93";
-                if (ShowInfoText)
+                if (!IsDocumentOpen)
+                    InfoText = "Please open a Revit document to enable the commands.";
+                else if (!IsView3D)
                     InfoText = "Export is not supported in this view. Switch to 3D view to enable export.";
                 else
                     InfoText = "";
-            }
-
-            if(e.PropertyName == nameof(MainWindowViewModel.Instance.IsDocumentOpen))
-            {
                 OnPropertyChanged(nameof(IsDocumentOpen));
+                OnPropertyChanged(nameof(IsExportButtonEnable));
             }
         }
 
@@ -97,12 +97,19 @@ namespace SnaptrudeManagerUI.ViewModels
             UpdateCommand = new NavigateCommand(updateNavigationService);
             SelectTrudeFileCommand = new RelayCommand(async (o) => await SelectAndParseTrudeFile());
             var param = new Dictionary<string, string>{
-                    {"infotext", ""},
+                    {"infotext", "Please open a Revit document to enable the commands."},
                     {"infocolor", "#767B93"},
-                    {"showinfo", "false"}
+                    {"showinfo", "true"}
                 };
             UpdateInfoTextBlock(param);
+            CheckIfDocumentIsOpen();
         }
+
+        private void CheckIfDocumentIsOpen()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
+        }
+
         private async Task SelectAndParseTrudeFile()
         {
             await Task.Delay(5);

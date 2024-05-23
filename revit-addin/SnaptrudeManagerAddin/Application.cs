@@ -30,6 +30,7 @@ namespace SnaptrudeManagerAddin
         public static Application Instance;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
+        private bool IsAnyDocumentOpened;
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -91,6 +92,7 @@ namespace SnaptrudeManagerAddin
 
         private void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
+            IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
             e.Document.DocumentClosing += DocumentClosing;
             UpdateButtonState(currentView is View3D);
@@ -99,6 +101,7 @@ namespace SnaptrudeManagerAddin
 
         private void DocumentClosing(object sender, DocumentClosingEventArgs e)
         {
+            IsAnyDocumentOpened = false;
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
         }
 
@@ -146,6 +149,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
@@ -220,6 +224,15 @@ namespace SnaptrudeManagerAddin
                         case TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT:
                             {
                                 logger.Info("Abort export");
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
+                            {
+                                logger.Info("UI request document is opened");
+                                if (IsAnyDocumentOpened)
+                                {
+                                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+                                }
                             }
                             break;
                     }
