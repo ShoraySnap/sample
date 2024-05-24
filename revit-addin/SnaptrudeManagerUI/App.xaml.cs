@@ -36,7 +36,7 @@ namespace SnaptrudeManagerUI
         public static Action<int, string> OnProgressUpdate;
         public static Action OnSuccessfullLogin;
         public static Action OnFailedLogin;
-        public static Action OnAbortImport;
+        public static Action OnAbort;
 
         public static void RegisterProtocol()
         {
@@ -214,8 +214,8 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED:
                             {
-                                logger.Info("Import to revit finished!");
-                                OnAbortImport?.Invoke();
+                                logger.Info("Import to revit aborted!");
+                                OnAbort?.Invoke();
                             }
                             break;
 
@@ -243,7 +243,12 @@ namespace SnaptrudeManagerUI
 
                             }
                             break;
-
+                        case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED:
+                            {
+                                logger.Info("Export to snaptrude aborted!");
+                                OnAbort?.Invoke();
+                            }
+                            break;
                     }
                 }
             }

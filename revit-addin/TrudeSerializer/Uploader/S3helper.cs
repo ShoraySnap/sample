@@ -34,6 +34,8 @@ namespace TrudeSerializer.Uploader
                 var presignedUrlResponse = await GetPresignedURL(path, config);
                 var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
                 PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+                if (ExportToSnaptrudeEEH.IsImportAborted()) return;
+
                 uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
             }
 

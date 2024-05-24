@@ -56,6 +56,7 @@ namespace TrudeSerializer
 
                 Application.Instance.UpdateProgressForExport(0, "Serializing Revit project...");
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
+                if (IsImportAborted()) return Result.Cancelled; 
                 serializedData.SetProcessId(processId);
 
                 Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
@@ -63,10 +64,12 @@ namespace TrudeSerializer
                 OnCleanSerializedTrudeData?.Invoke(serializedData);
 
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
+                if (IsImportAborted()) return Result.Cancelled;
 
 
                 logger.SerializeDone(true);
                 TrudeDebug.StoreSerializedData(serializedObject);
+                if (IsImportAborted()) return Result.Cancelled;
 
                 Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
                 try
@@ -110,6 +113,16 @@ namespace TrudeSerializer
             }
         }
 
+        public static bool IsImportAborted()
+        {
+            if (Application.Instance.AbortExportFlag)
+            {
+                Application.Instance.AbortCustomExporter();
+                return true;
+            }
+            return false;
+        }
+
         private SerializedTrudeData ExportViewUsingCustomExporter(Document doc, View3D view)
         {
             if(doc.IsFamilyDocument)
@@ -123,7 +136,6 @@ namespace TrudeSerializer
 
             TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
             CustomExporter exporter = new CustomExporter(doc, exporterContext);
-
             exporter.Export(view);
             return exporterContext.GetExportData();
         }

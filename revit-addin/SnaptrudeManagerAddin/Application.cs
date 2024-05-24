@@ -31,6 +31,7 @@ namespace SnaptrudeManagerAddin
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
         private bool IsAnyDocumentOpened;
+        public bool AbortExportFlag = false;
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -38,7 +39,6 @@ namespace SnaptrudeManagerAddin
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
 
-            application.ViewActivated += OnViewActivated;
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
 
@@ -65,9 +65,16 @@ namespace SnaptrudeManagerAddin
             SetupDataChannels();
             SetupEvents();
             application.Idling += OnRevitIdling;
-
-
+            
             return Result.Succeeded;
+        }
+
+        public void OnProgressChanged(object sender, Autodesk.Revit.DB.Events.ProgressChangedEventArgs e)
+        {
+            if (e.Cancellable && AbortExportFlag)
+            {
+                e.Cancel();
+            }
         }
 
         private void DocumentClosed(object sender, DocumentClosedEventArgs e)
@@ -90,7 +97,7 @@ namespace SnaptrudeManagerAddin
         }
 
 
-        private void OnViewActivated(object sender, ViewActivatedEventArgs e)
+        public void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
             IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
@@ -159,6 +166,10 @@ namespace SnaptrudeManagerAddin
             {
                 TrudeImporter.TrudeImporterMain.Abort = true; // TODO: Mutexed this flag, but don't know if better structure is required, but it WORKS
             });
+            TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, () =>
+            {
+                Application.Instance.AbortExportFlag = true;
+            });
 
             TrudeEventSystem.Instance.Start();
         }
@@ -224,6 +235,7 @@ namespace SnaptrudeManagerAddin
                         case TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT:
                             {
                                 logger.Info("Abort export");
+                                Application.Instance.AbortExportFlag = true;
                             }
                             break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
@@ -251,6 +263,12 @@ namespace SnaptrudeManagerAddin
         {
             string data = progress + ";" + message;
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
+        }
+
+        internal void AbortCustomExporter()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
+            AbortExportFlag = false;
         }
 
         internal void FinishExportSuccess(string floorkey)

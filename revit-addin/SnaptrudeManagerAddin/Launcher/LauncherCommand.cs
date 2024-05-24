@@ -15,6 +15,9 @@ namespace SnaptrudeManagerAddin.Launcher
             LaunchProcess.StartProcess();
             LaunchProcess.process.WaitForInputIdle();
 
+            commandData.Application.ViewActivated += Application.Instance.OnViewActivated;
+            commandData.Application.Application.ProgressChanged += Application.Instance.OnProgressChanged;
+
             View currentView = commandData.Application.ActiveUIDocument.ActiveView;
             Application.UpdateButtonState(currentView is View3D);
             Application.UpdateNameAndFiletype(commandData.Application.ActiveUIDocument.Document.Title, commandData.Application.ActiveUIDocument.Document.IsFamilyDocument ? "rfa" : "rvt");
