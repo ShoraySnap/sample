@@ -17,6 +17,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand OpenFolderCommand { get; private set; }
         public ICommand NavigateToFolderCommand { get; private set; }
         public ICommand BackCommand { get; private set; }
+        public ICommand TryAgainCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
 
         private string team_id = "";
@@ -63,7 +64,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 OnPropertyChanged(nameof(ExportIsEnable));
             }
         }
-        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService)
+        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService, NavigationService tryAgainNavigationService)
         {
             TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
                 new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
@@ -74,6 +75,7 @@ namespace SnaptrudeManagerUI.ViewModels
             transformMainWindowViewModelCommand.Execute(new object());
             BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportNavigationService); });
             BackCommand = new NavigateCommand(backNavigationService);
+            TryAgainCommand = new NavigateCommand(tryAgainNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             Breadcrumb = new ObservableCollection<FolderViewModel>();
             OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);

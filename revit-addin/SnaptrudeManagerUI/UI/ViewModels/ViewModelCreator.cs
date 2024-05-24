@@ -26,7 +26,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance,
                     String.Equals(Store.Get("fileType"), "rfa") ?
                     CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
-                )
+                ),
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel)
                 );
         }
 
