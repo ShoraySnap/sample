@@ -129,7 +129,7 @@ namespace SnaptrudeManagerUI.ViewModels
                             subFolderViewModels.Add(new FolderViewModel(subFolder));
                         }
                         team_id = parentFolder.TeamId;
-                        folder_id = parentFolder.Id;
+                        folder_id = parentFolder.FolderType == Constants.WorkspaceType.Folder ? parentFolder.Id : "root";
                     }
                     PopulateSubFolders(subFolderViewModels);
                     if (addBreadcrumbs == true)

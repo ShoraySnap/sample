@@ -155,7 +155,13 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public async Task StartExportNewProject()
         {
-            Store.Set("floorkey", await SnaptrudeRepo.CreateProjectAsync());
+            string floorkey = await SnaptrudeRepo.CreateProjectAsync();
+            if (string.IsNullOrEmpty(floorkey))
+            {
+                // TODO: Show error message on UI
+                return;
+            }
+            Store.Set("floorkey", floorkey);
             Store.Save();
 
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
@@ -168,7 +174,13 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public async Task StartExportRFANew()
         {
-            Store.Set("floorkey", await SnaptrudeRepo.CreateProjectAsync());
+            string floorkey = await SnaptrudeRepo.CreateProjectAsync();
+            if (string.IsNullOrEmpty(floorkey))
+            {
+                // TODO: Show error message on UI
+                return;
+            }
+            Store.Set("floorkey", floorkey);
             Store.Save();
 
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
