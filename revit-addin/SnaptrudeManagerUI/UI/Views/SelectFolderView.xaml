@@ -48,6 +48,7 @@
                                     Command="{Binding DataContext.NavigateToFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                     CommandParameter="{Binding}"
                                     Content="{Binding Name}"
+                                    IsEnabled="{Binding DataContext.IsBreadcrumbEnabled, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                     Style="{DynamicResource Button_6}" />
                             </StackPanel>
                             <DataTemplate.Triggers>

@@ -22,11 +22,13 @@ namespace SnaptrudeManagerUI.ViewModels
         private string team_id = "";
         private string folder_id = "";
 
+        public bool IsBreadcrumbEnabled => !IsLoaderVisible;
+
         private bool isLoaderVisible = true;
         public bool IsLoaderVisible
         {
             get { return isLoaderVisible; }
-            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("ExportIsEnable"); }
+            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("IsBreadcrumbEnabled"); OnPropertyChanged("ExportIsEnable"); }
         }
 
         private bool showErrorMessage = false;
