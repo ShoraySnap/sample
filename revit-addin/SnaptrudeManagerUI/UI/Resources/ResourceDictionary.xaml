@@ -640,11 +640,11 @@
     </Style>
 
     <Style x:Key="Button_6" TargetType="{x:Type Button}">
-        <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
+        <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="4,4" />
-        <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
+        <Setter Property="FontFamily" Value="{StaticResource Inter400}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Regular" />
         <Setter Property="Template">
@@ -669,6 +669,9 @@
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Foreground" Value="{DynamicResource Colors/Neutral/900}" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding Selected}" Value="true">
+                            <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

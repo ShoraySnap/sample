@@ -141,6 +141,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     addBreadcrumbs = true;
                     IsLoaderVisible = false;
                 }
+                SetSelectedFolder();
             }
             catch (Exception ex)
             {
@@ -180,6 +181,14 @@ namespace SnaptrudeManagerUI.ViewModels
         private void setExportButton()
         {
             IsWorkspaceSelected = Breadcrumb.Count > 1;
+        }
+
+        private void SetSelectedFolder()
+        {
+            for (int i = 0; i < Breadcrumb.Count; i++)
+            {
+                Breadcrumb[i].Selected = i == Breadcrumb.Count - 1 && Breadcrumb[i].Name != "All Workspaces";
+            }
         }
 
         private void UpdateBreadcrumb(FolderViewModel folder)

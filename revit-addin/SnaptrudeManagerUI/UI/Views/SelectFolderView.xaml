@@ -28,7 +28,9 @@
                 <!--  Breadcrumb Navigation  -->
                 <ItemsControl
                     Padding="6,6,6,16"
+                    d:ItemsSource="{d:SampleData ItemCount=4}"
                     DockPanel.Dock="Top"
+                    FontSize="12"
                     ItemsSource="{Binding Breadcrumb}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -41,8 +43,8 @@
                                 <TextBlock
                                     x:Name="SlashTextBlock"
                                     VerticalAlignment="Center"
-                                    FontWeight="Regular"
-                                    Foreground="{DynamicResource Colors/Neutral/600}"
+                                    FontFamily="{StaticResource Inter500}"
+                                    Foreground="{DynamicResource Colors/Neutral/400}"
                                     Text="/" />
                                 <Button
                                     Command="{Binding DataContext.NavigateToFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
@@ -53,7 +55,7 @@
                             </StackPanel>
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
-                                    <Setter TargetName="SlashTextBlock" Property="Visibility" Value="Collapsed" />
+                                    <Setter d:Value="Visible" TargetName="SlashTextBlock" Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
@@ -61,7 +63,10 @@
                 </ItemsControl>
                 <!--  Folder View  -->
                 <ScrollViewer Style="{DynamicResource ScrollViewerStyle}" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl Padding="48,0" ItemsSource="{Binding CurrentPathFolders}">
+                    <ItemsControl
+                        Padding="48,0"
+                        d:ItemsSource="{d:SampleData ItemCount=4}"
+                        ItemsSource="{Binding CurrentPathFolders}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -222,25 +227,21 @@
                 </ScrollViewer>
             </DockPanel>
         </Border>
-        
-        <Border 
-            CornerRadius="5" 
-            Width="519" 
-            Height="1" 
+
+        <Border
+            Width="519"
+            Height="1"
             Margin="0,0,0,191"
-            Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}"
-            >
+            CornerRadius="5"
+            Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}">
             <ProgressBar
-                Foreground="#2d6be6"
                 Background="{DynamicResource Colors/Neutral/200}"
                 BorderThickness="0"
-                IsIndeterminate="True"
-                >
-            </ProgressBar>
+                Foreground="#2d6be6"
+                IsIndeterminate="True" />
         </Border>
-        
+
         <Border
-            Visibility="{Binding ShowErrorMessage, Converter={StaticResource BoolToVisibility}}"
             Margin="16,8,16,0"
             Padding="24,24,44,40"
             d:Visibility="Collapsed"
@@ -279,11 +280,11 @@
                                 StrokeStartLineCap="Round"
                                 StrokeThickness="1.25" />
                         </Grid>
-            <TextBlock
-                VerticalAlignment="Center"
+                        <TextBlock
+                            VerticalAlignment="Center"
                             FontFamily="{DynamicResource Inter500}"
                             FontSize="16"
-                Foreground="{DynamicResource Colors/Red/400}"
+                            Foreground="{DynamicResource Colors/Red/400}"
                             Text="Something went wrong">
                             <Run />
                         </TextBlock>
@@ -354,7 +355,7 @@
                     Command="{Binding TryAgainCommand}"
                     Content="Try again"
                     Style="{DynamicResource Button_Primary}" />
-        </Grid>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
