@@ -16,7 +16,6 @@ namespace SnaptrudeManagerAddin.Launcher
             LaunchProcess.process.WaitForInputIdle();
 
             commandData.Application.ViewActivated += Application.Instance.OnViewActivated;
-            commandData.Application.Application.ProgressChanged += Application.Instance.OnProgressChanged;
 
             View currentView = commandData.Application.ActiveUIDocument.ActiveView;
             Application.UpdateButtonState(currentView is View3D);
