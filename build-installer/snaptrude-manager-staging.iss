@@ -204,31 +204,31 @@ Source: "{#BaseMisc}\urlsstaging.json"; DestDir: "{autoappdata}\snaptrude-manage
 Source: "{#UIBuildPath}\*"; DestDir: "{commonappdata}\snaptrude-manager\UI"; Flags: ignoreversion;
 
 ;2019
-Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
+Source: "{#RevitAddinDllPath}\2019\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019"; Flags: ignoreversion; Check: InstallVersion('2019');
 Source: "{tmp}\2019\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external recursesubdirs; Check: InstallVersion('2019');
 ;2020
-Source: "{#RevitAddinDllPath}\2020\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2020\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2020');
+Source: "{#RevitAddinDllPath}\2020\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2020\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2020');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2020"; Flags: ignoreversion; Check: InstallVersion('2020');
 Source: "{tmp}\2020\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external recursesubdirs; Check: InstallVersion('2020');
 ;2021
-Source: "{#RevitAddinDllPath}\2021\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2021\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2021');
+Source: "{#RevitAddinDllPath}\2021\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2021\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2021');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2021"; Flags: ignoreversion; Check: InstallVersion('2021');
 Source: "{tmp}\2021\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external recursesubdirs; Check: InstallVersion('2021');
 ;2022
-Source: "{#RevitAddinDllPath}\2022\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2022\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2022');
+Source: "{#RevitAddinDllPath}\2022\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2022\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2022');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2022"; Flags: ignoreversion; Check: InstallVersion('2022');
 Source: "{tmp}\2022\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external recursesubdirs; Check: InstallVersion('2022');
 ;2023
-Source: "{#RevitAddinDllPath}\2023\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2023\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2023');
+Source: "{#RevitAddinDllPath}\2023\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2023\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2023');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2023"; Flags: ignoreversion; Check: InstallVersion('2023');
 Source: "{tmp}\2023\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external recursesubdirs; Check: InstallVersion('2023');
 ;2024
-Source: "{#RevitAddinDllPath}\2024\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2024');
+Source: "{#RevitAddinDllPath}\2024\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2024\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2024');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2024"; Flags: ignoreversion; Check: InstallVersion('2024');
 Source: "{tmp}\2024\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external recursesubdirs; Check: InstallVersion('2024');
 ;2025
-Source: "{#RevitAddinDllPath}\2025\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2025\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2025');
+Source: "{#RevitAddinDllPath}\2025\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2025\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2025');
 Source: "{#BaseRevitAddinFiles}\SnaptrudeManagerAddin.addin"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2025"; Flags: ignoreversion; Check: InstallVersion('2025');
 Source: "{tmp}\2025\*"; DestDir: "{commonappdata}\Snaptrude\resourceFile"; Flags: external  recursesubdirs; Check: InstallVersion('2025');
 
