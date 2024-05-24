@@ -41,6 +41,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             bool skip = NavigationStore.Get(WarningId.AllVisibleParts.ToString())?.ToString() == "False";
             if (skip)
+            { 
                 return String.Equals(Store.Get("fileType"), "rvt") ?
                 CreateSelectFolderViewModel() :
                 CreateExportViewModel();
