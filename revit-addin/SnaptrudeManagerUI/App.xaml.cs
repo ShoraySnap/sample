@@ -75,11 +75,27 @@ namespace SnaptrudeManagerUI
 
             SetupDataChannels();
             SetupEvents();
+            SetupStore();
 
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
 
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
+        }
+
+        private void SetupStore()
+        {
+            var accessToken = Store.Get("accessToken") as string;
+            var refreshToken = Store.Get("refreshToken") as string;
+            var fullname = Store.Get("fullname") as string;
+            var userId = Store.Get("userId") as string;
+
+            Store.Flush();
+            Store.Set("accessToken", accessToken);
+            Store.Set("refreshToken", refreshToken);
+            Store.Set("fullname", fullname);
+            Store.Set("userId", userId);
+            Store.Save();
         }
 
         private async void ProcessEventQueue(object? sender, EventArgs e)

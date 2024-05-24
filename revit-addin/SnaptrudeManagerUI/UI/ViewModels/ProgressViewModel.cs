@@ -158,8 +158,7 @@ namespace SnaptrudeManagerUI.ViewModels
             string floorkey = await SnaptrudeRepo.CreateProjectAsync();
             if (string.IsNullOrEmpty(floorkey))
             {
-                // TODO: Show error message on UI
-                return;
+                Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
             }
             Store.Set("floorkey", floorkey);
             Store.Save();
@@ -177,8 +176,7 @@ namespace SnaptrudeManagerUI.ViewModels
             string floorkey = await SnaptrudeRepo.CreateProjectAsync();
             if (string.IsNullOrEmpty(floorkey))
             {
-                // TODO: Show error message on UI
-                return;
+                Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
             }
             Store.Set("floorkey", floorkey);
             Store.Save();
