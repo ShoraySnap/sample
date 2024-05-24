@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -37,8 +38,9 @@ namespace SnaptrudeManagerAddin.Launcher
 
             logger.Info("Trying to start UI process...");
             FileInfo file = new FileInfo(Assembly.GetExecutingAssembly().Location);
-            // TODO: Different paths for debug
-            var exe = Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net6.0-windows\SnaptrudeManagerUI.exe");
+            var exe = file.Directory.FullName.Contains(@"revit-addin") ?
+                Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net6.0-windows\SnaptrudeManagerUI.exe") :
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"snaptrude-manager\UI\SnaptrudeManagerUI.exe");
             if (File.Exists(exe))
             {
                 process = new Process();
@@ -55,9 +57,6 @@ namespace SnaptrudeManagerAddin.Launcher
                 MessageBox.Show("Please check installation of SnaptrudeManager! UI Application not found.", $"SnaptrudeManagerAddin {version}", MessageBoxButton.OK, MessageBoxImage.Information);
                 logger.Error("UI Process could not start! Please start manually.");
             }
-
-
-
         }
 
         public static void Kill()

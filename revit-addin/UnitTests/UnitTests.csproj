@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
-    <AssemblyName>SnaptrudeManagerAddin.UnitTests</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-	<RevitVersion>2024</RevitVersion>
-	<Configurations>2019;2020;2021;2022;2023;2024</Configurations>
-  </PropertyGroup>
-		<Choose>
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AssemblyName>SnaptrudeManagerAddin.UnitTests</AssemblyName>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<RevitVersion>2024</RevitVersion>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Configurations>2019;2020;2021;2022;2023;2024;2025</Configurations>
+	</PropertyGroup>
+	<Choose>
 		<When Condition="$(Configuration.Contains('2019'))">
 			<PropertyGroup>
 				<RevitVersion>2019</RevitVersion>
@@ -38,35 +39,41 @@
 				<TargetFramework>net48</TargetFramework>
 			</PropertyGroup>
 		</When>
-		<Otherwise>
+		<When Condition="$(Configuration.Contains('2024'))">
 			<PropertyGroup>
 				<RevitVersion>2024</RevitVersion>
 				<TargetFramework>net48</TargetFramework>
 			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<RevitVersion>2025</RevitVersion>
+				<TargetFramework>net8.0-windows</TargetFramework>
+			</PropertyGroup>
 		</Otherwise>
 	</Choose>
-		<ItemGroup>
-		  <Compile Remove="lib\**" />
-		  <EmbeddedResource Remove="lib\**" />
-		  <None Remove="lib\**" />
-		</ItemGroup>
+	<ItemGroup>
+		<Compile Remove="lib\**" />
+		<EmbeddedResource Remove="lib\**" />
+		<None Remove="lib\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-	<Reference Include="System.Net.Http.WebRequest" />
-	<Reference Include="RevitAPI" />
-	<Reference Include="RevitAPIUI" />
-	<Reference Include="RevitAPIIFC" Version="$(RevitVersion)">
-		<HintPath>lib\IFC\$(RevitVersion)\RevitAPIIFC.dll</HintPath>
-	</Reference>
-	<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NUnit" Version="3.13.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj" />
-  </ItemGroup>
-	
-	
+	<ItemGroup>
+		<Reference Include="System.Net.Http.WebRequest" />
+		<Reference Include="RevitAPI" />
+		<Reference Include="RevitAPIUI" />
+		<Reference Include="RevitAPIIFC" Version="$(RevitVersion)">
+			<HintPath>lib\IFC\$(RevitVersion)\RevitAPIIFC.dll</HintPath>
+		</Reference>
+		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="NUnit" Version="3.13.2" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj" />
+	</ItemGroup>
+
+
 	<PropertyGroup>
 		<Optimize>False</Optimize>
 		<DebugSymbols>true</DebugSymbols>

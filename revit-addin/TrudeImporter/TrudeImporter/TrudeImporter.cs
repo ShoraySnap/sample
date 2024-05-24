@@ -43,14 +43,17 @@ namespace TrudeImporter
             prevProgress = 0;
 
             UpdateProgress(() => ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport), "Importing Stories...", 5);
-            UpdateProgress(() => ImportWalls(trudeProperties.Walls), "Importing Walls...", 5);
-            UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 5);
-            UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 5);
+            UpdateProgress(() => ImportStairCases(trudeProperties.Staircases), "Importing Stairs...", 5);
+            UpdateProgress(() => ImportWalls(trudeProperties.Walls), "Importing Walls...", 10);
             UpdateProgress(() => ImportFloors(trudeProperties.Floors), "Importing Floors...", 10);
+            UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 5);
+            UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 5);
+            if (GlobalVariables.ImportLabels) 
+                UpdateProgress(() => ImportRooms(), "Importing Rooms...", 10);
 #if REVIT2019 || REVIT2020 || REVIT2021
-            UpdateProgress(() => ImportFloors(trudeProperties.Ceilings), "Importing Ceilings...", 10);
+            UpdateProgress(() => ImportFloors(trudeProperties.Ceilings), "Importing Ceilings...", 5);
 #else
-            UpdateProgress(() => ImportCeilings(trudeProperties.Ceilings), "Importing Ceilings...", 10);
+            UpdateProgress(() => ImportCeilings(trudeProperties.Ceilings), "Importing Ceilings...", 5);
 #endif
             UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 10);
             UpdateProgress(() => ImportDoors(trudeProperties.Doors), "Importing Doors...", 10);
@@ -58,7 +61,7 @@ namespace TrudeImporter
             UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing Masses...", 10);
             UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing Furniture...", 10);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
-                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Please link missing rfas in the other window...", 10);
+                UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Please link missing rfas in the other window...", 5);
 
         }
 
@@ -104,7 +107,11 @@ namespace TrudeImporter
                 {
                     TrudeStorey storey = new TrudeStorey(storeyProperties);
                     storeyNames.Add(storey.RevitName);
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
                     var levelWithSameId = existingLevels.FirstOrDefault(l => l.Id.IntegerValue == storeyProperties.LowerLevelElementId);
+#else
+                    var levelWithSameId = existingLevels.FirstOrDefault(l => l.Id.Value == storeyProperties.LowerLevelElementId);
+#endif
                     if (!levelWithSameId.IsNull())
                         storiesWithMatchingLevelIds.Add((storey, levelWithSameId));
                     else
@@ -245,7 +252,7 @@ namespace TrudeImporter
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
-            if (!propsList.Any()) return;
+            if (propsList == null || !propsList.Any()) return;
             GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
             GlobalVariables.Transaction.Start();
             TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
@@ -268,7 +275,6 @@ namespace TrudeImporter
                         if (props.AllFaceVertices != null)
                         {
                             TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Walls);
-
                         }
                         else
                         {
@@ -306,7 +312,7 @@ namespace TrudeImporter
 
         private static void ImportBeams(List<BeamProperties> propsList)
         {
-            if (!propsList.Any()) return;
+            if (propsList == null || !propsList.Any()) return;
             GlobalVariables.Transaction.Commit();
 
             foreach (var beam in propsList)
@@ -343,6 +349,7 @@ namespace TrudeImporter
 
         private static void ImportColumns(List<ColumnProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var column in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -387,8 +394,172 @@ namespace TrudeImporter
             }
         }
 
+        private static void ImportRooms()
+        {
+            if (!GlobalVariables.CreatedFloorsByLevel.Any()) return;
+            GlobalVariables.Document.Regenerate();
+
+            double computationalHeightInMM = 950;
+            List<(Element Element, Solid Solid)> roomBoundingElements = new List<(Element Element, Solid)>();
+            try
+            {
+                roomBoundingElements = new FilteredElementCollector(GlobalVariables.Document)
+                    .WhereElementIsNotElementType()
+                    .WherePasses(new ElementMulticategoryFilter(new List<BuiltInCategory> { BuiltInCategory.OST_Walls, BuiltInCategory.OST_Columns }))
+                    .Select(e => (e, Utils.GetElementSolid(e)))
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception in getting room boundaing elements" + "\nError is: " + e.Message + "\n");
+            }
+
+            foreach (var levelId in GlobalVariables.CreatedFloorsByLevel.Keys)
+            {
+                try
+                {
+                    double cutPlaneElevation = (GlobalVariables.Document.GetElement(levelId) as Level).ProjectElevation + UnitsAdapter.MMToFeet(computationalHeightInMM);
+
+                    Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, new XYZ(0, 0, cutPlaneElevation));
+
+                    List<(Element Element, Solid Solid)> roomBoundingElementsInLevel = roomBoundingElements
+                        .Where(e => e.Solid != null && e.Solid.Volume != BooleanOperationsUtils.CutWithHalfSpace(e.Solid, plane)?.Volume)
+                        .ToList();
+
+                    List<Solid> solidsInLevel = Utils.JoinSolids(roomBoundingElementsInLevel.Select(x => x.Solid).ToList());
+
+                    GlobalVariables.Document.GetElement(levelId).get_Parameter(BuiltInParameter.LEVEL_ROOM_COMPUTATION_HEIGHT)
+                        .Set(UnitsAdapter.MMToFeet(computationalHeightInMM));
+
+                    CurveArray curveArray = new CurveArray();
+
+                    foreach (var floor in GlobalVariables.CreatedFloorsByLevel[levelId])
+                    {
+                        if (!floor.IsDirectShape)
+                        {
+                            floor.Solid = Utils.GetElementSolid(GlobalVariables.Document.GetElement(floor.Id));
+                        }
+                        if (floor.CurveArray != null)
+                        {
+                            foreach (Curve curve in floor.CurveArray)
+                            {
+                                curveArray.Append(curve);
+                            }
+                        }
+                    }
+
+                    List<(Curve Curve, XYZ Direction)> elementBoundariesInLevel = new List<(Curve Curve, XYZ Direction)>();
+
+                    foreach (var element in roomBoundingElementsInLevel)
+                    {
+                        try
+                        {
+                            Face bottomFace = element.Solid.Faces
+                                .Cast<Face>()
+                                .Where(f => f.ComputeNormal(new UV(0, 0)).IsAlmostEqualTo(-XYZ.BasisZ))
+                                .OrderBy(f => f.Area)
+                                .LastOrDefault();
+
+                            if (bottomFace != null)
+                            {
+                                List<Curve> curves = bottomFace.GetEdgesAsCurveLoops()[0].OrderBy(c => c.Length).ToList();
+                                for (int i = element.Element is Wall ? curves.Count - 2 : 0; i < curves.Count; i++)
+                                {
+                                    XYZ curveDirection = (curves[i].GetEndPoint(1) - curves[i].GetEndPoint(0)).Normalize();
+                                    Curve curveInHeight0 = curves[i].CreateTransformed(Transform.CreateTranslation(-XYZ.BasisZ * curves[i].GetEndPoint(0).Z));
+                                    elementBoundariesInLevel.Add((curveInHeight0, curveDirection));
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Exception in getting Wall solid" + "\nError is: " + e.Message + "\n");
+                        }
+                    }
+
+                    CurveArray roomBoundariesToCreate = new CurveArray();
+                    for (int i = 0; i < curveArray.Size; i++)
+                    {
+                        Curve roomBoundary = curveArray.get_Item(i);
+
+                        if (!Utils.CheckIfPointIsInsideSolidProjection(solidsInLevel, roomBoundary.GetEndPoint(0)) ||
+                            !Utils.CheckIfPointIsInsideSolidProjection(solidsInLevel, roomBoundary.GetEndPoint(1)) ||
+                            !Utils.CheckIfPointIsInsideSolidProjection(solidsInLevel, roomBoundary.Evaluate(0.5, true)))
+                            roomBoundariesToCreate.Append(roomBoundary);
+                    }
+
+                    if (roomBoundariesToCreate.Size > 0)
+                    {
+                        Autodesk.Revit.DB.View levelView = new FilteredElementCollector(GlobalVariables.Document)
+                        .OfClass(typeof(ViewPlan))
+                        .Cast<Autodesk.Revit.DB.View>()
+                        .FirstOrDefault(v => v.GenLevel?.Id == levelId);
+
+                        SketchPlane levelPlane = SketchPlane.Create(GlobalVariables.Document, levelId);
+
+                        GlobalVariables.Document.Create.NewRoomBoundaryLines(levelPlane, roomBoundariesToCreate, levelView);
+                    }
+
+                    List<ElementId> createdRoomIds = GlobalVariables.Document.Create
+                        .NewRooms2(GlobalVariables.Document.GetElement(levelId) as Level)
+                        .ToList();
+
+                    List<ElementId> roomsToDelete = new List<ElementId>();
+
+                    foreach (var roomId in createdRoomIds)
+                    {
+                        XYZ roomLocation = (GlobalVariables.Document.GetElement(roomId).Location as LocationPoint).Point;
+                        bool roomMatched = false;
+                        var filteredDictionary = GlobalVariables.CreatedFloorsByLevel[levelId].Where(x => !x.RoomMatched);
+                        for (int i = 0; i < filteredDictionary.Count(); i++)
+                        {
+                            var floor = filteredDictionary.ElementAt(i);
+                            bool roomInProjection = false;
+                            if (floor.IsDirectShape)
+                            {
+                                if (Utils.IsPointInsideElementGeometryProjection(GlobalVariables.Document.GetElement(floor.Id), roomLocation, FindReferenceTarget.Element))
+                                {
+                                    roomInProjection = true;
+                                }
+                            }
+                            else
+                            {
+                                if (Utils.CheckIfPointIsInsideSolidProjection(new List<Solid> { floor.Solid }, roomLocation))
+                                {
+                                    roomInProjection = true;
+                                }
+                            }
+                            if (roomInProjection)
+                            {
+                                roomMatched = true;
+                                floor.RoomMatched = true;
+                                GlobalVariables.Document.GetElement(roomId).get_Parameter(BuiltInParameter.ROOM_NAME).Set(floor.Label);
+                                break;
+                            }
+                        }
+                        if (!roomMatched)
+                        {
+                            roomsToDelete.Add(roomId);
+                        }
+                    }
+
+                    foreach (var roomId in roomsToDelete)
+                    {
+                        GlobalVariables.Document.Delete(roomId);
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in generating room labels for level: " + levelId + "\nError is: " + e.Message + "\n");
+
+                }
+            }
+
+        }
+
         private static void ImportFloors(List<FloorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var floor in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -403,7 +574,17 @@ namespace TrudeImporter
                             );
                         if (floor.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            if (floor.RoomType != "Default")
+                            {
+                                var levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
+                                var roomType = floor.RoomType;
+                                var trudeRoom = new TrudeRoom(roomType, directShape.Id, floor.FaceVertices);
+                                if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
+                                    GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
+                                else
+                                    GlobalVariables.CreatedFloorsByLevel.Add(levelId, new List<TrudeRoom> { trudeRoom });
+                            }
                         }
                         else
                         {
@@ -427,6 +608,7 @@ namespace TrudeImporter
 
         private static void ImportSlabs(List<SlabProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var slab in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -464,6 +646,7 @@ namespace TrudeImporter
 
         private static void ImportDoors(List<DoorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var (door, index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -489,6 +672,7 @@ namespace TrudeImporter
 
         private static void ImportWindows(List<WindowProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             foreach (var (window, index) in propsList.WithIndex())
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -514,6 +698,7 @@ namespace TrudeImporter
 
         private static void ImportFurniture(List<FurnitureProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
             List<ElementId> sourceIdsToDelete = new List<ElementId>();
             foreach (var (furniture, index) in propsList.WithIndex())
             {
@@ -545,6 +730,8 @@ namespace TrudeImporter
 
         private static void ImportCeilings(List<FloorProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
+
             foreach (var ceiling in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -583,6 +770,8 @@ namespace TrudeImporter
 
         private static void ImportMasses(List<MassProperties> propsList)
         {
+            if (propsList == null || !propsList.Any()) return;
+
             foreach (var mass in propsList)
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -614,15 +803,55 @@ namespace TrudeImporter
             }
         }
 
+        private static void ImportStairCases(List<StairCaseProperties> propsList)
+        {
+            if (propsList == null || !propsList.Any()) return;
+            if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Commit();
+
+            GlobalVariables.StairsEditScope = new StairsEditScope(GlobalVariables.Document, "Stairs");
+            foreach (var staircase in propsList)
+            {
+                try
+                {
+                    if (staircase.AllFaceVertices != null)
+                    {
+                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        staircase.MaterialName,
+                        staircase.FaceMaterialIds,
+                        staircase.AllFaceVertices
+                    );
+                        GlobalVariables.Transaction.Start();
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Stairs);
+                        GlobalVariables.Transaction.Commit();
+                    }
+                    else
+                    {
+                        new TrudeStaircase(staircase, GlobalVariables.LevelIdByNumber[staircase.Storey]);
+                    }
+
+                    deleteOld(staircase.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.RollBack();
+                    if (GlobalVariables.StairsEditScope.IsActive) GlobalVariables.StairsEditScope.Cancel();
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
+                }
+            }
+            if (!GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Start();
+
+        }
+
+
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
+            if (propsListDoors.Count == 0 && propsListWindows.Count == 0 && propsListFurniture.Count == 0) return;
+
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
             var result = familyUploadMVVM.ShowDialog();
             if (!familyUploadMVVM.WindowViewModel._skipAll)
             {
-                // TODO: IPC HERE
-                //MainWindowViewModel.Instance.ProgressViewModel.UpdateProgress(95, "Importing missing families...");
                 System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
                 {

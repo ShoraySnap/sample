@@ -9,9 +9,10 @@ namespace TrudeImporter
     public static class GlobalVariables
     {
         public static Transaction Transaction;
+        public static StairsEditScope StairsEditScope;
         public static Document Document;
         public static Autodesk.Revit.ApplicationServices.Application RvtApp;
-
+        
         public static bool ForForge = false;
         public static string TrudeFileName = "";
 
@@ -21,6 +22,7 @@ namespace TrudeImporter
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingDoorFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingWindowFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingFurnitureFamiliesCount = new Dictionary<string, (bool, int, string)>();
+        public static IDictionary<ElementId, List<TrudeRoom>> CreatedFloorsByLevel = new Dictionary<ElementId, List<TrudeRoom>>();
 
         public static bool ImportLabels = false;
 
@@ -48,6 +50,7 @@ namespace TrudeImporter
             childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
             UniqueIdToElementId = new Dictionary<int, ElementId>();
             WallElementIdsToRecreate = new List<ElementId>();
+            CreatedFloorsByLevel = new Dictionary<ElementId, List<TrudeRoom>>();
 
             materials = null;
             multiMaterials = null;

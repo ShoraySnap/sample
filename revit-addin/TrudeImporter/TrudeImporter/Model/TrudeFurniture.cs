@@ -78,8 +78,11 @@ namespace TrudeImporter
                     trans.Start();
                     try
                     {
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
                         Element e = GlobalVariables.Document.GetElement(new ElementId((int)revitId));
-
+#else
+                        Element e = GlobalVariables.Document.GetElement(new ElementId((long)revitId));
+#endif
                         if (e != null && e.IsValidObject)
                         {
                             isExistingFurniture = true;

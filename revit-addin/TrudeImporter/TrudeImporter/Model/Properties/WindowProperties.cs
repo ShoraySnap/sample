@@ -20,6 +20,9 @@ namespace TrudeImporter
 
         [JsonProperty("direction")]
         public XYZ Direction { get; set; }
+        
+        [JsonProperty("handFlipped")]
+        public bool HandFlipped { get; set; }
 
         [JsonProperty("existingElementId")]
         public int? ExistingElementId { get; set; }

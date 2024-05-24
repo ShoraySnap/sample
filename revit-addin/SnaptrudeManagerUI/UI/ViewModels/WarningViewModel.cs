@@ -12,14 +12,12 @@ namespace SnaptrudeManagerUI.ViewModels
 {
     public enum WarningId
     {
-        AllVisibleParts = 0,
-        WillNotReconcile = 1
+        AllVisibleParts,
+        WillNotReconcile
     }
 
     public class WarningViewModel : ViewModelBase
     {
-        private readonly string IniFilePath = @"C:\ProgramData\Snaptrude\SnaptrudeManager.ini";
-
         private WarningId WarningId;
 
         private bool dontShowAgain;
@@ -60,8 +58,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void StoreDontShowAgainValue()
         {
-            var iniFile = new IniFileUtils(IniFilePath);
-            iniFile.Write(WarningId.ToString(), DontShowAgain ? "Skip" : "Show", "Warnings");
+            NavigationStore.Set(WarningId.ToString(), (!DontShowAgain).ToString());
         }
     }
 }

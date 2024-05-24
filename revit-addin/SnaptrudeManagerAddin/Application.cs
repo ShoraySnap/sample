@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.Attributes;
+﻿using Autodesk.Revit.ApplicationServices;
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
@@ -28,9 +29,10 @@ namespace SnaptrudeManagerAddin
     public class Application : IExternalApplication
     {
         public static Application Instance;
+        public static UIControlledApplication UIControlledApplication;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
-        private bool IsAnyDocumentOpened;
+        public bool IsAnyDocumentOpened;
         public bool AbortExportFlag = false;
 
         public Result OnStartup(UIControlledApplication application)
@@ -38,6 +40,7 @@ namespace SnaptrudeManagerAddin
             LogsConfig.Initialize("ManagerAddin");
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
+            UIControlledApplication = application;
 
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
@@ -185,8 +188,10 @@ namespace SnaptrudeManagerAddin
                     switch (eventType)
                     {
                         case TRUDE_EVENT.MANAGER_UI_OPEN:
+                            UIControlledApplication.ViewActivated += OnViewActivated;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_CLOSE:
+                            UIControlledApplication.ViewActivated -= OnViewActivated;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
                             break;

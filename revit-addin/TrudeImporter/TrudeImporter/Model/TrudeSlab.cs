@@ -126,7 +126,6 @@ namespace TrudeImporter
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. Material application by face is currently disabled.");
                     this.ApplyMaterialByFace(GlobalVariables.Document, slabProps.MaterialName, slabProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.slab);
                 }
             }

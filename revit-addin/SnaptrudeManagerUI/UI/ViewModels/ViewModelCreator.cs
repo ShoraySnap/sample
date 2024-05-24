@@ -11,8 +11,6 @@ namespace SnaptrudeManagerUI.ViewModels
 {
     public static class ViewModelCreator
     {
-        private static string IniFilePath = @"C:\ProgramData\Snaptrude\SnaptrudeManager.ini";
-
         public static SelectFolderViewModel CreateSelectFolderViewModel()
         {
             return new SelectFolderViewModel(
@@ -41,15 +39,13 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public static ViewModelBase CreateWarningAllVisiblePartsViewModel()
         {
-            var iniFile = new IniFileUtils(IniFilePath);
-            string result = iniFile.Read(WarningId.AllVisibleParts.ToString(), "Warnings");
-            if (result == "Skip")
-            {
+            bool skip = NavigationStore.Get(WarningId.AllVisibleParts.ToString())?.ToString() == "False";
+            if (skip)
+            { 
                 return String.Equals(Store.Get("fileType"), "rvt") ?
                 CreateSelectFolderViewModel() :
                 CreateExportViewModel();
             }
-
             else
             {
                 return new WarningViewModel(WarningId.AllVisibleParts,
@@ -66,9 +62,8 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public static ViewModelBase CreateWarningWillNotReconcileViewModel()
         {
-            var iniFile = new IniFileUtils(IniFilePath);
-            string result = iniFile.Read(WarningId.WillNotReconcile.ToString(), "Warnings");
-            if (result == "Skip")
+            bool skip = NavigationStore.Get(WarningId.WillNotReconcile.ToString())?.ToString() == "False";
+            if (skip)
                 return CreateEnterProjectUrlViewModel();
             else
             {
