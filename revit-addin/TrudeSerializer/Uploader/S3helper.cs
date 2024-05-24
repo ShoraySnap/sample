@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
+using TrudeCommon.Events;
+using SnaptrudeManagerAddin;
 
 namespace TrudeSerializer.Uploader
 {
@@ -32,13 +34,12 @@ namespace TrudeSerializer.Uploader
                 var presignedUrlResponse = await GetPresignedURL(path, config);
                 var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
                 PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+                if (ExportToSnaptrudeEEH.IsImportAborted()) return;
+
                 uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
             }
 
             await Task.WhenAll(uploadTasks);
-
-            string requestURL = "snaptrude://finish?name=" + projectFloorKey;
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
         }
 
         public static async Task<HttpResponseMessage> UploadUsingPresignedURL(byte[] compressedString, PreSignedURLResponse preSignedURLResponse)

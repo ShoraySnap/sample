@@ -1,12 +1,12 @@
 ﻿<Window
     x:Class="SnaptrudeManagerUI.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:SnaptrudeManagerUI"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
-    xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="clr-namespace:SnaptrudeManagerUI"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
+	xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
     Width="590"
     Height="350"
@@ -137,23 +137,96 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Border
-                                            Width="20"
-                                            Height="20"
-                                            Margin="3,0"
-                                            Background="LightGray"
-                                            CornerRadius="10">
-                                            <Border.Clip>
-                                                <EllipseGeometry
-                                                    Center="10,10"
-                                                    RadiusX="10"
-                                                    RadiusY="10" />
-                                            </Border.Clip>
-                                            <Image
+                                        <Grid>
+                                            <Border
+                                                Visibility="{Binding ShowUserIcon, Converter={StaticResource BoolToVisibility}}"
+                                                Width="20"
+                                                Height="20"
+                                                Margin="3,0"
+                                                Background="LightGray"
+                                                CornerRadius="10">
+                                                <Border.Clip>
+                                                    <EllipseGeometry
+                                                        Center="10,10"
+                                                        RadiusX="10"
+                                                        RadiusY="10" />
+                                                </Border.Clip>
+                                                <Image
+                                                    VerticalAlignment="Center"
+                                                    Source="/SnaptrudeManagerUI;component/UI/Images/user-icon-blank.png"
+                                                    Stretch="Fill" />
+                                            </Border>
+                                            <Grid
+                                                Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}"
+                                                HorizontalAlignment="Center" 
                                                 VerticalAlignment="Center"
-                                                Source="/SnaptrudeManagerUI;component/UI/Images/user-icon-blank.png"
-                                                Stretch="Fill" />
-                                        </Border>
+                                                >
+                                                <Grid.RenderTransform>
+                                                    <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
+                                                </Grid.RenderTransform>
+                                                <Grid.Triggers>
+                                                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                                        <BeginStoryboard Storyboard="{StaticResource RotateStoryboard}" />
+                                                    </EventTrigger>
+                                                </Grid.Triggers>
+                                                <Path
+                                                    Data="M10.4998 17.5031V15.0021"
+                                                    Stroke="{DynamicResource Colors/Neutral/100}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M15.8053 15.3055L14.0371 13.5373"
+                                                    Stroke="{DynamicResource Colors/Neutral/200}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M18.003 10H15.502"
+                                                    Stroke="{DynamicResource Colors/Neutral/300}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M14.0371 6.46269L15.8053 4.69446"
+                                                    Stroke="{DynamicResource Colors/Neutral/400}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M10.4998 2.49687V4.99792"
+                                                    Stroke="{DynamicResource Colors/Neutral/500}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M5.19531 4.69446L6.96355 6.46269"
+                                                    Stroke="{DynamicResource Colors/Neutral/600}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M2.99707 10H5.49811"
+                                                    Stroke="{DynamicResource Colors/Neutral/600}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
+                                                    Data="M6.96355 13.5373L5.19531 15.3055"
+                                                    Stroke="{DynamicResource Colors/Neutral/800}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                            </Grid>
+                                        </Grid>
                                         <TextBlock
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
@@ -197,7 +270,6 @@
                             </EventTrigger>
                         </Button.Triggers>
                     </Button>
-
                     <Popup
                         Name="popup"
                         MinWidth="160"
@@ -256,7 +328,6 @@
                                                         StrokeLineJoin="round"
                                                         StrokeStartLineCap="round"
                                                         StrokeThickness="1.125" />
-
                                                 </Grid>
                                             </Grid>
                                             <TextBlock
@@ -313,7 +384,6 @@
                                                 Foreground="{StaticResource Colors/Neutral/600}"
                                                 Text="Log out" />
                                         </StackPanel>
-
                                     </Grid>
                                     <Button.Triggers>
                                         <EventTrigger RoutedEvent="Button.Click">
@@ -375,5 +445,4 @@
             </ContentControl>
         </DockPanel>
     </Grid>
-
 </Window>

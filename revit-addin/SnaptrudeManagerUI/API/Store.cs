@@ -55,6 +55,8 @@ namespace SnaptrudeManagerUI.API
 
         public static object? Get(string key)
         {
+            if (data == null) CreateEmptyConfig();
+
             data.TryGetValue(key, out var value);
             return value;
         }
@@ -90,6 +92,7 @@ namespace SnaptrudeManagerUI.API
 
         public static Dictionary<string, string> GetData()
         {
+            if (data == null) CreateEmptyConfig();
             return new Dictionary<string, string>(data);
         }
 
@@ -98,17 +101,38 @@ namespace SnaptrudeManagerUI.API
             CreateEmptyConfig();
         }
 
+        private static bool isMissingKey()
+        {
+            return
+            !data.ContainsKey("fullname") ||
+            !data.ContainsKey("accessToken") ||
+            !data.ContainsKey("refreshToken") ||
+            !data.ContainsKey("userId");
+        }
+
+        private static bool isNullOrEmpty()
+        {
+            if(
+                data["fullname"] == null || data["fullname"] == "" ||
+                data["accessToken"] == null || data["accessToken"] == "" ||
+                data["refreshToken"] == null || data["refreshToken"] == "" ||
+                data["userId"] == null || data["userId"] == ""
+                )
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static bool isDataValid()
         {
-            if (!data.ContainsKey("fullname") ||
-                !data.ContainsKey("accessToken") ||
-                !data.ContainsKey("refreshToken"))
-            {
+            if (data == null) CreateEmptyConfig();
+            if (!isMissingKey())
+                if (!isNullOrEmpty())
+                    return true;
 
-                CreateEmptyConfig();
-                return false;
-            }
-            return true;
+            CreateEmptyConfig();
+            return false;
         }
     }
 

@@ -57,7 +57,7 @@ namespace UnitTests.Serializer
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
             // SMOKE SERIALIZER
-            Command trudeSerializer = new Command();
+            ExportToSnaptrudeEEH trudeSerializer = new ExportToSnaptrudeEEH();
             var result = trudeSerializer.ExecuteWithUIApplication(uiApp, true);
             Assert.IsTrue(result == Result.Succeeded);
             Assert.True(trudeSerializer.isDone);

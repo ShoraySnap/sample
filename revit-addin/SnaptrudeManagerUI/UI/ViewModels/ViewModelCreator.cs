@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Services;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Stores;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,18 @@ namespace SnaptrudeManagerUI.ViewModels
         public static SelectFolderViewModel CreateSelectFolderViewModel()
         {
             return new SelectFolderViewModel(
-                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
-                new NavigationService(NavigationStore.Instance, CreateExportProgressViewModel)
+                new NavigationService(
+                    NavigationStore.Instance,
+                    String.Equals(Store.Get("fileType"), "rvt") ?
+                        CreateHomeViewModel :
+                        CreateExportViewModel
+                        ),
+
+                new NavigationService(NavigationStore.Instance,
+                    String.Equals(Store.Get("fileType"), "rfa") ?
+                    CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
+                ),
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel)
                 );
         }
 
@@ -33,12 +44,22 @@ namespace SnaptrudeManagerUI.ViewModels
             var iniFile = new IniFileUtils(IniFilePath);
             string result = iniFile.Read(WarningId.AllVisibleParts.ToString(), "Warnings");
             if (result == "Skip")
-                return CreateExportViewModel();
+            {
+                return String.Equals(Store.Get("fileType"), "rvt") ?
+                CreateSelectFolderViewModel() :
+                CreateExportViewModel();
+            }
+
             else
             {
                 return new WarningViewModel(WarningId.AllVisibleParts,
                     new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
-                    new NavigationService(NavigationStore.Instance, CreateExportViewModel)
+                    new NavigationService(
+                        NavigationStore.Instance,
+                        String.Equals(Store.Get("fileType"), "rvt") ?
+                        CreateSelectFolderViewModel :
+                        CreateExportViewModel
+                        )
                     );
             }
         }
@@ -52,7 +73,12 @@ namespace SnaptrudeManagerUI.ViewModels
             else
             {
                 return new WarningViewModel(WarningId.WillNotReconcile,
-                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
+                new NavigationService(
+                    NavigationStore.Instance,
+                String.Equals(Store.Get("fileType"), "rvt") ?
+                        CreateHomeViewModel :
+                        CreateExportViewModel
+                        ),
                 new NavigationService(NavigationStore.Instance, CreateEnterProjectUrlViewModel)
                 );
             }
@@ -79,14 +105,42 @@ namespace SnaptrudeManagerUI.ViewModels
             return new ModelExportedViewModel();
         }
 
-        public static ProgressViewModel CreateExportProgressViewModel()
+        public static ProgressViewModel CreateExportToRFANewProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
-                ProgressViewModel.ProgressViewType.Export,
+                ProgressViewModel.ProgressViewType.ExportRFANew,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
+        public static ProgressViewModel CreateExportToRFAExistingProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                ProgressViewModel.ProgressViewType.ExportRFAExisting,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+
+
+        public static ProgressViewModel CreateExportToNewProjectProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                ProgressViewModel.ProgressViewType.ExportProjectNew,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+
+        public static ProgressViewModel CreateExportToExistingProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                ProgressViewModel.ProgressViewType.ExportRFAExisting,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+
         public static ProgressViewModel CreateImportProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
@@ -111,14 +165,17 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
 
-        private static HomeViewModel CreateHomeViewModel()
+        public static ViewModelBase CreateHomeViewModel()
         {
-            return new HomeViewModel(
+            return
+            Store.isDataValid() ?
+             new HomeViewModel(
                 new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportLabelsViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel),
                 new NavigationService(NavigationStore.Instance, CreateWarningAllVisiblePartsViewModel),
-                new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel));
+                new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel))
+            : CreateLoginViewModel();
         }
 
         private static ImportLabelsViewModel CreateImportLabelsViewModel()
@@ -131,7 +188,10 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             return new EnterProjectUrlViewModel(
                 new NavigationService(NavigationStore.Instance, CreateExportViewModel),
-                new NavigationService(NavigationStore.Instance, CreateExportProgressViewModel));
+                new NavigationService(NavigationStore.Instance,
+                String.Equals(Store.Get("fileType"), "rfa") ?
+                CreateExportToRFAExistingProgressViewModel :
+                CreateExportToNewProjectProgressViewModel));
         }
         private static ExportViewModel CreateExportViewModel()
         {

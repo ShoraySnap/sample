@@ -1,15 +1,19 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using SnaptrudeManagerAddin.Launcher;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TrudeCommon.DataTransfer;
@@ -26,6 +30,8 @@ namespace SnaptrudeManagerAddin
         public static Application Instance;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
+        private bool IsAnyDocumentOpened;
+        public bool AbortExportFlag = false;
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -33,7 +39,6 @@ namespace SnaptrudeManagerAddin
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
 
-            application.ViewActivated += OnViewActivated;
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
 
@@ -60,9 +65,20 @@ namespace SnaptrudeManagerAddin
             SetupDataChannels();
             SetupEvents();
             application.Idling += OnRevitIdling;
-
-
+            
             return Result.Succeeded;
+        }
+
+        public void OnProgressChanged(object sender, Autodesk.Revit.DB.Events.ProgressChangedEventArgs e)
+        {
+            if (e.Cancellable && AbortExportFlag)
+            {
+                e.Cancel();
+            }
+        }
+
+        private void DocumentClosed(object sender, DocumentClosedEventArgs e)
+        {
         }
 
         private void OnRevitIdling(object sender, IdlingEventArgs e)
@@ -81,10 +97,19 @@ namespace SnaptrudeManagerAddin
         }
 
 
-        private void OnViewActivated(object sender, ViewActivatedEventArgs e)
+        public void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
+            IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
+            e.Document.DocumentClosing += DocumentClosing;
             UpdateButtonState(currentView is View3D);
+            UpdateNameAndFiletype(e.Document.Title, e.Document.IsFamilyDocument ? "rfa" : "rvt");
+        }
+
+        private void DocumentClosing(object sender, DocumentClosingEventArgs e)
+        {
+            IsAnyDocumentOpened = false;
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
         }
 
         public static void UpdateButtonState(bool is3DView)
@@ -93,6 +118,20 @@ namespace SnaptrudeManagerAddin
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D);
             else
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
+
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+        }
+
+        public static void UpdateNameAndFiletype(string projectName, string fileType)
+        {
+
+            Dictionary<string, string> data = new Dictionary<string, string>
+            {
+                { "projectName", projectName },
+                { "fileType", fileType }
+            };
+            string serializedData = JsonConvert.SerializeObject(data);
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE, serializedData, TransferManager);
         }
 
         private ImageSource GetEmbeddedImage(System.Reflection.Assembly assemb, string imageName)
@@ -117,11 +156,19 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
             {
-                TrudeImporterMain.Abort = true; // TODO: Mutexed this flag, but don't know if better structure is required, but it WORKS
+                TrudeImporter.TrudeImporterMain.Abort = true; // TODO: Mutexed this flag, but don't know if better structure is required, but it WORKS
+            });
+            TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, () =>
+            {
+                Application.Instance.AbortExportFlag = true;
             });
 
             TrudeEventSystem.Instance.Start();
@@ -130,12 +177,12 @@ namespace SnaptrudeManagerAddin
         private void ProcessEventQueue()
         {
             ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
-            while(!eventQueue.IsEmpty)
+            while (!eventQueue.IsEmpty)
             {
-                if(eventQueue.TryDequeue(out TRUDE_EVENT eventType))
+                if (eventQueue.TryDequeue(out TRUDE_EVENT eventType))
                 {
                     logger.Info("Processing event from main queue: {0}", TrudeEventUtils.GetEventName(eventType));
-                    switch(eventType)
+                    switch (eventType)
                     {
                         case TRUDE_EVENT.MANAGER_UI_OPEN:
                             break;
@@ -157,22 +204,47 @@ namespace SnaptrudeManagerAddin
 
                                 // START THE IMPORT
                                 JObject trudeData = JObject.Parse(File.ReadAllText(data[0]));
-                                GlobalVariables.TrudeFileName = Path.GetFileName(data[0]);
-                                GlobalVariables.materials = trudeData["materials"] as JArray;
-                                GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
-                                GlobalVariables.ImportLabels = data[1] == "True";
+                                TrudeImporter.GlobalVariables.TrudeFileName = Path.GetFileName(data[0]);
+                                TrudeImporter.GlobalVariables.materials = trudeData["materials"] as JArray;
+                                TrudeImporter.GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
+                                TrudeImporter.GlobalVariables.ImportLabels = data[1] == "True";
 
                                 Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
                                 {
                                     NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
                                     DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
                                 };
-                                serializer.Converters.Add(new XyzConverter());
-                                GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
+                                serializer.Converters.Add(new TrudeImporter.XyzConverter());
+                                TrudeImporter.GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeImporter.TrudeProperties>(serializer);
 
                                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
                                 ExternalEvent evt = ExternalEvent.Create(new ImportToRevitEEH());
                                 evt.Raise();
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE:
+                            {
+                                string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE).Split(';');
+                                logger.Info("Got data from UI: {0}", data);
+
+                                logger.Info("Export to snaptrude start");
+                                ExternalEvent evt = ExternalEvent.Create(new TrudeSerializer.ExportToSnaptrudeEEH());
+                                evt.Raise();
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT:
+                            {
+                                logger.Info("Abort export");
+                                Application.Instance.AbortExportFlag = true;
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
+                            {
+                                logger.Info("UI request document is opened");
+                                if (IsAnyDocumentOpened)
+                                {
+                                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+                                }
                             }
                             break;
                     }
@@ -185,6 +257,28 @@ namespace SnaptrudeManagerAddin
         {
             string data = progress + ";" + message;
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
+        }
+
+        internal void UpdateProgressForExport(int progress, string message)
+        {
+            string data = progress + ";" + message;
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
+        }
+
+        internal void AbortCustomExporter()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
+            AbortExportFlag = false;
+        }
+
+        internal void FinishExportSuccess(string floorkey)
+        {
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS, floorkey, TransferManager);
+        }
+
+        internal void FinishExportFailure()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
         }
     }
 }

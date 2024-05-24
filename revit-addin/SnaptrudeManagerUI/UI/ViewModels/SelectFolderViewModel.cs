@@ -17,13 +17,19 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand OpenFolderCommand { get; private set; }
         public ICommand NavigateToFolderCommand { get; private set; }
         public ICommand BackCommand { get; private set; }
+        public ICommand TryAgainCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
+
+        private string team_id = "";
+        private string folder_id = "";
+
+        public bool IsBreadcrumbEnabled => !IsLoaderVisible;
 
         private bool isLoaderVisible = true;
         public bool IsLoaderVisible
         {
             get { return isLoaderVisible; }
-            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("ExportIsEnable"); }
+            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("IsBreadcrumbEnabled"); OnPropertyChanged("ExportIsEnable"); }
         }
 
         private bool showErrorMessage = false;
@@ -58,7 +64,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 OnPropertyChanged(nameof(ExportIsEnable));
             }
         }
-        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService)
+        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService, NavigationService tryAgainNavigationService)
         {
             TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
                 new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
@@ -67,14 +73,25 @@ namespace SnaptrudeManagerUI.ViewModels
                     return viewmodel;
                 }));
             transformMainWindowViewModelCommand.Execute(new object());
-            BeginExportCommand = new NavigateCommand(exportNavigationService);
+            BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportNavigationService); });
             BackCommand = new NavigateCommand(backNavigationService);
+            TryAgainCommand = new NavigateCommand(tryAgainNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             Breadcrumb = new ObservableCollection<FolderViewModel>();
             OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);
             // Initialize with root folders
             LoadRootFolders();
+        }
+
+        private void BeginExport(object param, NavigationService exportNavigationService) 
+        {
+            Store.Set("team_id", team_id);
+            Store.Set("folder_id", folder_id);
+            Store.Save();
+
+            var navCmd = new NavigateCommand(exportNavigationService);
+            navCmd.Execute(param);
         }
 
         private async void LoadRootFolders()
@@ -111,6 +128,8 @@ namespace SnaptrudeManagerUI.ViewModels
                         {
                             subFolderViewModels.Add(new FolderViewModel(subFolder));
                         }
+                        team_id = parentFolder.TeamId;
+                        folder_id = parentFolder.FolderType == Constants.WorkspaceType.Folder ? parentFolder.Id : "root";
                     }
                     PopulateSubFolders(subFolderViewModels);
                     if (addBreadcrumbs == true)
@@ -122,6 +141,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     addBreadcrumbs = true;
                     IsLoaderVisible = false;
                 }
+                SetSelectedFolder();
             }
             catch (Exception ex)
             {
@@ -161,6 +181,14 @@ namespace SnaptrudeManagerUI.ViewModels
         private void setExportButton()
         {
             IsWorkspaceSelected = Breadcrumb.Count > 1;
+        }
+
+        private void SetSelectedFolder()
+        {
+            for (int i = 0; i < Breadcrumb.Count; i++)
+            {
+                Breadcrumb[i].Selected = i == Breadcrumb.Count - 1 && Breadcrumb[i].Name != "All Workspaces";
+            }
         }
 
         private void UpdateBreadcrumb(FolderViewModel folder)
