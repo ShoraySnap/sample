@@ -13,6 +13,7 @@
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"  
 #define RevitAddinDllPath "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
+#define UIBuildPath "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net6.0-windows"
 #define BaseOut Base + "\out"
 
 [Setup]
@@ -200,6 +201,7 @@ Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.add
 
 [Files]
 Source: "{#BaseMisc}\urlsstaging.json"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
+Source: "{#UIBuildPath}\*"; DestDir: "{commonappdata}\snaptrude-manager\UI"; Flags: ignoreversion;
 
 ;2019
 Source: "{#RevitAddinDllPath}\2019\SnaptrudeManagerAddin.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');
