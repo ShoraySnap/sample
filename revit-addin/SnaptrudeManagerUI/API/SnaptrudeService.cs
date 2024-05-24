@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using SnaptrudeManagerUI.API;
 using static SnaptrudeManagerUI.API.Constants;
@@ -47,13 +48,16 @@ namespace SnaptrudeManagerUI.API
             return response;
         }
 
-        public static async Task<string> CreateProjectAsync()
+        public static async Task<string> CreateProjectAsync(string folder_id, string team_id, string project_name)
         {
             logger.Info("Creating Snaptrude project");
-            string endPoint = "/newBlankProject";
+            string endPoint = "/import/project/";
+
             var data = new Dictionary<string, string>
             {
-                { "project_name", SessionData.UserData.RevitProjectName }
+                { "project_name", project_name },
+                { "team_id", team_id },
+                { "folder_id", folder_id }
             };
 
             var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
@@ -61,10 +65,13 @@ namespace SnaptrudeManagerUI.API
             if (response != null && response.IsSuccessStatusCode)
             {
                 var responseData = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseData);
-                string floorKey = result["floorkey"];
-                logger.Info("Created Snaptrude project", floorKey);
-                return floorKey;
+                var result = JsonConvert.DeserializeObject<JToken>(responseData);
+                if (result != null)
+                {
+                    string floorKey = result["floorkey"].ToString();
+                    logger.Info("Created Snaptrude project", floorKey);
+                    return floorKey;
+                }
             }
 
             return null;
@@ -204,8 +211,8 @@ namespace SnaptrudeManagerUI.API
 
         public static async Task<bool> CheckIfUserLoggedInAsync()
         {
-            string accessToken = Store.GetData()["accessToken"];
-            string refreshToken = Store.GetData()["refreshToken"];
+            string accessToken = Store.Get("accessToken")?.ToString();
+            string refreshToken = Store.Get("refreshToken")?.ToString();
 
             string djangoUrl = Urls.Get("snaptrudeDjangoUrl");
             var data = new Dictionary<string, string>
@@ -223,7 +230,8 @@ namespace SnaptrudeManagerUI.API
 
                 if (result.ContainsKey("accessToken"))
                 {
-                    Store.GetData()["ccessToken"] = result["accessToken"];
+                    Store.Set("accessToken", result["accessToken"]);
+                    Store.Save();
                     // Update user data in your application state here
                     return true;
                 }
@@ -307,6 +315,27 @@ namespace SnaptrudeManagerUI.API
             }
 
             return null;
+        }
+
+        public static async Task<bool> SetRevitImportState(string floorkey, string state)
+        {
+            string endPoint = $"/import/state";
+            var data = new Dictionary<string, string>
+            {
+                { "floorkey", floorkey },
+                {"revitImportState", state },
+            };
+
+            var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
+
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                return true;
+            }
+
+            return false;
+
         }
     }
 

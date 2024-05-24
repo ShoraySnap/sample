@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Diagnostics;
+using SnaptrudeManagerUI.API;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -24,7 +25,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "https://app.snaptrude.com",
+                FileName = Urls.Get("snaptrudeReactUrl") + "/model/" + Store.Get("floorkey"),
                 UseShellExecute = true
             });
             App.Current.Shutdown();

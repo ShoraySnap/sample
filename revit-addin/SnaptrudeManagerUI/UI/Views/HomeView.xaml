@@ -25,6 +25,7 @@
                 Height="144"
                 Margin="0,0,16,0"
                 Command="{Binding SelectTrudeFileCommand}"
+                IsEnabled="{Binding IsDocumentOpen}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
                     <StackPanel.Resources>
@@ -34,9 +35,19 @@
                             <Setter Property="StrokeLineJoin" Value="round" />
                             <Setter Property="StrokeStartLineCap" Value="round" />
                             <Setter Property="StrokeThickness" Value="1.25" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsDocumentOpen}" Value="false">
+                                    <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/400}" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsDocumentOpen}" Value="false">
+                                    <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </StackPanel.Resources>
                     <Grid HorizontalAlignment="Center">
@@ -56,7 +67,7 @@
                 Width="200"
                 Height="144"
                 Command="{Binding ExportCommand}"
-                IsEnabled="{Binding ViewIs3D}"
+                IsEnabled="{Binding IsExportButtonEnable}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
                     <StackPanel.Resources>
@@ -67,7 +78,7 @@
                             <Setter Property="StrokeStartLineCap" Value="round" />
                             <Setter Property="StrokeThickness" Value="1.25" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding ViewIs3D}" Value="false">
+                                <DataTrigger Binding="{Binding IsExportButtonEnable}" Value="false">
                                     <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/400}" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -75,7 +86,7 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding ViewIs3D}" Value="false">
+                                <DataTrigger Binding="{Binding IsExportButtonEnable}" Value="false">
                                     <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -101,9 +112,9 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     FontWeight="Regular"
-                    Foreground="{StaticResource Colors/Neutral/600}"
-                    Text="Export is not supported in this view. Switch to 3D view to enable export."
-                    Visibility="{Binding ViewIsNot3D, Converter={StaticResource BoolToVisibility}}" />
+                    Foreground="{Binding InfoColor}"
+                    Text="{Binding InfoText}"
+                    Visibility="{Binding ShowInfoText, Converter={StaticResource BoolToVisibility}}" />
             </Grid>
             <Grid Height="40" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}">
                 <Border BorderBrush="{StaticResource Colors/Neutral/100}" BorderThickness="0,1,0,0">

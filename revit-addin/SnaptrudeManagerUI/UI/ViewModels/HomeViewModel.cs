@@ -27,15 +27,61 @@ namespace SnaptrudeManagerUI.ViewModels
         public string CurrentVersion => MainWindowViewModel.Instance.CurrentVersion;
         public string UpdateVersion => MainWindowViewModel.Instance.UpdateVersion;
         public bool UpdateAvailable => CurrentVersion != UpdateVersion;
-        public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
-        public bool ViewIsNot3D => !ViewIs3D;
+        public bool IsView3D => MainWindowViewModel.Instance.IsActiveView3D;
+
+        private bool showInfoText;
+        public bool ShowInfoText
+        {
+            get { return showInfoText; }
+            set { showInfoText = value; OnPropertyChanged(nameof(ShowInfoText)); }
+        }
+
+
+        private string infoText;
+        public string InfoText
+        {
+            get { return infoText; }
+            set
+            {
+                infoText = value; OnPropertyChanged("InfoText");
+            }
+        }
+
+        private string infoColor;
+        public string InfoColor
+        {
+            get { return infoColor; }
+            set
+            {
+                infoColor = value; OnPropertyChanged("InfoColor");
+            }
+        }
+        public void UpdateInfoTextBlock(object param)
+        {
+            var _param = param as Dictionary<string, string>;
+            InfoText = _param["infotext"];
+            InfoColor = _param["infocolor"];
+            ShowInfoText = string.Equals(_param["showinfo"], "false") ? false : true;
+        }
+
+        public bool IsDocumentOpen => MainWindowViewModel.Instance.IsDocumentOpen;
+        public bool IsExportButtonEnable => IsDocumentOpen && IsView3D;
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
+            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D) ||
+                e.PropertyName == nameof(MainWindowViewModel.Instance.IsDocumentOpen))
             {
-                OnPropertyChanged(nameof(ViewIs3D));
-                OnPropertyChanged(nameof(ViewIsNot3D));
+                ShowInfoText = !IsDocumentOpen || !IsView3D;
+                InfoColor = "#767B93";
+                if (!IsDocumentOpen)
+                    InfoText = "Please open a Revit document to enable the commands.";
+                else if (!IsView3D)
+                    InfoText = "Export is not supported in this view. Switch to 3D view to enable export.";
+                else
+                    InfoText = "";
+                OnPropertyChanged(nameof(IsDocumentOpen));
+                OnPropertyChanged(nameof(IsExportButtonEnable));
             }
         }
 
@@ -43,13 +89,27 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             MainWindowViewModel.Instance.TopMost = true;
             MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
+            MainWindowViewModel.Instance.SwitchUserError = new RelayCommand((o) => { UpdateInfoTextBlock(o); });
             MainWindowViewModel.Instance.WhiteBackground = true;
             ExportCommand = new NavigateCommand(exportNavigationService);
             ImportCommand = new NavigateCommand(importNavigationService);
             LabelConfigCommand = new NavigateCommand(labelConfigNavigationService);
             UpdateCommand = new NavigateCommand(updateNavigationService);
             SelectTrudeFileCommand = new RelayCommand(async (o) => await SelectAndParseTrudeFile());
+            var param = new Dictionary<string, string>{
+                    {"infotext", "Please open a Revit document to enable the commands."},
+                    {"infocolor", "#767B93"},
+                    {"showinfo", "true"}
+                };
+            UpdateInfoTextBlock(param);
+            CheckIfDocumentIsOpen();
         }
+
+        private void CheckIfDocumentIsOpen()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
+        }
+
         private async Task SelectAndParseTrudeFile()
         {
             await Task.Delay(5);

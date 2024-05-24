@@ -20,8 +20,7 @@ namespace SnaptrudeManagerUI.ViewModels
         None,
         Validating,
         Validated,
-        InvalidURL,
-        PermissionDenied
+        Error
     }
 
     public class EnterProjectUrlViewModel : ViewModelBase
@@ -36,6 +35,8 @@ namespace SnaptrudeManagerUI.ViewModels
             get { return requestStatus; }
             set { requestStatus = value; OnPropertyChanged("RequestStatus"); OnPropertyChanged("ExportIsEnable"); }
         }
+
+        private string floorkey;
 
         private string errorMessage;
 
@@ -94,8 +95,8 @@ namespace SnaptrudeManagerUI.ViewModels
             else
             {
                 RequestStatus = URLValidationStatus.Validating;
-                string floorkey = extractFloorkey(uRL);
-                var response = await SnaptrudeRepo.ValidateURLAsync(floorkey);
+                string _floorkey = extractFloorkey(uRL);
+                var response = await SnaptrudeRepo.ValidateURLAsync(_floorkey);
                 if (response != null)
                 {
                     if (response.Access)
@@ -103,17 +104,18 @@ namespace SnaptrudeManagerUI.ViewModels
                         RequestStatus = URLValidationStatus.Validated;
                         Image = new Uri(Urls.Get("snaptrudeDjangoUrl") + "/media/" + response.ImagePath);
                         ProjectName = response.ProjectName;
+                        floorkey = _floorkey;
                     }
                     else
                     {
                         ErrorMessage = response.Message;
-                        RequestStatus = URLValidationStatus.InvalidURL;
+                        RequestStatus = URLValidationStatus.Error;
                     }
                 }
                 else
                 {
                     ErrorMessage = "Network error, try again.";
-                    RequestStatus = URLValidationStatus.InvalidURL;
+                    RequestStatus = URLValidationStatus.Error;
                 }
             }
         }
@@ -162,7 +164,15 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
             BackCommand = new NavigateCommand(backNavigationService);
-            BeginExportCommand = new NavigateCommand(exportToExistingNavigationService);
+            BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportToExistingNavigationService); });
+        }
+
+        private void BeginExport(object param, NavigationService exportToExistingNavigationService)
+        {
+            Store.Set("floorkey", floorkey); 
+            Store.Save();
+            var navCmd = new NavigateCommand(exportToExistingNavigationService);
+            navCmd.Execute(param);
         }
     }
 }

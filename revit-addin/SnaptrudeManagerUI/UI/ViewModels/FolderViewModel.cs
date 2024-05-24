@@ -13,10 +13,11 @@ namespace SnaptrudeManagerUI.ViewModels
 {
     public class FolderViewModel : ViewModelBase
     {
-        public string Name { get; }
+        public string Name { get; set; }
         public Constants.WorkspaceType FolderType { get; }
         public string Id { get; }
         public string TeamId { get; }
+        public bool Selected { get; set; }
 
         public FolderViewModel(Folder folder)
         {
@@ -24,6 +25,7 @@ namespace SnaptrudeManagerUI.ViewModels
             Name = folder.Name;
             FolderType = folder.FolderType;
             TeamId = folder.TeamId;
+            Selected = false;
         }
     }
 }

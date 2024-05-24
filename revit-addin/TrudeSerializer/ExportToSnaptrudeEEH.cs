@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json;
+using SnaptrudeManagerAddin;
 using System;
 using System.Linq;
 using TrudeSerializer.Debug;
@@ -12,7 +13,7 @@ namespace TrudeSerializer
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    public class Command : IExternalEventHandler
+    public class ExportToSnaptrudeEEH : IExternalEventHandler
     {
         internal bool isDone = false;
         internal Action<string, UIApplication, Document> OnInit;
@@ -53,29 +54,41 @@ namespace TrudeSerializer
                 //SetDetailViewToFine(doc, view);
                 OnView3D?.Invoke(view, doc);
 
+                Application.Instance.UpdateProgressForExport(0, "Serializing Revit project...");
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
+                if (IsImportAborted()) return Result.Cancelled; 
                 serializedData.SetProcessId(processId);
 
+                Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
                 OnCleanSerializedTrudeData?.Invoke(serializedData);
 
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
+                if (IsImportAborted()) return Result.Cancelled;
 
 
                 logger.SerializeDone(true);
                 TrudeDebug.StoreSerializedData(serializedObject);
+                if (IsImportAborted()) return Result.Cancelled;
+
+                Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
                 try
                 {
+                    string floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
-                        Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                       Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
                     }
                     logger.UploadDone(true);
+
+                    Application.Instance.FinishExportSuccess(floorkey);
                 }
                 catch(Exception ex)
                 {
                     logger.UploadDone(false);
                     TaskDialog.Show("catch", ex.ToString());
+
+                    Application.Instance.FinishExportFailure();
                     return Result.Failed;
                 }
 
@@ -100,6 +113,16 @@ namespace TrudeSerializer
             }
         }
 
+        public static bool IsImportAborted()
+        {
+            if (Application.Instance.AbortExportFlag)
+            {
+                Application.Instance.AbortCustomExporter();
+                return true;
+            }
+            return false;
+        }
+
         private SerializedTrudeData ExportViewUsingCustomExporter(Document doc, View3D view)
         {
             if(doc.IsFamilyDocument)
@@ -113,7 +136,6 @@ namespace TrudeSerializer
 
             TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
             CustomExporter exporter = new CustomExporter(doc, exporterContext);
-
             exporter.Export(view);
             return exporterContext.GetExportData();
         }

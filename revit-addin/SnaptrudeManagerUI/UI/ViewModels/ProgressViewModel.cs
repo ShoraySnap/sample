@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,9 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         public enum ProgressViewType
         {
-            Export,
+            ExportProjectNew,
+            ExportRFANew,
+            ExportRFAExisting,
             Import,
             Update
         }
@@ -72,33 +75,43 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand CancelCommand { get; set; }
 
         /// <summary>
-        /// ProgressVIew for Revit Export
+        /// ProgressVIew for Revit ExportProjectNew
         /// </summary>
         /// <param name="successNavigationService"></param>
         /// <param name="failureNavigationService"></param>
-        public ProgressViewModel(ProgressViewType progressViewType, NavigationService successNavigationService, NavigationService failureNavigationService)
+        public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService)
         {
             IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
             FailureCommand = new NavigateCommand(failureNavigationService);
-            switch (progressViewType)
+            switch (progressType)
             {
-                case ProgressViewType.Export:
-                    progressViewType = ProgressViewType.Export;
-                    StartProgressCommand = new RelayCommand(async (o) => await StartExport());
+                case ProgressViewType.ExportProjectNew:
+                    progressViewType = ProgressViewType.ExportProjectNew;
+                    StartProgressCommand = new RelayCommand(async (o) => await StartExportNewProject());
                     progressMessage = "Export in progress, please don’t close this window.";
                     StartProgressCommand.Execute(null);
+                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
+                    break;
+                case ProgressViewType.ExportRFANew:
+                    progressViewType = ProgressViewType.ExportRFANew;
+                    StartProgressCommand = new RelayCommand(async (o) => await StartExportRFANew());
+                    progressMessage = "Export in progress, please don’t close this window.";
+                    StartProgressCommand.Execute(null);
+                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
+                    break;
+                case ProgressViewType.ExportRFAExisting:
+                    progressViewType = ProgressViewType.ExportRFAExisting;
+                    StartProgressCommand = new RelayCommand(async (o) => await StartExportRFAExisting());
+                    progressMessage = "Export in progress, please don’t close this window.";
+                    StartProgressCommand.Execute(null);
+                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.Import:
                     progressViewType = ProgressViewType.Import;
                     MainWindowViewModel.Instance.TopMost = false;
                     progressMessage = "Import in progress, please don’t close this window.";
-                    CancelCommand = new RelayCommand(new Action<object>((o) =>
-                    {
-                        TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT);
-                        UpdateProgress(0, "Rolling back changes...");
-                        IsProgressBarIndeterminate = true;
-                    }));
+                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                     break;
                 case ProgressViewType.Update:
                     progressViewType = ProgressViewType.Update;
@@ -113,7 +126,14 @@ namespace SnaptrudeManagerUI.ViewModels
             }
             //StartProgressCommand.Execute(null);
             App.OnProgressUpdate += UpdateProgress;
-            App.OnAbortImport += AbortImportToRevit;
+            App.OnAbort += Abort;
+        }
+
+        public void Cancel(TRUDE_EVENT trudeEvent)
+        {
+            TrudeEventEmitter.EmitEvent(trudeEvent);
+            UpdateProgress(0, "Rolling back changes...");
+            IsProgressBarIndeterminate = true;
         }
 
         public void UpdateProgress(int Value, string message)
@@ -128,19 +148,56 @@ namespace SnaptrudeManagerUI.ViewModels
             SuccessCommand.Execute(new object());
         }
 
-        public void AbortImportToRevit()
+        public void Abort()
         {
             FailureCommand.Execute(new object());
         }
 
-        public async Task StartExport()
+        public async Task StartExportNewProject()
         {
-            for (int i = 0; i <= 100; i++)
+            string floorkey = await SnaptrudeRepo.CreateProjectAsync();
+            if (string.IsNullOrEmpty(floorkey))
             {
-                ProgressValue = i;
-                await Task.Delay(20);
+                Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
             }
-            SuccessCommand.Execute(new object());
+            Store.Set("floorkey", floorkey);
+            Store.Save();
+
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
+        }
+
+        public async Task StartExportRFAExisting()
+        {
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
+        }
+
+        public async Task StartExportRFANew()
+        {
+            string floorkey = await SnaptrudeRepo.CreateProjectAsync();
+            if (string.IsNullOrEmpty(floorkey))
+            {
+                Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
+            }
+            Store.Set("floorkey", floorkey);
+            Store.Save();
+
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
+        }
+
+        public async Task FinishExport(string floorkey)
+        {
+            switch(progressViewType)
+            {
+                case ProgressViewType.ExportProjectNew:
+                    await SnaptrudeService.SetRevitImportState(floorkey, "NEW");
+                    break;
+                case ProgressViewType.ExportRFANew:
+                    await SnaptrudeService.SetRevitImportState(floorkey, "RFA");
+                    break;
+                case ProgressViewType.ExportRFAExisting:
+                    await SnaptrudeService.SetRevitImportState(floorkey, "RFA");
+                    break;
+            }
         }
 
         private async Task StartImport()

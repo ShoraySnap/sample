@@ -61,10 +61,7 @@
                             <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
                                 <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
-                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
                                 <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -245,10 +242,7 @@
                                     <Style TargetType="Grid">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
                                                 <Setter Property="Visibility" Value="Visible" />
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -325,10 +319,7 @@
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="InvalidURL">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding RequestStatus}" Value="PermissionDenied">
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
