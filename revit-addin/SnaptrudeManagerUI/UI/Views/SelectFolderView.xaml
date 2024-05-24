@@ -290,11 +290,10 @@
                         </TextBlock>
                     </StackPanel>
                     <TextBlock
-                        d:Text="Try again to refresh and load the workspaces, or go back to the previous screen."
                         FontSize="16"
                         Foreground="{StaticResource Colors/Neutral/600}"
                         LineHeight="23"
-                        Text="{Binding CurrentVersion, StringFormat='The selected file cannot be imported as it is incompatible with this version of Snaptrude Manager (v{0}).'}"
+                        Text="Try again to refresh and load the workspaces, or go back to the previous screen."
                         TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
