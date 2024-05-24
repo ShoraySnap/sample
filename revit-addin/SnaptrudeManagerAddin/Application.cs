@@ -30,7 +30,7 @@ namespace SnaptrudeManagerAddin
         public static Application Instance;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
-        private bool IsAnyDocumentOpened;
+        public bool IsAnyDocumentOpened;
         public bool AbortExportFlag = false;
 
         public Result OnStartup(UIControlledApplication application)

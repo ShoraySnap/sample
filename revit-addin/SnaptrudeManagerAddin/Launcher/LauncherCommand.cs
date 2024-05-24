@@ -15,6 +15,7 @@ namespace SnaptrudeManagerAddin.Launcher
             LaunchProcess.StartProcess();
             LaunchProcess.process.WaitForInputIdle();
 
+            Application.Instance.IsAnyDocumentOpened = true;
             commandData.Application.ViewActivated += Application.Instance.OnViewActivated;
 
             View currentView = commandData.Application.ActiveUIDocument.ActiveView;
