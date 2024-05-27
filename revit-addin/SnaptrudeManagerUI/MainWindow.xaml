@@ -1,12 +1,12 @@
 ﻿<Window
     x:Class="SnaptrudeManagerUI.MainWindow"
-	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:local="clr-namespace:SnaptrudeManagerUI"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
-	xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SnaptrudeManagerUI"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
+    xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
     Width="590"
     Height="350"
@@ -139,12 +139,12 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid>
                                             <Border
-                                                Visibility="{Binding ShowUserIcon, Converter={StaticResource BoolToVisibility}}"
                                                 Width="20"
                                                 Height="20"
                                                 Margin="3,0"
                                                 Background="LightGray"
-                                                CornerRadius="10">
+                                                CornerRadius="10"
+                                                Visibility="{Binding ShowUserIcon, Converter={StaticResource BoolToVisibility}}">
                                                 <Border.Clip>
                                                     <EllipseGeometry
                                                         Center="10,10"
@@ -157,10 +157,12 @@
                                                     Stretch="Fill" />
                                             </Border>
                                             <Grid
-                                                Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}"
-                                                HorizontalAlignment="Center" 
+                                                Margin="2,0,0,0"
+                                                Width="20"
+                                                Height="20"
+                                                HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
-                                                >
+                                                Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}">
                                                 <Grid.RenderTransform>
                                                     <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
                                                 </Grid.RenderTransform>
