@@ -61,8 +61,8 @@ namespace SnaptrudeManagerUI
             LogsConfig.Initialize("ManagerUI");
 
             //WPFTODO: CHECKFORUPDATES
-            var currentVersion = "2.2";
-            var updateVersion = "2.3";
+            var currentVersion = "4.0";
+            var updateVersion = "4.0";
 
             NavigationStore navigationStore = NavigationStore.Instance;
             MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, true);
