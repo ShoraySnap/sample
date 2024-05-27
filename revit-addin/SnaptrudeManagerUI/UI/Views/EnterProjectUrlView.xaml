@@ -19,7 +19,7 @@
             <RowDefinition />
             <RowDefinition Height="64" />
         </Grid.RowDefinitions>
-        <Grid Width="280" Margin="0,52,0,0">
+        <Grid Width="320" Margin="0,52,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -76,7 +76,7 @@
                     <Grid
                         Width="16"
                         Height="16"
-                        Margin="8,8,0,8">
+                        Margin="8,0,0,0">
                         <Path
                             Data="M11.485 9.30788L12.9463 7.8466C14.1067 6.65688 14.0949 4.75524 12.9197 3.58007C11.7445 2.40491 9.8429 2.39305 8.65317 3.55348L7.19189 5.01476"
                             Stroke="#484B5B"
@@ -129,7 +129,11 @@
                     </Grid>
 
                     <Grid Grid.Column="2" Margin="0,6,6,6">
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid
+                            Width="20"
+                            Height="20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
                             <Grid.RenderTransform>
                                 <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
                             </Grid.RenderTransform>
@@ -205,7 +209,10 @@
                                 StrokeStartLineCap="round"
                                 StrokeThickness="1.5" />
                         </Grid>
-                        <Grid>
+                        <Grid
+                            Width="20"
+                            Height="20"
+                            VerticalAlignment="Center">
                             <Grid.Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Visibility" Value="Collapsed" />
@@ -236,7 +243,7 @@
                                 StrokeStartLineCap="round"
                                 StrokeThickness="1.25" />
                         </Grid>
-                        <Grid Width="20" Height="20">
+                        <Grid Width="20" Height="18">
                             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Grid.Style>
                                     <Style TargetType="Grid">

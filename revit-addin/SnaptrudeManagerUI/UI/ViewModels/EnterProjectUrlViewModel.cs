@@ -87,14 +87,20 @@ namespace SnaptrudeManagerUI.ViewModels
         private async Task ValidateURL()
         {
             //WPFTODO: UPDATE THE VALUE 10
-            if (uRL == "" || !ValidateUrlWithRegex(uRL))
+            RequestStatus = URLValidationStatus.Validating;
+            if (uRL == "")
             {
                 await Task.Delay(100);
                 RequestStatus = URLValidationStatus.None;
             }
+            else if (!ValidateUrlWithRegex(uRL))
+            {
+                await Task.Delay(500);
+                ErrorMessage = "Invalid URL";
+                RequestStatus = URLValidationStatus.Error;
+            }
             else
             {
-                RequestStatus = URLValidationStatus.Validating;
                 string _floorkey = extractFloorkey(uRL);
                 var response = await SnaptrudeRepo.ValidateURLAsync(_floorkey);
                 if (response != null)
@@ -129,6 +135,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private bool ValidateUrlWithRegex(string inputText)
         {
+            if (inputText.Length < 8) return false;
             var domain = Urls.Get("snaptrudeReactUrl");
             domain = (domain == null) ? "" : domain;
             if (domain.Substring(0, 8) == "https://" &&
