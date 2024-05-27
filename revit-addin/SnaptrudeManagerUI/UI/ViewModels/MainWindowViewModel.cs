@@ -163,6 +163,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
         {
+            IsDocumentOpen = true;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
             IsActiveView3D = isActiveView3D;
