@@ -53,6 +53,15 @@ namespace SnaptrudeManagerUI.API
             Save();
         }
 
+        private static void ClearLoginData()
+        {
+            data["fullname"] = "";
+            data["accessToken"] = "";
+            data["refreshToken"] = "";
+            data["userId"] = "";
+            Save();
+        }
+
         public static object? Get(string key)
         {
             if (data == null) CreateEmptyConfig();
@@ -73,7 +82,8 @@ namespace SnaptrudeManagerUI.API
 
         public static void SetAllAndSave(Dictionary<string, string> dataObject)
         {
-            data = dataObject;
+            foreach (var prop in dataObject.Keys)
+                data[prop] = dataObject[prop];
             Save();
         }
 
@@ -131,13 +141,13 @@ namespace SnaptrudeManagerUI.API
                 if (!isNullOrEmpty())
                     return true;
 
-            CreateEmptyConfig();
+            ClearLoginData();
             return false;
         }
 
         public static void Reset()
         {
-            CreateEmptyConfig();
+            ClearLoginData();
             Save();
         }
     }
