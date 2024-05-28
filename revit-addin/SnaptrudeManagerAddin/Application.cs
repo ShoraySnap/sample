@@ -68,8 +68,14 @@ namespace SnaptrudeManagerAddin
             SetupDataChannels();
             SetupEvents();
             application.Idling += OnRevitIdling;
+            application.ControlledApplication.DocumentOpened += DocumentOpened;
             
             return Result.Succeeded;
+        }
+
+        private void DocumentOpened(object sender, DocumentOpenedEventArgs e)
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
         }
 
         public void OnProgressChanged(object sender, Autodesk.Revit.DB.Events.ProgressChangedEventArgs e)
@@ -78,10 +84,6 @@ namespace SnaptrudeManagerAddin
             {
                 e.Cancel();
             }
-        }
-
-        private void DocumentClosed(object sender, DocumentClosedEventArgs e)
-        {
         }
 
         private void OnRevitIdling(object sender, IdlingEventArgs e)
@@ -113,6 +115,7 @@ namespace SnaptrudeManagerAddin
         {
             IsAnyDocumentOpened = false;
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
+            // SHOULD WE CLOSE THE MANAGER UI IF NO DOCUMENT IS OPEN?
         }
 
         public static void UpdateButtonState(bool is3DView)
@@ -122,7 +125,6 @@ namespace SnaptrudeManagerAddin
             else
                 TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
 
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
         }
 
         public static void UpdateNameAndFiletype(string projectName, string fileType)
@@ -167,7 +169,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
             {
-                TrudeImporter.TrudeImporterMain.Abort = true; // TODO: Mutexed this flag, but don't know if better structure is required, but it WORKS
+                TrudeImporter.TrudeImporterMain.Abort = true; // NOTE: Mutexed this flag, but don't know if better structure is required, but it WORKS
             });
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, () =>
             {

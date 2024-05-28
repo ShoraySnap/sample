@@ -69,7 +69,7 @@ namespace SnaptrudeManagerUI
             if (currentVersion != updateVersion)
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             else
-                navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
+                navigationStore.CurrentViewModel = ViewModelCreator.CreateHomeViewModel();
             // SnaptrudeService snaptrudeService = new SnaptrudeService();
             logger.Info("<<<UI Initialized!>>>");
 

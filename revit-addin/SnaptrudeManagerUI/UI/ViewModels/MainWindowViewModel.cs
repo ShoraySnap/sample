@@ -11,6 +11,7 @@ using System.Windows.Input;
 using TrudeCommon.Events;
 using SnaptrudeManagerUI.UI.Helpers;
 using Newtonsoft.Json;
+using NLog;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -25,6 +26,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private static readonly object padlock = new object();
         private static MainWindowViewModel instance = null;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
         public static MainWindowViewModel Instance
         {
             get
@@ -118,6 +120,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand UpdateCommand { get; private set; }
         public ICommand SwitchAccountCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
+        public ICommand BackToLoginCommand { get; private set; }
 
         private bool isActiveView3D;
         public bool IsActiveView3D
@@ -163,7 +166,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
         {
-            IsDocumentOpen = true;
+            IsDocumentOpen = false;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
             IsActiveView3D = isActiveView3D;
@@ -176,7 +179,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 App.Current.Shutdown();
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
-            LogOutCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
+            LogOutCommand = new RelayCommand(LogoutAccount);
+            BackToLoginCommand =  new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
             SwitchAccountCommand = new RelayCommand(SwitchAccount);
         }
 
@@ -204,6 +208,22 @@ namespace SnaptrudeManagerUI.ViewModels
                 };
                 SwitchUserError.Execute(param);
             }
+        }
+
+        private void LogoutAccount(object parameter)
+        {
+            ShowUserIcon = false;
+            ShowLoader = true;
+            if (Store.isDataValid())
+            {
+                logger.Info("Logging out current user...");
+            }
+            else
+            {
+                logger.Info("Invalid config for current user when logging out...");
+            }
+            Store.Reset();
+            BackToLoginCommand.Execute(parameter);
         }
 
         private void OnFailedLogin()

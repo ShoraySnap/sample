@@ -134,6 +134,12 @@ namespace SnaptrudeManagerUI.API
             CreateEmptyConfig();
             return false;
         }
+
+        public static void Reset()
+        {
+            CreateEmptyConfig();
+            Save();
+        }
     }
 
 }
