@@ -17,7 +17,16 @@ namespace SnaptrudeManagerUI.ViewModels
         public Constants.WorkspaceType FolderType { get; }
         public string Id { get; }
         public string TeamId { get; }
-        public bool Selected { get; set; }
+        private bool selected;
+        public bool Selected
+        {
+            get => selected;
+            set
+            {
+                selected = value;
+                OnPropertyChanged(nameof(Selected));
+            }
+        }
 
         public FolderViewModel(Folder folder)
         {

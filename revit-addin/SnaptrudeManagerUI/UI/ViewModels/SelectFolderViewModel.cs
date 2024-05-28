@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using NLog;
+using System.Windows.Data;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -13,6 +14,7 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         static Logger logger = LogManager.GetCurrentClassLogger();
         public ObservableCollection<FolderViewModel> CurrentPathFolders { get; private set; }
+        public ListCollectionView CurrentPathFoldersView { get; private set; }
         public ObservableCollection<FolderViewModel> Breadcrumb { get; private set; }
         public ICommand OpenFolderCommand { get; private set; }
         public ICommand NavigateToFolderCommand { get; private set; }
@@ -77,6 +79,9 @@ namespace SnaptrudeManagerUI.ViewModels
             BackCommand = new NavigateCommand(backNavigationService);
             TryAgainCommand = new NavigateCommand(tryAgainNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
+            CurrentPathFoldersView = new ListCollectionView(CurrentPathFolders);
+            CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.FolderType), ListSortDirection.Ascending));
+            CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.Name), ListSortDirection.Ascending));
             Breadcrumb = new ObservableCollection<FolderViewModel>();
             OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);
@@ -106,6 +111,7 @@ namespace SnaptrudeManagerUI.ViewModels
             {
                 if (parameter is FolderViewModel parentFolder)
                 {
+                    parentFolder.Selected = true;
                     IsLoaderVisible = true;
 
                     List<Folder> subFolders = new List<Folder>();
@@ -187,7 +193,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             for (int i = 0; i < Breadcrumb.Count; i++)
             {
-                Breadcrumb[i].Selected = i == Breadcrumb.Count - 1 && Breadcrumb[i].Name != "All Workspaces";
+                Breadcrumb[i].Selected = i == Breadcrumb.Count - 1;
             }
         }
 
