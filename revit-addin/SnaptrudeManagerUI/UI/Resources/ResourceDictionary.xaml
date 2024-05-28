@@ -4,7 +4,7 @@
     xmlns:converters="clr-namespace:SnaptrudeManagerUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
-
+    <Cursor x:Key="CustomCursor">pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/cursor.cur</Cursor>
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     <converters:WidthToOffsetConverter x:Key="WidthToOffsetConverter" />
     <SolidColorBrush x:Key="Colors/Neutral/900" Color="#2d2e37" />
