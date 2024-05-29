@@ -378,9 +378,22 @@ namespace TrudeImporter
 
                     Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, new XYZ(0, 0, cutPlaneElevation));
 
-                    List<(Element Element, Solid Solid)> roomBoundingElementsInLevel = roomBoundingElements
-                        .Where(e => e.Solid != null && e.Solid.Volume != BooleanOperationsUtils.CutWithHalfSpace(e.Solid, plane)?.Volume)
-                        .ToList();
+                    List<(Element Element, Solid Solid)> roomBoundingElementsInLevel = new List<(Element Element, Solid Solid)>();
+
+                    foreach (var e in roomBoundingElements)
+                    {
+                        if (e.Solid != null)
+                        {
+                            Solid cut = BooleanOperationsUtils.CutWithHalfSpace(e.Solid, plane);
+                            if (cut != null)
+                            {
+                                if (e.Solid.Volume - cut.Volume > 0.1)
+                                {
+                                    roomBoundingElementsInLevel.Add(e);
+                                }
+                            }
+                        }
+                    }
 
                     List<Solid> solidsInLevel = Utils.JoinSolids(roomBoundingElementsInLevel.Select(x => x.Solid).ToList());
 
