@@ -48,17 +48,16 @@ namespace TrudeImporter
             UpdateProgress(() => ImportFloors(trudeProperties.Floors), "Importing Floors...", 10);
             UpdateProgress(() => ImportColumns(trudeProperties.Columns), "Importing Columns...", 5);
             UpdateProgress(() => ImportBeams(trudeProperties.Beams), "Importing Beams...", 5);
-            if (GlobalVariables.ImportLabels) 
-                UpdateProgress(() => ImportRooms(), "Importing Rooms...", 10);
+            UpdateProgress(() => { if (GlobalVariables.ImportLabels) ImportRooms(); }, "Importing Rooms...", 10);
 #if REVIT2019 || REVIT2020 || REVIT2021
             UpdateProgress(() => ImportFloors(trudeProperties.Ceilings), "Importing Ceilings...", 5);
 #else
             UpdateProgress(() => ImportCeilings(trudeProperties.Ceilings), "Importing Ceilings...", 5);
 #endif
-            UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 10);
+            UpdateProgress(() => ImportSlabs(trudeProperties.Slabs), "Importing Slabs...", 5);
             UpdateProgress(() => ImportDoors(trudeProperties.Doors), "Importing Doors...", 10);
             UpdateProgress(() => ImportWindows(trudeProperties.Windows), "Importing Windows...", 10);
-            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing Masses...", 10);
+            UpdateProgress(() => ImportMasses(trudeProperties.Masses), "Importing Masses...", 5);
             UpdateProgress(() => ImportFurniture(trudeProperties.Furniture), "Importing Furniture...", 10);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
                 UpdateProgress(() => ImportMissing(trudeProperties.Doors, trudeProperties.Windows, trudeProperties.Furniture), "Please link missing rfas in the other window...", 5);
