@@ -27,6 +27,7 @@ namespace TrudeImporter
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
+            ImportMasses(trudeProperties.Masses);
             ImportRooms();
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
 #if REVIT2019 || REVIT2020 || REVIT2021
@@ -37,7 +38,6 @@ namespace TrudeImporter
             ImportSlabs(trudeProperties.Slabs); // these are structural components of the building
             ImportDoors(trudeProperties.Doors);
             ImportWindows(trudeProperties.Windows);
-            ImportMasses(trudeProperties.Masses);
             ImportStairCases(trudeProperties.Staircases);
             ImportFurniture(trudeProperties.Furniture);
             if (GlobalVariables.MissingDoorFamiliesCount.Count > 0 || GlobalVariables.MissingWindowFamiliesCount.Count > 0 || GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
@@ -755,7 +755,13 @@ namespace TrudeImporter
                             );
                         if (mass.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
+                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
+                            CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
+                            ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
+                            if (mass.BottomFaceVertices != null)
+                            {
+                                TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
+                            }
                         }
                         deleteOld(mass.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)

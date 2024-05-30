@@ -34,7 +34,7 @@ namespace TrudeImporter
             IsDirectShape = true;
         }
 
-        private CurveArray getProfile(List<XYZ> vertices)
+        public static CurveArray getProfile(List<XYZ> vertices)
         {
             CurveArray curves = new CurveArray();
 
@@ -66,6 +66,19 @@ namespace TrudeImporter
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;
+        }
+
+        public static void StoreRoomData(ElementId levelId, string roomType, Element element, CurveArray profile)
+        {
+            if (roomType != "Default")
+            {
+                element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
+                TrudeRoom trudeRoom = new TrudeRoom(roomType, element.Id, profile);
+                if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
+                    GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
+                else
+                    GlobalVariables.CreatedFloorsByLevel.Add(levelId, new List<TrudeRoom> { trudeRoom });
+            }
         }
     }
 }

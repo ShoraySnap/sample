@@ -90,8 +90,7 @@ namespace TrudeImporter
             // --------------------------------------------
             CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             CreateHoles(floorProps.Holes);
-            StoreRoomData(levelId);
-
+            TrudeRoom.StoreRoomData(levelId, roomType, floor, profile);
 
             try
             {
@@ -251,18 +250,6 @@ namespace TrudeImporter
             }
         }
 
-        private void StoreRoomData(ElementId levelId)
-        {
-            if (roomType != "Default")
-            {
-                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
-                TrudeRoom trudeRoom = new TrudeRoom(roomType, floor.Id, profile);
-                if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
-                    GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
-                else
-                    GlobalVariables.CreatedFloorsByLevel.Add(levelId, new List<TrudeRoom> { trudeRoom });
-            }
-        }
 
         private CurveArray getProfile(List<XYZ> vertices)
         {
