@@ -53,8 +53,6 @@ namespace TrudeSerializer.Uploader
             Config config = Config.GetConfigObject();
             string userId = config.userId;
             string floorkey = config.floorKey;
-            //await S3helper.GetPresignedURLs(keys, config);
-            //string path = $"media/{userId}/revitImport/{projectFloorKey}/{processId}.png";
 
             Dictionary<string, string> materialPaths = new Dictionary<string, string>();
 
