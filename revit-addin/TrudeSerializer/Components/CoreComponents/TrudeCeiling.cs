@@ -1,11 +1,9 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
-using TrudeSerializer.Importer;
-using TrudeSerializer.Types;
 using System.Collections.Generic;
 using TrudeImporter;
-using System;
-using System.Text;
+using TrudeSerializer.Importer;
+using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -25,7 +23,7 @@ namespace TrudeSerializer.Components
             Dictionary<string, double[][]> outline,
             Dictionary<string, Dictionary<string, double[][]>> voids,
             double heightOffset
-            ) : base(elementId, "Ceilings", family, level)
+            ) : base(elementId, "Ceiling", family, level)
         {
             this.elementId = elementId;
             this.level = level;
@@ -51,7 +49,7 @@ namespace TrudeSerializer.Components
             Parameter heightOffsetParam = ceiling.LookupParameter("Height Offset From Level");
             double heightOffset = 0;
             TRUDE_UNIT_TYPE unit_type = UnitConversion.GetTrudeUnitFromParameter(heightOffsetParam);
-            if(heightOffsetParam.HasValue)
+            if (heightOffsetParam.HasValue)
             {
                 heightOffset = heightOffsetParam.AsDouble();
                 heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, unit_type);

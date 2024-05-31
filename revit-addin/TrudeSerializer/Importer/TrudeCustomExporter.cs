@@ -315,7 +315,7 @@ namespace TrudeSerializer
         {
             String materialId = node.MaterialId.ToString();
             this.currentMaterialId = materialId;
-            string category = CurrentElement.GetCategory(currentElement);
+            TrudeCategory category = CurrentElement.GetCategory(currentElement);
 
             if (this.currentElement.HasMaterial(materialId)) return;
 

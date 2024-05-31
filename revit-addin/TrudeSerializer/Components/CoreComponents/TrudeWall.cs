@@ -3,6 +3,7 @@ using Autodesk.Revit.DB.IFC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TrudeSerializer.CustomDataTypes;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
@@ -24,6 +25,7 @@ namespace TrudeSerializer.Components
         public List<List<string>> wallInserts;
         public double[] center;
         private bool isCurvedWall;
+        public MaterialAppliedByPaint materialAppliedByPaint;
 
         private TrudeWall(string elementId, string level, string wallType, double width, double height, string family, bool function, double[] orientation, List<List<double>> endpoints, bool isCurvedWall) : base(elementId, "Wall", family, level)
         {
@@ -111,6 +113,8 @@ namespace TrudeSerializer.Components
 
             TrudeWall serializedWall = new TrudeWall(elementId, levelName, wallType, width, height, family, function, orientation, endpoints, isCurvedWall);
             serializedWall.SetIsParametric(wall);
+            serializedWall.materialAppliedByPaint = TrudeMaterial.GetMaterialByAppliedByPaint(element, TrudeCategory.Wall);
+
             if (!serializedWall.IsParametric())
             {
                 double[] center = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(GetCenterFromBoundingBox(element));
