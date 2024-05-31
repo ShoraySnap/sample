@@ -57,6 +57,7 @@ namespace TrudeSerializer
                 {
                     if (!testMode)
                     {
+                        Uploader.MaterialUploader.Instance.Upload();
                         Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
                     }
                     logger.UploadDone(true);
