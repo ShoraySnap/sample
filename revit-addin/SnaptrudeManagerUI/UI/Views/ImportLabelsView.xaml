@@ -1,0 +1,69 @@
+﻿<UserControl
+    x:Class="SnaptrudeManagerUI.Views.ImportLabelsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SnaptrudeManagerUI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Background="White"
+    d:DesignHeight="272"
+    d:DesignWidth="560"
+    FontSize="13"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="64" />
+        </Grid.RowDefinitions>
+        <Border
+            Margin="16,8,16,0"
+            Padding="24,24,40,40"
+            BorderBrush="{DynamicResource Colors/Neutral/200}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <StackPanel Margin="24,0">
+                <TextBlock
+                    FontFamily="{StaticResource Inter500}"
+                    FontSize="16"
+                    Foreground="{StaticResource Colors/Neutral/800}"
+                    Text="Do you wish to import Room labels?" />
+                <TextBlock
+                    Margin="0,12,0,16"
+                    DockPanel.Dock="Bottom"
+                    FontFamily="{StaticResource Inter500}"
+                    FontSize="16"
+                    Foreground="{StaticResource Colors/Neutral/600}"
+                    LineHeight="23"
+                    Text="Room labels may slow down the import process. For a faster import, proceed without labels."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="1" Margin="16">
+            <StackPanel Orientation="Horizontal">
+                <!--<CheckBox
+                    Margin="0,0,5,0"
+                    Content="Don't show again"
+                    FontFamily="{StaticResource Inter400}"
+                    IsChecked="{Binding DontShowAgain}"
+                    Style="{StaticResource SVGCheckBoxWithText}"
+                    Typography.StylisticAlternates="1" />-->
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button
+                    Command="{Binding ImportWithLabelsCommand}"
+                    Content="Import with labels"
+                    Style="{DynamicResource Button_Secondary}" />
+                <Button
+                    Margin="8,0,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ImportWithoutLabelsCommand}"
+                    Content="Import without labels"
+                    Style="{DynamicResource Button_Primary}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
+

@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
+using TrudeCommon.Events;
+using SnaptrudeManagerAddin;
 
 namespace TrudeSerializer.Uploader
 {
@@ -35,21 +37,15 @@ namespace TrudeSerializer.Uploader
                 compressedJsonData.Add(entry.Key, compressedString);
 
                 string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
-                paths.Add(entry.Key, path);
-            }
 
-            var presignedUrlsResponse = await GetPresignedURLs(paths, config);
-            var presignedUrlsResponseData = await presignedUrlsResponse.Content.ReadAsStringAsync();
-            Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
+                var presignedUrlResponse = await GetPresignedURL(path, config);
+                var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
+                PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+                if (ExportToSnaptrudeEEH.IsImportAborted()) return;
 
-            foreach (KeyValuePair<string, PreSignedURLResponse> presignedURL in presignedURLs)
-            {
-                uploadTasks.Add(UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value));
+                uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
             }
             await Task.WhenAll(uploadTasks);
-
-            string requestURL = "snaptrude://finish?name=" + projectFloorKey;
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
         }
 
         public static async Task<HttpResponseMessage> UploadUsingPresignedURL(byte[] compressedString, PreSignedURLResponse preSignedURLResponse)

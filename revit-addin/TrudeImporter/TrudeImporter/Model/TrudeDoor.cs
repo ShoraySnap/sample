@@ -14,15 +14,16 @@ namespace TrudeImporter
         string doorFamilyName = null;
         string fsName = null;
         XYZ CenterPosition = null;
+        XYZ Direction = null;
+        bool HandFlipped = false;
         public static DoorTypeStore TypeStore = new DoorTypeStore();
 
         public TrudeDoor(DoorProperties doorProps, ElementId levelId, int index)
         {
             System.Diagnostics.Debug.WriteLine("Creating door: " + doorProps.Name);
-            XYZ direction = doorProps.Direction == null
-                                ? XYZ.Zero
-                                : doorProps.Direction;
             CenterPosition = doorProps.CenterPosition;
+            Direction = doorProps.Direction;
+            HandFlipped = doorProps.HandFlipped;
             try
             {
                 if (doorProps.RevitFamilyName != null)
@@ -88,7 +89,7 @@ namespace TrudeImporter
                     familySymbol = defaultFamilySymbol;
                 }
 
-                var instance = CreateDoor(familySymbol, levelId, wall, direction);
+                var instance = CreateDoor(familySymbol, levelId, wall);
 
                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = instance.FindWidthAndHeightParameters();
                 if (!setHeightAndWidthParamsInFamilySymbol)
@@ -105,7 +106,7 @@ namespace TrudeImporter
             }
         }
 
-        private FamilyInstance CreateDoor(FamilySymbol familySymbol, ElementId levelId, Wall wall, XYZ direction)
+        private FamilyInstance CreateDoor(FamilySymbol familySymbol, ElementId levelId, Wall wall)
         {
             FamilyInstance instance;
             var doc = GlobalVariables.Document;
@@ -131,11 +132,14 @@ namespace TrudeImporter
             instance.flipFacing();
             doc.Regenerate();
 
-            if (!instance.FacingOrientation.IsAlmostEqualTo(direction))
-            {
+            if (!instance.FacingOrientation.IsAlmostEqualTo(Direction,0.01))
                 instance.flipFacing();
+
+            bool isFlipped = (instance.FacingFlipped && !instance.HandFlipped) ||
+                (!instance.FacingFlipped && instance.HandFlipped);
+            if (HandFlipped != isFlipped)
                 instance.flipHand();
-            }
+
             System.Diagnostics.Debug.WriteLine("Door created: " + instance.Id);
             return instance;
         }

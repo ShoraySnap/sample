@@ -198,7 +198,11 @@ namespace TrudeImporter.TrudeImporter.Model
                 return;
             if (elementId != null)
             {
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
                 ElementId id = new ElementId((int)elementId);
+#else
+                ElementId id = new ElementId((long)elementId);
+#endif
                 Element element = GlobalVariables.Document.GetElement(id);
                 if (element != null)
                 {

@@ -11,6 +11,7 @@ using TrudeSerializer.Uploader;
 
 namespace TrudeSerializer.Utils
 {
+    // TODO: Move this to common assembly
     internal class TrudeDebug
     {
         public static void StoreSerializedData(string serializedObject)

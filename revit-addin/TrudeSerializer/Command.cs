@@ -12,12 +12,22 @@ namespace TrudeSerializer
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    public class Command : IExternalCommand
+    public class Command : IExternalEventHandler
     {
         internal bool isDone = false;
         internal Action<string, UIApplication, Document> OnInit;
         internal Action<View3D, Document> OnView3D;
         internal Action<SerializedTrudeData> OnCleanSerializedTrudeData;
+        public void Execute(UIApplication app)
+        {
+            ExecuteWithUIApplication(app);
+        }
+
+        public string GetName()
+        {
+            return "ExportToSnaptrude";
+        }
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             return ExecuteWithUIApplication(commandData.Application);
@@ -143,5 +153,6 @@ namespace TrudeSerializer
 
             fa.DeleteAllWarnings();
         }
+
     }
 }

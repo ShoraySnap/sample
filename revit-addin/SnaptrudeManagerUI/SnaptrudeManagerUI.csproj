@@ -1,0 +1,113 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+	<BaseOutputPath>bin\</BaseOutputPath>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <StartupObject>SnaptrudeManagerUI.Program</StartupObject>
+    <ApplicationIcon>Icons\logo32.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="UI\Fonts\InterDisplay-Bold\InterDisplay-Bold.ttf" />
+    <None Remove="UI\Fonts\InterDisplay-Medium\InterDisplay-Medium.ttf" />
+    <None Remove="UI\Fonts\InterDisplay-Regular\InterDisplay-Regular.ttf" />
+    <None Remove="UI\Fonts\InterDisplay-SemiBold\InterDisplay-SemiBold.ttf" />
+    <None Remove="UI\Images\arrow-button.png" />
+    <None Remove="UI\Images\background.png" />
+    <None Remove="UI\Images\close.png" />
+    <None Remove="UI\Images\document-file-blank.png" />
+    <None Remove="UI\Images\export.png" />
+    <None Remove="UI\Images\folder-modern-style-3.png" />
+    <None Remove="UI\Images\import.png" />
+    <None Remove="UI\Images\loader.gif" />
+    <None Remove="UI\Images\logoutLogo.png" />
+    <None Remove="UI\Images\plus-medium.png" />
+    <None Remove="UI\Images\thumbnail.png" />
+    <None Remove="UI\Images\user-icon-blank.png" />
+    <None Remove="UI\Images\user-profile.png" />
+    <None Remove="UI\Images\userLogo.png" />
+    <None Remove="UI\Images\users-profile-group.png" />
+    <None Remove="UI\Resources\cursor.cur" />
+    <None Remove="UI\Resources\Inter.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icons\logo32.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NLog" Version="5.3.2" />
+	<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="UI\Fonts\InterDisplay-Bold\InterDisplay-Bold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Fonts\InterDisplay-Medium\InterDisplay-Medium.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Fonts\InterDisplay-Regular\InterDisplay-Regular.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Fonts\InterDisplay-SemiBold\InterDisplay-SemiBold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\arrow-button.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\background.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\close.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\document-file-blank.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\export.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\folder-modern-style-3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\import.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\loader.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\logoutLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\plus-medium.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\thumbnail.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\user-icon-blank.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\user-profile.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\userLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Images\users-profile-group.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Resources\cursor.cur" />
+    <Resource Include="UI\Resources\Inter.ttf" />
+  </ItemGroup>
+
+  <Import Project="..\TrudeCommon\TrudeCommon.projitems" Label="Shared" />
+
+</Project>
