@@ -15,14 +15,14 @@ namespace TrudeImporter
         public bool IsDirectShape;
         public CurveArray CurveArray;
 
-        public TrudeRoom(string label, ElementId id, CurveArray curveArray)
+        public TrudeRoom(string label, ElementId id, CurveArray curveArray, bool isDirectShape)
         {
             RoomMatched = false;
             Solid = null;
             Label = label;
             Id = id;
             CurveArray = curveArray;
-            IsDirectShape = false;
+            IsDirectShape = isDirectShape;
         }
         public TrudeRoom(string label, ElementId id, List<XYZ> vertices)
         {
@@ -73,7 +73,8 @@ namespace TrudeImporter
             if (roomType != "Default")
             {
                 element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
-                TrudeRoom trudeRoom = new TrudeRoom(roomType, element.Id, profile);
+                bool isDirectShape = element is DirectShape;
+                TrudeRoom trudeRoom = new TrudeRoom(roomType, element.Id, profile, isDirectShape);
                 if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
                     GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
                 else
