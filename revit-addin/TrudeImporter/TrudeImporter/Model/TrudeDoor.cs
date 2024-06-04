@@ -13,6 +13,7 @@ namespace TrudeImporter
     {
         string doorFamilyName = null;
         string fsName = null;
+        double Height;
         XYZ CenterPosition = null;
         XYZ Direction = null;
         bool HandFlipped = false;
@@ -24,6 +25,7 @@ namespace TrudeImporter
             CenterPosition = doorProps.CenterPosition;
             Direction = doorProps.Direction;
             HandFlipped = doorProps.HandFlipped;
+            Height = doorProps.Height;
             try
             {
                 if (doorProps.RevitFamilyName != null)
@@ -112,28 +114,22 @@ namespace TrudeImporter
             var doc = GlobalVariables.Document;
             Level level = doc.GetElement(levelId) as Level;
 
-            XYZ xyz = new XYZ(CenterPosition.X, CenterPosition.Y, 0.0);
+            XYZ xyz = new XYZ(CenterPosition.X, CenterPosition.Y, CenterPosition.Z - Height / 2);
 
             if (wall is null)
             {
-                wall = GetProximateWall(xyz, doc, level.Id);
+                wall = GetProximateWall(xyz, doc);
             }
 
-            BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
-            XYZ loc = new XYZ(CenterPosition.X, CenterPosition.Y, bbox.Min.Z);
-
-            instance = doc.Create.NewFamilyInstance(loc, familySymbol, wall, (Level)doc.GetElement(wall.LevelId), StructuralType.NonStructural);
-
+            instance = doc.Create.NewFamilyInstance(xyz, familySymbol, wall, level, StructuralType.NonStructural);
             // Done to make sure door is cutting the wall
             // See https://forums.autodesk.com/t5/revit-api-forum/create-doors-but-not-cutting-through-wall/td-p/5564330
-            instance.flipFacing();
+            instance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("a");
             doc.Regenerate();
-
-            instance.flipFacing();
-            doc.Regenerate();
+            instance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("");
 
             if (!instance.FacingOrientation.IsAlmostEqualTo(Direction,0.01))
-                instance.flipFacing();
+                    instance.flipFacing();
 
             bool isFlipped = (instance.FacingFlipped && !instance.HandFlipped) ||
                 (!instance.FacingFlipped && instance.HandFlipped);

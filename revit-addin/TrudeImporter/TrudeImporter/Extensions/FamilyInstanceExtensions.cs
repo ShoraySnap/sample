@@ -32,30 +32,30 @@ namespace TrudeImporter
                 return (widthParam, heightParam);
             }
 
-            (double width, double height) = instance.GetWidthAndHeight();
+//            (double width, double height) = instance.GetWidthAndHeight();
 
-            foreach (Parameter parameter in instance.GetOrderedParameters())
-            {
-#if REVIT2019 || REVIT2020 || REVIT2021
-                if (parameter.Definition.ParameterType != ParameterType.Length) continue;
-#else
-                if (parameter.Definition.GetDataType() != SpecTypeId.Length) continue;
-#endif
-                if (parameter.IsReadOnly) continue;
+//            foreach (Parameter parameter in instance.GetOrderedParameters())
+//            {
+//#if REVIT2019 || REVIT2020 || REVIT2021
+//                if (parameter.Definition.ParameterType != ParameterType.Length) continue;
+//#else
+//                if (parameter.Definition.GetDataType() != SpecTypeId.Length) continue;
+//#endif
+//                if (parameter.IsReadOnly) continue;
 
-                if (parameter.AsDouble().AlmostEquals(width, 0.5))
-                {
-                    if (width.AlmostEquals(height))
-                    {
-                        if (!parameter.Definition.Name.Contains("w")) continue;
-                    }
-                    widthParam = parameter;
-                }
-                else if (parameter.AsDouble().AlmostEquals(height, 0.5))
-                {
-                    heightParam = parameter;
-                }
-            }
+//                if (parameter.AsDouble().AlmostEquals(width, 0.5))
+//                {
+//                    if (width.AlmostEquals(height))
+//                    {
+//                        if (!parameter.Definition.Name.Contains("w")) continue;
+//                    }
+//                    widthParam = parameter;
+//                }
+//                else if (parameter.AsDouble().AlmostEquals(height, 0.5))
+//                {
+//                    heightParam = parameter;
+//                }
+//            }
 
             return (widthParam, heightParam);
         }

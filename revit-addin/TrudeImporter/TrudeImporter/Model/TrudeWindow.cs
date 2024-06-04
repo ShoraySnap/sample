@@ -111,7 +111,7 @@ namespace TrudeImporter
 
             if (wall is null)
             {
-                wall = GetProximateWall(xyz, doc, level.Id);
+                wall = GetProximateWall(xyz, doc);
             }
 
             BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
