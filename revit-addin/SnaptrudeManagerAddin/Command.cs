@@ -143,7 +143,9 @@ namespace SnaptrudeManagerAddin
                     ElementId id = new ElementId((Int64)elementId);
                     #endif
                     Element element = GlobalVariables.Document.GetElement(id);
-                    if (!element.GroupId.Equals(ElementId.InvalidElementId))
+                    if (element == null)
+                        System.Diagnostics.Debug.WriteLine($"Couldn't find the element by id to delete: {elementId}");
+                    else if (!element.GroupId.Equals(ElementId.InvalidElementId))
                         TrudeImporterMain.deleteIfInGroup(element);
                     else
                         GlobalVariables.Document.Delete(id);
