@@ -7,6 +7,8 @@ using System.ComponentModel;
 using System.Windows.Input;
 using NLog;
 using System.Windows.Data;
+using System.Collections.Generic;
+using System;
 
 namespace SnaptrudeManagerUI.ViewModels
 {

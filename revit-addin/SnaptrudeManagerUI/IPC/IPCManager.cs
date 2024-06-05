@@ -13,7 +13,7 @@ namespace SnaptrudeManagerUI.IPC
         static Logger logger = LogManager.GetCurrentClassLogger();
         private const string PLUGIN_PIPE_NAME = "SnaptrudeManagerAddin_UI_PIPE";
 
-        private static NamedPipeClientStream? pipeClient = null;
+        private static NamedPipeClientStream pipeClient = null;
 
         public static void Init()
         {

@@ -11,7 +11,7 @@ namespace SnaptrudeManagerUI.API
 {
     public class Store
     {
-        private static string? filePath;
+        private static string filePath;
         private static Dictionary<string, string> data = new Dictionary<string, string>();
         private static readonly string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "snaptrude-manager");
         static Logger logger = LogManager.GetCurrentClassLogger();
@@ -62,7 +62,7 @@ namespace SnaptrudeManagerUI.API
             Save();
         }
 
-        public static object? Get(string key)
+        public static object Get(string key)
         {
             if (data == null) CreateEmptyConfig();
 

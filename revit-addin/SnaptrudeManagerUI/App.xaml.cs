@@ -20,6 +20,8 @@ using System.IO;
 using System.Windows.Markup;
 using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Commands;
+using System;
+using System.Collections.Generic;
 
 namespace SnaptrudeManagerUI
 {
@@ -99,7 +101,7 @@ namespace SnaptrudeManagerUI
             Store.Save();
         }
 
-        private async void ProcessEventQueue(object? sender, EventArgs e)
+        private async void ProcessEventQueue(object sender, EventArgs e)
         {
             ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
             while (!eventQueue.IsEmpty)
@@ -221,7 +223,7 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE:
                             {
                                 string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
-                                string[] progressData = data.Split(";");
+                                string[] progressData = data.Split(';');
                                 logger.Info("progress update {0}  {1}", progressData[0], progressData[1]);
                                 if (progressData.Length >= 2)
                                 {

@@ -8,9 +8,9 @@ namespace SnaptrudeManagerUI.API
 {
     public class SessionData
     {
-        public static string? RevitModelName { get; set; }
-        public static string? FileType { get; set; }
-        public static UserData? UserData { get; set; }
+        public static string RevitModelName { get; set; }
+        public static string FileType { get; set; }
+        public static UserData UserData { get; set; }
 
         public static void FlushUserData()
         {
@@ -20,8 +20,8 @@ namespace SnaptrudeManagerUI.API
 
     public class UserData
     {
-        public string? RevitProjectName { get; set; }
-        public string? AccessToken { get; set; }
-        public string? RefreshToken { get; set; }
+        public string RevitProjectName { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
     }
 }

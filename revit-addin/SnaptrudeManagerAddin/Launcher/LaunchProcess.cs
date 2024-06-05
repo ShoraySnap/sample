@@ -39,7 +39,7 @@ namespace SnaptrudeManagerAddin.Launcher
             logger.Info("Trying to start UI process...");
             FileInfo file = new FileInfo(Assembly.GetExecutingAssembly().Location);
             var exe = file.Directory.FullName.Contains(@"revit-addin") ?
-                Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net6.0-windows\SnaptrudeManagerUI.exe") :
+                Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe") :
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"snaptrude-manager\UI\SnaptrudeManagerUI.exe");
             if (File.Exists(exe))
             {

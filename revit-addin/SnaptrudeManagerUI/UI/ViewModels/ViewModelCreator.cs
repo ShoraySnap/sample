@@ -17,13 +17,13 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(
                     NavigationStore.Instance,
                     String.Equals(Store.Get("fileType"), "rvt") ?
-                        CreateHomeViewModel :
+                        (Func<ViewModelBase>)CreateHomeViewModel :
                         CreateExportViewModel
                         ),
 
                 new NavigationService(NavigationStore.Instance,
                     String.Equals(Store.Get("fileType"), "rfa") ?
-                    CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
+                    (Func<ViewModelBase>)CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
                 ),
                 new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel)
                 );
@@ -41,10 +41,11 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             bool skip = NavigationStore.Get(WarningId.AllVisibleParts.ToString())?.ToString() == "False";
             if (skip)
-            { 
-                return String.Equals(Store.Get("fileType"), "rvt") ?
-                CreateSelectFolderViewModel() :
-                CreateExportViewModel();
+            {
+                if (String.Equals(Store.Get("fileType"), "rvt"))
+                    return CreateSelectFolderViewModel();
+                else
+                    return CreateExportViewModel();
             }
             else
             {
@@ -53,7 +54,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     new NavigationService(
                         NavigationStore.Instance,
                         String.Equals(Store.Get("fileType"), "rvt") ?
-                        CreateSelectFolderViewModel :
+                        (Func<ViewModelBase>)CreateSelectFolderViewModel :
                         CreateExportViewModel
                         )
                     );
@@ -71,7 +72,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(
                     NavigationStore.Instance,
                 String.Equals(Store.Get("fileType"), "rvt") ?
-                        CreateHomeViewModel :
+                        (Func<ViewModelBase>)CreateHomeViewModel :
                         CreateExportViewModel
                         ),
                 new NavigationService(NavigationStore.Instance, CreateEnterProjectUrlViewModel)
@@ -173,15 +174,19 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public static ViewModelBase CreateHomeViewModel()
         {
-            return
-            Store.isDataValid() ?
-             new HomeViewModel(
+            if (Store.isDataValid())
+            {
+                return new HomeViewModel(
                 new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportLabelsViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel),
                 new NavigationService(NavigationStore.Instance, CreateWarningAllVisiblePartsViewModel),
-                new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel))
-            : CreateLoginViewModel();
+                new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel));
+            }
+            else
+            {
+                return CreateLoginViewModel();
+            }
         }
 
         private static ImportLabelsViewModel CreateImportLabelsViewModel()
@@ -196,7 +201,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateExportViewModel),
                 new NavigationService(NavigationStore.Instance,
                 String.Equals(Store.Get("fileType"), "rfa") ?
-                CreateExportToRFAExistingProgressViewModel :
+                (Func<ViewModelBase>)CreateExportToRFAExistingProgressViewModel :
                 CreateExportToNewProjectProgressViewModel));
         }
         private static ExportViewModel CreateExportViewModel()
