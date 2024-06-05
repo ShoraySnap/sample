@@ -283,7 +283,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS, floorkey, TransferManager);
         }
 
-        internal void FinishExportFailure()
+        internal void ExportFailure()
         {
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
         }

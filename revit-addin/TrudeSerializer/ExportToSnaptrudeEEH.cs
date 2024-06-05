@@ -86,9 +86,8 @@ namespace TrudeSerializer
                 catch(Exception ex)
                 {
                     logger.UploadDone(false);
-                    TaskDialog.Show("catch", ex.ToString());
-
-                    Application.Instance.FinishExportFailure();
+                    //TaskDialog.Show("catch", ex.ToString());
+                    Application.Instance.ExportFailure();
                     return Result.Failed;
                 }
 
@@ -98,7 +97,8 @@ namespace TrudeSerializer
             {
                 logger.SerializeDone(false);
                 logger.UploadDone(false);
-                TaskDialog.Show("catch", ex.ToString());
+                //TaskDialog.Show("catch", ex.ToString());
+                Application.Instance.ExportFailure();
                 GlobalVariables.CleanGlobalVariables();
                 return Result.Failed;
             }

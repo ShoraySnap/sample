@@ -37,6 +37,7 @@ namespace SnaptrudeManagerUI
         public static Action OnSuccessfullLogin;
         public static Action OnFailedLogin;
         public static Action OnAbort;
+        public static Action OnFailure;
 
         public static void RegisterProtocol()
         {
@@ -180,6 +181,12 @@ namespace SnaptrudeManagerUI
                                 }
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED:
+                            {
+                                logger.Info("Export failed.");
+                                OnFailure?.Invoke();
+                            }
+                            break;
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
                             {
                                 logger.Info("Got data incoming from browser!");
@@ -232,6 +239,12 @@ namespace SnaptrudeManagerUI
                             {
                                 logger.Info("Import to revit aborted!");
                                 OnAbort?.Invoke();
+                            }
+                            break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED:
+                            {
+                                logger.Info("Import to revit failed!");
+                                OnFailure?.Invoke();
                             }
                             break;
 
@@ -302,9 +315,11 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);

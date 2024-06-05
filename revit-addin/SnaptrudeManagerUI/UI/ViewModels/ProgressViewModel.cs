@@ -71,6 +71,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand StartProgressCommand { get; set; }
         public ICommand SuccessCommand { get; set; }
         public ICommand FailureCommand { get; set; }
+        public ICommand BackHomeCommand { get; set; }
         public ICommand TransformCommand { get; set; }
         public ICommand CancelCommand { get; set; }
 
@@ -79,11 +80,13 @@ namespace SnaptrudeManagerUI.ViewModels
         /// </summary>
         /// <param name="successNavigationService"></param>
         /// <param name="failureNavigationService"></param>
-        public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService)
+        public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService)
         {
             IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
             FailureCommand = new NavigateCommand(failureNavigationService);
+            BackHomeCommand = new NavigateCommand(backHomeNavigationService);
+
             switch (progressType)
             {
                 case ProgressViewType.ExportProjectNew:
@@ -127,6 +130,7 @@ namespace SnaptrudeManagerUI.ViewModels
             //StartProgressCommand.Execute(null);
             App.OnProgressUpdate += UpdateProgress;
             App.OnAbort += Abort;
+            App.OnFailure += OnFailure;
         }
 
         public void Cancel(TRUDE_EVENT trudeEvent)
@@ -148,9 +152,14 @@ namespace SnaptrudeManagerUI.ViewModels
             SuccessCommand.Execute(new object());
         }
 
-        public void Abort()
+        public void OnFailure()
         {
             FailureCommand.Execute(new object());
+        }
+
+        public void Abort()
+        {
+            BackHomeCommand.Execute(new object());
         }
 
         public async Task StartExportNewProject()

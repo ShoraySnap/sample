@@ -448,6 +448,9 @@
                     <DataTemplate DataType="{x:Type vms:ModelImportedViewModel}">
                         <views:ModelImportedView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:ErrorViewModel}">
+                        <views:ErrorView Style="{StaticResource AnimatedUserControl}" />
+                    </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>
         </DockPanel>

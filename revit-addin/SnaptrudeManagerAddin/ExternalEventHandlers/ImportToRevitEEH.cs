@@ -74,6 +74,7 @@ namespace SnaptrudeManagerAddin
             catch (Exception ex)
             {
                 TaskDialog.Show("catch", ex.ToString());
+                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED);
                 GlobalVariables.cleanGlobalVariables();
             }
             finally
