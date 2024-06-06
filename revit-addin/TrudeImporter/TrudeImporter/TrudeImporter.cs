@@ -23,15 +23,13 @@ namespace TrudeImporter
 
             ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport);
             ImportWalls(trudeProperties.Walls); // these are structural components of the building
-            ImportBeams(trudeProperties.Beams); // these are structural components of the building
             ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportFloors(trudeProperties.Floors);
-            ImportColumns(trudeProperties.Columns); // these are structural components of the building
             ImportMasses(trudeProperties.Masses);
             ImportRooms();
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
 #if REVIT2019 || REVIT2020 || REVIT2021
-                            ImportFloors(trudeProperties.Ceilings);
+            ImportFloors(trudeProperties.Ceilings);
 #else
             ImportCeilings(trudeProperties.Ceilings);
 #endif
