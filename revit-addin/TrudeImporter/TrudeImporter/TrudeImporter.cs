@@ -29,7 +29,7 @@ namespace TrudeImporter
             ImportRooms();
             ImportBeams(trudeProperties.Beams); // these are structural components of the building
 #if REVIT2019 || REVIT2020 || REVIT2021
-            ImportFloors(trudeProperties.Ceilings);
+                        ImportFloors(trudeProperties.Ceilings);
 #else
             ImportCeilings(trudeProperties.Ceilings);
 #endif
@@ -752,7 +752,7 @@ namespace TrudeImporter
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
                             CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
                             ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
-                            if (mass.BottomFaceVertices != null)
+                            if (mass.Type != "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
                             {
                                 TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
                             }
