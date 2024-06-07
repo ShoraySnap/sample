@@ -40,6 +40,13 @@ namespace SnaptrudeManagerUI
         public static Action OnFailedLogin;
         public static Action OnAbort;
         public static Action OnFailure;
+        public static Action OnActivateView2D;
+        public static Action OnActivateView3D;
+        public static Action OnRvtOpened;
+        public static Action OnRfaOpened;
+        public static Action OnDocumentClosed;
+        public static Action OnDocumentChanged;
+        public static Action OnRevitClosed;
 
         public static void RegisterProtocol()
         {
@@ -113,30 +120,21 @@ namespace SnaptrudeManagerUI
                     {
                         case TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D:
                             {
+                                OnActivateView3D?.Invoke();
                                 LogManager.GetCurrentClassLogger().Info("View changed to 3D in Revit.");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsActiveView3D = true;
-                                });
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER:
                             {
+                                OnActivateView2D?.Invoke();
                                 LogManager.GetCurrentClassLogger().Info("View changed to not 3D in Revit.");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsActiveView3D = false;
-                                });
                             }
                             break;
                         case TRUDE_EVENT.REVIT_CLOSED:
                             {
                                 logger.Info("Revit closed, closing UI...");
                                 // TODO: Loader / Dialog / Show message
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    Application.Current.Shutdown();
-                                });
+                                OnRevitClosed?.Invoke();
                             }
                             break;
                         case TRUDE_EVENT.DATA_FROM_PLUGIN:
@@ -154,9 +152,17 @@ namespace SnaptrudeManagerUI
                                     string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE);
                                     logger.Info("data : \"{0}\"", data);
                                     Dictionary<string, string> parsedData = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+                                    if (!Equals(Store.Get("projectName"), parsedData["projectName"]))
+                                    {
+                                        OnDocumentChanged?.Invoke();
+                                    }
                                     Store.Set("projectName", parsedData["projectName"]);
                                     Store.Set("fileType", parsedData["fileType"]);
                                     Store.Save();
+                                    if (Equals(parsedData["fileType"], "rvt"))
+                                        OnRvtOpened?.Invoke();
+                                    else
+                                        OnRfaOpened?.Invoke();
                                 }
                                 catch (Exception ex)
                                 {
@@ -253,31 +259,18 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED:
                             {
                                 logger.Info("Revit Document opened!");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsDocumentOpen = true;
-                                });
-
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED:
                             {
+                                OnDocumentClosed?.Invoke();
                                 logger.Info("Revit Document closed!");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsDocumentOpen = false;
-                                    if (MainWindowViewModel.Instance.WhiteBackground)
-                                    {
-                                        MainWindowViewModel.Instance.NavigateHomeCommand.Execute(null);
-                                    }
-                                });
-
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED:
                             {
-                                logger.Info("Export to snaptrude aborted!");
                                 OnAbort?.Invoke();
+                                logger.Info("Export to snaptrude aborted!");
                             }
                             break;
                     }

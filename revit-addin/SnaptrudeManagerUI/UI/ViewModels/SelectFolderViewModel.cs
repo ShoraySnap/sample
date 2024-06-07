@@ -14,6 +14,8 @@ namespace SnaptrudeManagerUI.ViewModels
 {
     public class SelectFolderViewModel : ViewModelBase
     {
+        private bool disposed = false; 
+
         static Logger logger = LogManager.GetCurrentClassLogger();
         public ObservableCollection<FolderViewModel> CurrentPathFolders { get; private set; }
         public ListCollectionView CurrentPathFoldersView { get; private set; }
@@ -33,7 +35,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public bool IsLoaderVisible
         {
             get { return isLoaderVisible; }
-            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("IsBreadcrumbEnabled"); OnPropertyChanged("ExportIsEnable"); }
+            set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("IsBreadcrumbEnabled"); OnPropertyChanged("ExportIsEnabled"); OnPropertyChanged("ExportIsDisbled"); }
         }
 
         private bool showErrorMessage = false;
@@ -42,7 +44,8 @@ namespace SnaptrudeManagerUI.ViewModels
             get { return showErrorMessage; }
             set { showErrorMessage = value; OnPropertyChanged("ShowErrorMessage"); }
         }
-
+        public string ErrorMessage => ViewIsNot3D ? "Switch to 3D view to enable export" : "Select workspace to begin export"; 
+            
         private bool addBreadcrumbs = true;
 
         private bool isWorkspaceSelected;
@@ -50,33 +53,20 @@ namespace SnaptrudeManagerUI.ViewModels
         public bool IsWorkspaceSelected
         {
             get { return isWorkspaceSelected; }
-            set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); OnPropertyChanged("ExportIsEnable"); }
+            set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); OnPropertyChanged("ExportIsEnabled"); OnPropertyChanged("ExportIsDisabled"); }
         }
 
-        public bool ExportIsEnable => ViewIs3D && IsWorkspaceSelected && !IsLoaderVisible && !ShowErrorMessage;
+        public bool ExportIsEnabled => ViewIs3D && IsWorkspaceSelected && !IsLoaderVisible && !ShowErrorMessage;
+        public bool ExportIsDisabled => ViewIsNot3D || !IsWorkspaceSelected;
 
-        public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
+        public bool ViewIs3D => MainWindowViewModel.Instance.IsView3D;
+
         public bool ViewIsNot3D => !ViewIs3D;
+
         private FolderViewModel AllWorkspacesViewModel = new FolderViewModel(new Folder("-1", "All Workspaces", Constants.WorkspaceType.Top, "-1"));
 
-        private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
-            {
-                OnPropertyChanged(nameof(ViewIs3D));
-                OnPropertyChanged(nameof(ViewIsNot3D));
-                OnPropertyChanged(nameof(ExportIsEnable));
-            }
-        }
         public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService, NavigationService tryAgainNavigationService)
         {
-            TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
-                new TransformService(MainWindowViewModel.Instance, (viewmodel) =>
-                {
-                    ((MainWindowViewModel)viewmodel).PropertyChanged += MainWindowViewModel_PropertyChanged;
-                    return viewmodel;
-                }));
-            transformMainWindowViewModelCommand.Execute(new object());
             BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportNavigationService); });
             BackCommand = new NavigateCommand(backNavigationService);
             TryAgainCommand = new NavigateCommand(tryAgainNavigationService);
@@ -87,11 +77,24 @@ namespace SnaptrudeManagerUI.ViewModels
             Breadcrumb = new ObservableCollection<FolderViewModel>();
             OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);
+            
+            App.OnActivateView2D += SetExportEnablement;
+            App.OnActivateView3D += SetExportEnablement;
             // Initialize with root folders
             LoadRootFolders();
+            SetExportEnablement();
         }
 
-        private void BeginExport(object param, NavigationService exportNavigationService) 
+        private void SetExportEnablement()
+        {
+            OnPropertyChanged(nameof(ViewIs3D));
+            OnPropertyChanged(nameof(ViewIsNot3D));
+            OnPropertyChanged(nameof(ExportIsEnabled));
+            OnPropertyChanged(nameof(ExportIsDisabled));
+            OnPropertyChanged(nameof(ErrorMessage));
+        }
+
+        private void BeginExport(object param, NavigationService exportNavigationService)
         {
             Store.Set("team_id", team_id);
             Store.Set("folder_id", folder_id);
@@ -189,6 +192,7 @@ namespace SnaptrudeManagerUI.ViewModels
         private void setExportButton()
         {
             IsWorkspaceSelected = Breadcrumb.Count > 1;
+            OnPropertyChanged(nameof(ExportIsEnabled));
         }
 
         private void SetSelectedFolder()
@@ -210,6 +214,28 @@ namespace SnaptrudeManagerUI.ViewModels
                 }
                 Breadcrumb.RemoveAt(i);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeEvents();
+                }
+                disposed = true;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            App.OnActivateView2D -= SetExportEnablement;
+            App.OnActivateView3D -= SetExportEnablement;
+        }
+        ~SelectFolderViewModel()
+        {
+            Dispose(false);
         }
     }
 }

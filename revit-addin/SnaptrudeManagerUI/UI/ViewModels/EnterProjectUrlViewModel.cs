@@ -25,6 +25,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
     public class EnterProjectUrlViewModel : ViewModelBase
     {
+        private bool disposed = false; 
         public ICommand BackCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
 
@@ -33,7 +34,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public URLValidationStatus RequestStatus
         {
             get { return requestStatus; }
-            set { requestStatus = value; OnPropertyChanged("RequestStatus"); OnPropertyChanged("ExportIsEnable"); }
+            set { requestStatus = value; OnPropertyChanged("RequestStatus"); OnPropertyChanged("ExportIsEnabled"); }
         }
 
         private string floorkey;
@@ -153,25 +154,27 @@ namespace SnaptrudeManagerUI.ViewModels
             return pattern.IsMatch(inputText);
         }
 
-        public bool ExportIsEnable => ViewIs3D && RequestStatus == URLValidationStatus.Validated;
+        public bool ExportIsEnabled => ViewIs3D && RequestStatus == URLValidationStatus.Validated;
 
-        public bool ViewIs3D => MainWindowViewModel.Instance.IsActiveView3D;
+        public bool ViewIs3D => MainWindowViewModel.Instance.IsView3D;
+
         public bool ViewIsNot3D => !ViewIs3D;
 
-        private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D))
-            {
-                OnPropertyChanged(nameof(ViewIs3D));
-                OnPropertyChanged(nameof(ViewIsNot3D));
-                OnPropertyChanged(nameof(ExportIsEnable));
-            }
-        }
         public EnterProjectUrlViewModel(NavigationService backNavigationService, NavigationService exportToExistingNavigationService)
         {
-            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
             BackCommand = new NavigateCommand(backNavigationService);
             BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportToExistingNavigationService); });
+            App.OnActivateView2D += SetExportEnablement;
+            App.OnActivateView3D += SetExportEnablement;
+            SetExportEnablement();
+        }
+
+        private void SetExportEnablement()
+        {
+            OnPropertyChanged(nameof(ViewIs3D));
+            OnPropertyChanged(nameof(ViewIsNot3D));
+            OnPropertyChanged(nameof(ExportIsEnabled));
+            OnPropertyChanged(nameof(ErrorMessage));
         }
 
         private void BeginExport(object param, NavigationService exportToExistingNavigationService)
@@ -180,6 +183,28 @@ namespace SnaptrudeManagerUI.ViewModels
             Store.Save();
             var navCmd = new NavigateCommand(exportToExistingNavigationService);
             navCmd.Execute(param);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeEvents();
+                }
+                disposed = true;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            App.OnActivateView2D -= SetExportEnablement;
+            App.OnActivateView3D -= SetExportEnablement;
+        }
+        ~EnterProjectUrlViewModel()
+        {
+            Dispose(false);
         }
     }
 }

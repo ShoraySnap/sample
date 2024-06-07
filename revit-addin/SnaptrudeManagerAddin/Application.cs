@@ -68,14 +68,9 @@ namespace SnaptrudeManagerAddin
             SetupDataChannels();
             SetupEvents();
             application.Idling += OnRevitIdling;
-            application.ControlledApplication.DocumentOpened += DocumentOpened;
-            
-            return Result.Succeeded;
-        }
+            application.ControlledApplication.DocumentClosing += DocumentClosing;
 
-        private void DocumentOpened(object sender, DocumentOpenedEventArgs e)
-        {
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+            return Result.Succeeded;
         }
 
         public void OnProgressChanged(object sender, Autodesk.Revit.DB.Events.ProgressChangedEventArgs e)
@@ -106,7 +101,6 @@ namespace SnaptrudeManagerAddin
         {
             IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
-            e.Document.DocumentClosing += DocumentClosing;
             UpdateButtonState(currentView is View3D);
             UpdateNameAndFiletype(e.Document.Title, e.Document.IsFamilyDocument ? "rfa" : "rvt");
         }
@@ -161,7 +155,6 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
-            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
@@ -190,7 +183,6 @@ namespace SnaptrudeManagerAddin
                     switch (eventType)
                     {
                         case TRUDE_EVENT.MANAGER_UI_OPEN:
-                            UIControlledApplication.ViewActivated += OnViewActivated;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_CLOSE:
                             UIControlledApplication.ViewActivated -= OnViewActivated;
@@ -245,19 +237,9 @@ namespace SnaptrudeManagerAddin
                                 Application.Instance.AbortExportFlag = true;
                             }
                             break;
-                        case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
-                            {
-                                logger.Info("UI request document is opened");
-                                if (IsAnyDocumentOpened)
-                                {
-                                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
-                                }
-                            }
-                            break;
                     }
                 }
             }
-
         }
 
         internal void UpdateProgressForImport(int progress, string message)

@@ -25,7 +25,7 @@
                 Height="144"
                 Margin="0,0,16,0"
                 Command="{Binding SelectTrudeFileCommand}"
-                IsEnabled="{Binding IsDocumentOpen}"
+                IsEnabled="{Binding IsImportButtonEnable}"
                 Style="{DynamicResource Button_Quinary}">
                 <StackPanel>
                     <StackPanel.Resources>
@@ -36,7 +36,7 @@
                             <Setter Property="StrokeStartLineCap" Value="round" />
                             <Setter Property="StrokeThickness" Value="1.25" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsDocumentOpen}" Value="false">
+                                <DataTrigger Binding="{Binding IsImportButtonEnable}" Value="false">
                                     <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/400}" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -44,7 +44,7 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsDocumentOpen}" Value="false">
+                                <DataTrigger Binding="{Binding IsImportButtonEnable}" Value="false">
                                     <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
                                 </DataTrigger>
                             </Style.Triggers>

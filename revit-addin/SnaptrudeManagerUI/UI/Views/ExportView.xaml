@@ -27,6 +27,7 @@
             <Label
                 Margin="0,0,0,14"
                 HorizontalAlignment="Center"
+                Typography.StylisticAlternates="1"
                 Content="Export model to"
                 FontFamily="{StaticResource Inter500}"
                 Foreground="{DynamicResource Colors/Neutral/800}" />

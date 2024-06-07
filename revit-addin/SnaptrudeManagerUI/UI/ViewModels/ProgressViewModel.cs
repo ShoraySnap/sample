@@ -52,6 +52,7 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
         private bool isProgressBarIndeterminate;
+        private bool disposed;
 
         public bool IsProgressBarIndeterminate
         {
@@ -232,5 +233,27 @@ namespace SnaptrudeManagerUI.ViewModels
             SuccessCommand.Execute(new object());
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeEvents();
+                }
+                disposed = true;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            App.OnProgressUpdate -= UpdateProgress;
+            App.OnAbort -= Abort;
+            App.OnFailure -= OnFailure;
+        }
+        ~ProgressViewModel()
+        {
+            Dispose(false);
+        }
     }
 }

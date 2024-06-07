@@ -122,17 +122,11 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand LogOutCommand { get; private set; }
         public ICommand BackToLoginCommand { get; private set; }
 
-        private bool isActiveView3D;
-        public bool IsActiveView3D
-        {
-            get { return isActiveView3D; }
-            set
-            {
-                isActiveView3D = value; OnPropertyChanged("IsActiveView3D");
-            }
-        }
 
-        public Action CloseAction { get; set; }
+        public bool IsView3D;
+        public bool IsDocumentOpen;
+        public bool IsDocumentRvt;
+
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
         public bool CloseButtonVisible =>
             CurrentViewModel.GetType().Name != "ProgressViewModel";
@@ -143,6 +137,8 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         private bool topMost = true;
+        private bool disposed;
+
         public bool TopMost
         {
             get { return topMost; }
@@ -152,25 +148,14 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        private bool isDocumentOpen;
-        public bool IsDocumentOpen
+        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen)
         {
-            get { return isDocumentOpen; }
-            set
-            {
-                isDocumentOpen = value; OnPropertyChanged("IsDocumentOpen");
-            }
-        }
-
-
-
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
-        {
-            IsDocumentOpen = false;
+            IsDocumentOpen = isDocumentOpen;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
-            IsActiveView3D = isActiveView3D;
-            CurrentVersion = currentVersion;
+            CurrentVersion = currentVersion; 
+            IsView3D = isView3D;
+            IsDocumentRvt = isDocumentRvt;
             UpdateVersion = updateVersion;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
@@ -182,6 +167,47 @@ namespace SnaptrudeManagerUI.ViewModels
             LogOutCommand = new RelayCommand(LogoutAccount);
             BackToLoginCommand =  new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
             SwitchAccountCommand = new RelayCommand(SwitchAccount);
+            App.OnActivateView2D += Set2DView;
+            App.OnActivateView3D += Set3DView;
+            App.OnRvtOpened += SetProjectRvt;
+            App.OnRfaOpened += SetProjectRfa;
+            App.OnDocumentClosed += HandleDocumentClosed;
+            App.OnDocumentChanged += NavigateBackHome;
+        }
+
+        private void HandleDocumentClosed()
+        {
+            IsDocumentOpen = false;
+        }
+
+        private void Set2DView()
+        {
+            IsDocumentOpen = true;
+            IsView3D = false;
+        }
+
+        private void Set3DView()
+        {
+            IsDocumentOpen = true;
+            IsView3D = true;
+        }
+
+        private void SetProjectRvt()
+        {
+            IsDocumentRvt = true;
+        }
+
+        private void SetProjectRfa()
+        {
+            IsDocumentRvt = false;
+        }
+
+        private void NavigateBackHome()
+        {
+            if (WhiteBackground)
+            {
+                NavigateHomeCommand.Execute(null);
+            }
         }
 
         private void OnCurrentViewModelChanged()
@@ -261,6 +287,32 @@ namespace SnaptrudeManagerUI.ViewModels
                 };
                 SwitchUserError.Execute(param);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeEvents();
+                }
+                disposed = true;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            App.OnActivateView2D -= Set2DView;
+            App.OnActivateView3D -= Set3DView;
+            App.OnRvtOpened -= SetProjectRvt;
+            App.OnRfaOpened -= SetProjectRfa;
+            App.OnDocumentClosed -= HandleDocumentClosed;
+            App.OnDocumentChanged -= NavigateBackHome;
+        }
+        ~MainWindowViewModel()
+        {
+            Dispose(false);
         }
     }
 }
