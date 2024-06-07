@@ -12,13 +12,15 @@ namespace SnaptrudeManagerAddin.Launcher
         static Logger logger = LogManager.GetCurrentClassLogger();
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            LaunchProcess.StartProcess();
-            LaunchProcess.process.WaitForInputIdle();
-
+            View currentView = commandData.Application.ActiveUIDocument.ActiveView;
             Application.Instance.IsAnyDocumentOpened = true;
             Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
-
-            View currentView = commandData.Application.ActiveUIDocument.ActiveView;
+            LaunchProcess.StartProcess(new string[] 
+            { 
+                (currentView is View3D).ToString(),
+                (!commandData.Application.ActiveUIDocument.Document.IsFamilyDocument).ToString()
+            });
+            LaunchProcess.process.WaitForInputIdle();
             Application.UpdateButtonState(currentView is View3D);
             Application.UpdateNameAndFiletype(commandData.Application.ActiveUIDocument.Document.Title, commandData.Application.ActiveUIDocument.Document.IsFamilyDocument ? "rfa" : "rvt");
             return Result.Succeeded;

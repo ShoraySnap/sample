@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using NLog;
@@ -27,7 +28,7 @@ namespace SnaptrudeManagerAddin.Launcher
             }
         }
 
-        public static void StartProcess()
+        public static void StartProcess(string[] args)
         {
             process = CheckProcessRunning();
             if (process != null)
@@ -45,6 +46,8 @@ namespace SnaptrudeManagerAddin.Launcher
             {
                 process = new Process();
                 process.StartInfo.FileName = exe;
+                string quotedArguments = string.Join(" ", args.Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg));
+                process.StartInfo.Arguments = quotedArguments;
                 process.Start();
                 if (process != null)
                 {

@@ -22,6 +22,7 @@ using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Commands;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SnaptrudeManagerUI
 {
@@ -74,20 +75,35 @@ namespace SnaptrudeManagerUI
             var currentVersion = "4.0";
             var updateVersion = "4.0";
 
+            string[] args = e.Args;
+            bool ViewIs3D = false;
+            bool IsDocumentRvt = false;
+            bool IsDocumentOpen = false;
+            if (args.Any())
+            {
+                ViewIs3D = bool.Parse(args[0]);
+                IsDocumentRvt = bool.Parse(args[1]);
+                IsDocumentOpen = true;
+            }
+
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, true);
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, ViewIs3D, IsDocumentRvt, IsDocumentOpen);
+            
             if (currentVersion != updateVersion)
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             else
-                navigationStore.CurrentViewModel = ViewModelCreator.CreateHomeViewModel();
+            {
+                navigationStore.CurrentViewModel = Equals(Store.Get("userId"), "") ? 
+                    ViewModelCreator.CreateLoginViewModel() : 
+                    ViewModelCreator.CreateHomeViewModel();
+            }
+
             // SnaptrudeService snaptrudeService = new SnaptrudeService();
             logger.Info("<<<UI Initialized!>>>");
 
             SetupDataChannels();
             SetupEvents();
             SetupStore();
-
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
 
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
