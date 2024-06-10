@@ -96,9 +96,14 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
         }
 
-        public static ModelExportedViewModel CreateModelExportedViewModel()
+        public static EndViewModel CreateRevitClosedViewModel()
         {
-            return new ModelExportedViewModel();
+            return new EndViewModel(EndViewModel.EndViewType.RevitClosed);
+        }
+
+        public static EndViewModel CreateModelExportedViewModel()
+        {
+            return new EndViewModel(EndViewModel.EndViewType.ExportedSucessfull);
         }
 
         public static ProgressViewModel CreateExportToRFANewProgressViewModel()
@@ -151,9 +156,9 @@ namespace SnaptrudeManagerUI.ViewModels
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
 
-        public static ModelImportedViewModel CreateModelImportedViewModel()
+        public static EndViewModel CreateModelImportedViewModel()
         {
-            return new ModelImportedViewModel();
+            return new EndViewModel(EndViewModel.EndViewType.ImportedSucessfull);
         }
 
         public static ProgressViewModel CreateUpdateProgressViewModel()

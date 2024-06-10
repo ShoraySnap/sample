@@ -133,8 +133,7 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         public bool LoginButtonVisible =>
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" &&
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
+            !ImageBackground && CurrentViewModel.GetType().Name != "EndViewModel" &&
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         private bool topMost = true;

@@ -38,7 +38,7 @@
                 <DropShadowEffect
                     BlurRadius="15"
                     Direction="-90"
-                    Opacity=".3"
+                    Opacity=".4"
                     RenderingBias="Quality"
                     ShadowDepth="3"
                     Color="Gray" />
@@ -442,11 +442,8 @@
                     <DataTemplate DataType="{x:Type vms:IncompatibleTrudeViewModel}">
                         <views:IncompatibleTrudeView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type vms:ModelExportedViewModel}">
-                        <views:ModelExportedView Style="{StaticResource AnimatedUserControl}" />
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vms:ModelImportedViewModel}">
-                        <views:ModelImportedView Style="{StaticResource AnimatedUserControl}" />
+                    <DataTemplate DataType="{x:Type vms:EndViewModel}">
+                        <views:EndView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vms:ErrorViewModel}">
                         <views:ErrorView Style="{StaticResource AnimatedUserControl}" />

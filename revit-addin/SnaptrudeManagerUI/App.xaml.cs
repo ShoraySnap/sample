@@ -23,6 +23,7 @@ using SnaptrudeManagerUI.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace SnaptrudeManagerUI
 {
@@ -48,6 +49,8 @@ namespace SnaptrudeManagerUI
         public static Action OnDocumentClosed;
         public static Action OnDocumentChanged;
         public static Action OnRevitClosed;
+
+        private Process RevitProcess;
 
         public static void RegisterProtocol()
         {
