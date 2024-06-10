@@ -2,6 +2,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using NLog;
+using System.Diagnostics;
 
 
 namespace SnaptrudeManagerAddin.Launcher
@@ -17,6 +18,7 @@ namespace SnaptrudeManagerAddin.Launcher
             Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
             LaunchProcess.StartProcess(new string[] 
             { 
+                Process.GetCurrentProcess().Id.ToString(),
                 (currentView is View3D).ToString(),
                 (!commandData.Application.ActiveUIDocument.Document.IsFamilyDocument).ToString()
             });

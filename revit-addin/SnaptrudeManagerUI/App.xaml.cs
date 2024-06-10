@@ -76,18 +76,27 @@ namespace SnaptrudeManagerUI
             var updateVersion = "4.0";
 
             string[] args = e.Args;
-            bool ViewIs3D = false;
-            bool IsDocumentRvt = false;
-            bool IsDocumentOpen = false;
+            int revitProcessId = 0;
+            bool viewIs3D = false;
+            bool isDocumentRvt = false;
+            bool isDocumentOpen = false;
             if (args.Any())
             {
-                ViewIs3D = bool.Parse(args[0]);
-                IsDocumentRvt = bool.Parse(args[1]);
-                IsDocumentOpen = true;
+                revitProcessId = int.Parse(args[0]);
+                viewIs3D = bool.Parse(args[1]);
+                isDocumentRvt = bool.Parse(args[2]);
+                isDocumentOpen = true;
+            }
+
+            if (revitProcessId != 0)
+            {
+                RevitProcess = Process.GetProcessById(revitProcessId);
+                RevitProcess.EnableRaisingEvents = true;
+                RevitProcess.Exited += RevitProcess_Exited;
             }
 
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, ViewIs3D, IsDocumentRvt, IsDocumentOpen);
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, viewIs3D, isDocumentRvt, isDocumentOpen);
             
             if (currentVersion != updateVersion)
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
@@ -107,6 +116,11 @@ namespace SnaptrudeManagerUI
 
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
+        }
+
+        private void RevitProcess_Exited(object sender, EventArgs e)
+        {
+            MainWindowViewModel.Instance.RevitClosedCommand.Execute(null);
         }
 
         private void SetupStore()

@@ -121,6 +121,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand SwitchAccountCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
         public ICommand BackToLoginCommand { get; private set; }
+        public ICommand RevitClosedCommand { get; private set; }
 
 
         public bool IsView3D;
@@ -164,6 +165,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 App.Current.Shutdown();
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
+            RevitClosedCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateRevitClosedViewModel));
             LogOutCommand = new RelayCommand(LogoutAccount);
             BackToLoginCommand =  new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
             SwitchAccountCommand = new RelayCommand(SwitchAccount);
