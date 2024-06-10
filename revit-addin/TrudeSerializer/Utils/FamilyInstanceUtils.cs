@@ -1,12 +1,12 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
-using System.Linq;
+using TrudeSerializer.Components;
 
 namespace TrudeSerializer.Utils
 {
     internal class FamilyInstanceUtils
     {
-        public static bool HasParentElement(Element element, bool ignoreModelGroupAndAssemblies = false)
+        public static bool HasParentElement(Element element, bool ignoreAssemblies = false, bool ignoreModelGroups = false)
         {
             bool hasParentElement = false;
 
@@ -17,28 +17,30 @@ namespace TrudeSerializer.Utils
                 {
                     hasParentElement = true;
                 }
+            }
 
-                if (ignoreModelGroupAndAssemblies)
+            if (!ignoreAssemblies)
+            {
+                ElementId assemblySuperComponent = element?.AssemblyInstanceId;
+
+                bool HasAssemblySuperComponent = assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1";
+
+                if (HasAssemblySuperComponent)
                 {
-                    return hasParentElement;
+                    hasParentElement = true;
                 }
             }
 
-            ElementId assemblySuperComponent = element?.AssemblyInstanceId;
-
-            bool HasAssemblySuperComponent = assemblySuperComponent != null && assemblySuperComponent.IntegerValue.ToString() != "-1";
-
-            if (HasAssemblySuperComponent)
+            if (!ignoreModelGroups)
             {
-                hasParentElement = true;
-            }
+                // Group (SuperComponent)
+                ElementId groupId = element?.GroupId;
+                bool hasGroupSuperComponent = groupId != null && groupId.IntegerValue.ToString() != "-1";
 
-            ElementId groupId = element?.GroupId;
-            bool hasGroupSuperComponent = groupId != null && groupId.IntegerValue.ToString() != "-1";
-
-            if (hasGroupSuperComponent)
-            {
-                hasParentElement = true;
+                if (hasGroupSuperComponent)
+                {
+                    hasParentElement = true;
+                }
             }
 
             return hasParentElement;
@@ -47,8 +49,6 @@ namespace TrudeSerializer.Utils
         public static List<string> GetSubComponentIds(Element element)
         {
             List<string> subComponentIds = new List<string> { };
-
-            IList<ElementId> dependantElements = element.GetDependentElements(null);
 
             if (element is FamilyInstance)
             {
@@ -64,20 +64,21 @@ namespace TrudeSerializer.Utils
                 }
             }
 
-            if (element is AssemblyInstance)
+            if (element is AssemblyInstance || element is Group)
             {
-                if (dependantElements.Count > 0)
-                {
-                    subComponentIds = dependantElements.Select(dependantElement => dependantElement.ToString()).ToList();
-                    return subComponentIds;
-                }
-            }
+                IList<ElementId> dependantElements = element.GetDependentElements(null);
 
-            if (element is Group)
-            {
                 if (dependantElements.Count > 0)
                 {
-                    subComponentIds = dependantElements.Select(dependantElement => dependantElement.ToString()).ToList();
+                    for (int i = 0; i < dependantElements.Count; i++)
+                    {
+                        Element dependantElement = GlobalVariables.CurrentDocument.GetElement(dependantElements[i]);
+                        if (TrudeFurniture.IsFurnitureCategory(dependantElement))
+                        {
+                            subComponentIds.Add(dependantElement.Id.ToString());
+                        }
+                    }
+
                     return subComponentIds;
                 }
             }

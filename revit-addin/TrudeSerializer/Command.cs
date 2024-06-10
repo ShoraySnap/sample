@@ -51,18 +51,17 @@ namespace TrudeSerializer
 
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
 
-
                 logger.SerializeDone(true);
                 TrudeDebug.StoreSerializedData(serializedObject);
                 try
                 {
-                    if(!testMode)
+                    if (!testMode)
                     {
                         Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
                     }
                     logger.UploadDone(true);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     logger.UploadDone(false);
                     TaskDialog.Show("catch", ex.ToString());
@@ -86,13 +85,14 @@ namespace TrudeSerializer
                 logger.Save();
                 if (!testMode)
                     Uploader.S3helper.UploadLog(logger, processId);
+
                 isDone = true;
             }
         }
 
         private SerializedTrudeData ExportViewUsingCustomExporter(Document doc, View3D view)
         {
-            if(doc.IsFamilyDocument)
+            if (doc.IsFamilyDocument)
             {
                 TrudeCustomExporterForRFA exporterContextForRFA = new TrudeCustomExporterForRFA(doc);
                 CustomExporter exporterForRFA = new CustomExporter(doc, exporterContextForRFA);

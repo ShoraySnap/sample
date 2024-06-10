@@ -64,6 +64,24 @@ namespace TrudeSerializer.Importer
             CountData massCountData = new CountData() { parametric = 0, nonParametric = this.Masses.Count, total = this.Masses.Count };
             TrudeLogger.Instance.CleanupCount(ComponentLogData.MASSES_KEY, massCountData);
 
+            int count = 0;
+            foreach (var key in this.GenericModel.Instances.Keys.ToList())
+            {
+                TrudeGenericModel instance = this.GenericModel.Instances[key];
+                string familyName = InstanceUtility.GetRevitName(instance.subType, instance.family, instance.dimension, instance.transform.isFaceFlipped);
+                if (this.GenericModel.Families[familyName].geometries.Count == 0)
+                {
+                    this.GenericModel.Instances.Remove(key);
+                }
+                else if (!instance.hasParentElement)
+                {
+                    count += 1;
+                }
+            }
+            CountData genericModelCountData = new CountData() { parametric = 0, nonParametric = count, total = count };
+            TrudeLogger.Instance.CleanupCount(ComponentLogData.GENERIC_MODELS_KEY, genericModelCountData);
+
+
             foreach (var revitLinkKey in this.RevitLinks.Keys.ToList())
             {
                 foreach (var trudeMassKey in this.RevitLinks[revitLinkKey].Keys.ToList())

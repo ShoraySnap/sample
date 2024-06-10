@@ -1,11 +1,9 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
-using TrudeSerializer.Importer;
-using TrudeSerializer.Types;
 using System.Collections.Generic;
 using TrudeImporter;
-using System;
-using System.Text;
+using TrudeSerializer.Importer;
+using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -48,10 +46,9 @@ namespace TrudeSerializer.Components
 
             var areaParam = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
 
-            var (outline, voids, isDifferentCurve) = GetOutline(element);
-            TrudeRoof serializedRoof = new TrudeRoof(elementId, levelName, family, floorType, false, true, outline, voids, 0f);
-            serializedRoof.SetIsParametric(isDifferentCurve);
-
+            Dictionary<string, double[][]> outline = new Dictionary<string, double[][]> { };
+            Dictionary<string, Dictionary<string, double[][]>> voids = new Dictionary<string, Dictionary<string, double[][]>> { };
+            TrudeRoof serializedRoof = new TrudeRoof(elementId, levelName, family, floorType, false, false, outline, voids, 0f);
 
             return serializedRoof;
         }
