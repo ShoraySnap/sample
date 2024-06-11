@@ -86,6 +86,7 @@
 		<Reference Include="DesignAutomationBridge" />
 		<Reference Include="System.Windows.Forms" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="NLog" Version="5.3.2" />
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
 		<PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="$(RevitVersion).*" IncludeAssets="build; compile" PrivateAssets="All" />
 	</ItemGroup>

@@ -59,5 +59,22 @@ namespace TrudeCommon.DataTransfer
             mutex.ReleaseMutex();
         }
 
+        public string ReadString()
+        {
+            byte[] data = ReadData();
+            string value = Encoding.UTF8.GetString(data, 0, data.Length);
+            value = value.Replace("\0", string.Empty).Trim();
+
+            logger.Trace("Read String: {0}", value);
+            return value;
+        }
+
+        public void WriteString(string str)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(str);
+            WriteData(data);
+            logger.Trace("Written String: {0}", str);
+        }
+
     }
 }

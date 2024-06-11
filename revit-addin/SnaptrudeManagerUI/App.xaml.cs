@@ -72,7 +72,7 @@ namespace SnaptrudeManagerUI
         {
             RegisterProtocol();
             base.OnStartup(e);
-            LogsConfig.Initialize("ManagerUI");
+            LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
 
             //WPFTODO: CHECKFORUPDATES
             var currentVersion = "4.0";

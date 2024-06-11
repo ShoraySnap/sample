@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,13 @@ namespace TrudeCommon.Logging
                 snaptrudeManagerPath,
                 "logs"
             );
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = prefixFolder + "\\" + logFileName + ".txt"};
+            var logfile = new NLog.Targets.FileTarget("logfile") { 
+                FileName = $"{prefixFolder}\\{logFileName}.txt",
+                DeleteOldFileOnStartup = true,
+                CreateDirs = true,
+                //KeepFileOpen = true,
+            };
+            configuration.AddTarget(logfile);
             configuration.AddRule(LogLevel.Trace, LogLevel.Fatal, logfile);
 
             NLog.LogManager.Configuration = configuration;
@@ -36,6 +43,8 @@ namespace TrudeCommon.Logging
             logger.Info("<<<SHUTDOWN>>>\n");
             LogManager.Flush();
             LogManager.Shutdown();
+
+            //TODO: Upload log file from UI
         }
     }
 }

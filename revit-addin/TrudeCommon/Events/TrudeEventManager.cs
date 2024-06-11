@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
@@ -15,6 +16,7 @@ namespace TrudeCommon.Events
     internal class ThreadLaunchData
     {
         public Dictionary<TRUDE_EVENT, EventData> eventData;
+        public string currentProcessId;
     }
     internal class TrudeEventManager
     {
@@ -23,14 +25,17 @@ namespace TrudeCommon.Events
 
         public bool started = false;
         Thread eventListenerThread = null;
+
         public TrudeEventManager() { }
         public static void ThreadFunc(object data)
         {
             ThreadLaunchData launchData = (ThreadLaunchData)data;
             Dictionary<TRUDE_EVENT, EventData> eventData = launchData.eventData;
+            string currentProcessId = launchData.currentProcessId;
 
             EventWaitHandle[] waitHandles = new EventWaitHandle[eventData.Keys.Count];
             List<Action>[] handlers = new List<Action>[eventData.Keys.Count];
+            Dictionary<int, TRUDE_EVENT> eventTypes = new Dictionary<int, TRUDE_EVENT>();
 
             int idx = 0;
             foreach(TRUDE_EVENT name in eventData.Keys)
@@ -38,6 +43,7 @@ namespace TrudeCommon.Events
                 EventData ed = eventData[name];
                 waitHandles[idx] = ed.waitHandle;
                 handlers[idx] = ed.handlers;
+                eventTypes[idx] = name;
                 idx++;
             }
 
@@ -48,10 +54,17 @@ namespace TrudeCommon.Events
                 signalIdx = EventWaitHandle.WaitAny(waitHandles); // GET THE SIGNALING INDEX
                 if (signalIdx < 0 || signalIdx > waitHandles.Length) continue;
 
-                // FIRE ALL CALLBACKS
-                foreach(Action action in handlers[signalIdx])
+                if(HandshakeManager.IsHandshakeValid())
                 {
-                    action();
+                    // FIRE ALL CALLBACKS
+                    foreach(Action action in handlers[signalIdx])
+                    {
+                        action();
+                    }
+                }
+                else
+                {
+                    logger.Warn("Ignoring Event: {0}", TrudeEventUtils.GetEventName(eventTypes[signalIdx]));
                 }
 
                 // RESET WAIT HANDLE
@@ -105,6 +118,7 @@ namespace TrudeCommon.Events
 
             ThreadLaunchData data = new ThreadLaunchData();
             data.eventData = eventData;
+            data.currentProcessId = Process.GetCurrentProcess().Id.ToString();
 
             eventListenerThread = new Thread(new ParameterizedThreadStart(ThreadFunc));
             eventListenerThread.IsBackground = true; // IMPORTANT

@@ -1,6 +1,7 @@
 ﻿using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,12 @@ namespace TrudeCommon.Events
         static Logger logger = LogManager.GetCurrentClassLogger();
         public static void EmitEvent(TRUDE_EVENT type)
         {
+            if(!HandshakeManager.IsHandshakeValid())
+            {
+                logger.Warn("Handshake not matching, abort emitting event with data!");
+                return;
+            }
+
             string name = TrudeEventUtils.GetEventName(type);
             logger.Info("Trying to emit event: {0}", name);
             EventWaitHandle handle = null;
@@ -34,7 +41,12 @@ namespace TrudeCommon.Events
 
         public static void EmitEventWithStringData(TRUDE_EVENT type, string data, DataTransferManager manager)
         {
-            logger.Info("Transferring data for event: {0} data: {1}", TrudeEventUtils.GetEventName(type), data);
+            if(!HandshakeManager.IsHandshakeValid())
+            {
+                logger.Warn("Handshake not matching, abort emitting event with data!");
+            }
+
+            logger.Trace("Transferring data for event: {0} data: {1}", TrudeEventUtils.GetEventName(type), data);
             manager.WriteString(type, data);
             EmitEvent(type);
         }

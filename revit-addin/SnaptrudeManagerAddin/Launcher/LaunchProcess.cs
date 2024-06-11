@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using NLog;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerAddin.Launcher
 {
@@ -34,6 +35,7 @@ namespace SnaptrudeManagerAddin.Launcher
             if (process != null)
             {
                 logger.Warn("UI Process already running!");
+                HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
                 return;
             }
 
@@ -52,6 +54,11 @@ namespace SnaptrudeManagerAddin.Launcher
                 if (process != null)
                 {
                     logger.Info("UI Process started successfully!");
+
+                    // SEND SOME EVENT HERE, 
+                    // HANDSHAKE EVT -> PID PLUGIN, PID LAUNCHED UI
+                    // PID PLUGIN, PID UI TO OUR EVENT MANAGER
+                    HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
                 }
             }
             else

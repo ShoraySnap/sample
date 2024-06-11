@@ -12,6 +12,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows.Markup;
@@ -37,7 +38,7 @@ namespace SnaptrudeManagerAddin
 
         public Result OnStartup(UIControlledApplication application)
         {
-            LogsConfig.Initialize("ManagerAddin");
+            LogsConfig.Initialize("ManagerAddin_" + Process.GetCurrentProcess().Id);
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
             UIControlledApplication = application;
@@ -162,6 +163,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
             {
+                // IF Handshake is valid
                 TrudeImporter.TrudeImporterMain.Abort = true; // NOTE: Mutexed this flag, but don't know if better structure is required, but it WORKS
             });
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, () =>
