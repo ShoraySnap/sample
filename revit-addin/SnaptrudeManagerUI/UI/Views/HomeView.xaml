@@ -15,10 +15,16 @@
         <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
     </UserControl.Resources>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <StackPanel
-            Margin="0,38,0,0"
+            Grid.Row="0"
             HorizontalAlignment="Center"
-            VerticalAlignment="Top"
+            VerticalAlignment="Center"
+            Margin="0,0,0,20"
             Orientation="Horizontal">
             <Button
                 Width="200"
@@ -106,46 +112,50 @@
                 </StackPanel>
             </Button>
         </StackPanel>
-        <StackPanel VerticalAlignment="Bottom">
-            <Grid Height="50" DockPanel.Dock="Bottom">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontWeight="Regular"
-                    Foreground="{Binding InfoColor}"
-                    Text="{Binding InfoText}"
-                    Visibility="{Binding ShowInfoText, Converter={StaticResource BoolToVisibility}}" />
-            </Grid>
-            <Grid Height="40" Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}">
-                <Border BorderBrush="{StaticResource Colors/Neutral/100}" BorderThickness="0,1,0,0">
-                    <Grid>
-                        <TextBlock
-                            Margin="16,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Foreground="{StaticResource Colors/Neutral/600}">
-                            <Run>Current version:</Run>
-                            <Run d:Text="2.1" Text="{Binding CurrentVersion, Mode=OneTime}" />
-                        </TextBlock>
-                        <Button
-                            Margin="8,0"
-                            HorizontalAlignment="Right"
-                            Command="{Binding UpdateCommand}"
-                            FontFamily="{StaticResource Inter500}"
-                            Style="{StaticResource Button_24}">
-                            <Button.Content>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Foreground="White" Text="Update " />
-                                    <TextBlock
-                                        d:Text="v2.2"
-                                        Foreground="{StaticResource Colors/Neutral/500}"
-                                        Text="{Binding UpdateVersion, Mode=OneTime, StringFormat='v{0}'}" />
-                                </StackPanel>
-                            </Button.Content>
-                        </Button>
-                    </Grid>
-                </Border>
-            </Grid>
-        </StackPanel>
+        <Grid Grid.Row="0" Height="44" VerticalAlignment="Bottom">
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                d:Text="Please open a Revit document to ebnable the commands."
+                FontWeight="Regular"
+                Foreground="{Binding InfoColor}"
+                Text="{Binding InfoText}"
+                Visibility="{Binding ShowInfoText, Converter={StaticResource BoolToVisibility}}" />
+
+        </Grid>
+        <Grid
+            Grid.Row="2"
+            Height="40"
+            d:Visibility="Collapsed"
+            Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}">
+            <Border BorderBrush="{StaticResource Colors/Neutral/100}" BorderThickness="0,1,0,0">
+                <Grid>
+                    <TextBlock
+                        Margin="16,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Foreground="{StaticResource Colors/Neutral/600}">
+                        <Run>Current version:</Run>
+                        <Run d:Text="2.1" Text="{Binding CurrentVersion, Mode=OneTime}" />
+                    </TextBlock>
+                    <Button
+                        Margin="8,0"
+                        HorizontalAlignment="Right"
+                        Command="{Binding UpdateCommand}"
+                        FontFamily="{StaticResource Inter500}"
+                        Style="{StaticResource Button_24}">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="White" Text="Update " />
+                                <TextBlock
+                                    d:Text="v2.2"
+                                    Foreground="{StaticResource Colors/Neutral/500}"
+                                    Text="{Binding UpdateVersion, Mode=OneTime, StringFormat='v{0}'}" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

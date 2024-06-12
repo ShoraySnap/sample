@@ -82,12 +82,14 @@ namespace SnaptrudeManagerUI
             int revitProcessId = 0;
             bool viewIs3D = false;
             bool isDocumentRvt = false;
+            string fileName = "";
             bool isDocumentOpen = false;
             if (args.Any())
             {
                 revitProcessId = int.Parse(args[0]);
                 viewIs3D = bool.Parse(args[1]);
                 isDocumentRvt = bool.Parse(args[2]);
+                fileName = args[3];
                 isDocumentOpen = true;
             }
 
@@ -99,7 +101,7 @@ namespace SnaptrudeManagerUI
             }
 
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, viewIs3D, isDocumentRvt, isDocumentOpen);
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
             
             if (currentVersion != updateVersion)
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
@@ -192,6 +194,7 @@ namespace SnaptrudeManagerUI
                                     Store.Set("projectName", parsedData["projectName"]);
                                     Store.Set("fileType", parsedData["fileType"]);
                                     Store.Save();
+                                    MainWindowViewModel.Instance.ProjectFileName = $"{parsedData["projectName"]}.{parsedData["fileType"]}";
                                     if (Equals(parsedData["fileType"], "rvt"))
                                         OnRvtOpened?.Invoke();
                                     else

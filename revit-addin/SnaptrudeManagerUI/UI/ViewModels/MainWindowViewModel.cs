@@ -75,6 +75,20 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private string projectFileName;
+        public string ProjectFileName
+        {
+            get { return projectFileName; }
+            set
+            {
+                projectFileName = value; 
+                OnPropertyChanged("ProjectFileName");
+                OnPropertyChanged("IsProjectFileNameVisible");
+            }
+        }
+
+        public bool IsProjectFileNameVisible => WhiteBackground && ProjectFileName != "";
+
         private bool showLoader;
         public bool ShowLoader
         {
@@ -111,7 +125,11 @@ namespace SnaptrudeManagerUI.ViewModels
             get { return whiteBackground; }
             set
             {
-                whiteBackground = value; OnPropertyChanged("ImageBackground"); OnPropertyChanged("WhiteBackground"); OnPropertyChanged("HaveUpdateAvailable");
+                whiteBackground = value; 
+                OnPropertyChanged("ImageBackground"); 
+                OnPropertyChanged("WhiteBackground"); 
+                OnPropertyChanged("HaveUpdateAvailable");
+                OnPropertyChanged("IsProjectFileNameVisible");
             }
         }
 
@@ -148,8 +166,9 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen)
+        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
+            ProjectFileName = fileName + (isDocumentOpen ? (isDocumentRvt ? ".rvt" : ".rfa") : "");
             IsDocumentOpen = isDocumentOpen;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
@@ -179,6 +198,7 @@ namespace SnaptrudeManagerUI.ViewModels
         private void HandleDocumentClosed()
         {
             IsDocumentOpen = false;
+            ProjectFileName = "";
         }
 
         private void Set2DView()
