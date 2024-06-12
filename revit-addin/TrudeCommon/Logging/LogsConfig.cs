@@ -33,6 +33,7 @@ namespace TrudeCommon.Logging
             NLog.LogManager.Configuration = configuration;
 
             logger.Info("<<<STARTUP>>>");
+            logger.Info("PID: {0} Name: {1}", Process.GetCurrentProcess().Id, Process.GetCurrentProcess().ProcessName);
             logger.Info("===================");
             logger.Info("Time : {0}", DateTime.Now.ToString());
             logger.Info("===================\n");
@@ -40,7 +41,7 @@ namespace TrudeCommon.Logging
 
         public static void Shutdown()
         {
-            logger.Info("<<<SHUTDOWN>>>\n");
+            logger.Info("\n<<<SHUTDOWN>>>\n");
             logger.Info("===================");
             logger.Info("Time : {0}", DateTime.Now.ToString());
             logger.Info("===================\n");

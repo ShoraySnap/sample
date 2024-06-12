@@ -54,7 +54,8 @@ namespace TrudeCommon.Events
                 signalIdx = EventWaitHandle.WaitAny(waitHandles); // GET THE SIGNALING INDEX
                 if (signalIdx < 0 || signalIdx > waitHandles.Length) continue;
 
-                if(HandshakeManager.IsHandshakeValid())
+                TRUDE_EVENT signaledEvent = eventTypes[signalIdx];
+                if(HandshakeManager.IsHandshakeValid() || TrudeEventUtils.IsEventGlobal(signaledEvent))
                 {
                     // FIRE ALL CALLBACKS
                     foreach(Action action in handlers[signalIdx])
@@ -64,7 +65,7 @@ namespace TrudeCommon.Events
                 }
                 else
                 {
-                    logger.Warn("Ignoring Event: {0}", TrudeEventUtils.GetEventName(eventTypes[signalIdx]));
+                    logger.Warn("Ignoring Event: {0}", TrudeEventUtils.GetEventName(signaledEvent));
                 }
 
                 // RESET WAIT HANDLE

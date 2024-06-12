@@ -14,7 +14,7 @@ namespace TrudeCommon.Events
         static Logger logger = LogManager.GetCurrentClassLogger();
         public static void EmitEvent(TRUDE_EVENT type)
         {
-            if(!HandshakeManager.IsHandshakeValid())
+            if(!HandshakeManager.IsHandshakeValid() && !TrudeEventUtils.IsEventGlobal(type))
             {
                 logger.Warn("Handshake not matching, abort emitting event with data!");
                 return;
@@ -41,7 +41,7 @@ namespace TrudeCommon.Events
 
         public static void EmitEventWithStringData(TRUDE_EVENT type, string data, DataTransferManager manager)
         {
-            if(!HandshakeManager.IsHandshakeValid())
+            if(!HandshakeManager.IsHandshakeValid() && !TrudeEventUtils.IsEventGlobal(type))
             {
                 logger.Warn("Handshake not matching, abort emitting event with data!");
             }
