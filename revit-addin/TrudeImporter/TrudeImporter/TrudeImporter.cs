@@ -752,7 +752,7 @@ namespace TrudeImporter
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
                             CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
                             ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
-                            if (mass.Type != "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
+                            if (mass.Type == "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
                             {
                                 TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
                             }
