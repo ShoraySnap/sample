@@ -141,7 +141,11 @@ namespace SnaptrudeManagerUI.ViewModels
                 JObject trudeData = JObject.Parse(File.ReadAllText(sourcePath));
                 TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
 
-                if (trudeProperties.Floors.Any() && trudeProperties.Floors.Where(f => f.RoomType != "Default").Any())
+                if ((trudeProperties.Floors.Any() &&
+                    trudeProperties.Floors.Where(f => f.RoomType != "Default").Any()) ||
+                    (trudeProperties.Masses.Any() &&
+                    trudeProperties.Masses.Where(f => f.RoomType != "Default").Any())
+                    )
                 {
                     MainWindowViewModel.Instance.ImportPath = sourcePath;
                     LabelConfigCommand.Execute(null);
@@ -184,6 +188,8 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         [JsonProperty("floors")]
         public List<FloorProperties> Floors { get; set; }
+        [JsonProperty("masses")]
+        public List<FloorProperties> Masses { get; set; }
     }
     public class FloorProperties
     {
