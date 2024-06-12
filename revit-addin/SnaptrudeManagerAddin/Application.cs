@@ -12,6 +12,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows.Markup;
@@ -37,7 +38,7 @@ namespace SnaptrudeManagerAddin
 
         public Result OnStartup(UIControlledApplication application)
         {
-            LogsConfig.Initialize("ManagerAddin");
+            LogsConfig.Initialize("ManagerAddin_" + Process.GetCurrentProcess().Id);
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
             UIControlledApplication = application;
@@ -162,6 +163,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
             {
+                // IF Handshake is valid
                 TrudeImporter.TrudeImporterMain.Abort = true; // NOTE: Mutexed this flag, but don't know if better structure is required, but it WORKS
             });
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, () =>
@@ -191,15 +193,15 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.DATA_FROM_MANAGER_UI:
                             {
-                                logger.Info("Got data incoming from ui!");
+                                logger.Debug("Got data incoming from ui!");
                                 string data = TransferManager.ReadString(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
-                                logger.Info("data : \"{0}\"", data);
+                                logger.Debug("data : \"{0}\"", data);
                             }
                             break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT:
                             {
                                 string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT).Split(';');
-                                logger.Info("Got data from UI: {0}", data);
+                                logger.Info("Got Req to import from UI: {0}", data);
 
                                 // START THE IMPORT
                                 JObject trudeData = JObject.Parse(File.ReadAllText(data[0]));
@@ -224,7 +226,7 @@ namespace SnaptrudeManagerAddin
                         case TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE:
                             {
                                 string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE).Split(';');
-                                logger.Info("Got data from UI: {0}", data);
+                                logger.Info("Got Request to export from UI: {0}", data);
 
                                 logger.Info("Export to snaptrude start");
                                 ExternalEvent evt = ExternalEvent.Create(new TrudeSerializer.ExportToSnaptrudeEEH());
