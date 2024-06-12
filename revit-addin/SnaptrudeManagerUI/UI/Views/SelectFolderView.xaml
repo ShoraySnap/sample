@@ -71,11 +71,11 @@
                             <DataTemplate>
                                 <Grid>
                                     <Button
+                                        Margin="0,1,0,0"
                                         HorizontalContentAlignment="Stretch"
                                         VerticalContentAlignment="Stretch"
                                         Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                         CommandParameter="{Binding}"
-                                        Margin="0,1,0,0"
                                         Style="{DynamicResource Button_7}">
                                         <Grid Height="32">
                                             <Grid.ColumnDefinitions>
@@ -237,7 +237,8 @@
         <Border
             Width="519"
             Height="1"
-            Margin="0,0,0,191"
+            Margin="0,8"
+            VerticalAlignment="Top"
             CornerRadius="5"
             Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}">
             <ProgressBar
@@ -246,7 +247,6 @@
                 Foreground="#2d6be6"
                 IsIndeterminate="True" />
         </Border>
-
         <Border
             Margin="16,8,16,0"
             Padding="24,24,44,40"
