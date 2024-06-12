@@ -172,9 +172,9 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.DATA_FROM_PLUGIN:
                             {
-                                logger.Info("Got data incoming from plugin!");
+                                logger.Debug("Got data incoming from plugin!");
                                 string data = TransferManager.ReadString(TRUDE_EVENT.DATA_FROM_PLUGIN);
-                                logger.Info("data : \"{0}\"", data);
+                                logger.Debug("data : \"{0}\"", data);
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE:
@@ -224,7 +224,7 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED:
                             {
-                                logger.Info("Export failed.");
+                                logger.Error("Export failed.");
                                 OnFailure?.Invoke();
                             }
                             break;
@@ -284,7 +284,7 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED:
                             {
-                                logger.Info("Import to revit failed!");
+                                logger.Error("Import to revit failed!");
                                 OnFailure?.Invoke();
                             }
                             break;

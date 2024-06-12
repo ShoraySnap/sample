@@ -74,7 +74,7 @@ namespace TrudeCommon.Events
         {
             string data = $"{a};{b}";
             _channel.WriteString(data);
-            logger.Info("Written handshake data: {0}", data);
+            logger.Debug("Written handshake data: {0}", data);
         }
 
         public static (string, string) GetHandshakeName()

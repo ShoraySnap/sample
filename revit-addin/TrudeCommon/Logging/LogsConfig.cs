@@ -41,6 +41,9 @@ namespace TrudeCommon.Logging
         public static void Shutdown()
         {
             logger.Info("<<<SHUTDOWN>>>\n");
+            logger.Info("===================");
+            logger.Info("Time : {0}", DateTime.Now.ToString());
+            logger.Info("===================\n");
             LogManager.Flush();
             LogManager.Shutdown();
 

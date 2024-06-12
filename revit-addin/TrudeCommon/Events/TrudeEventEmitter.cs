@@ -21,7 +21,7 @@ namespace TrudeCommon.Events
             }
 
             string name = TrudeEventUtils.GetEventName(type);
-            logger.Info("Trying to emit event: {0}", name);
+            logger.Debug("Trying to emit event: {0}", name);
             EventWaitHandle handle = null;
             try
             {
@@ -29,12 +29,12 @@ namespace TrudeCommon.Events
             }
             catch (WaitHandleCannotBeOpenedException ex)
             {
-                logger.Info("EventHandle can't be opened : {0}", name);
+                logger.Warn("EventHandle can't be opened : {0}", name);
             }
 
             if(handle != null)
             {
-                logger.Info("Event found! Emitting.: {0}", name);
+                logger.Debug("Event found! Emitting.: {0}", name);
                 handle.Set();
             }
         }
@@ -46,7 +46,7 @@ namespace TrudeCommon.Events
                 logger.Warn("Handshake not matching, abort emitting event with data!");
             }
 
-            logger.Trace("Transferring data for event: {0} data: {1}", TrudeEventUtils.GetEventName(type), data);
+            logger.Debug("Transferring data for event: {0} data: {1}", TrudeEventUtils.GetEventName(type), data);
             manager.WriteString(type, data);
             EmitEvent(type);
         }

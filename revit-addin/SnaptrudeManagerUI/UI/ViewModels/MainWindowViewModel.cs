@@ -247,7 +247,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }
             else
             {
-                logger.Info("Invalid config for current user when logging out...");
+                logger.Warn("Invalid config for current user when logging out...");
             }
             Store.Reset();
             BackToLoginCommand.Execute(parameter);

@@ -20,7 +20,7 @@ namespace SnaptrudeManagerAddin.Launcher
             if (processes.Length == 1)
             {
                 process = processes[0];
-                logger.Info("Process is already running with name: {0} and id: {1}", name, process.Id);
+                logger.Warn("Process is already running with name: {0} and id: {1}", name, process.Id);
                 return process;
             }
             else
@@ -54,10 +54,6 @@ namespace SnaptrudeManagerAddin.Launcher
                 if (process != null)
                 {
                     logger.Info("UI Process started successfully!");
-
-                    // SEND SOME EVENT HERE, 
-                    // HANDSHAKE EVT -> PID PLUGIN, PID LAUNCHED UI
-                    // PID PLUGIN, PID UI TO OUR EVENT MANAGER
                     HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
                 }
             }
