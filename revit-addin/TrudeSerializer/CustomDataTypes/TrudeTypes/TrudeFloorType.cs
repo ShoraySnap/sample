@@ -1,34 +1,30 @@
-﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Types
 {
-    internal class TrudeWallType
+    internal class TrudeFloorType
     {
         public List<TrudeLayer> layersData;
 
-        public TrudeWallType(List<TrudeLayer> layersData)
+        public TrudeFloorType(List<TrudeLayer> layersData)
         {
             this.layersData = layersData;
         }
 
-        static public TrudeWallType GetLayersData(Wall wall)
+        static public TrudeFloorType GetLayersData(Floor floor)
         {
-            string category = "Walls";
+            string category = "Floors";
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
-            CompoundStructure compoundStructure = wall.WallType.GetCompoundStructure();
-            if (compoundStructure == null) return new TrudeWallType(layersData);
+            CompoundStructure compoundStructure = floor.FloorType.GetCompoundStructure();
+            if (compoundStructure == null) return new TrudeFloorType(layersData);
             IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
             foreach (CompoundStructureLayer layer in layers)
             {
-#if REVIT2019 || REVIT2020
-                double width = UnitConversion.ConvertToMillimeter(layer.Width, DisplayUnitType.DUT_DECIMAL_FEET);
-#else
-                double width = UnitConversion.ConvertToMillimeter(layer.Width, UnitTypeId.Feet);
-#endif
+                double width = UnitConversion.ConvertToMillimeter(layer.Width, TRUDE_UNIT_TYPE.FEET);
                 string function = layer.Function.ToString();
 
                 Material material = document.GetElement(layer.MaterialId) as Material;
@@ -39,7 +35,7 @@ namespace TrudeSerializer.Types
 
                 layersData.Add(Snaptrudelayer);
             }
-            return new TrudeWallType(layersData);
+            return new TrudeFloorType(layersData);
         }
     }
 }

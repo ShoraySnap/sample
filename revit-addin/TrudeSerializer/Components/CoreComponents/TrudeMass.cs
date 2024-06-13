@@ -1,4 +1,5 @@
 using Autodesk.Revit.DB;
+using System;
 using System.Collections.Generic;
 using TrudeSerializer.Importer;
 
@@ -8,8 +9,9 @@ namespace TrudeSerializer.Components
     {
         public string subCategory;
         public string subType;
-        List<double> center;
+        public List<double> center;
 
+        readonly static string[] ignoreCategories = new string[] { "Cameras", "Levels" };
         public TrudeMass
             (
                 string elementId,
@@ -26,8 +28,27 @@ namespace TrudeSerializer.Components
             this.subType = subType;
         }
 
+        private TrudeMass() : base("-1", "Mass", "", "")
+        {
+            this.elementId = "-1";
+        }
+
+        public static bool ToIgnoreCategory(Element element)
+        {
+            string category = element?.Category?.Name;
+            if (category == null)
+            {
+                return false;
+            }
+            return Array.Exists(ignoreCategories, element.Category.Name.Contains);
+        }
+
         static public TrudeMass GetSerializedComponent(SerializedTrudeData importData, Element element)
         {
+            if (ToIgnoreCategory(element))
+            {
+                return new TrudeMass();
+            }
             string elementId = element.Id.ToString();
             string family = InstanceUtility.GetFamily(element);
             string levelName = TrudeLevel.GetLevelName(element);

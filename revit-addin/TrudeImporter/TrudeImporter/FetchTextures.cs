@@ -5,7 +5,6 @@ using System.IO;
 using System.Net;
 using TrudeImporter;
 
-
 namespace FetchTextures
 {
     public class FetchTextures
@@ -21,7 +20,7 @@ namespace FetchTextures
                     if (material["diffuseTexture"] != null)
                     {
                         JObject diffuseTexture = (JObject)material["diffuseTexture"];
-                        string name = SanitizeFilename((string)material["name"])+"_snaptrude";
+                        string name = SanitizeFilename((string)material["name"]) + "_snaptrude";
                         float alpha = (float)material["alpha"];
                         TextureProperties textureProps = new TextureProperties(
                             (string)diffuseTexture["url"],
@@ -62,12 +61,14 @@ namespace FetchTextures
                 url = ValidateAndEncodeUrl(url);
                 if (string.IsNullOrEmpty(url))
                 {
-                    System.Diagnostics.Debug.WriteLine("Invalid URL provided.");
+                    System.Diagnostics.Debug.WriteLine("Invalid was Null or Empty");
                     return "";
                 }
 
                 using (WebClient client = new WebClient())
                 {
+                    client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
                     string extension = Path.GetExtension(url).ToLower();
                     if (extension != ".jpg" && extension != ".png" && extension != ".bmp" && extension != ".jpeg")
                     {

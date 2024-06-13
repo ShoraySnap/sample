@@ -1,18 +1,9 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Events;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Windows.Markup;
 using TrudeSerializer.Components;
-using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
-using TrudeSerializer.Debug;
 
 namespace TrudeSerializer.Debug
 {
@@ -57,7 +48,6 @@ namespace TrudeSerializer.Debug
         public Dictionary<string, CountData> doors = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> windows = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> furniture = new Dictionary<string, CountData>();
-        public Dictionary<string, CountData> revitLinks = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> roofs = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> genericModels = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> unrecognizedComponents = new Dictionary<string, CountData>();
@@ -189,21 +179,30 @@ namespace TrudeSerializer.Debug
             {
                 CountInputComponent(data.components.columns, ComponentLogData.BASIC_COLUMN_KEY);
             }
-            else if (TrudeDoor.IsDoor(element) && !FamilyInstanceUtils.HasParentElement(element, true))
+            else if (TrudeDoor.IsDoor(element))
             {
-                CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element, true, true))
+                {
+                    CountInputComponent(data.components.doors, ComponentLogData.BASIC_DOOR_KEY);
+                }
             }
-            else if (TrudeWindow.IsWindow(element) && !FamilyInstanceUtils.HasParentElement(element, true))
+            else if (TrudeWindow.IsWindow(element))
             {
-                CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element, true, true))
+                {
+                    CountInputComponent(data.components.windows, ComponentLogData.BASIC_WINDOW_KEY);
+                }
             }
-            else if (TrudeFurniture.IsFurnitureCategory(element) && !FamilyInstanceUtils.HasParentElement(element))
+            else if (TrudeFurniture.IsValidFurnitureCategoryForCount(element))
             {
                 CountInputComponent(data.components.furniture, ComponentLogData.BASIC_FURNITURE_KEY);
             }
-            else if (TrudeGenericModel.IsGenericModel(element) && !FamilyInstanceUtils.HasParentElement(element))
+            else if (TrudeGenericModel.IsGenericModel(element))
             {
-                CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
+                if (!FamilyInstanceUtils.HasParentElement(element, true, true))
+                {
+                    CountInputComponent(data.components.genericModels, ComponentLogData.GENERIC_MODELS_KEY);
+                }
             }
             else if (element is RoofBase)
             {
@@ -211,19 +210,13 @@ namespace TrudeSerializer.Debug
             }
             else
             {
+                bool ignoreCategory = ToIgnoreUnrecognizedCategories(element);
+                if (ignoreCategory) return;
+
                 CountInputComponent(data.components.unrecognizedComponents, ComponentLogData.MASSES_KEY);
             }
         }
-
-        public void CountInputRevitLink(string key)
-        {
-            CountInputComponent(data.components.revitLinks, key); // Count revit links
-        }
-        public void CountOutputRevitLink()
-        {
-            CountOutputComponent(data.components.revitLinks, false); // Always non-parametric for now
-        }
-        public void CountOutput(TrudeComponent component)
+        public void CountOutput(TrudeComponent component, Element element)
         {
             if (component == null) return;
 
@@ -276,12 +269,9 @@ namespace TrudeSerializer.Debug
             {
                 CountOutputComponent(data.components.unrecognizedComponents, component.isParametric);
             }
-            else if (component is TrudeFurniture furniture)
+            else if (component is TrudeFurniture)
             {
-                if (!furniture.hasParentElement)
-                {
-                    CountOutputComponent(data.components.furniture, component.isParametric);
-                }
+                CountOutputComponent(data.components.furniture, component.isParametric);
             }
         }
 
@@ -302,6 +292,28 @@ namespace TrudeSerializer.Debug
             {
                 data.components.genericModels["generic"] = newCountData;
             }
+        }
+
+        public CountData GetCount(string key)
+        {
+            if (key == ComponentLogData.MASSES_KEY)
+            {
+                return data.components.unrecognizedComponents["masses"];
+            }
+            if (key == ComponentLogData.GENERIC_MODELS_KEY)
+            {
+                return data.components.genericModels["generic"];
+            }
+
+            return new CountData();
+        }
+
+        public static bool ToIgnoreUnrecognizedCategories(Element element)
+        {
+            string elementCategory = element?.Category?.Name;
+            if (elementCategory == null) return true;
+            string[] ignoreCategories = new string[] { "Cameras", "Levels" };
+            return Array.Exists(ignoreCategories, elementCategory.Contains);
         }
     }
 }

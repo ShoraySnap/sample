@@ -83,7 +83,7 @@ namespace TrudeSerializer.Components
 
             Dimensions dimension = new Dimensions(width, height, length);
 
-            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element, true);
+            bool hasParentElement = FamilyInstanceUtils.HasParentElement(element, true, true);
             List<string> subComponents = FamilyInstanceUtils.GetSubComponentIds(element);
 
 

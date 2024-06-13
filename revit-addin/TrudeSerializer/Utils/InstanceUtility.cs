@@ -1,12 +1,21 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
     internal class InstanceUtility
     {
+        private static Random random = new Random();
+
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
         public static string GetRevitName(string subType, string family, Dimensions dimension, bool isFaceFlipped)
         {
             string name = subType;
@@ -156,6 +165,10 @@ namespace TrudeSerializer.Components
                 {
                     family = familyInstance?.Symbol?.FamilyName;
                 }
+                else if (element is DirectShape directShape)
+                {
+                    family = RandomString(5);
+                }
             }
             catch (Exception e)
             {
@@ -189,11 +202,7 @@ namespace TrudeSerializer.Components
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
-#if REVIT2019 || REVIT2020
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
-#else
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
-#endif
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], TRUDE_UNIT_TYPE.FEET);
                 }
                 return positionPoint;
             }
@@ -205,11 +214,7 @@ namespace TrudeSerializer.Components
                 List<double> positionPoint = new List<double> { position.X, position.Z, position.Y };
                 for (int i = 0; i < 3; i++)
                 {
-#if REVIT2019 || REVIT2020
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], DisplayUnitType.DUT_DECIMAL_FEET);
-#else
-                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], UnitTypeId.Feet);
-#endif
+                    positionPoint[i] = UnitConversion.ConvertToSnaptrudeUnits(positionPoint[i], TRUDE_UNIT_TYPE.FEET);
                 }
                 return positionPoint;
             }
@@ -297,11 +302,7 @@ namespace TrudeSerializer.Components
 
             for (int i = 0; i < 3; i++)
             {
-#if REVIT2019 || REVIT2020
-                center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], DisplayUnitType.DUT_DECIMAL_FEET);
-#else
-                center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], UnitTypeId.Feet);
-#endif
+                center[i] = UnitConversion.ConvertToSnaptrudeUnits(center[i], TRUDE_UNIT_TYPE.FEET);
             }
             return center;
         }

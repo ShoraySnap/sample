@@ -152,7 +152,6 @@ namespace TrudeImporter
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Multiple submeshes detected. ");
                     this.ApplyMaterialByFace(GlobalVariables.Document, floorProps.MaterialName, floorProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.floor);
                 }
             }

@@ -105,8 +105,7 @@ namespace TrudeImporter
                 topLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[finalStorey]) select lvl).First();
             }
             double stairThicknessInRevit = StairThickness * 304.802581;
-            //stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2); 
-            stairThicknessInRevit = Math.Floor(stairThicknessInRevit);
+            stairThicknessInRevit = Math.Round(stairThicknessInRevit, 2);
 
             string typeName = "Snaptrude-" + StaircasePreset + "-" + stairThicknessInRevit + "mm";
             stairsType = new FilteredElementCollector(doc)
