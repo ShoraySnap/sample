@@ -448,6 +448,7 @@ namespace TrudeImporter
                     for (int i = 0; i < curveArray.Size; i++)
                     {
                         Curve roomBoundary = curveArray.get_Item(i);
+                        if (roomBoundary.GetEndPoint(0).Z != roomBoundary.GetEndPoint(1).Z) continue;
 
                         if (!Utils.CheckIfPointIsInsideSolidProjection(solidsInLevel, roomBoundary.GetEndPoint(0)) ||
                             !Utils.CheckIfPointIsInsideSolidProjection(solidsInLevel, roomBoundary.GetEndPoint(1)) ||
