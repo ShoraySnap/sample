@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +45,8 @@ namespace TrudeSerializer.Uploader
                 uploadTasks.Add(UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value));
             }
             await Task.WhenAll(uploadTasks);
+
+            MaterialUploader.Instance.Upload();
 
             string requestURL = "snaptrude://finish?name=" + projectFloorKey;
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
