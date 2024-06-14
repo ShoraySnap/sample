@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
 using System.Collections.Generic;
 using TrudeImporter;
+using TrudeSerializer.CustomDataTypes;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
@@ -14,6 +15,7 @@ namespace TrudeSerializer.Components
         public double area;
         public Dictionary<string, Dictionary<string, double[][]>> voids;
         public string type;
+        public MaterialAppliedByPaint materialAppliedByPaint;
 
         public double heightOffsetFromLevel = 0;
 
@@ -58,6 +60,7 @@ namespace TrudeSerializer.Components
             SetCeilingType(importData, ceiling);
             TrudeCeiling serializedCeiling = new TrudeCeiling(elementId, levelName, family, floorType, false, true, outline, voids, heightOffset);
             serializedCeiling.SetIsParametric(isDifferentCurve);
+            serializedCeiling.materialAppliedByPaint = TrudeMaterial.GetMaterialByAppliedByPaint(element, TrudeCategory.Ceiling);
 
 
             return serializedCeiling;

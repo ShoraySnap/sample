@@ -146,7 +146,7 @@ namespace TrudeSerializer.Components
             {
                 isNonParametric = MarkNonParametericBasedOnSideProfile(wall);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 isNonParametric = true;
             }
@@ -294,12 +294,12 @@ namespace TrudeSerializer.Components
             int i = 1;
             while (i < vertices.Count)
             {
-                XYZ v = vertices[(i - 1) % vertices.Count] - vertices[(i)];
-                XYZ w = vertices[(i)] - vertices[(i + 1) % vertices.Count];
+                XYZ v = vertices[(i - 1) % vertices.Count] - vertices[i];
+                XYZ w = vertices[i] - vertices[(i + 1) % vertices.Count];
                 double angle = v.AngleTo(w);
                 if (IsAlmostEqual(angle, 0))
                 {
-                    vertices.RemoveAt((i));
+                    vertices.RemoveAt(i);
                 }
                 else if (IsAlmostEqual(angle, Math.PI))
                 {
@@ -516,7 +516,7 @@ namespace TrudeSerializer.Components
             sideProfile = new List<List<double>> { };
             voidProfiles = new List<List<List<double>>> { };
             if (!(element is Wall wall)) return;
-            if (!(ExporterIFCUtils.HasElevationProfile(wall))) return;
+            if (!ExporterIFCUtils.HasElevationProfile(wall)) return;
             double lowestZ = double.MaxValue;
             double highestZ = double.MinValue;
 

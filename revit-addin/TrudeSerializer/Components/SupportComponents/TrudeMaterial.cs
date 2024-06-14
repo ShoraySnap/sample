@@ -22,6 +22,8 @@ namespace TrudeSerializer.Components
         public string texturePath;
         public bool isUploadable;
 
+        private readonly string DefaultMaterialPath = "Common Files\\Autodesk Shared\\Materials\\Textures";
+
         private readonly Dictionary<string, double[]> GLASS_COLOR_MAP = new Dictionary<string, double[]>
         {
             { "Blue", new double[] { 0, 0, 1, 0.2 } },
@@ -200,7 +202,7 @@ namespace TrudeSerializer.Components
 
                 if (currentAsset is AssetPropertyDoubleArray4d)
                 {
-                    IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
+                    IList<double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
                     if (color == null) continue;
                     diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
                     AssetPropertyDouble alphaProperty = asset.FindByName("generic_transparency") as AssetPropertyDouble;
@@ -217,6 +219,7 @@ namespace TrudeSerializer.Components
                 if (!(connectedAssetProperty is Asset) || (connectedAssetProperty as Asset).Size == 0) continue;
 
                 ReadMaterialInformationFromAsset(connectedAssetProperty as Asset);
+
                 //break;
             }
         }
@@ -238,7 +241,7 @@ namespace TrudeSerializer.Components
             {
                 materialPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                "Common Files\\Autodesk Shared\\Materials\\Textures",
+                DefaultMaterialPath,
                 texturePath[0]
             );
             }
@@ -314,9 +317,9 @@ namespace TrudeSerializer.Components
         {
             string propertyName = asset.Name.ToString();
 
-            bool isCommonTintColor = propertyName.Equals("common_Tint_color");
+            bool isCommonTintColor = propertyName.Equals("common_Tint_color") || propertyName.Contains("surface_albedo");
 
-            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing") || propertyName.Contains("albedo");
+            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing") || propertyName.Contains("albedo") || propertyName.Contains("metal");
 
             return isDiffuseColorProperty && !isCommonTintColor;
         }
