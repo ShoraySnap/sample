@@ -18,29 +18,38 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             ExportedSucessfull,
             ImportedSucessfull,
-            RevitClosed
+            RevitClosed,
+            CloseAndUpdate
         }
 
         public string Message { get; }
+        public string ButtonMessage { get; }
         public bool ButtonVisible { get; }
+        public bool WhiteBackground => MainWindowViewModel.Instance.WhiteBackground;
         public ICommand LaunchCommand { get; }
-
         public EndViewModel(EndViewType finalViewType)
         {
             MainWindowViewModel.Instance.TopMost = true;
             switch (finalViewType)
             {
                 case EndViewType.ExportedSucessfull:
+                    ButtonMessage = "Launch Snaptrude";
                     Message = "The model was exported successfully!";
                     ButtonVisible = true;
                     LaunchCommand = new RelayCommand(new Action<object>((o) => OpenSnaptrudeModel()));
                     break;
                 case EndViewType.ImportedSucessfull:
+                    ButtonMessage = "Launch Snaptrude";
                     Message = "The model was imported successfully!";
                     ButtonVisible = false;
                     break;
                 case EndViewType.RevitClosed:
                     Message = "Revit was closed. Reopen Snaptrude Manager to continue importing/exporting Revit files!";
+                    ButtonVisible = false;
+                    break;
+                case EndViewType.CloseAndUpdate:
+                    MainWindowViewModel.Instance.WhiteBackground = false;
+                    Message = "The download is complete. Please close Revit to install the latest version of Snaptrude Manager.";
                     ButtonVisible = false;
                     break;
                 default:

@@ -195,6 +195,11 @@ namespace SnaptrudeManagerUI.ViewModels
             IsCancelButtonVisible = false;
         }
 
+        private void CloseAndOpenInstaller()
+        {
+            SuccessCommand.Execute(new object());
+        }
+
         public async void Cancel(TRUDE_EVENT trudeEvent)
         {
             IsCancelButtonVisible = false;
@@ -267,22 +272,29 @@ namespace SnaptrudeManagerUI.ViewModels
             //MainWindowViewModel.Instance.ImportEvent.Raise();
         }
 
-        private async Task StartUpdate()
+        private void StartUpdate()
         {
-            Random random = new Random();
-            int randomResult = random.Next(2);
-            for (int i = 0; i <= 100; i++)
-            {
-                ProgressValue = i;
-                await Task.Delay(50);
-                if (i == 15 && randomResult == 0)
-                {
-                    FailureCommand.Execute(new object());
-                    return;
-                }
-            }
-            MainWindowViewModel.Instance.CurrentVersion = MainWindowViewModel.Instance.UpdateVersion;
-            SuccessCommand.Execute(new object());
+            //Random random = new Random();
+            //int randomResult = random.Next(2);
+            //for (int i = 0; i <= 100; i++)
+            //{
+            //    ProgressValue = i;
+            //    await Task.Delay(50);
+            //    if (i == 15 && randomResult == 0)
+            //    {
+            //        FailureCommand.Execute(new object());
+            //        return;
+            //    }
+            //}
+            //MainWindowViewModel.Instance.CurrentVersion = MainWindowViewModel.Instance.UpdateVersion;
+            //SuccessCommand.Execute(new object());
+            App.OnStartDownload.Invoke();
+        }
+
+        private void CancelUpdate()
+        {
+            App.OnCancelDownload.Invoke();
+            FailureCommand.Execute(new object());
         }
 
         protected override void Dispose(bool disposing)

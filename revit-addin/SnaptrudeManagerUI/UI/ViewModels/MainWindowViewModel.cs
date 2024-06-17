@@ -146,7 +146,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public bool IsDocumentOpen;
         public bool IsDocumentRvt;
 
-        public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
+        public ViewModelBase CurrentViewModel => navigationStore?.CurrentViewModel;
         public bool CloseButtonVisible =>
             CurrentViewModel?.GetType().Name != "ProgressViewModel";
 

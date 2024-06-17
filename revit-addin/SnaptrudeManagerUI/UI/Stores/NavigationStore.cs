@@ -51,7 +51,7 @@ namespace SnaptrudeManagerUI.Stores
             }
         }
 
-        private ViewModelBase currentViewModel;
+        private ViewModelBase currentViewModel = null;
 
         public ViewModelBase CurrentViewModel
         {

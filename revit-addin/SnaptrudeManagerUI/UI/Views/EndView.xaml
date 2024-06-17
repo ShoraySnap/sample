@@ -19,16 +19,27 @@
             d:Text="The model was exported successfully!"
             FontFamily="{StaticResource Inter500}"
             FontWeight="Medium"
-            Foreground="{StaticResource Colors/Neutral/800}"
             LineHeight="23"
             Text="{Binding Message}"
             TextAlignment="Center"
-            TextWrapping="Wrap" />
+            TextWrapping="Wrap">
+            <TextBlock.Style>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
+                            <Setter Property="Foreground" Value="White" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
         <Button
             Margin="20"
             HorizontalAlignment="Center"
             Command="{Binding LaunchCommand}"
-            Content="Launch Snaptrude"
+            Content="{Binding ButtonMessage}"
+            d:Content="Launch Snaptrude"
             Style="{DynamicResource Button_Primary}"
             Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
     </StackPanel>
