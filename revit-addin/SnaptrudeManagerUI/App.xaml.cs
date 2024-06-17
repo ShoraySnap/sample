@@ -57,8 +57,16 @@ namespace SnaptrudeManagerUI
         public static Action<string> OnSelectFolderIssue;
         public static Action<string> OnEnterProjectUrlIssue;
         public static Action<string> OnTokenExpiredIssue;
+        public static Action OnStartDownload;
+        public static Action OnCancelDownload;
+        public static Action OnDownloadStarted;
+        public static Action OnDownloadFinished;
+        public static Action OnDownloadError;
+        public static Action OnUpdateAvailable;
+        public static Action OnLatestVersion;
 
         public static Process RevitProcess;
+        public Updater Updater;
 
         public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
 
@@ -83,6 +91,8 @@ namespace SnaptrudeManagerUI
             RegisterProtocol();
             base.OnStartup(e);
             LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
+            Updater = new Updater();
 
             FileUtils.Initialize();
 
@@ -158,6 +168,7 @@ namespace SnaptrudeManagerUI
                 UpdateButtonState(viewIs3D);
             }
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
+            await Updater.CheckUpdates();
 
         }
 
@@ -165,6 +176,20 @@ namespace SnaptrudeManagerUI
         {
             NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateTokenExpiredWarningViewModel(errorMessage);
         }
+        private static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            // Load the requested assembly for reflection only
+            try
+            {
+                return Assembly.ReflectionOnlyLoad(args.Name);
+            }
+            catch (FileNotFoundException)
+            {
+                // Handle the case where the assembly cannot be found
+                return null;
+            }
+        }
+
         private void RevitProcess_Exited(object sender, EventArgs e)
         {
             OnRevitClosed?.Invoke();

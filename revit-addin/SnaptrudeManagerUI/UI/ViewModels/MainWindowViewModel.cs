@@ -205,6 +205,12 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnDocumentClosed += HandleDocumentClosed;
             App.OnDocumentChanged += NavigateBackHome;
             App.OnRevitClosed += GotoRevitCloseEndView;
+            App.OnUpdateAvailable += SetUpdateVersion;
+        }
+
+        private void SetUpdateVersion()
+        {
+            UpdateVersion = Updater.UpdateVersion.Substring(0,5);
         }
 
         private void GotoRevitCloseEndView()
