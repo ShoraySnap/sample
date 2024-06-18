@@ -245,13 +245,8 @@ namespace TrudeSerializer.Components
                 double uScaleInRealWorld = uScaleProperty.Value;
                 double vScaleInRealWorld = vScaleProperty.Value;
 
-#if REVIT2019 || REVIT2020
-                DisplayUnitType uScaleUnit = uScaleProperty.DisplayUnitType;
-                DisplayUnitType vScaleUnit = vScaleProperty.DisplayUnitType;
-#else
-                ForgeTypeId uScaleUnit = uScaleProperty.GetUnitTypeId();
-                ForgeTypeId vScaleUnit = vScaleProperty.GetUnitTypeId();
-#endif
+                TRUDE_UNIT_TYPE uScaleUnit = UnitConversion.GetTrudeUnitFromAssetPropertyDistance(uScaleProperty);
+                TRUDE_UNIT_TYPE vScaleUnit = UnitConversion.GetTrudeUnitFromAssetPropertyDistance(vScaleProperty);
                 uScale = UnitConversion.ConvertToSnaptrudeUnits(uScaleInRealWorld, uScaleUnit);
                 vScale = UnitConversion.ConvertToSnaptrudeUnits(vScaleInRealWorld, vScaleUnit);
 
@@ -294,7 +289,7 @@ namespace TrudeSerializer.Components
 
             bool isCommonTintColor = propertyName.Equals("common_Tint_color");
 
-            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing");
+            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing") || propertyName.Contains("albedo") ;
 
             return isDiffuseColorProperty && !isCommonTintColor;
         }

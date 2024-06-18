@@ -34,7 +34,22 @@ namespace SnaptrudeManagerAddin
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
         public bool IsAnyDocumentOpened;
-        public bool AbortExportFlag = false;
+        public bool _abortExport = false;
+        private object mutex = new object();
+        public bool AbortExportFlag
+        {
+            get
+            {
+                return _abortExport;
+            }
+            set
+            {
+                lock(mutex)
+                {
+                    _abortExport = value;
+                }
+            }
+        }
 
         public Result OnStartup(UIControlledApplication application)
         {
@@ -158,7 +173,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
-            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, false);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
@@ -237,6 +252,15 @@ namespace SnaptrudeManagerAddin
                             {
                                 logger.Info("Abort export");
                                 Application.Instance.AbortExportFlag = true;
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
+                            {
+                                logger.Info("UI request document is opened");
+                                if (IsAnyDocumentOpened)
+                                {
+                                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+                                }
                             }
                             break;
                     }

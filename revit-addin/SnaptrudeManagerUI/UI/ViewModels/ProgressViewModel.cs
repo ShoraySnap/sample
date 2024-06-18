@@ -11,11 +11,13 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using TrudeCommon.Events;
+using NLog;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class ProgressViewModel : ViewModelBase
     {
+        static Logger logger = LogManager.GetCurrentClassLogger();
         public enum ProgressViewType
         {
             ExportProjectNew,
@@ -168,6 +170,7 @@ namespace SnaptrudeManagerUI.ViewModels
             string floorkey = await SnaptrudeRepo.CreateProjectAsync();
             if (string.IsNullOrEmpty(floorkey))
             {
+                logger.Error("Project for rvt could not be created!"); //TODO: UX for handling project creation failure
                 Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
             }
             Store.Set("floorkey", floorkey);
@@ -186,6 +189,7 @@ namespace SnaptrudeManagerUI.ViewModels
             string floorkey = await SnaptrudeRepo.CreateProjectAsync();
             if (string.IsNullOrEmpty(floorkey))
             {
+                logger.Error("Project for RFA could not be created!"); //TODO: UX for handling project creation failure
                 Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
             }
             Store.Set("floorkey", floorkey);

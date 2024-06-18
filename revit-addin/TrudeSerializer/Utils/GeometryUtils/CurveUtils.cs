@@ -67,11 +67,7 @@ namespace TrudeSerializer.Utils
             var convertedPoints = new List<XYZ>();
             foreach (XYZ point in dataList)
             {
-#if REVIT2019 || REVIT2020
-                float multiplier = (float)UnitConversion.ConvertToMillimeter(1.0, DisplayUnitType.DUT_DECIMAL_FEET);
-#else
-                float multiplier = (float)UnitConversion.ConvertToMillimeter(1.0, UnitTypeId.Feet);
-#endif
+                float multiplier = (float)UnitConversion.ConvertToMillimeter(1.0, TRUDE_UNIT_TYPE.FEET);
                 convertedPoints.Add(point.Multiply(multiplier));
             }
 
@@ -93,6 +89,7 @@ namespace TrudeSerializer.Utils
             }
             for (int i = 0; i < keys.Count; i++)
             {
+                if (keys[i] == "") continue;
                 dataDict.Add(keys[i], data[i]);
             }
 
