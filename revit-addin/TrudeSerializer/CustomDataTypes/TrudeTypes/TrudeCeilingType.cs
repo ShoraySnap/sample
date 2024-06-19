@@ -47,11 +47,7 @@ namespace TrudeSerializer.Types
                 IList<CompoundStructureLayer> layers = compoundStructure.GetLayers();
                 foreach (CompoundStructureLayer layer in layers)
                 {
-#if REVIT2019 || REVIT2020
-                double width = UnitConversion.ConvertToMillimeter(layer.Width, DisplayUnitType.DUT_DECIMAL_FEET);
-#else
-                    double width = UnitConversion.ConvertToMillimeter(layer.Width, UnitTypeId.Feet);
-#endif
+                    double width = UnitConversion.ConvertToMillimeter(layer.Width, TRUDE_UNIT_TYPE.FEET);
                     string function = layer.Function.ToString();
 
                     Material material = document.GetElement(layer.MaterialId) as Material;
