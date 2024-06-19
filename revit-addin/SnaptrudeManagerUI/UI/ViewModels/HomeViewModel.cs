@@ -27,7 +27,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public string CurrentVersion => MainWindowViewModel.Instance.CurrentVersion;
         public string UpdateVersion => MainWindowViewModel.Instance.UpdateVersion;
         public bool UpdateAvailable => CurrentVersion != UpdateVersion;
-        public bool IsView3D => MainWindowViewModel.Instance.IsActiveView3D;
+        
 
         private bool showInfoText;
         public bool ShowInfoText
@@ -65,30 +65,14 @@ namespace SnaptrudeManagerUI.ViewModels
         }
 
         public bool IsDocumentOpen => MainWindowViewModel.Instance.IsDocumentOpen;
+        public bool IsView3D => MainWindowViewModel.Instance.IsView3D;
+        public bool IsDocumentRvt => MainWindowViewModel.Instance.IsDocumentRvt;
         public bool IsExportButtonEnable => IsDocumentOpen && IsView3D;
-
-        private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(MainWindowViewModel.Instance.IsActiveView3D) ||
-                e.PropertyName == nameof(MainWindowViewModel.Instance.IsDocumentOpen))
-            {
-                ShowInfoText = !IsDocumentOpen || !IsView3D;
-                InfoColor = "#767B93";
-                if (!IsDocumentOpen)
-                    InfoText = "Please open a Revit document to enable the commands.";
-                else if (!IsView3D)
-                    InfoText = "Export is not supported in this view. Switch to 3D view to enable export.";
-                else
-                    InfoText = "";
-                OnPropertyChanged(nameof(IsDocumentOpen));
-                OnPropertyChanged(nameof(IsExportButtonEnable));
-            }
-        }
+        public bool IsImportButtonEnable => IsDocumentOpen && IsDocumentRvt;
 
         public HomeViewModel(NavigationService incompatibleTrudeNavigationService, NavigationService labelConfigNavigationService, NavigationService importNavigationService, NavigationService exportNavigationService, NavigationService updateNavigationService)
         {
             MainWindowViewModel.Instance.TopMost = true;
-            MainWindowViewModel.Instance.PropertyChanged += MainWindowViewModel_PropertyChanged;
             MainWindowViewModel.Instance.SwitchUserError = new RelayCommand((o) => { UpdateInfoTextBlock(o); });
             MainWindowViewModel.Instance.WhiteBackground = true;
             ExportCommand = new NavigateCommand(exportNavigationService);
@@ -96,18 +80,43 @@ namespace SnaptrudeManagerUI.ViewModels
             LabelConfigCommand = new NavigateCommand(labelConfigNavigationService);
             UpdateCommand = new NavigateCommand(updateNavigationService);
             SelectTrudeFileCommand = new RelayCommand(async (o) => await SelectAndParseTrudeFile());
-            var param = new Dictionary<string, string>{
-                    {"infotext", "Please open a Revit document to enable the commands."},
-                    {"infocolor", "#767B93"},
-                    {"showinfo", "true"}
-                };
-            UpdateInfoTextBlock(param);
-            CheckIfDocumentIsOpen();
+            App.OnActivateView2D += SetExportEnablement;
+            App.OnActivateView3D += SetExportEnablement;
+            App.OnRvtOpened += SetImportEnablement;
+            App.OnRfaOpened += SetImportEnablement;
+            App.OnDocumentClosed += DisableButtons;
+            UpdateButtonText();
         }
 
-        private void CheckIfDocumentIsOpen()
+        private void SetExportEnablement()
         {
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
+            OnPropertyChanged(nameof(IsExportButtonEnable));
+            UpdateButtonText();
+        }
+
+        private void SetImportEnablement()
+        {
+            OnPropertyChanged(nameof(IsImportButtonEnable));
+            UpdateButtonText();
+        }
+
+        private void DisableButtons()
+        {
+            OnPropertyChanged(nameof(IsExportButtonEnable));
+            OnPropertyChanged(nameof(IsImportButtonEnable));
+            UpdateButtonText();
+        }
+
+        private void UpdateButtonText()
+        {
+            ShowInfoText = !IsDocumentOpen || !IsView3D;
+            InfoColor = "#767B93";
+            if (!IsDocumentOpen)
+                InfoText = "Please open a Revit document to enable the commands.";
+            else if (!IsView3D)
+                InfoText = "Export is not supported in this view. Switch to 3D view to enable export.";
+            else
+                InfoText = "";
         }
 
         private async Task SelectAndParseTrudeFile()
@@ -132,7 +141,11 @@ namespace SnaptrudeManagerUI.ViewModels
                 JObject trudeData = JObject.Parse(File.ReadAllText(sourcePath));
                 TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
 
-                if (trudeProperties.Floors.Any() && trudeProperties.Floors.Where(f => f.RoomType != "Default").Any())
+                if ((trudeProperties.Floors.Any() &&
+                    trudeProperties.Floors.Where(f => f.RoomType != "Default").Any()) ||
+                    (trudeProperties.Masses.Any() &&
+                    trudeProperties.Masses.Where(f => f.RoomType != "Default").Any())
+                    )
                 {
                     MainWindowViewModel.Instance.ImportPath = sourcePath;
                     LabelConfigCommand.Execute(null);
@@ -144,17 +157,46 @@ namespace SnaptrudeManagerUI.ViewModels
                 }
             }
         }
+        protected override void Dispose(bool disposing)
+        {
+            bool disposed = false;
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeEvents();
+                }
+                disposed = true;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            App.OnActivateView2D -= SetExportEnablement;
+            App.OnActivateView3D -= SetExportEnablement;
+            App.OnRvtOpened -= SetImportEnablement;
+            App.OnRfaOpened -= SetImportEnablement;
+            App.OnDocumentClosed -= DisableButtons;
+        }
+        ~HomeViewModel()
+        {
+            Dispose(false);
+        }
     }
 
     public class TrudeProperties
     {
         [JsonProperty("floors")]
         public List<FloorProperties> Floors { get; set; }
+        [JsonProperty("masses")]
+        public List<FloorProperties> Masses { get; set; }
     }
     public class FloorProperties
     {
         [JsonProperty("roomType")]
         public string RoomType { get; set; }
     }
+
+    
 
 }

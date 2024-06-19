@@ -74,6 +74,7 @@ namespace SnaptrudeManagerAddin
             catch (Exception ex)
             {
                 TaskDialog.Show("catch", ex.ToString());
+                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED);
                 GlobalVariables.cleanGlobalVariables();
             }
             finally
@@ -95,8 +96,6 @@ namespace SnaptrudeManagerAddin
             GlobalVariables.LevelIdByNumber.Clear();
             FamilyLoader.LoadedFamilies.Clear();
 
-            _ = new FetchTextures.FetchTextures();
-            deleteRemovedElements(GlobalVariables.TrudeProperties.DeletedElements);
 
             TrudeImporterMain.Import(GlobalVariables.TrudeProperties);
 
@@ -115,29 +114,7 @@ namespace SnaptrudeManagerAddin
             return true;
         }
 
-        private void deleteRemovedElements(List<int> elementIds)
-        {
-            foreach (int elementId in elementIds)
-            {
-                try
-                {
-                    #if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
-                    ElementId id = new ElementId((int)elementId);
-                    #else
-                    ElementId id = new ElementId((Int64)elementId);
-                    #endif
-                    Element element = GlobalVariables.Document.GetElement(id);
-                    if (!element.GroupId.Equals(ElementId.InvalidElementId))
-                        TrudeImporterMain.deleteIfInGroup(element);
-                    else
-                        GlobalVariables.Document.Delete(id);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine("Exception in removing deleted elements:" + e.Message);
-                }
-            }
-        }
+
 
         private static int countTotalElement(JObject jObject)
         {

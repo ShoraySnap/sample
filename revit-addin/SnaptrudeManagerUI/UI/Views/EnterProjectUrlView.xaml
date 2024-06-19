@@ -365,7 +365,7 @@
                         <Style BasedOn="{StaticResource Button_Primary}" TargetType="Button">
                             <Setter Property="IsEnabled" Value="False" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding ExportIsEnable}" Value="True">
+                                <DataTrigger Binding="{Binding ExportIsEnabled}" Value="True">
                                     <Setter Property="IsEnabled" Value="True" />
                                 </DataTrigger>
                             </Style.Triggers>

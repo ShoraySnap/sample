@@ -174,12 +174,14 @@ namespace TrudeImporter
             return walls;
         }
 
-        public static Wall GetProximateWall(XYZ xyz, Document doc, ElementId levelId)
+        public static Wall GetProximateWall(XYZ xyz, Document doc)
         {
             Wall wall = null;
 
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             collector.OfClass(typeof(Wall));
+            var filteredWalls2 = collector.Where(x => x.get_BoundingBox(null).Min.Z < xyz.Z && x.get_BoundingBox(null).Max.Z > xyz.Z);
+            
             double distance = double.MaxValue;
             foreach (Wall w in collector)
             {

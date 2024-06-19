@@ -12,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using SnaptrudeManagerUI;
 
 namespace SnaptrudeManagerUI.Views
 {
     /// <summary>
-    /// Interaction logic for LoginView.xaml
+    /// Interaction logic for WarningView.xaml
     /// </summary>
-    public partial class ModelImportedView : UserControl
+    public partial class ErrorView : UserControl
     {
-        public ModelImportedView()
+        public ErrorView()
         {
             InitializeComponent();
         }
-
     }
 }

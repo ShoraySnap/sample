@@ -54,7 +54,7 @@ namespace SnaptrudeManagerUI
                         }
                         break;
                 }
-                Thread.Sleep(10000);
+                Thread.Sleep(1000);
                 LogsConfig.Shutdown();
             }
         }

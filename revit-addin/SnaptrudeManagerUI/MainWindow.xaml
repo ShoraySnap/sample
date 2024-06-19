@@ -9,7 +9,7 @@
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
     Width="590"
-    Height="350"
+    Height="370"
     AllowsTransparency="True"
     Background="Transparent"
     FontSize="13"
@@ -28,7 +28,7 @@
     </Window.Resources>
     <Grid
         Width="560"
-        Height="320"
+        Height="340"
         Cursor="{StaticResource CustomCursor}">
         <Border
             Background="White"
@@ -38,7 +38,7 @@
                 <DropShadowEffect
                     BlurRadius="15"
                     Direction="-90"
-                    Opacity=".3"
+                    Opacity=".4"
                     RenderingBias="Quality"
                     ShadowDepth="3"
                     Color="Gray" />
@@ -55,13 +55,23 @@
                 </Border.Background>
             </Border>
         </Grid>
-        <DockPanel>
-            <DockPanel DockPanel.Dock="Top">
-                <DockPanel
-                    Width="auto"
-                    Height="32"
-                    Margin="8"
-                    LastChildFill="False">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid
+                Grid.Row="0"
+                Width="auto"
+                Height="32"
+                Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <Grid Margin="8,0,0,0" VerticalAlignment="Center">
                         <Grid Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
                             <Path Data="M4.14877 5.66669C4.14877 5.20198 4.26007 5.0523 4.71593 4.90457L7.30007 4.00842V0.233032L1.79981 2.09871C1.02264 2.36677 0.5 3.10444 0.5 3.93406V9.72579L3.70743 8.53124C3.97166 8.43341 4.14877 8.17611 4.14877 7.89141V5.66669Z" Fill="White" />
@@ -90,35 +100,10 @@
                         FontFamily="{StaticResource Inter400}"
                         Opacity="0.66"
                         Text="{Binding CurrentVersion, StringFormat=' v{0}'}" />
-                    <Button
-                        Padding="10"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Command="{Binding CloseCommand}"
-                        DockPanel.Dock="Right"
-                        Style="{DynamicResource Button_6}"
-                        Visibility="{Binding CloseButtonVisible, Converter={StaticResource BoolToVisibility}}">
-                        <Grid>
-                            <Grid Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
-                                <Path
-                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
-                                    Stroke="black"
-                                    StrokeEndLineCap="round"
-                                    StrokeLineJoin="round"
-                                    StrokeStartLineCap="round"
-                                    StrokeThickness="1.25" />
-                            </Grid>
-                            <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
-                                <Path
-                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
-                                    Stroke="white"
-                                    StrokeEndLineCap="round"
-                                    StrokeLineJoin="round"
-                                    StrokeStartLineCap="round"
-                                    StrokeThickness="1.25" />
-                            </Grid>
-                        </Grid>
-                    </Button>
+                </StackPanel>
+                <Grid Grid.Column="1" Margin="10,0" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button
                         x:Name="LoginButton"
                         Margin="8,0"
@@ -165,6 +150,7 @@
                                                 Margin="2,0,0,0"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
+                                                d:Visibility="Collapsed"
                                                 Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}">
                                                 <Grid.RenderTransform>
                                                     <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
@@ -235,6 +221,7 @@
                                         <TextBlock
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
+                                            d:Text="FirstName LastName"
                                             FontFamily="{StaticResource Inter500}"
                                             Foreground="{StaticResource Colors/Neutral/800}"
                                             Text="{Binding Username}" />
@@ -274,6 +261,35 @@
                                 </BeginStoryboard>
                             </EventTrigger>
                         </Button.Triggers>
+                    </Button>
+                    <Button
+                        Padding="10"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding CloseCommand}"
+                        DockPanel.Dock="Right"
+                        Style="{DynamicResource Button_6}"
+                        Visibility="{Binding CloseButtonVisible, Converter={StaticResource BoolToVisibility}}">
+                        <Grid>
+                            <Grid Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+                                <Path
+                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                    Stroke="black"
+                                    StrokeEndLineCap="round"
+                                    StrokeLineJoin="round"
+                                    StrokeStartLineCap="round"
+                                    StrokeThickness="1.25" />
+                            </Grid>
+                            <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+                                <Path
+                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                    Stroke="white"
+                                    StrokeEndLineCap="round"
+                                    StrokeLineJoin="round"
+                                    StrokeStartLineCap="round"
+                                    StrokeThickness="1.25" />
+                            </Grid>
+                        </Grid>
                     </Button>
                     <Popup
                         Name="popup"
@@ -407,10 +423,32 @@
                             </StackPanel>
                         </Border>
                     </Popup>
-                </DockPanel>
-            </DockPanel>
-            <Grid />
-            <ContentControl Content="{Binding CurrentViewModel}">
+                </StackPanel>
+            </Grid>
+            <Border
+                Grid.Row="2"
+                VerticalAlignment="Center"
+                CornerRadius="0,0,10,10"
+                Visibility="{Binding IsProjectFileNameVisible, Converter={StaticResource BoolToVisibility}}">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="White" Offset="0.3"></GradientStop>
+                        <GradientStop Color="#EFEFEF" Offset="1"></GradientStop>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock
+                    Margin="10,3"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontFamily="{StaticResource Inter400}"
+                    FontSize="12"
+                    d:Text="Revit_project_name.rvt"
+                    Foreground="{StaticResource Colors/Neutral/600}"
+                    Text="{Binding ProjectFileName}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap" />
+            </Border>
+            <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}">
                 <ContentControl.Resources>
                     <DataTemplate DataType="{x:Type vms:ExportViewModel}">
                         <views:ExportView Style="{StaticResource AnimatedUserControl}" />
@@ -442,14 +480,14 @@
                     <DataTemplate DataType="{x:Type vms:IncompatibleTrudeViewModel}">
                         <views:IncompatibleTrudeView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type vms:ModelExportedViewModel}">
-                        <views:ModelExportedView Style="{StaticResource AnimatedUserControl}" />
+                    <DataTemplate DataType="{x:Type vms:EndViewModel}">
+                        <views:EndView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type vms:ModelImportedViewModel}">
-                        <views:ModelImportedView Style="{StaticResource AnimatedUserControl}" />
+                    <DataTemplate DataType="{x:Type vms:ErrorViewModel}">
+                        <views:ErrorView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>
-        </DockPanel>
+        </Grid>
     </Grid>
 </Window>

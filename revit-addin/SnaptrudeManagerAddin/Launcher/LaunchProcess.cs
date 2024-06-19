@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using NLog;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerAddin.Launcher
 {
@@ -18,7 +20,7 @@ namespace SnaptrudeManagerAddin.Launcher
             if (processes.Length == 1)
             {
                 process = processes[0];
-                logger.Info("Process is already running with name: {0} and id: {1}", name, process.Id);
+                logger.Warn("Process is already running with name: {0} and id: {1}", name, process.Id);
                 return process;
             }
             else
@@ -27,28 +29,32 @@ namespace SnaptrudeManagerAddin.Launcher
             }
         }
 
-        public static void StartProcess()
+        public static void StartProcess(string[] args)
         {
             process = CheckProcessRunning();
             if (process != null)
             {
                 logger.Warn("UI Process already running!");
+                HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
                 return;
             }
 
             logger.Info("Trying to start UI process...");
             FileInfo file = new FileInfo(Assembly.GetExecutingAssembly().Location);
             var exe = file.Directory.FullName.Contains(@"revit-addin") ?
-                Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net6.0-windows\SnaptrudeManagerUI.exe") :
+                Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe") :
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"snaptrude-manager\UI\SnaptrudeManagerUI.exe");
             if (File.Exists(exe))
             {
                 process = new Process();
                 process.StartInfo.FileName = exe;
+                string quotedArguments = string.Join(" ", args.Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg));
+                process.StartInfo.Arguments = quotedArguments;
                 process.Start();
                 if (process != null)
                 {
                     logger.Info("UI Process started successfully!");
+                    HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
                 }
             }
             else

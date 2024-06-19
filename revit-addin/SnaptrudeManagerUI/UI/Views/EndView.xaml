@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="SnaptrudeManagerUI.Views.ModelImportedView"
+    x:Class="SnaptrudeManagerUI.Views.EndView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -16,11 +16,20 @@
     <StackPanel VerticalAlignment="Center">
         <TextBlock
             Width="300"
+            d:Text="The model was exported successfully!"
             FontFamily="{StaticResource Inter500}"
             FontWeight="Medium"
             Foreground="{StaticResource Colors/Neutral/800}"
-            Text="The model was imported successfully!"
+            LineHeight="23"
+            Text="{Binding Message}"
             TextAlignment="Center"
             TextWrapping="Wrap" />
+        <Button
+            Margin="20"
+            HorizontalAlignment="Center"
+            Command="{Binding LaunchCommand}"
+            Content="Launch Snaptrude"
+            Style="{DynamicResource Button_Primary}"
+            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
     </StackPanel>
 </UserControl>

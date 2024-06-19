@@ -20,6 +20,10 @@ using System.IO;
 using System.Windows.Markup;
 using SnaptrudeManagerUI.Services;
 using SnaptrudeManagerUI.Commands;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
 
 namespace SnaptrudeManagerUI
 {
@@ -37,6 +41,16 @@ namespace SnaptrudeManagerUI
         public static Action OnSuccessfullLogin;
         public static Action OnFailedLogin;
         public static Action OnAbort;
+        public static Action OnFailure;
+        public static Action OnActivateView2D;
+        public static Action OnActivateView3D;
+        public static Action OnRvtOpened;
+        public static Action OnRfaOpened;
+        public static Action OnDocumentClosed;
+        public static Action OnDocumentChanged;
+        public static Action OnRevitClosed;
+
+        private Process RevitProcess;
 
         public static void RegisterProtocol()
         {
@@ -58,18 +72,46 @@ namespace SnaptrudeManagerUI
         {
             RegisterProtocol();
             base.OnStartup(e);
-            LogsConfig.Initialize("ManagerUI");
+            LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
 
             //WPFTODO: CHECKFORUPDATES
             var currentVersion = "4.0";
             var updateVersion = "4.0";
 
+            string[] args = e.Args;
+            int revitProcessId = 0;
+            bool viewIs3D = false;
+            bool isDocumentRvt = false;
+            string fileName = "";
+            bool isDocumentOpen = false;
+            if (args.Any())
+            {
+                revitProcessId = int.Parse(args[0]);
+                viewIs3D = bool.Parse(args[1]);
+                isDocumentRvt = bool.Parse(args[2]);
+                fileName = args[3];
+                isDocumentOpen = true;
+            }
+
+            if (revitProcessId != 0)
+            {
+                RevitProcess = Process.GetProcessById(revitProcessId);
+                RevitProcess.EnableRaisingEvents = true;
+                RevitProcess.Exited += RevitProcess_Exited;
+            }
+
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, true);
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
+            
             if (currentVersion != updateVersion)
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             else
-                navigationStore.CurrentViewModel = ViewModelCreator.CreateHomeViewModel();
+            {
+                navigationStore.CurrentViewModel = Equals(Store.Get("userId"), "") ? 
+                    ViewModelCreator.CreateLoginViewModel() : 
+                    ViewModelCreator.CreateHomeViewModel();
+            }
+
             // SnaptrudeService snaptrudeService = new SnaptrudeService();
             logger.Info("<<<UI Initialized!>>>");
 
@@ -77,10 +119,13 @@ namespace SnaptrudeManagerUI
             SetupEvents();
             SetupStore();
 
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_OPEN);
-
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
+        }
+
+        private void RevitProcess_Exited(object sender, EventArgs e)
+        {
+            MainWindowViewModel.Instance.RevitClosedCommand.Execute(null);
         }
 
         private void SetupStore()
@@ -98,7 +143,7 @@ namespace SnaptrudeManagerUI
             Store.Save();
         }
 
-        private async void ProcessEventQueue(object? sender, EventArgs e)
+        private async void ProcessEventQueue(object sender, EventArgs e)
         {
             ConcurrentQueue<TRUDE_EVENT> eventQueue = TrudeEventSystem.Instance.GetQueue();
             while (!eventQueue.IsEmpty)
@@ -110,37 +155,28 @@ namespace SnaptrudeManagerUI
                     {
                         case TRUDE_EVENT.REVIT_PLUGIN_VIEW_3D:
                             {
+                                OnActivateView3D?.Invoke();
                                 LogManager.GetCurrentClassLogger().Info("View changed to 3D in Revit.");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsActiveView3D = true;
-                                });
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER:
                             {
+                                OnActivateView2D?.Invoke();
                                 LogManager.GetCurrentClassLogger().Info("View changed to not 3D in Revit.");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsActiveView3D = false;
-                                });
                             }
                             break;
                         case TRUDE_EVENT.REVIT_CLOSED:
                             {
                                 logger.Info("Revit closed, closing UI...");
                                 // TODO: Loader / Dialog / Show message
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    Application.Current.Shutdown();
-                                });
+                                OnRevitClosed?.Invoke();
                             }
                             break;
                         case TRUDE_EVENT.DATA_FROM_PLUGIN:
                             {
-                                logger.Info("Got data incoming from plugin!");
+                                logger.Debug("Got data incoming from plugin!");
                                 string data = TransferManager.ReadString(TRUDE_EVENT.DATA_FROM_PLUGIN);
-                                logger.Info("data : \"{0}\"", data);
+                                logger.Debug("data : \"{0}\"", data);
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE:
@@ -151,9 +187,18 @@ namespace SnaptrudeManagerUI
                                     string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE);
                                     logger.Info("data : \"{0}\"", data);
                                     Dictionary<string, string> parsedData = JsonConvert.DeserializeObject<Dictionary<string, string>>(data);
+                                    if (!Equals(Store.Get("projectName"), parsedData["projectName"]))
+                                    {
+                                        OnDocumentChanged?.Invoke();
+                                    }
                                     Store.Set("projectName", parsedData["projectName"]);
                                     Store.Set("fileType", parsedData["fileType"]);
                                     Store.Save();
+                                    MainWindowViewModel.Instance.ProjectFileName = $"{parsedData["projectName"]}.{parsedData["fileType"]}";
+                                    if (Equals(parsedData["fileType"], "rvt"))
+                                        OnRvtOpened?.Invoke();
+                                    else
+                                        OnRfaOpened?.Invoke();
                                 }
                                 catch (Exception ex)
                                 {
@@ -178,6 +223,12 @@ namespace SnaptrudeManagerUI
                                 {
                                     logger.Error(ex.Message);
                                 }
+                            }
+                            break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED:
+                            {
+                                logger.Error("Export failed.");
+                                OnFailure?.Invoke();
                             }
                             break;
                         case TRUDE_EVENT.BROWSER_LOGIN_CREDENTIALS:
@@ -214,7 +265,7 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE:
                             {
                                 string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
-                                string[] progressData = data.Split(";");
+                                string[] progressData = data.Split(';');
                                 logger.Info("progress update {0}  {1}", progressData[0], progressData[1]);
                                 if (progressData.Length >= 2)
                                 {
@@ -234,35 +285,28 @@ namespace SnaptrudeManagerUI
                                 OnAbort?.Invoke();
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED:
+                            {
+                                logger.Error("Import to revit failed!");
+                                OnFailure?.Invoke();
+                            }
+                            break;
 
                         case TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED:
                             {
                                 logger.Info("Revit Document opened!");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsDocumentOpen = true;
-                                });
-
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED:
                             {
+                                OnDocumentClosed?.Invoke();
                                 logger.Info("Revit Document closed!");
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    MainWindowViewModel.Instance.IsDocumentOpen = false;
-                                    if (MainWindowViewModel.Instance.WhiteBackground)
-                                    {
-                                        MainWindowViewModel.Instance.NavigateHomeCommand.Execute(null);
-                                    }
-                                });
-
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED:
                             {
-                                logger.Info("Export to snaptrude aborted!");
                                 OnAbort?.Invoke();
+                                logger.Info("Export to snaptrude aborted!");
                             }
                             break;
                     }
@@ -302,9 +346,11 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_ABORTED);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_FAILED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);

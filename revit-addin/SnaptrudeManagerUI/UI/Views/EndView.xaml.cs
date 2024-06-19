@@ -19,9 +19,9 @@ namespace SnaptrudeManagerUI.Views
     /// <summary>
     /// Interaction logic for LoginView.xaml
     /// </summary>
-    public partial class ModelExportedView : UserControl
+    public partial class EndView : UserControl
     {
-        public ModelExportedView()
+        public EndView()
         {
             InitializeComponent();
         }

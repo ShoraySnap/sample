@@ -7,9 +7,19 @@ using System.Threading.Tasks;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
-    public class ViewModelBase : INotifyPropertyChanged
+    public class ViewModelBase : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

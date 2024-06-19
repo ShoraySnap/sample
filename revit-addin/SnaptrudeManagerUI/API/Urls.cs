@@ -40,7 +40,7 @@ namespace SnaptrudeManagerUI.API
             }
         }
 
-        public static string? Get(string key)
+        public static string Get(string key)
         {
             return _urls.ContainsKey(key) ? _urls[key] : null;
         }

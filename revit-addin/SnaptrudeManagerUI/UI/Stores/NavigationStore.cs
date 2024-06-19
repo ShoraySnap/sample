@@ -12,7 +12,7 @@ namespace SnaptrudeManagerUI.Stores
 {
     public class NavigationStore
     {
-        private static string? filePath;
+        private static string filePath;
         private static Dictionary<string, string> data = new Dictionary<string, string>();
         private static readonly string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "snaptrude-manager");
         static Logger logger = LogManager.GetCurrentClassLogger(); 
@@ -54,6 +54,7 @@ namespace SnaptrudeManagerUI.Stores
             get => currentViewModel;
             set
             {
+                currentViewModel?.Dispose();
                 currentViewModel = value;
                 OnCurrentViewModelChanged();
             }
@@ -80,7 +81,7 @@ namespace SnaptrudeManagerUI.Stores
             Save();
         }
 
-        public static object? Get(string key)
+        public static object Get(string key)
         {
             data.TryGetValue(key, out var value);
             return value;

@@ -12,6 +12,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows.Markup;
@@ -52,7 +53,7 @@ namespace SnaptrudeManagerAddin
 
         public Result OnStartup(UIControlledApplication application)
         {
-            LogsConfig.Initialize("ManagerAddin");
+            LogsConfig.Initialize("ManagerAddin_" + Process.GetCurrentProcess().Id);
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
             UIControlledApplication = application;
@@ -83,14 +84,9 @@ namespace SnaptrudeManagerAddin
             SetupDataChannels();
             SetupEvents();
             application.Idling += OnRevitIdling;
-            application.ControlledApplication.DocumentOpened += DocumentOpened;
-            
-            return Result.Succeeded;
-        }
+            application.ControlledApplication.DocumentClosing += DocumentClosing;
 
-        private void DocumentOpened(object sender, DocumentOpenedEventArgs e)
-        {
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
+            return Result.Succeeded;
         }
 
         public void OnProgressChanged(object sender, Autodesk.Revit.DB.Events.ProgressChangedEventArgs e)
@@ -121,7 +117,6 @@ namespace SnaptrudeManagerAddin
         {
             IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
-            e.Document.DocumentClosing += DocumentClosing;
             UpdateButtonState(currentView is View3D);
             UpdateNameAndFiletype(e.Document.Title, e.Document.IsFamilyDocument ? "rfa" : "rvt");
         }
@@ -176,7 +171,6 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT);
-            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, false);
@@ -184,6 +178,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
             {
+                // IF Handshake is valid
                 TrudeImporter.TrudeImporterMain.Abort = true; // NOTE: Mutexed this flag, but don't know if better structure is required, but it WORKS
             });
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, () =>
@@ -205,7 +200,6 @@ namespace SnaptrudeManagerAddin
                     switch (eventType)
                     {
                         case TRUDE_EVENT.MANAGER_UI_OPEN:
-                            UIControlledApplication.ViewActivated += OnViewActivated;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_CLOSE:
                             UIControlledApplication.ViewActivated -= OnViewActivated;
@@ -214,15 +208,15 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.DATA_FROM_MANAGER_UI:
                             {
-                                logger.Info("Got data incoming from ui!");
+                                logger.Debug("Got data incoming from ui!");
                                 string data = TransferManager.ReadString(TRUDE_EVENT.DATA_FROM_MANAGER_UI);
-                                logger.Info("data : \"{0}\"", data);
+                                logger.Debug("data : \"{0}\"", data);
                             }
                             break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT:
                             {
                                 string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_IMPORT_TO_REVIT).Split(';');
-                                logger.Info("Got data from UI: {0}", data);
+                                logger.Info("Got Req to import from UI: {0}", data);
 
                                 // START THE IMPORT
                                 JObject trudeData = JObject.Parse(File.ReadAllText(data[0]));
@@ -247,11 +241,17 @@ namespace SnaptrudeManagerAddin
                         case TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE:
                             {
                                 string[] data = TransferManager.ReadString(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE).Split(';');
-                                logger.Info("Got data from UI: {0}", data);
+                                logger.Info("Got Request to export from UI: {0}", data);
 
                                 logger.Info("Export to snaptrude start");
                                 ExternalEvent evt = ExternalEvent.Create(new TrudeSerializer.ExportToSnaptrudeEEH());
                                 evt.Raise();
+                            }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT:
+                            {
+                                logger.Info("Abort export");
+                                Application.Instance.AbortExportFlag = true;
                             }
                             break;
                         case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
@@ -266,7 +266,6 @@ namespace SnaptrudeManagerAddin
                     }
                 }
             }
-
         }
 
         internal void UpdateProgressForImport(int progress, string message)
@@ -292,7 +291,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS, floorkey, TransferManager);
         }
 
-        internal void FinishExportFailure()
+        internal void ExportFailure()
         {
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
         }

@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <OutputPath>bin\$(Configuration)\</OutputPath>
 	<BaseOutputPath>bin\</BaseOutputPath>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <StartupObject>SnaptrudeManagerUI.Program</StartupObject>
     <ApplicationIcon>Icons\logo32.ico</ApplicationIcon>
@@ -44,6 +42,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.3.2" />
 	<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Reference Include="System.Net.Http" />
+	  <Reference Include="System.Web" />
+	  <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
   <ItemGroup>

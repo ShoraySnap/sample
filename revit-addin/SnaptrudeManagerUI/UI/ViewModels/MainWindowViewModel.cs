@@ -75,6 +75,20 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private string projectFileName;
+        public string ProjectFileName
+        {
+            get { return projectFileName; }
+            set
+            {
+                projectFileName = value; 
+                OnPropertyChanged("ProjectFileName");
+                OnPropertyChanged("IsProjectFileNameVisible");
+            }
+        }
+
+        public bool IsProjectFileNameVisible => WhiteBackground && ProjectFileName != "";
+
         private bool showLoader;
         public bool ShowLoader
         {
@@ -111,7 +125,11 @@ namespace SnaptrudeManagerUI.ViewModels
             get { return whiteBackground; }
             set
             {
-                whiteBackground = value; OnPropertyChanged("ImageBackground"); OnPropertyChanged("WhiteBackground"); OnPropertyChanged("HaveUpdateAvailable");
+                whiteBackground = value; 
+                OnPropertyChanged("ImageBackground"); 
+                OnPropertyChanged("WhiteBackground"); 
+                OnPropertyChanged("HaveUpdateAvailable");
+                OnPropertyChanged("IsProjectFileNameVisible");
             }
         }
 
@@ -121,28 +139,24 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand SwitchAccountCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
         public ICommand BackToLoginCommand { get; private set; }
+        public ICommand RevitClosedCommand { get; private set; }
 
-        private bool isActiveView3D;
-        public bool IsActiveView3D
-        {
-            get { return isActiveView3D; }
-            set
-            {
-                isActiveView3D = value; OnPropertyChanged("IsActiveView3D");
-            }
-        }
 
-        public Action CloseAction { get; set; }
+        public bool IsView3D;
+        public bool IsDocumentOpen;
+        public bool IsDocumentRvt;
+
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
         public bool CloseButtonVisible =>
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         public bool LoginButtonVisible =>
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelExportedViewModel" &&
-            !ImageBackground && CurrentViewModel.GetType().Name != "ModelImportedViewModel" &&
+            !ImageBackground && CurrentViewModel.GetType().Name != "EndViewModel" &&
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         private bool topMost = true;
+        private bool disposed;
+
         public bool TopMost
         {
             get { return topMost; }
@@ -152,25 +166,15 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        private bool isDocumentOpen;
-        public bool IsDocumentOpen
+        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
-            get { return isDocumentOpen; }
-            set
-            {
-                isDocumentOpen = value; OnPropertyChanged("IsDocumentOpen");
-            }
-        }
-
-
-
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isActiveView3D)
-        {
-            IsDocumentOpen = false;
+            ProjectFileName = fileName + (isDocumentOpen ? (isDocumentRvt ? ".rvt" : ".rfa") : "");
+            IsDocumentOpen = isDocumentOpen;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
-            IsActiveView3D = isActiveView3D;
-            CurrentVersion = currentVersion;
+            CurrentVersion = currentVersion; 
+            IsView3D = isView3D;
+            IsDocumentRvt = isDocumentRvt;
             UpdateVersion = updateVersion;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
@@ -179,9 +183,52 @@ namespace SnaptrudeManagerUI.ViewModels
                 App.Current.Shutdown();
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
+            RevitClosedCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateRevitClosedViewModel));
             LogOutCommand = new RelayCommand(LogoutAccount);
             BackToLoginCommand =  new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
             SwitchAccountCommand = new RelayCommand(SwitchAccount);
+            App.OnActivateView2D += Set2DView;
+            App.OnActivateView3D += Set3DView;
+            App.OnRvtOpened += SetProjectRvt;
+            App.OnRfaOpened += SetProjectRfa;
+            App.OnDocumentClosed += HandleDocumentClosed;
+            App.OnDocumentChanged += NavigateBackHome;
+        }
+
+        private void HandleDocumentClosed()
+        {
+            IsDocumentOpen = false;
+            ProjectFileName = "";
+        }
+
+        private void Set2DView()
+        {
+            IsDocumentOpen = true;
+            IsView3D = false;
+        }
+
+        private void Set3DView()
+        {
+            IsDocumentOpen = true;
+            IsView3D = true;
+        }
+
+        private void SetProjectRvt()
+        {
+            IsDocumentRvt = true;
+        }
+
+        private void SetProjectRfa()
+        {
+            IsDocumentRvt = false;
+        }
+
+        private void NavigateBackHome()
+        {
+            if (WhiteBackground)
+            {
+                NavigateHomeCommand.Execute(null);
+            }
         }
 
         private void OnCurrentViewModelChanged()
@@ -220,7 +267,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }
             else
             {
-                logger.Info("Invalid config for current user when logging out...");
+                logger.Warn("Invalid config for current user when logging out...");
             }
             Store.Reset();
             BackToLoginCommand.Execute(parameter);
@@ -261,6 +308,32 @@ namespace SnaptrudeManagerUI.ViewModels
                 };
                 SwitchUserError.Execute(param);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeEvents();
+                }
+                disposed = true;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            App.OnActivateView2D -= Set2DView;
+            App.OnActivateView3D -= Set3DView;
+            App.OnRvtOpened -= SetProjectRvt;
+            App.OnRfaOpened -= SetProjectRfa;
+            App.OnDocumentClosed -= HandleDocumentClosed;
+            App.OnDocumentChanged -= NavigateBackHome;
+        }
+        ~MainWindowViewModel()
+        {
+            Dispose(false);
         }
     }
 }
