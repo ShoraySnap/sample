@@ -10,8 +10,8 @@
 
 	<PropertyGroup>
 		<ProjectGuid>{0A89A8DD-10C0-40D0-8225-12CAE6DF19B2}</ProjectGuid>
-		<RootNamespace>SnaptrudeManagerAddin</RootNamespace>
-		<AssemblyName>SnaptrudeManagerAddin</AssemblyName>
+		<RootNamespace>SnaptrudeForgeExport</RootNamespace>
+		<AssemblyName>SnaptrudeForgeExport</AssemblyName>
 	</PropertyGroup>
 
 	<Choose>
