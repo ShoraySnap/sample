@@ -119,8 +119,11 @@ namespace SnaptrudeManagerUI
             SetupEvents();
             SetupStore();
 
-            UpdateNameAndFiletype(fileName, isDocumentRvt ? "rvt" : "rfa");
-            UpdateButtonState(viewIs3D);
+            if (fileName != "")
+            {
+                UpdateNameAndFiletype(fileName, isDocumentRvt ? "rvt" : "rfa");
+                UpdateButtonState(viewIs3D);
+            }
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
         }

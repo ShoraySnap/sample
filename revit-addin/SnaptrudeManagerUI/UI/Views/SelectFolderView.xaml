@@ -77,17 +77,17 @@
                                         Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                         CommandParameter="{Binding}"
                                         Style="{DynamicResource Button_7}">
-                                        <Grid Height="32">
+                                        <Grid Height="31">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="32" />
+                                                <RowDefinition Height="31" />
                                                 <RowDefinition Height="1" />
                                             </Grid.RowDefinitions>
-                                            <Grid Width="32" Height="20">
+                                            <Grid Width="31" Height="20">
                                                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Grid.Style>
                                                         <Style TargetType="Grid">

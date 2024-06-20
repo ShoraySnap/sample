@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using Autodesk.Revit.DB;
 using NLog;
 using TrudeCommon.Events;
 
@@ -36,6 +37,8 @@ namespace SnaptrudeManagerAddin.Launcher
             {
                 logger.Warn("UI Process already running!");
                 HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
+                Application.UpdateButtonState(bool.Parse(args[1]));
+                Application.UpdateNameAndFiletype(args[3], bool.Parse(args[2]) ? "rvt" : "rfa");
                 return;
             }
 

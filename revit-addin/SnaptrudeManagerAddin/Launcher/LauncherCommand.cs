@@ -23,7 +23,6 @@ namespace SnaptrudeManagerAddin.Launcher
                 (!commandData.Application.ActiveUIDocument.Document.IsFamilyDocument).ToString(),
                 commandData.Application.ActiveUIDocument.Document.Title
             });
-            
             return Result.Succeeded;
         }
 
