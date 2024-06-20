@@ -25,7 +25,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     String.Equals(Store.Get("fileType"), "rfa") ?
                     (Func<ViewModelBase>)CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
                 ),
-                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel)
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderWarningViewModel)
                 );
         }
 
@@ -37,9 +37,9 @@ namespace SnaptrudeManagerUI.ViewModels
                 );
         }
 
-        public static ViewModelBase CreateWarningAllVisiblePartsViewModel()
+        public static ViewModelBase CreateNoteAllVisiblePartsViewModel()
         {
-            bool skip = NavigationStore.Get(WarningId.AllVisibleParts.ToString())?.ToString() == "False";
+            bool skip = NavigationStore.Get(NoteId.AllVisibleParts.ToString())?.ToString() == "False";
             if (skip)
             {
                 if (String.Equals(Store.Get("fileType"), "rvt"))
@@ -49,7 +49,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }
             else
             {
-                return new WarningViewModel(WarningId.AllVisibleParts,
+                return new NoteViewModel(NoteId.AllVisibleParts,
                     new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
                     new NavigationService(
                         NavigationStore.Instance,
@@ -61,14 +61,14 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        public static ViewModelBase CreateWarningWillNotReconcileViewModel()
+        public static ViewModelBase CreateNoteWillNotReconcileViewModel()
         {
-            bool skip = NavigationStore.Get(WarningId.WillNotReconcile.ToString())?.ToString() == "False";
+            bool skip = NavigationStore.Get(NoteId.WillNotReconcile.ToString())?.ToString() == "False";
             if (skip)
                 return CreateEnterProjectUrlViewModel();
             else
             {
-                return new WarningViewModel(WarningId.WillNotReconcile,
+                return new NoteViewModel(NoteId.WillNotReconcile,
                 new NavigationService(
                     NavigationStore.Instance,
                 String.Equals(Store.Get("fileType"), "rvt") ?
@@ -78,6 +78,22 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateEnterProjectUrlViewModel)
                 );
             }
+        }
+
+        public static ViewModelBase CreateSelectFolderWarningViewModel()
+        {
+            return new WarningViewModel(WarningId.SelectFolderError,
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel)
+                );
+        }
+
+        public static ViewModelBase CreateRevitClosedWarningViewModel()
+        {
+            return new WarningViewModel(WarningId.RevitClosed,
+                new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel)
+                );
         }
 
         public static UpdateAvailableViewModel CreateUpdateAvailableViewModel()
@@ -185,7 +201,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateIncompatibleTrudeFileViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportLabelsViewModel),
                 new NavigationService(NavigationStore.Instance, CreateImportProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateWarningAllVisiblePartsViewModel),
+                new NavigationService(NavigationStore.Instance, CreateNoteAllVisiblePartsViewModel),
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel));
             }
             else
@@ -214,7 +230,7 @@ namespace SnaptrudeManagerUI.ViewModels
             return new ExportViewModel(
                 new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
-                new NavigationService(NavigationStore.Instance, CreateWarningWillNotReconcileViewModel));
+                new NavigationService(NavigationStore.Instance, CreateNoteWillNotReconcileViewModel));
         }
 
         private static IncompatibleTrudeViewModel CreateIncompatibleTrudeFileViewModel()

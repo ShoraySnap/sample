@@ -127,7 +127,7 @@ namespace SnaptrudeManagerUI
 
         private void RevitProcess_Exited(object sender, EventArgs e)
         {
-            MainWindowViewModel.Instance.RevitClosedCommand.Execute(null);
+            OnRevitClosed?.Invoke();
         }
 
         private void SetupStore()

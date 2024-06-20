@@ -154,8 +154,9 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel.GetType().Name != "ProgressViewModel";
 
         public bool LoginButtonVisible =>
-            !ImageBackground && CurrentViewModel.GetType().Name != "EndViewModel" &&
-            CurrentViewModel.GetType().Name != "ProgressViewModel";
+            !ImageBackground && CurrentViewModel?.GetType().Name != "EndViewModel" &&
+            CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
+            CurrentViewModel?.GetType().Name != "WarningViewModel";
 
         private bool topMost = true;
         private bool disposed;
@@ -186,7 +187,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 App.Current.Shutdown();
             }));
             UpdateCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateUpdateProgressViewModel));
-            RevitClosedCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateRevitClosedViewModel));
+            RevitClosedCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateRevitClosedWarningViewModel));
             LogOutCommand = new RelayCommand(LogoutAccount);
             BackToLoginCommand =  new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
             SwitchAccountCommand = new RelayCommand(SwitchAccount);
@@ -196,6 +197,12 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnRfaOpened += SetProjectRfa;
             App.OnDocumentClosed += HandleDocumentClosed;
             App.OnDocumentChanged += NavigateBackHome;
+            App.OnRevitClosed += GotoRevitCloseEndView;
+        }
+
+        private void GotoRevitCloseEndView()
+        {
+            RevitClosedCommand.Execute(null);
         }
 
         private void HandleDocumentClosed()

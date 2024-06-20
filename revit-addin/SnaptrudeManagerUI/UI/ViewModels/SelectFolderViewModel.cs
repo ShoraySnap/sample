@@ -38,12 +38,6 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("IsBreadcrumbEnabled"); OnPropertyChanged("ExportIsEnabled"); OnPropertyChanged("ExportIsDisbled"); }
         }
 
-        private bool showErrorMessage = false;
-        public bool ShowErrorMessage
-        {
-            get { return showErrorMessage; }
-            set { showErrorMessage = value; OnPropertyChanged("ShowErrorMessage"); }
-        }
         public string ErrorMessage => ViewIsNot3D ? "Switch to 3D view to enable export" : "Select workspace to begin export"; 
             
         private bool addBreadcrumbs = true;
@@ -56,7 +50,7 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isWorkspaceSelected = value; OnPropertyChanged("IsWorkspaceSelected"); OnPropertyChanged("ExportIsEnabled"); OnPropertyChanged("ExportIsDisabled"); }
         }
 
-        public bool ExportIsEnabled => ViewIs3D && IsWorkspaceSelected && !IsLoaderVisible && !ShowErrorMessage;
+        public bool ExportIsEnabled => ViewIs3D && IsWorkspaceSelected && !IsLoaderVisible;
         public bool ExportIsDisabled => ViewIsNot3D || !IsWorkspaceSelected;
 
         public bool ViewIs3D => MainWindowViewModel.Instance.IsView3D;
@@ -161,8 +155,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     logger.Error(parentFolder.Id + " " + parentFolder.Name + " " + parentFolder.FolderType.ToString() + " " + parentFolder.TeamId);
                 }
                 logger.Error(ex.Message);
-                ShowErrorMessage = true;
-                IsLoaderVisible = false;
+                TryAgainCommand.Execute(null);
             }
         }
 

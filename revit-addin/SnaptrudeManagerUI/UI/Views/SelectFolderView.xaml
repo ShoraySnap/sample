@@ -247,63 +247,6 @@
                 Foreground="#2d6be6"
                 IsIndeterminate="True" />
         </Border>
-        <Border
-            Margin="16,8,16,0"
-            Padding="24,24,44,40"
-            d:Visibility="Collapsed"
-            Background="{DynamicResource Colors/Neutral/0}"
-            BorderBrush="{DynamicResource Colors/Neutral/200}"
-            BorderThickness="1"
-            CornerRadius="5"
-            Visibility="{Binding ShowErrorMessage, Converter={StaticResource BoolToVisibility}}">
-            <Border Padding="24,0">
-                <StackPanel>
-
-                    <StackPanel Margin="0,0,0,16" Orientation="Horizontal">
-                        <Grid
-                            Width="21"
-                            Height="22"
-                            Margin="0,0,8,0">
-                            <Path
-                                Data="M10.5 11.7467V9.25336"
-                                Stroke="{DynamicResource Colors/Red/400}"
-                                StrokeEndLineCap="Round"
-                                StrokeLineJoin="Round"
-                                StrokeStartLineCap="Round"
-                                StrokeThickness="1.25" />
-                            <Path
-                                Data="M10.4993 13.75C10.4073 13.75 10.3327 13.8246 10.3333 13.9166C10.3333 14.0086 10.408 14.0833 10.5 14.0833C10.592 14.0833 10.6667 14.0086 10.6667 13.9166C10.6667 13.8246 10.592 13.75 10.4993 13.75"
-                                Stroke="{DynamicResource Colors/Red/400}"
-                                StrokeEndLineCap="Round"
-                                StrokeLineJoin="Round"
-                                StrokeStartLineCap="Round"
-                                StrokeThickness="1.25" />
-                            <Path
-                                Data="M11.8527 5.75932L16.9587 14.6953C17.552 15.734 16.802 17.0266 15.606 17.0266H5.394C4.19734 17.0266 3.44734 15.734 4.04134 14.6953L9.14734 5.75932C9.74534 4.71198 11.2547 4.71198 11.8527 5.75932Z"
-                                Stroke="{DynamicResource Colors/Red/400}"
-                                StrokeEndLineCap="Round"
-                                StrokeLineJoin="Round"
-                                StrokeStartLineCap="Round"
-                                StrokeThickness="1.25" />
-                        </Grid>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontFamily="{DynamicResource Inter500}"
-                            FontSize="16"
-                            Foreground="{DynamicResource Colors/Red/400}"
-                            Text="Something went wrong">
-                            <Run />
-                        </TextBlock>
-                    </StackPanel>
-                    <TextBlock
-                        FontSize="16"
-                        Foreground="{StaticResource Colors/Neutral/600}"
-                        LineHeight="23"
-                        Text="Try again to refresh and load the workspaces, or go back to the previous screen."
-                        TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
-        </Border>
         <Grid Grid.Row="1" Margin="16">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -336,33 +279,6 @@
                     Style="{DynamicResource Button_Primary}" />
             </Grid>
         </Grid>
-        <Border
-            Grid.Row="1"
-            Margin="12"
-            Padding="4"
-            d:Visibility="Collapsed"
-            Background="White"
-            Visibility="{Binding ShowErrorMessage, Converter={StaticResource BoolToVisibility}}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Button
-                    Grid.Column="1"
-                    Command="{Binding BackCommand}"
-                    Content="Go back"
-                    Style="{DynamicResource Button_Secondary}" />
-                <Button
-                    Grid.Column="2"
-                    Margin="8,0,0,0"
-                    HorizontalAlignment="Center"
-                    Command="{Binding TryAgainCommand}"
-                    Content="Try again"
-                    Style="{DynamicResource Button_Primary}" />
-            </Grid>
-        </Border>
     </Grid>
 </UserControl>
 
