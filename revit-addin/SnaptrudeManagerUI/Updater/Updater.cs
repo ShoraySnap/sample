@@ -103,7 +103,7 @@ namespace SnaptrudeManagerUI
         private void _sparkle_DownloadMadeProgress(object sender, AppCastItem item, NetSparkleUpdater.Events.ItemDownloadProgressEventArgs args)
         {
             Debug.WriteLine("Download Making Progress!");
-            App.OnProgressUpdate?.Invoke(args.ProgressPercentage, "Baixando o instalador...");
+            App.OnProgressUpdate?.Invoke(args.ProgressPercentage, "Downloading update installer...");
         }
 
         private void _sparkle_UpdateDetected(object sender, NetSparkleUpdater.Events.UpdateDetectedEventArgs e)

@@ -154,7 +154,9 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel != null &&
             !ImageBackground && CurrentViewModel?.GetType().Name != "EndViewModel" &&
             CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
-            CurrentViewModel?.GetType().Name != "WarningViewModel";
+            CurrentViewModel?.GetType().Name != "WarningViewModel" &&
+            CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
+            CurrentViewModel?.GetType().Name != "CheckingUpdateViewModel";
 
         private bool topMost = true;
         private bool disposed;
