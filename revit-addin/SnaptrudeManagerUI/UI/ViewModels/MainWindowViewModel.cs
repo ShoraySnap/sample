@@ -55,7 +55,10 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             get
             {
-                username = Store.Get("fullname")?.ToString();
+                string fullName = Store.Get("fullname")?.ToString();
+                string[] names = fullName.Split(' ');
+                username = names.Count() > 1 ? $"{names[0]} {names.Last().First()}." : fullName;
+                
                 return username;
             }
             set

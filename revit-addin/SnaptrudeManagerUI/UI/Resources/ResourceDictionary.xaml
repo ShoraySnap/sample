@@ -36,6 +36,24 @@
             To="360"
             Duration="0:0:1.5" />
     </Storyboard>
+    <Style x:Key="CustomToolTipStyle" TargetType="ToolTip">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border
+                        Height="24"
+                        Padding="8,0"
+                        Background="White"
+                        BorderBrush="{StaticResource Colors/Neutral/300}"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style TargetType="{x:Type TextBlock}">
         <Setter Property="Typography.StylisticAlternates" Value="1" />
         <Setter Property="FontFamily" Value="{DynamicResource Inter400}" />
