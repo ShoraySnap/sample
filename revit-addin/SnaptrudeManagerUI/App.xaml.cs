@@ -133,6 +133,17 @@ namespace SnaptrudeManagerUI
             OnRevitClosed?.Invoke();
         }
 
+        private void UpdateRevitProcess(int revitProcessId)
+        {
+            if (RevitProcess != null)
+            {
+                RevitProcess.Exited -= RevitProcess_Exited;
+            }
+            RevitProcess = Process.GetProcessById(revitProcessId);
+            RevitProcess.EnableRaisingEvents = true;
+            RevitProcess.Exited += RevitProcess_Exited;
+        }
+
         private void SetupStore()
         {
             var accessToken = Store.Get("accessToken") as string;
@@ -328,6 +339,13 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Export to snaptrude aborted!");
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID:
+                            {
+                                string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID);
+                                UpdateRevitProcess(int.Parse(data));
+                                logger.Info("Changed Revit instance.");
+                            }
+                            break;
                     }
                 }
             }
@@ -359,6 +377,7 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_PLUGIN);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_CLOSED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
@@ -373,7 +392,6 @@ namespace SnaptrudeManagerUI
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
-
             TrudeEventSystem.Instance.Start();
 
             //SETUP EVENT QUEUE PROCESSING
