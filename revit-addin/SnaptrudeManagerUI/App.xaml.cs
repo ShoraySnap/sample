@@ -119,6 +119,8 @@ namespace SnaptrudeManagerUI
             SetupEvents();
             SetupStore();
 
+            UpdateNameAndFiletype(fileName, isDocumentRvt ? "rvt" : "rfa");
+            UpdateButtonState(viewIs3D);
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
         }
@@ -141,6 +143,20 @@ namespace SnaptrudeManagerUI
             Store.Set("fullname", fullname);
             Store.Set("userId", userId);
             Store.Save();
+        }
+
+        public static void UpdateNameAndFiletype(string projectName, string fileType)
+        {
+            Store.Set("projectName", projectName);
+            Store.Set("fileType", fileType);
+            Store.Save();
+            MainWindowViewModel.Instance.ProjectFileName = $"{projectName}.{fileType}";
+        }
+
+        public static void UpdateButtonState(bool isView3D)
+        {
+            if (isView3D) OnActivateView3D?.Invoke();
+            else OnActivateView2D?.Invoke();
         }
 
         private async void ProcessEventQueue(object sender, EventArgs e)
