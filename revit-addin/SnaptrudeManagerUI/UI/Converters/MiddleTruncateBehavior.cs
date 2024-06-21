@@ -35,13 +35,30 @@ namespace SnaptrudeManagerUI.UI.Converters
             }
         }
 
+        private static T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(child);
+            if (parent == null)
+                return null;
+
+            T parentAsT = parent as T;
+            if (parentAsT != null)
+                return parentAsT;
+
+            return FindParent<T>(parent);
+        }
+
         private static void AdjustText(TextBlock textBlock)
         {
             string text = GetText(textBlock);
             if (string.IsNullOrEmpty(text))
                 return;
 
-            double maxWidth = textBlock.ActualWidth;
+            Grid parentGrid = FindParent<Grid>(textBlock);
+            if (parentGrid == null)
+                return;
+
+            double maxWidth = parentGrid.ActualWidth;
             if (maxWidth == 0) return;
             Typeface typeface = new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight, textBlock.FontStretch);
             FormattedText formattedText = new FormattedText(text, System.Globalization.CultureInfo.CurrentCulture, textBlock.FlowDirection, typeface, textBlock.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(textBlock).PixelsPerDip);

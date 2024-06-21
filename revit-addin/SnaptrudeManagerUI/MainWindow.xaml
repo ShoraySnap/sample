@@ -102,7 +102,7 @@
                         ToolTipService.InitialShowDelay="200"
                         ToolTipService.Placement="Bottom"
                         ToolTipService.VerticalOffset="8"
-                        Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+                        Visibility="{Binding RevitFileNameVisible, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock.ToolTip>
                             <ToolTip
                                 Content="{Binding ProjectFileName}"
@@ -471,6 +471,9 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vms:ErrorViewModel}">
                         <views:ErrorView Style="{StaticResource AnimatedUserControl}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:NoteViewModel}">
+                        <views:NoteView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>

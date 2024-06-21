@@ -158,6 +158,9 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
             CurrentViewModel?.GetType().Name != "WarningViewModel";
 
+        public bool RevitFileNameVisible =>
+            WhiteBackground && CurrentViewModel?.GetType().Name != "WarningViewModel";
+
         private bool topMost = true;
         private bool disposed;
 
