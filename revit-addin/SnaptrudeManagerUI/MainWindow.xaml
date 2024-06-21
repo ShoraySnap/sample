@@ -2,6 +2,7 @@
     x:Class="SnaptrudeManagerUI.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:SnaptrudeManagerUI.UI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SnaptrudeManagerUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -9,7 +10,7 @@
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
     Width="590"
-    Height="370"
+    Height="350"
     AllowsTransparency="True"
     Background="Transparent"
     FontSize="13"
@@ -28,7 +29,7 @@
     </Window.Resources>
     <Grid
         Width="560"
-        Height="340"
+        Height="320"
         Cursor="{StaticResource CustomCursor}">
         <Border
             Background="White"
@@ -86,27 +87,35 @@
                         Margin="6,0,0,0"
                         VerticalAlignment="Center"
                         FontFamily="{StaticResource Inter600}">
-                        Snaptrude
+                        Snaptrude Manager
                     </TextBlock>
-                    <TextBlock
-                        Margin="2,0,0,0"
-                        VerticalAlignment="Center"
-                        FontFamily="{StaticResource Inter600}">
-                        Manager
-                    </TextBlock>
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        d:Text=" v2.1"
-                        FontFamily="{StaticResource Inter400}"
-                        Opacity="0.66"
-                        Text="{Binding CurrentVersion, StringFormat=' v{0}'}" />
                 </StackPanel>
-                <Grid Grid.Column="1" Margin="10,0" />
+                <Grid Grid.Column="1" Margin="10,0">
+                    <TextBlock
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center"
+                        converters:MiddleTruncateBehavior.Text="{Binding ProjectFileName}"
+                        FontFamily="{StaticResource Inter400}"
+                        Foreground="{StaticResource Colors/Neutral/600}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTipService.HorizontalOffset="-9"
+                        ToolTipService.InitialShowDelay="200"
+                        ToolTipService.Placement="Bottom"
+                        ToolTipService.VerticalOffset="8"
+                        Visibility="{Binding RevitFileNameVisible, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock.ToolTip>
+                            <ToolTip
+                                Content="{Binding ProjectFileName}"
+                                FontFamily="{StaticResource Inter400}"
+                                Style="{StaticResource CustomToolTipStyle}" />
+                        </TextBlock.ToolTip>
+                    </TextBlock>
+                </Grid>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button
                         x:Name="LoginButton"
-                        Margin="8,0"
+                        Margin="8,0,8,0"
                         Padding="8"
                         BorderBrush="WhiteSmoke"
                         BorderThickness="1"
@@ -221,7 +230,7 @@
                                         <TextBlock
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
-                                            d:Text="FirstName LastName"
+                                            d:Text="Firstname L."
                                             FontFamily="{StaticResource Inter500}"
                                             Foreground="{StaticResource Colors/Neutral/800}"
                                             Text="{Binding Username}" />
@@ -425,29 +434,6 @@
                     </Popup>
                 </StackPanel>
             </Grid>
-            <Border
-                Grid.Row="2"
-                VerticalAlignment="Center"
-                CornerRadius="0,0,10,10"
-                Visibility="{Binding IsProjectFileNameVisible, Converter={StaticResource BoolToVisibility}}">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="White" Offset="0.3"></GradientStop>
-                        <GradientStop Color="#EFEFEF" Offset="1"></GradientStop>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <TextBlock
-                    Margin="10,3"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    FontFamily="{StaticResource Inter400}"
-                    FontSize="12"
-                    d:Text="Revit_project_name.rvt"
-                    Foreground="{StaticResource Colors/Neutral/600}"
-                    Text="{Binding ProjectFileName}"
-                    TextTrimming="CharacterEllipsis"
-                    TextWrapping="NoWrap" />
-            </Border>
             <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}">
                 <ContentControl.Resources>
                     <DataTemplate DataType="{x:Type vms:ExportViewModel}">
@@ -485,6 +471,9 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vms:ErrorViewModel}">
                         <views:ErrorView Style="{StaticResource AnimatedUserControl}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vms:NoteViewModel}">
+                        <views:NoteView Style="{StaticResource AnimatedUserControl}" />
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>

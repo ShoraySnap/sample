@@ -119,13 +119,29 @@ namespace SnaptrudeManagerUI
             SetupEvents();
             SetupStore();
 
+            if (fileName != "")
+            {
+                UpdateNameAndFiletype(fileName, isDocumentRvt ? "rvt" : "rfa");
+                UpdateButtonState(viewIs3D);
+            }
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
 
         }
 
         private void RevitProcess_Exited(object sender, EventArgs e)
         {
-            MainWindowViewModel.Instance.RevitClosedCommand.Execute(null);
+            OnRevitClosed?.Invoke();
+        }
+
+        private void UpdateRevitProcess(int revitProcessId)
+        {
+            if (RevitProcess != null)
+            {
+                RevitProcess.Exited -= RevitProcess_Exited;
+            }
+            RevitProcess = Process.GetProcessById(revitProcessId);
+            RevitProcess.EnableRaisingEvents = true;
+            RevitProcess.Exited += RevitProcess_Exited;
         }
 
         private void SetupStore()
@@ -141,6 +157,20 @@ namespace SnaptrudeManagerUI
             Store.Set("fullname", fullname);
             Store.Set("userId", userId);
             Store.Save();
+        }
+
+        public static void UpdateNameAndFiletype(string projectName, string fileType)
+        {
+            Store.Set("projectName", projectName);
+            Store.Set("fileType", fileType);
+            Store.Save();
+            MainWindowViewModel.Instance.ProjectFileName = $"{projectName}.{fileType}";
+        }
+
+        public static void UpdateButtonState(bool isView3D)
+        {
+            if (isView3D) OnActivateView3D?.Invoke();
+            else OnActivateView2D?.Invoke();
         }
 
         private async void ProcessEventQueue(object sender, EventArgs e)
@@ -309,6 +339,13 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Export to snaptrude aborted!");
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID:
+                            {
+                                string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID);
+                                UpdateRevitProcess(int.Parse(data));
+                                logger.Info("Changed Revit instance.");
+                            }
+                            break;
                     }
                 }
             }
@@ -340,6 +377,7 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_VIEW_OTHER);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.DATA_FROM_PLUGIN);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_PROJECTNAME_AND_FILETYPE);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_CLOSED);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
@@ -354,7 +392,6 @@ namespace SnaptrudeManagerUI
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
-
             TrudeEventSystem.Instance.Start();
 
             //SETUP EVENT QUEUE PROCESSING

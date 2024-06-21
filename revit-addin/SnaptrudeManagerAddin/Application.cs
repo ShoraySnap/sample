@@ -254,15 +254,6 @@ namespace SnaptrudeManagerAddin
                                 Application.Instance.AbortExportFlag = true;
                             }
                             break;
-                        case TRUDE_EVENT.MANAGER_UI_REQ_DOCUMENT_IS_OPENED:
-                            {
-                                logger.Info("UI request document is opened");
-                                if (IsAnyDocumentOpened)
-                                {
-                                    TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
-                                }
-                            }
-                            break;
                     }
                 }
             }

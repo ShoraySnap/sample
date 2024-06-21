@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SnaptrudeManagerUI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     d:Background="White"
     d:DesignHeight="272"
     d:DesignWidth="560"
@@ -18,92 +19,92 @@
             <RowDefinition />
             <RowDefinition Height="64" />
         </Grid.RowDefinitions>
+
         <Border
             Margin="16,8,16,0"
-            Padding="24,24,40,40"
+            Padding="24,24,44,40"
+            Background="{DynamicResource Colors/Neutral/0}"
             BorderBrush="{DynamicResource Colors/Neutral/200}"
             BorderThickness="1"
-            CornerRadius="8">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Grid Margin="0,0,8,0">
-                        <Path
-                            Stroke="#767B93"
-                            StrokeEndLineCap="round"
-                            StrokeLineJoin="round"
-                            StrokeStartLineCap="round">
-                            <Path.Data>
-                                <EllipseGeometry
-                                    Center="8.50006,8"
-                                    RadiusX="6.0025"
-                                    RadiusY="6.0025" />
-                            </Path.Data>
-                        </Path>
-                        <Path
-                            Data="M7.83301 10.3343H9.37321"
-                            Stroke="#767B93"
-                            StrokeEndLineCap="round"
-                            StrokeLineJoin="round"
-                            StrokeStartLineCap="round"
-                            StrokeThickness="0.8" />
-                        <Path
-                            Data="M8.60634 10.3343V7.49979H7.83936"
-                            Stroke="#767B93"
-                            StrokeEndLineCap="round"
-                            StrokeLineJoin="round"
-                            StrokeStartLineCap="round" />
-                        <Path
-                            Data="M8.56661 5.49713C8.56661 5.58922 8.49196 5.66387 8.39988 5.66387C8.30779 5.66387 8.23314 5.58922 8.23314 5.49713C8.23314 5.40504 8.30779 5.33039 8.39988 5.33039"
-                            Stroke="#767B93"
-                            StrokeEndLineCap="round"
-                            StrokeLineJoin="round"
-                            StrokeStartLineCap="round" />
-                        <Path
-                            Data="M8.40001 5.33039C8.49209 5.33039 8.56674 5.40504 8.56674 5.49713"
-                            Stroke="#767B93"
-                            StrokeEndLineCap="round"
-                            StrokeLineJoin="round"
-                            StrokeStartLineCap="round" />
-                    </Grid>
-                    <TextBlock Foreground="{StaticResource Colors/Neutral/600}">Note:</TextBlock>
+            CornerRadius="5"
+            Visibility="{Binding ShowErrorMessage, Converter={StaticResource BoolToVisibility}}">
+            <Border Padding="24,0">
+                <StackPanel>
+
+                    <StackPanel Margin="0,0,0,16" Orientation="Horizontal">
+                        <Grid
+                            Width="21"
+                            Height="22"
+                            Margin="0,0,8,0">
+                            <Path
+                                Data="M10.5 11.7467V9.25336"
+                                Stroke="{DynamicResource Colors/Red/400}"
+                                StrokeEndLineCap="Round"
+                                StrokeLineJoin="Round"
+                                StrokeStartLineCap="Round"
+                                StrokeThickness="1.25" />
+                            <Path
+                                Data="M10.4993 13.75C10.4073 13.75 10.3327 13.8246 10.3333 13.9166C10.3333 14.0086 10.408 14.0833 10.5 14.0833C10.592 14.0833 10.6667 14.0086 10.6667 13.9166C10.6667 13.8246 10.592 13.75 10.4993 13.75"
+                                Stroke="{DynamicResource Colors/Red/400}"
+                                StrokeEndLineCap="Round"
+                                StrokeLineJoin="Round"
+                                StrokeStartLineCap="Round"
+                                StrokeThickness="1.25" />
+                            <Path
+                                Data="M11.8527 5.75932L16.9587 14.6953C17.552 15.734 16.802 17.0266 15.606 17.0266H5.394C4.19734 17.0266 3.44734 15.734 4.04134 14.6953L9.14734 5.75932C9.74534 4.71198 11.2547 4.71198 11.8527 5.75932Z"
+                                Stroke="{DynamicResource Colors/Red/400}"
+                                StrokeEndLineCap="Round"
+                                StrokeLineJoin="Round"
+                                StrokeStartLineCap="Round"
+                                StrokeThickness="1.25" />
+                        </Grid>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            d:Text="Something went wrong"
+                            FontFamily="{DynamicResource Inter500}"
+                            FontSize="16"
+                            Foreground="{DynamicResource Colors/Red/400}"
+                            Text="{Binding Title}" />
+                    </StackPanel>
+                    <TextBlock
+                        d:Text="Try again to refresh and load the workspaces, or go back to the previous screen."
+                        FontFamily="{StaticResource Inter500}"
+                        FontSize="16"
+                        Foreground="{StaticResource Colors/Neutral/600}"
+                        LineHeight="23"
+                        Text="{Binding Message}"
+                        TextWrapping="Wrap" />
                 </StackPanel>
-                <TextBlock
-                    Width="464"
-                    Margin="0,12,0,16"
-                    d:Text="All the visible parts of the model will export to Snaptrude. Hide or remove any elements that you don’t wish to export before proceeding. "
-                    DockPanel.Dock="Bottom"
-                    FontSize="16"
-                    Foreground="{StaticResource Colors/Neutral/800}"
-                    LineHeight="23"
-                    Text="{Binding WarningMessage}"
-                    TextWrapping="Wrap" />
-            </StackPanel>
+            </Border>
         </Border>
-        <Grid Grid.Row="1" Margin="16">
-            <StackPanel Orientation="Horizontal">
-                <CheckBox
-                    Margin="0,0,5,0"
-                    Content="Don't show again"
-                    FontFamily="{StaticResource Inter400}"
-                    IsChecked="{Binding DontShowAgain}"
-                    Style="{StaticResource SVGCheckBoxWithText}"
-                    Typography.StylisticAlternates="1" />
-
-
-            </StackPanel>
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+        <Border
+            Grid.Row="1"
+            Margin="12"
+            Padding="4"
+            Background="White"
+            Visibility="{Binding ShowErrorMessage, Converter={StaticResource BoolToVisibility}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <Button
-                    Command="{Binding BackCommand}"
-                    Content="Back"
+                    Grid.Column="1"
+                    d:Content="Go back"
+                    Command="{Binding SecondaryCommand}"
+                    Content="{Binding SecondaryButtonText}"
                     Style="{DynamicResource Button_Secondary}" />
                 <Button
+                    Grid.Column="2"
                     Margin="8,0,0,0"
                     HorizontalAlignment="Center"
-                    Command="{Binding IUnderstandCommand}"
-                    Content="I understand"
+                    d:Content="Try again"
+                    Command="{Binding PrimaryCommand}"
+                    Content="{Binding PrimaryButtonText}"
                     Style="{DynamicResource Button_Primary}" />
-            </StackPanel>
-        </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
 
