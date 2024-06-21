@@ -56,8 +56,11 @@ namespace SnaptrudeManagerUI.ViewModels
             get
             {
                 string fullName = Store.Get("fullname")?.ToString();
-                string[] names = fullName.Split(' ');
-                username = names.Count() > 1 ? $"{names[0]} {names.Last().First()}." : fullName;
+                if (fullName != "Switching Account")
+                {
+                    string[] names = fullName.Split(' ');
+                    username = names.Count() > 1 ? $"{names[0]} {names.Last().First()}." : fullName;
+                }
                 
                 return username;
             }
@@ -255,8 +258,8 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             ShowUserIcon = false;
             ShowLoader = true;
-            Store.Set("fullname", " Switching account");
-            Username = " Switching Account";
+            Store.Set("fullname", "Switching Account");
+            Username = "Switching Account";
             LoginHelper.Login(parameter);
             if (SwitchUserError != null)
             {

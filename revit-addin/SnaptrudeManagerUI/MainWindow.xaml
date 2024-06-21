@@ -138,7 +138,7 @@
                                             <Border
                                                 Width="20"
                                                 Height="20"
-                                                Margin="3,0"
+                                                Margin="3,0,6,0"
                                                 Background="LightGray"
                                                 CornerRadius="10"
                                                 Visibility="{Binding ShowUserIcon, Converter={StaticResource BoolToVisibility}}">
@@ -156,7 +156,7 @@
                                             <Grid
                                                 Width="20"
                                                 Height="20"
-                                                Margin="2,0,0,0"
+                                                Margin="2,0,4,0"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
                                                 d:Visibility="Collapsed"
