@@ -337,7 +337,7 @@ namespace TrudeSerializer.Components
             GeometryElement geomElement = element.get_Geometry(geomOptions);
             Dictionary<string, TrudeMaterial> materialsMap = new Dictionary<string, TrudeMaterial>();
             Dictionary<string, FaceToMaterialMap> faceToMaterialMap = new Dictionary<string, FaceToMaterialMap>();
-
+            int faceCount = 0;
             // Iterate through geometry objects to find faces
             foreach (GeometryObject geomObj in geomElement)
             {
@@ -361,10 +361,9 @@ namespace TrudeSerializer.Components
                     XYZ normal = face.ComputeNormal(new UV(0.5, 0.5));
 
                     List<double> normalPoints = new List<double> { normal.X, normal.Z, normal.Y };
+                    ++faceCount;
 
-                    string faceId = face.Id.ToString();
-
-                    faceToMaterialMap.Add(faceId, new FaceToMaterialMap(normalPoints, materialId.ToString()));
+                    faceToMaterialMap.Add(faceCount.ToString(), new FaceToMaterialMap(normalPoints, materialId.ToString()));
                 }
             }
             MaterialAppliedByPaint materialAppliedByPaint = new MaterialAppliedByPaint(materialsMap, faceToMaterialMap);
