@@ -102,7 +102,7 @@
                         ToolTipService.InitialShowDelay="200"
                         ToolTipService.Placement="Bottom"
                         ToolTipService.VerticalOffset="8"
-                        Visibility="{Binding RevitFileNameVisible, Converter={StaticResource BoolToVisibility}}">
+                        Visibility="{Binding IsProjectFileNameVisible, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock.ToolTip>
                             <ToolTip
                                 Content="{Binding ProjectFileName}"

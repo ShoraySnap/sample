@@ -93,7 +93,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        public bool IsProjectFileNameVisible => WhiteBackground && ProjectFileName != "";
+        public bool IsProjectFileNameVisible => WhiteBackground && ProjectFileName != "" && CurrentViewModel?.GetType().Name != "WarningViewModel";
 
         private bool showLoader;
         public bool ShowLoader
@@ -160,9 +160,6 @@ namespace SnaptrudeManagerUI.ViewModels
             !ImageBackground && CurrentViewModel?.GetType().Name != "EndViewModel" &&
             CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
             CurrentViewModel?.GetType().Name != "WarningViewModel";
-
-        public bool RevitFileNameVisible =>
-            WhiteBackground && CurrentViewModel?.GetType().Name != "WarningViewModel";
 
         private bool topMost = true;
         private bool disposed;
@@ -252,6 +249,7 @@ namespace SnaptrudeManagerUI.ViewModels
             OnPropertyChanged(nameof(CurrentViewModel));
             OnPropertyChanged(nameof(LoginButtonVisible));
             OnPropertyChanged(nameof(CloseButtonVisible));
+            OnPropertyChanged(nameof(IsProjectFileNameVisible));
         }
 
         private void SwitchAccount(object parameter)
