@@ -18,6 +18,10 @@ namespace SnaptrudeManagerUI.API
 
         static Store()
         {
+            if (!Directory.Exists(appDataPath))
+            {
+                Directory.CreateDirectory(appDataPath);
+            }
             filePath = Path.Combine(appDataPath, "config.json");
 
             if (File.Exists(filePath))

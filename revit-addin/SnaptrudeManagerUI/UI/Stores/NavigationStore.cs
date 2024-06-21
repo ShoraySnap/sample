@@ -35,6 +35,10 @@ namespace SnaptrudeManagerUI.Stores
         }
         private NavigationStore()
         {
+            if (!Directory.Exists(appDataPath))
+            {
+                Directory.CreateDirectory(appDataPath);
+            }
             filePath = Path.Combine(appDataPath, "userPreferences.json");
 
             if (File.Exists(filePath))
