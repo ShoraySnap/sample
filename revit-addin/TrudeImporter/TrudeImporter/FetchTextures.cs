@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
 using TrudeImporter;
 
 namespace FetchTextures
@@ -37,8 +38,22 @@ namespace FetchTextures
                         if (savedPath != "")
                         {
                             textureProps.TexturePath = savedPath;
-                            MaterialOperations.MaterialOperations.CreateMaterial(GlobalVariables.Document, name, textureProps, alpha);
+                            MaterialOperations.MaterialOperations.CreateMaterialFromTexture(GlobalVariables.Document, name, textureProps, alpha);
                         }
+                    }
+                    else { 
+                        string pattern = @"#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})";
+                        System.Diagnostics.Debug.WriteLine("No texture found for material: " + (string)material["name"]);
+                        Regex regex = new Regex(pattern);
+                        MatchCollection matches = regex.Matches((string)material["id"]);
+                        string name = SanitizeFilename((string)material["name"]) + "_snaptrude";
+                        float alpha = (float)material["alpha"];
+                       if (matches.Count > 0)
+                       {
+                            string hex = matches[0].Value;
+                            System.Diagnostics.Debug.WriteLine("Creating material: " + hex);
+                            MaterialOperations.MaterialOperations.CreateMaterialFromHEX(GlobalVariables.Document, name, hex, alpha);
+                       }
                     }
                 }
             }
