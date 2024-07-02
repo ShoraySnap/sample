@@ -543,10 +543,10 @@ namespace TrudeImporter
                         if (floor.AllFaceVertices != null)
                         {
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
-                            CurveArray profile = TrudeRoom.getProfile(floor.FaceVertices);
-                            ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
                             if (floor.FaceVertices != null)
                             {
+                                CurveArray profile = TrudeRoom.getProfile(floor.FaceVertices);
+                                ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
                                 TrudeRoom.StoreRoomData(levelId, floor.RoomType, directShape, profile);
                             }
                         }
@@ -751,10 +751,10 @@ namespace TrudeImporter
                         if (mass.AllFaceVertices != null)
                         {
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
-                            CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
-                            ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
                             if (mass.Type == "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
                             {
+                                CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
+                                ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
                                 TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
                             }
                         }
