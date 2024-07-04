@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace TrudeSerializer.Utils
+namespace TrudeCommon.Utils
 {
     internal class Config
     {

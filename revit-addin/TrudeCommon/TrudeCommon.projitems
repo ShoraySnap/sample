@@ -9,6 +9,7 @@
     <Import_RootNamespace>TrudeCommon</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Analytics\AnalyticsManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataTransfer\DataChannel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataTransfer\DataTransferManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventEmitter.cs" />
@@ -16,5 +17,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventSystem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\LogsConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Compressor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\PreSignedURLResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\S3helper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\URLsConfig.cs" />
+    <Compile Include="..\TrudeCommon\Utils\TrudeLocalAppData.cs" />
   </ItemGroup>
 </Project>

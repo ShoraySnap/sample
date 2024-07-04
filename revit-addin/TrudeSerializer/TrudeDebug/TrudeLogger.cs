@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using TrudeCommon.Utils;
 using TrudeSerializer.Components;
 using TrudeSerializer.Utils;
 
@@ -120,7 +121,7 @@ namespace TrudeSerializer.Debug
         public void Save()
         {
             var serializedLog = JsonConvert.SerializeObject(fullData);
-            TrudeDebug.StoreData(serializedLog, "log.json");
+            TrudeLocalAppData.StoreData(serializedLog, "log.json");
         }
 
         private void CountInputComponent(Dictionary<string, CountData> componentDict, string key)

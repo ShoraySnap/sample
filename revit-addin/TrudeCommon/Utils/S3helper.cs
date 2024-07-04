@@ -1,26 +1,21 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using TrudeSerializer.Debug;
-using TrudeSerializer.Importer;
-using TrudeSerializer.Utils;
-using TrudeCommon.Events;
-using SnaptrudeManagerAddin;
+using TrudeCommon.Analytics;
+using TrudeSerializer.Uploader;
 
-namespace TrudeSerializer.Uploader
+namespace TrudeCommon.Utils
 {
     internal class S3helper
     {
         private static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
         private static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
 
-        public static async void UploadAndRedirectToSnaptrude(SerializedTrudeData serializedData)
+        public static volatile bool abortFlag = false;
+        public static async void UploadAndRedirectToSnaptrude(Dictionary<string,string> jsonData)
         {
-            Dictionary<string, string> jsonData = serializedData.GetSerializedObject();
             Dictionary<string, byte[]> compressedJsonData = new Dictionary<string, byte[]>();
 
             Config config = Config.GetConfigObject();
@@ -30,6 +25,7 @@ namespace TrudeSerializer.Uploader
 
             List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
             Dictionary<string, string> paths = new Dictionary<string, string>();
+
 
             foreach (KeyValuePair<string, string> entry in jsonData)
             {
@@ -41,7 +37,7 @@ namespace TrudeSerializer.Uploader
                 var presignedUrlResponse = await GetPresignedURL(path, config);
                 var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
                 PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-                if (ExportToSnaptrudeEEH.IsImportAborted()) return;
+                if (abortFlag) return;
 
                 uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
             }
@@ -50,6 +46,7 @@ namespace TrudeSerializer.Uploader
 
         public static async Task<HttpResponseMessage> UploadUsingPresignedURL(byte[] compressedString, PreSignedURLResponse preSignedURLResponse)
         {
+            if (abortFlag) return new HttpResponseMessage(System.Net.HttpStatusCode.Ambiguous);
             var url = preSignedURLResponse.url;
             var formData = new MultipartFormDataContent();
             var client = new HttpClient();
@@ -114,10 +111,8 @@ namespace TrudeSerializer.Uploader
             return response;
         }
 
-        public static async void UploadLog(TrudeLogger logger, string processId)
+        public static async void UploadLog(string jsonData, string processId)
         {
-            var jsonData = logger.GetSerializedObject();
-
             Config config = Config.GetConfigObject();
 
             string userId = config.userId;
@@ -134,6 +129,29 @@ namespace TrudeSerializer.Uploader
             uploadTask = UploadUsingPresignedURL(data, presignedURL);
 
             await uploadTask;
+        }
+
+        public static async void UploadAnalytics(string processId)
+        {
+            var jsonData = AnalyticsManager.GetUploadData();
+
+            Config config = Config.GetConfigObject();
+
+            string userId = config.userId;
+            string projectFloorKey = config.floorKey;
+
+            Task<HttpResponseMessage> uploadTask;
+
+            byte[] data = Encoding.UTF8.GetBytes(jsonData.ToString());
+            string path = $"media/{userId}/revitImport/{projectFloorKey}/analytics/{processId}_analytics.json";
+
+            var presignedUrlResponse = await GetPresignedURL(path, config);
+            var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
+            PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+            uploadTask = UploadUsingPresignedURL(data, presignedURL);
+
+            await uploadTask;
+
         }
     }
 }

@@ -1,18 +1,9 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.IO.Packaging;
-using System.Reflection;
-using TrudeSerializer.Components;
-using TrudeSerializer.Debug;
-using TrudeSerializer.Importer;
-using TrudeSerializer.Uploader;
 
-namespace TrudeSerializer.Utils
+namespace TrudeCommon.Utils
 {
-    // TODO: Move this to common assembly
-    internal class TrudeDebug
+    internal static class TrudeLocalAppData
     {
         public static void StoreSerializedData(string serializedObject)
         {
@@ -35,7 +26,5 @@ namespace TrudeSerializer.Utils
 
             File.WriteAllText(filePath, data);
         }
-
-        
     }
 }
