@@ -69,24 +69,31 @@ namespace TrudeSerializer.Debug
         }
     }
 
-    internal class TrudeLogData
+    internal class RevitLogData
     {
         public ProcessStageLogData serialize = new ProcessStageLogData();
         public ProcessStageLogData upload = new ProcessStageLogData();
         public ComponentLogData components = new ComponentLogData();
     }
 
+    internal class SnaptrudeLogData
+    {
+        public ProcessStageLogData create = new ProcessStageLogData();
+        public ProcessStageLogData save = new ProcessStageLogData();
+        public ComponentLogData components = new ComponentLogData();
+    }
+
     internal class FullLogData
     {
-        public TrudeLogData revit = new TrudeLogData();
-        public TrudeLogData snaptrude = new TrudeLogData();
+        public RevitLogData revit = new RevitLogData();
+        public SnaptrudeLogData snaptrude = new SnaptrudeLogData();
     }
 
     internal class TrudeLogger
     {
         public static TrudeLogger Instance = new TrudeLogger();
         FullLogData fullData;
-        TrudeLogData data;
+        RevitLogData data;
 
         private static string currentKey = "";
         public void Init()
