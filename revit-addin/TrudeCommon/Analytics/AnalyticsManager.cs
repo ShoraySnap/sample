@@ -18,17 +18,15 @@ namespace TrudeCommon.Analytics
         public string units;
         public string env;
 
-        public Identifier(string email, string userId, string floorkey, string units, string env)
+        public Identifier(string email, string userId, string floorkey, string units, string env, string id = "-1")
         {
             created = DateTime.Now.ToString();
+            this._id = id;
             this.user = email;
             this.userId = userId;
             this.floorkey = floorkey;
             this.units = units;
             this.env = env;
-
-            var idString = created + userId + floorkey;
-            _id = Convert.ToBase64String(Encoding.UTF8.GetBytes(idString)).ToString();
         }
 
         public void SetTeamData(Dictionary<string, string> team)
@@ -44,9 +42,9 @@ namespace TrudeCommon.Analytics
     internal static class AnalyticsManager
     {
         public static UploadData uploadData = new UploadData();
-        public static void SetIdentifer(string email, string userId, string floorkey, string units, string env)
+        public static void SetIdentifer(string email, string userId, string floorkey, string units, string env, string processId)
         {
-            uploadData.identifier = new Identifier(email, userId, floorkey, units, env);
+            uploadData.identifier = new Identifier(email, userId, floorkey, units, env, processId);
         }
 
         public static void SetTeamData(Dictionary <string, string> team)

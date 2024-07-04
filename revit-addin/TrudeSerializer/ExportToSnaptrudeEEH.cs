@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using SnaptrudeManagerAddin;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using TrudeCommon.Analytics;
 using TrudeCommon.Utils;
 using TrudeSerializer.Debug;
@@ -37,18 +39,34 @@ namespace TrudeSerializer
             return ExecuteWithUIApplication(commandData.Application);
         }
 
+        internal string GetProcessID(Document doc, int length)
+        {
+            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+            string guid = doc.CreationGUID.ToString();
+
+            string combined = string.Join("", new string[] {timestamp, guid});
+
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(combined));
+                string hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                return hashString.Substring(0, length);
+            }
+        }
+
         internal Result ExecuteWithUIApplication(UIApplication uiapp, bool testMode = false)
         {
             TrudeLogger logger = new TrudeLogger();
             logger.Init();
-            string processId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
             Document doc = uiapp.ActiveUIDocument.Document;
+            string processId = GetProcessID(doc, 12);
 
             GlobalVariables.Document = doc;
             GlobalVariables.RvtApp = uiapp.Application;
 
             uiapp.Application.FailuresProcessing += Application_FailuresProcessing;
+            string floorkey = "PLACEHOLDER";
 
             OnInit?.Invoke(processId, uiapp, doc);
             try
@@ -64,7 +82,7 @@ namespace TrudeSerializer
 
                 // Analytics Id
                 var config = Config.GetConfigObject();
-                AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl());
+                AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl(), processId);
 
                 Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
@@ -81,14 +99,13 @@ namespace TrudeSerializer
                 Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
                 try
                 {
-                    string floorkey = Config.GetConfigObject().floorKey;
+                    floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
                        S3helper.UploadAndRedirectToSnaptrude(serializedData.GetSerializedObject());
                     }
                     logger.UploadDone(true);
 
-                    Application.Instance.FinishExportSuccess(floorkey);
                 }
                 catch(Exception ex)
                 {
@@ -125,6 +142,8 @@ namespace TrudeSerializer
                     S3helper.UploadAnalytics(processId);
                 }
                 isDone = true;
+
+                Application.Instance.FinishExportSuccess(floorkey);
             }
         }
 
