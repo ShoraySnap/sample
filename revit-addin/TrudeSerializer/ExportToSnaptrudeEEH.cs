@@ -66,7 +66,7 @@ namespace TrudeSerializer
             GlobalVariables.RvtApp = uiapp.Application;
 
             uiapp.Application.FailuresProcessing += Application_FailuresProcessing;
-            string floorkey = "PLACEHOLDER";
+            string floorkey = Config.GetConfigObject().floorKey;
 
             OnInit?.Invoke(processId, uiapp, doc);
             try
