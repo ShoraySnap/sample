@@ -12,15 +12,16 @@ namespace TrudeImporter
         string fsName = null;
         FamilySymbol existingFamilySymbol = null;
         XYZ CenterPosition = null;
+        XYZ Direction = null;
+        bool HandFlipped = false;
         float height = 0;
         public static WindowTypeStore TypeStore = new WindowTypeStore();
 
         public TrudeWindow(WindowProperties windowProps, ElementId levelId, int index)
         {
-            XYZ direction = windowProps.Direction == null
-                                ? XYZ.Zero
-                                : windowProps.Direction;
             CenterPosition = windowProps.CenterPosition;
+            Direction = windowProps.Direction;
+            HandFlipped = windowProps.HandFlipped;
             height = windowProps.Height;
             try
             {
@@ -83,7 +84,7 @@ namespace TrudeImporter
                     familySymbol = defaultFamilySymbol;
                 }
 
-                var instance = CreateWindow(familySymbol, levelId, wall, direction);
+                var instance = CreateWindow(familySymbol, levelId, wall);
 
                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = instance.FindWidthAndHeightParameters();
                 if (!setHeightAndWidthParamsInFamilySymbol)
@@ -100,7 +101,7 @@ namespace TrudeImporter
             }
         }
 
-        private FamilyInstance CreateWindow(FamilySymbol familySymbol, ElementId levelId, Wall wall, XYZ direction)
+        private FamilyInstance CreateWindow(FamilySymbol familySymbol, ElementId levelId, Wall wall)
         {
             FamilyInstance instance;
             var doc = GlobalVariables.Document;
@@ -110,7 +111,7 @@ namespace TrudeImporter
 
             if (wall is null)
             {
-                wall = GetProximateWall(xyz, doc, level.Id);
+                wall = GetProximateWall(xyz, doc);
             }
 
             BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
@@ -126,11 +127,13 @@ namespace TrudeImporter
             instance.flipFacing();
             doc.Regenerate();
 
-            if (!instance.FacingOrientation.IsAlmostEqualTo(direction))
-            {
+            if (!instance.FacingOrientation.IsAlmostEqualTo(Direction, 0.01))
                 instance.flipFacing();
+
+            bool isFlipped = (instance.FacingFlipped && !instance.HandFlipped) ||
+                (!instance.FacingFlipped && instance.HandFlipped);
+            if (HandFlipped != isFlipped)
                 instance.flipHand();
-            }
 
             return instance;
         }

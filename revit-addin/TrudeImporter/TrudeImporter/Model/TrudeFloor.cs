@@ -17,7 +17,11 @@ namespace TrudeImporter
         private XYZ centerPosition;
         private string baseType = null;
         private string materialName = null;
-
+        private string roomType = null;
+        private CurveArray profile;
+        private double levelElevation;
+        private double offsetFromLevel;
+        private List<XYZ> verticesInLevelElevation;
         /// <summary>
         /// Imports floors into revit from snaptrude json data
         /// </summary>
@@ -25,6 +29,7 @@ namespace TrudeImporter
         /// <param name="levelId"></param>
         public TrudeFloor(FloorProperties floorProps, ElementId levelId)
         {
+            roomType = floorProps.RoomType;
             thickness = floorProps.Thickness;
             baseType = floorProps.BaseType;
             centerPosition = floorProps.CenterPosition;
@@ -34,6 +39,10 @@ namespace TrudeImporter
             {
                 faceVertices.Add(v + new XYZ(0, 0, thickness));
             }
+            levelElevation = (GlobalVariables.Document.GetElement(levelId) as Level).Elevation;
+            offsetFromLevel = faceVertices[0].Z - levelElevation;
+            verticesInLevelElevation = faceVertices.Select(v => new XYZ(v.X, v.Y, levelElevation)).ToList();
+            profile = getProfile(verticesInLevelElevation);
 
             // get existing floor id from revit meta data if already exists else set it to null
             if (!GlobalVariables.ForForge && floorProps.ExistingElementId != null)
@@ -81,7 +90,7 @@ namespace TrudeImporter
             // --------------------------------------------
             CreateFloor(levelId, int.Parse(GlobalVariables.RvtApp.VersionNumber) >= 2023);
             CreateHoles(floorProps.Holes);
-
+            TrudeRoom.StoreRoomData(levelId, roomType, floor, profile);
 
             try
             {
@@ -184,10 +193,6 @@ namespace TrudeImporter
 
         private void CreateFloor(ElementId levelId, bool depricated = false)
         {
-            double levelElevation = (GlobalVariables.Document.GetElement(levelId) as Level).Elevation;
-            double offsetFromLevel = faceVertices[0].Z - levelElevation;
-            List<XYZ> verticesInLevelElevation = faceVertices.Select(v => new XYZ(v.X, v.Y, levelElevation)).ToList();
-            CurveArray profile = getProfile(verticesInLevelElevation);
             CurveLoop profileLoop = Utils.GetProfileLoop(verticesInLevelElevation);
             FloorType floorType = existingFloorType;
 
@@ -219,20 +224,8 @@ namespace TrudeImporter
                 floor = Floor.Create(Doc, curveLoops, floorType.Id, levelId);
 #endif
             }
-
+            
             floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(offsetFromLevel);
-
-            // Rotate and move the slab
-            //rotate();
-
-            //bool result = floor.Location.Move(centerPosition);
-
-            //if (!result) throw new Exception("Move floor location failed.");
-
-            //this.setType(floorType);
-
-            Level level = Doc.GetElement(levelId) as Level;
-            //setHeight(level);
             Doc.Regenerate();
         }
 
@@ -241,6 +234,10 @@ namespace TrudeImporter
             foreach (var hole in holes)
             {
                 var holeProfile = getProfile(hole);
+                foreach (Curve curve in holeProfile)
+                {
+                    profile.Append(curve);
+                }
                 try
                 {
                     GlobalVariables.Document.Create.NewOpening(floor, holeProfile, true);
@@ -251,6 +248,7 @@ namespace TrudeImporter
                 }
             }
         }
+
 
         private CurveArray getProfile(List<XYZ> vertices)
         {

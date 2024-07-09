@@ -32,6 +32,9 @@ namespace TrudeImporter
         [JsonProperty("type")]
         public string Type { get; set; }
 
+        [JsonProperty("roomType")]
+        public string RoomType { get; set; }
+
         [JsonProperty("centerPosition")]
         public XYZ CenterPosition { get; set; }
 
