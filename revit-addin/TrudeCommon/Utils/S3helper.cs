@@ -26,20 +26,22 @@ namespace TrudeCommon.Utils
             List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
             Dictionary<string, string> paths = new Dictionary<string, string>();
 
-
             foreach (KeyValuePair<string, string> entry in jsonData)
             {
                 byte[] compressedString = Compressor.CompressString(entry.Value);
                 compressedJsonData.Add(entry.Key, compressedString);
 
                 string path = $"media/{userId}/revitImport/{projectFloorKey}/{entry.Key}.json";
+                paths.Add(entry.Key, path);
+            }
 
-                var presignedUrlResponse = await GetPresignedURL(path, config);
-                var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
-                PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-                if (abortFlag) return;
+            var presignedUrlsResponse = await GetPresignedURLs(paths, config);
+            var presignedUrlsResponseData = await presignedUrlsResponse.Content.ReadAsStringAsync();
+            Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
 
-                uploadTasks.Add(UploadUsingPresignedURL(compressedString, presignedURL));
+            foreach (KeyValuePair<string, PreSignedURLResponse> presignedURL in presignedURLs)
+            {
+                uploadTasks.Add(UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value));
             }
             await Task.WhenAll(uploadTasks);
         }

@@ -56,7 +56,6 @@
     <Folder Include="$(MSBuildThisFileDirectory)Components\CoreComponents\" />
     <Folder Include="$(MSBuildThisFileDirectory)Components\SupportComponents\" />
     <Folder Include="$(MSBuildThisFileDirectory)GlobalSymbols\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Uploader\" />
     <Folder Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\" />
   </ItemGroup>
 </Project>
