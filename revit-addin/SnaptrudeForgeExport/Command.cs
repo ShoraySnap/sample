@@ -12,7 +12,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
-using RevitMaterial = Autodesk.Revit.DB.Material;
 
 namespace SnaptrudeForgeExport
 {

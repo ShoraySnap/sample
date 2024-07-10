@@ -37,6 +37,12 @@ namespace TrudeImporter
             return Level;
         }
 
+        public static string getLevelName(int storey)
+        {
+            // How to handle case when two storey have same name (since levels are using that name).
+            return ((storey > 0) ? (storey - 1).ToString() : storey.ToString());
+        }
+
         private ViewPlan CreateFloorPlan(Document newDoc)
         {
             ViewFamilyType floorPlanType = new FilteredElementCollector(newDoc)
