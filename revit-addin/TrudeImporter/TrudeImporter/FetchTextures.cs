@@ -41,19 +41,27 @@ namespace FetchTextures
                             MaterialOperations.MaterialOperations.CreateMaterialFromTexture(GlobalVariables.Document, name, textureProps, alpha);
                         }
                     }
-                    else { 
-                        string pattern = @"#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})";
-                        System.Diagnostics.Debug.WriteLine("No texture found for material: " + (string)material["name"]);
-                        Regex regex = new Regex(pattern);
-                        MatchCollection matches = regex.Matches((string)material["id"]);
-                        string name = SanitizeFilename((string)material["name"]) + "_snaptrude";
-                        float alpha = (float)material["alpha"];
-                       if (matches.Count > 0)
-                       {
-                            string hex = matches[0].Value;
-                            System.Diagnostics.Debug.WriteLine("Creating material: " + hex);
-                            MaterialOperations.MaterialOperations.CreateMaterialFromHEX(GlobalVariables.Document, name, hex, alpha);
-                       }
+                    else
+                    {
+                        try
+                        {
+                            string pattern = @"#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})";
+                            System.Diagnostics.Debug.WriteLine("No texture found for material: " + (string)material["name"]);
+                            Regex regex = new Regex(pattern);
+                            MatchCollection matches = regex.Matches((string)material["id"]);
+                            string name = SanitizeFilename((string)material["name"]) + "_snaptrude";
+                            float alpha = (float)material["alpha"];
+                            if (matches.Count > 0)
+                            {
+                                string hex = matches[0].Value;
+                                System.Diagnostics.Debug.WriteLine("Creating material: " + hex);
+                                MaterialOperations.MaterialOperations.CreateMaterialFromHEX(GlobalVariables.Document, name, hex, alpha);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Error");
+                        }
                     }
                 }
             }

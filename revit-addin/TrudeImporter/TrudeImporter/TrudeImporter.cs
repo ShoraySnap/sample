@@ -67,7 +67,13 @@ namespace TrudeImporter
                     storeyNames.Add(storey.RevitName);
                     var levelWithSameId = existingLevels.FirstOrDefault(l => l.Id.IntegerValue == storeyProperties.LowerLevelElementId);
                     if (!levelWithSameId.IsNull())
+                    {
                         storiesWithMatchingLevelIds.Add((storey, levelWithSameId));
+                        if (existingLevelNames.Contains(levelWithSameId.Name))
+                        {
+                            existingLevelNames = existingLevelNames.Where(a => a != levelWithSameId.Name);
+                        }
+                    }
                     else
                         if (!existingLevelNames.Contains(storey.RevitName)) storiesToCreate.Add(storey);
                 }
@@ -146,29 +152,6 @@ namespace TrudeImporter
                 }
             }
 
-            foreach (TrudeStorey newStorey in storiesToCreate)
-            {
-                try
-                {
-
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                    {
-                        t.Start();
-
-                        newStorey.CreateLevel(GlobalVariables.Document);
-                        GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
-
-                        t.Commit();
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    LogTrace(e.Message);
-                }
-            }
-            LogTrace("stories created");
-
             try
             {
                 using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
@@ -199,8 +182,32 @@ namespace TrudeImporter
             {
                 LogTrace(e.Message);
             }
+            LogTrace("existing stories handled");
 
-            LogTrace("stories handled");
+            foreach (TrudeStorey newStorey in storiesToCreate)
+            {
+                try
+                {
+
+                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    {
+                        t.Start();
+
+                        newStorey.CreateLevel(GlobalVariables.Document);
+                        GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
+
+                        t.Commit();
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    LogTrace(e.Message);
+                }
+            }
+            LogTrace("stories created");
+
+            
 
         }
 
@@ -542,7 +549,7 @@ namespace TrudeImporter
                             );
                         if (floor.AllFaceVertices != null)
                         {
-                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
+                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
                             if (floor.FaceVertices != null)
                             {
                                 CurveArray profile = TrudeRoom.getProfile(floor.FaceVertices);
