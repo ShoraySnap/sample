@@ -136,7 +136,8 @@ namespace SnaptrudeForgeExport
                     newDoc.Delete(structuralView.Id);
                     t.Commit();
                 }
-            } catch { }
+            }
+            catch { }
 
             using (Transaction t = new Transaction(newDoc, "Set up project information"))
             {
@@ -159,7 +160,8 @@ namespace SnaptrudeForgeExport
                 // This must be created in host.rvt
                 ViewPlan template = Utils.FindElement(newDoc, typeof(ViewPlan), "View Template") as ViewPlan;
 
-                sheets = trudeProperties.Views.Select(viewProperties => {
+                sheets = trudeProperties.Views.Select(viewProperties =>
+                {
                     ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
                     viewPlan.DetailLevel = ViewDetailLevel.Coarse;
                     viewPlan.DisplayStyle = DisplayStyle.Shading;
@@ -180,7 +182,7 @@ namespace SnaptrudeForgeExport
             }
 
             string outputFormat = (string)trudeData["outputFormat"];
-            switch(outputFormat)
+            switch (outputFormat)
             {
                 case "dwg":
                     ExportAllViewsAsDWG(newDoc);
@@ -208,18 +210,13 @@ namespace SnaptrudeForgeExport
             {
                 t.Start();
 
-                List<ElementId> allViewIds = sheets.Select(v =>
-                {
-                    return v.Id;
-                }).ToList();
-
                 PDFExportOptions options = new PDFExportOptions
                 {
                     ColorDepth = ColorDepthType.Color,
                     Combine = false,
                     ExportQuality = PDFExportQualityType.DPI4000,
                     HideCropBoundaries = true,
-                    PaperFormat = ExportPaperFormat.Default],
+                    PaperFormat = ExportPaperFormat.Default,
                     //HideReferencePlane = true,
                     //HideScopeBoxes = true,
                     //HideUnreferencedViewTags = true,
@@ -229,7 +226,7 @@ namespace SnaptrudeForgeExport
                     ZoomType = ZoomType.Zoom,
                     ZoomPercentage = 100
                 };
-                newDoc.Export(Configs.PDF_EXPORT_DIRECTORY, allViewIds, options);
+                newDoc.Export(Configs.PDF_EXPORT_DIRECTORY, sheets.Select(sheet => sheet.Id).ToList(), options);
                 t.Commit();
             }
 
@@ -242,7 +239,8 @@ namespace SnaptrudeForgeExport
 
         private XYZ GetViewPosition(SheetSizeEnum sheetSize)
         {
-            switch (sheetSize) {
+            switch (sheetSize)
+            {
                 case SheetSizeEnum.ISO_A1:
                     new XYZ(1.3792, 0.975, 0);
                     break;
@@ -305,7 +303,7 @@ namespace SnaptrudeForgeExport
 
         private string GetRoomTagTypeName(ViewProperties viewProperties)
         {
-            switch(viewProperties.Sheet.Scale)
+            switch (viewProperties.Sheet.Scale)
             {
                 case 50:
                 case 64:
