@@ -50,7 +50,7 @@ namespace TrudeImporter
     public class LabelSettings
     {
         [JsonProperty("selected")]
-        public LabelsEnum Selected { get; set; }
+        public List<LabelsEnum> Selected { get; set; }
 
         [JsonProperty("fontSize")]
         public FontSizeEnum FontSize { get; set; }
@@ -62,7 +62,7 @@ namespace TrudeImporter
         public SheetSizeEnum SheetSize { get; set; }
 
         [JsonProperty("scale")]
-        public int scale;
+        public int Scale;
     }
 
     public class ColorSettings
@@ -71,7 +71,7 @@ namespace TrudeImporter
         public string BackgroundColor;
 
         [JsonProperty("scheme")]
-        public ColorSchemeEnum scheme;
+        public ColorSchemeEnum Scheme;
     }
 
     public class ViewElements

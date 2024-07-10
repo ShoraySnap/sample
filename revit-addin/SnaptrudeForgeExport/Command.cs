@@ -12,6 +12,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
+using RevitMaterial = Autodesk.Revit.DB.Material;
 
 namespace SnaptrudeForgeExport
 {
@@ -99,9 +100,6 @@ namespace SnaptrudeForgeExport
             GlobalVariables.materials = trudeData["materials"] as JArray;
             GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
 
-            //JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
-            //JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
-
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
             {
                 NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
@@ -141,35 +139,43 @@ namespace SnaptrudeForgeExport
                 }
             } catch { }
 
-            List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
-                                       .Select(e => e as View)
-                                       .Where(e => e.CanBePrinted)
-                                       .ToList();
-
-            using(Transaction t = new Transaction(newDoc, "Set View details levels and filter overrides"))
+            using (Transaction t = new Transaction(newDoc, "Set up project information"))
             {
                 t.Start();
 
-                // ThinWallFilter should be defined in host.rvt
-                FilterElement filterElement = Utils.FindElement(newDoc, typeof(FilterElement), "ThinWallFilter") as FilterElement;
+                ProjectInfo projectInfo = newDoc.ProjectInformation;
+                projectInfo.ClientName = trudeProperties.PDFExport.CompanyName;
+                projectInfo.LookupParameter("Project Name").Set(trudeProperties.PDFExport.ProjectName);
+                newDoc.SetUnits(new Units(trudeProperties.Project.Unit == UnitEnum.Metric ? UnitSystem.Metric : UnitSystem.Imperial));
 
-                foreach (View v in printableViews)
-                {
-                    v.DetailLevel = ViewDetailLevel.Fine;
+                t.Commit();
+            }
 
-                    if (v.GetFilters().Contains(filterElement.Id)) continue;
-                    v.AddFilter(filterElement.Id);
+            List<ViewSheet> sheets = null;
 
-                    OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
-                    overrideGraphicSettings.SetCutLineColor(new Color(0, 200, 200));
-                    overrideGraphicSettings.SetCutLineWeight(1);
+            using (Transaction t = new Transaction(newDoc, "Set up view detail levels and sheets"))
+            {
+                t.Start();
 
-                    v.SetFilterOverrides(filterElement.Id, overrideGraphicSettings);
+                // This must be created in host.rvt
+                ViewPlan template = Utils.FindElement(newDoc, typeof(ViewPlan), "View Template") as ViewPlan;
 
-                    OverrideGraphicSettings overrides = new OverrideGraphicSettings();
-                    overrides.SetSurfaceTransparency(50);
-                    v.SetCategoryOverrides(new ElementId(BuiltInCategory.OST_Floors), overrides);
-                }
+                sheets = trudeProperties.Views.Select(viewProperties => {
+                    ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
+                    viewPlan.DetailLevel = ViewDetailLevel.Coarse;
+                    viewPlan.DisplayStyle = DisplayStyle.Shading;
+                    SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, 96);
+                    viewPlan.SetCategoryHidden(new ElementId(BuiltInCategory.OST_GenericModel), true); // Need to revisit this
+                    FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
+                                                       .Cast<FamilySymbol>()
+                                                       .Where(f => f.FamilyName.ToLower().Contains(Enum.GetName(typeof(SheetSizeEnum), viewProperties.Sheet.SheetSize).ToLower()) && f.Name.Contains("Snaptrude"))
+                                                       .FirstOrDefault();
+                    ViewSheet sheet = ViewSheet.Create(newDoc, titleBlockType.Id);
+                    sheet.Name = viewProperties.Name;
+                    Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
+                    newDoc.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);
+                    return sheet;
+                }).ToList();
 
                 t.Commit();
             }
@@ -184,7 +190,7 @@ namespace SnaptrudeForgeExport
                     ExportIFC(newDoc);
                     break;
                 case "pdf":
-                    ExportPDF(newDoc, printableViews);
+                    ExportPDF(newDoc, sheets);
                     break;
                 default:
                     SaveDocument(newDoc);
@@ -192,26 +198,29 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private void ExportPDF(Document newDoc, List<View> allViews)
+        private void ExportPDF(Document newDoc, List<ViewSheet> sheets)
         {
 #if REVIT2019 || REVIT2020 || REVIT2021
             return;
 #else
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
 
-            List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
-
             using (Transaction t = new Transaction(newDoc, "Export to PDF"))
             {
                 t.Start();
+
+                List<ElementId> allViewIds = sheets.Select(v =>
+                {
+                    return v.Id;
+                }).ToList();
 
                 PDFExportOptions options = new PDFExportOptions
                 {
                     ColorDepth = ColorDepthType.Color,
                     Combine = false,
                     ExportQuality = PDFExportQualityType.DPI4000,
-                    //HideCropBoundaries = true,
-                    PaperFormat = ExportPaperFormat.Default,
+                    HideCropBoundaries = true,
+                    PaperFormat = ExportPaperFormat.Default],
                     //HideReferencePlane = true,
                     //HideScopeBoxes = true,
                     //HideUnreferencedViewTags = true,
@@ -230,6 +239,108 @@ namespace SnaptrudeForgeExport
 
             Directory.Delete(Configs.PDF_EXPORT_DIRECTORY, true);
 #endif
+        }
+
+        private XYZ GetViewPosition(SheetSizeEnum sheetSize)
+        {
+            switch (sheetSize) {
+                case SheetSizeEnum.ISO_A1:
+                    new XYZ(1.3792, 0.975, 0);
+                    break;
+            }
+
+            return new XYZ(0, 0, 0);
+        }
+
+        private ViewPlan DuplicateViewFromTemplateWithRoomTags(Document doc, ViewProperties viewProperties, View template)
+        {
+            using (Transaction trans = new Transaction(doc, "Duplicate View with Room Tags"))
+            {
+                trans.Start();
+
+                // Duplicate the view
+                ViewFamilyType floorPlanType = new FilteredElementCollector(doc)
+                                    .OfClass(typeof(ViewFamilyType))
+                                    .Cast<ViewFamilyType>()
+                                    .FirstOrDefault(x => ViewFamily.FloorPlan == x.ViewFamily);
+                Level lvl = Utils.FindElement(doc, typeof(Level), TrudeStorey.getLevelName(viewProperties.Storey)) as Level;
+                ViewPlan ogView = Utils.FindElement(doc, typeof(ViewPlan), lvl.Name) as ViewPlan;
+                ViewPlan newView = ViewPlan.Create(doc, floorPlanType.Id, lvl.Id);
+
+                // Collect room tags in the original view
+                FilteredElementCollector collector = new FilteredElementCollector(doc, ogView.Id);
+
+                ElementId roomTagTypeId = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Where(rtt => rtt.Name == GetRoomTagTypeName(viewProperties))
+                    .Select(rtt => rtt.Id)
+                    .FirstOrDefault();
+                RoomTagType roomTagTypeOg = doc.GetElement(roomTagTypeId) as RoomTagType;
+
+                RoomTagType roomTagType = roomTagTypeOg.Duplicate(roomTagTypeOg.Name.Concat(newView.Id.ToString()).ToString()) as RoomTagType;
+                // Update room tag type according to view settings
+                roomTagType.LookupParameter("Show Area").Set(viewProperties.Label.Selected.Any(value => value == LabelsEnum.Areas) ? 1 : 0);
+
+                foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Cast<SpatialElementTag>().Where(s => s.GetType() == typeof(RoomTag)))
+                {
+                    // Get room tag location
+                    LocationPoint locPoint = roomTag.Location as LocationPoint;
+                    XYZ tagLocation = locPoint.Point;
+
+                    // Get the referenced room
+                    Room room = doc.GetElement(roomTag.Room.Id) as Room;
+
+                    // Create a new room tag in the new view at the same location
+                    RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
+                    newRoomTag.RoomTagType = roomTagType; // Copy the tag type
+                }
+
+                newView.ApplyViewTemplateParameters(template);
+
+                trans.Commit();
+
+                return newView;
+            }
+
+        }
+
+        private string GetRoomTagTypeName(ViewProperties viewProperties)
+        {
+            switch(viewProperties.Sheet.Scale)
+            {
+                case 50:
+                case 64:
+                    return "Room Tag_Snaptrude_3-16";
+
+                case 100:
+                case 96:
+                    return "Room Tag_Snaptrude_1-8";
+
+                case 150:
+                case 128:
+                    return "Room Tag_Snaptrude_3-32";
+
+                case 200:
+                case 192:
+                    return "Room Tag_Snaptrude_1-16";
+
+            }
+
+            return "Room Tag_Snaptrude_1-8"; ;
+        }
+
+        private void SetCropBoxToFitPaperSize(ViewPlan view, XYZ min, XYZ max, int scale)
+        {
+            BoundingBoxXYZ cropBox = new BoundingBoxXYZ();
+
+            cropBox.Min = new XYZ(min.X, min.Y, cropBox.Min.Z);
+            cropBox.Max = new XYZ(max.X, max.Y, cropBox.Max.Z);
+
+            view.Scale = scale;
+            view.CropBox = cropBox;
+            view.CropBoxActive = true;
+            view.CropBoxVisible = false;
+            view.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE).Set(1);
         }
 
         private void SaveDocument(Document newDoc)
