@@ -217,6 +217,7 @@ namespace SnaptrudeForgeExport
                     ExportQuality = PDFExportQualityType.DPI4000,
                     HideCropBoundaries = true,
                     PaperFormat = ExportPaperFormat.Default,
+                    FileName = pdfExport.ProjectName + "_Sheets",
                     //HideReferencePlane = true,
                     //HideScopeBoxes = true,
                     //HideUnreferencedViewTags = true,
@@ -242,8 +243,7 @@ namespace SnaptrudeForgeExport
             switch (sheetSize)
             {
                 case SheetSizeEnum.ISO_A1:
-                    new XYZ(1.3792, 0.975, 0);
-                    break;
+                    return new XYZ(1.3792, 0.975, 0);
             }
 
             return new XYZ(0, 0, 0);
@@ -266,14 +266,10 @@ namespace SnaptrudeForgeExport
             ElementId roomTagTypeId = new FilteredElementCollector(doc)
                 .OfClass(typeof(FamilySymbol))
                 .Cast<FamilySymbol>()
-                .Where(rtt => rtt.FamilyName == GetRoomTagTypeName(viewProperties))
+                .Where(rtt => rtt.FamilyName == GetRoomTagTypeFamilyName(viewProperties))
                 .Select(rtt => rtt.Id)
                 .FirstOrDefault();
-            RoomTagType roomTagTypeOg = doc.GetElement(roomTagTypeId) as RoomTagType;
-
-            RoomTagType roomTagType = roomTagTypeOg.Duplicate(roomTagTypeOg.Name) as RoomTagType;
-            // Update room tag type according to view settings
-            roomTagType.LookupParameter("Show Area").Set(viewProperties.Label.Selected.Any(value => value == LabelsEnum.Areas) ? 1 : 0);
+            RoomTagType roomTagType = doc.GetElement(roomTagTypeId) as RoomTagType;
 
             foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Cast<SpatialElementTag>().Where(s => s.GetType() == typeof(RoomTag)))
             {
@@ -295,29 +291,30 @@ namespace SnaptrudeForgeExport
 
         }
 
-        private string GetRoomTagTypeName(ViewProperties viewProperties)
+        private string GetRoomTagTypeFamilyName(ViewProperties viewProperties)
         {
+            string area = viewProperties.Label.Selected.Any(value => value == LabelsEnum.Areas) ? "+Area" : "";
             switch (viewProperties.Sheet.Scale)
             {
                 case 50:
                 case 64:
-                    return "Room Tag_Snaptrude_3-16";
+                    return "Room Tag" + area + "_Snaptrude_3-16";
 
                 case 100:
                 case 96:
-                    return "Room Tag_Snaptrude_1-8";
+                    return "Room Tag" + area + "_Snaptrude_1-8";
 
                 case 150:
                 case 128:
-                    return "Room Tag_Snaptrude_3-32";
+                    return "Room Tag" + area + "_Snaptrude_3-32";
 
                 case 200:
                 case 192:
-                    return "Room Tag_Snaptrude_1-16";
+                    return "Room Tag" + area + "_Snaptrude_1-16";
 
             }
 
-            return "Room Tag_Snaptrude_1-8"; ;
+            return "Room Tag" + area + "_Snaptrude_1-8";
         }
 
         private void SetCropBoxToFitPaperSize(ViewPlan view, XYZ min, XYZ max, int scale)
