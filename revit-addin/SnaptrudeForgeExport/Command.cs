@@ -168,9 +168,9 @@ namespace SnaptrudeForgeExport
                     SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, 96);
                     viewPlan.SetCategoryHidden(new ElementId(BuiltInCategory.OST_GenericModel), true); // Need to revisit this
                     FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
-                                                       .Cast<FamilySymbol>()
-                                                       .Where(f => f.FamilyName.ToLower().Contains(Enum.GetName(typeof(SheetSizeEnum), viewProperties.Sheet.SheetSize).ToLower()) && f.Name.Contains("Snaptrude"))
-                                                       .FirstOrDefault();
+                                .Cast<FamilySymbol>()
+                                .Where(f => f.FamilyName.Replace(" ", "_").ToLower().Contains(Enum.GetName(typeof(SheetSizeEnum), viewProperties.Sheet.SheetSize).ToLower()) && f.Name.Contains("Snaptrude"))
+                                .FirstOrDefault();
                     ViewSheet sheet = ViewSheet.Create(newDoc, titleBlockType.Id);
                     sheet.Name = viewProperties.Name;
                     Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
@@ -191,7 +191,7 @@ namespace SnaptrudeForgeExport
                     ExportIFC(newDoc);
                     break;
                 case "pdf":
-                    ExportPDF(newDoc, sheets);
+                    ExportPDF(newDoc, sheets, trudeProperties.PDFExport);
                     break;
                 default:
                     SaveDocument(newDoc);
@@ -199,7 +199,7 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private void ExportPDF(Document newDoc, List<ViewSheet> sheets)
+        private void ExportPDF(Document newDoc, List<ViewSheet> sheets, PDFExportProperties pdfExport)
         {
 #if REVIT2019 || REVIT2020 || REVIT2021
             return;
@@ -213,7 +213,7 @@ namespace SnaptrudeForgeExport
                 PDFExportOptions options = new PDFExportOptions
                 {
                     ColorDepth = ColorDepthType.Color,
-                    Combine = false,
+                    Combine = pdfExport.MergePDFs,
                     ExportQuality = PDFExportQualityType.DPI4000,
                     HideCropBoundaries = true,
                     PaperFormat = ExportPaperFormat.Default,
@@ -251,53 +251,47 @@ namespace SnaptrudeForgeExport
 
         private ViewPlan DuplicateViewFromTemplateWithRoomTags(Document doc, ViewProperties viewProperties, View template)
         {
-            using (Transaction trans = new Transaction(doc, "Duplicate View with Room Tags"))
+            // Duplicate the view
+            ViewFamilyType floorPlanType = new FilteredElementCollector(doc)
+                                .OfClass(typeof(ViewFamilyType))
+                                .Cast<ViewFamilyType>()
+                                .FirstOrDefault(x => ViewFamily.FloorPlan == x.ViewFamily);
+            Level lvl = Utils.FindElement(doc, typeof(Level), TrudeStorey.getLevelName(viewProperties.Storey)) as Level;
+            ViewPlan ogView = Utils.FindElement(doc, typeof(ViewPlan), lvl.Name) as ViewPlan;
+            ViewPlan newView = ViewPlan.Create(doc, floorPlanType.Id, lvl.Id);
+
+            // Collect room tags in the original view
+            FilteredElementCollector collector = new FilteredElementCollector(doc, ogView.Id);
+
+            ElementId roomTagTypeId = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilySymbol))
+                .Cast<FamilySymbol>()
+                .Where(rtt => rtt.FamilyName == GetRoomTagTypeName(viewProperties))
+                .Select(rtt => rtt.Id)
+                .FirstOrDefault();
+            RoomTagType roomTagTypeOg = doc.GetElement(roomTagTypeId) as RoomTagType;
+
+            RoomTagType roomTagType = roomTagTypeOg.Duplicate(roomTagTypeOg.Name) as RoomTagType;
+            // Update room tag type according to view settings
+            roomTagType.LookupParameter("Show Area").Set(viewProperties.Label.Selected.Any(value => value == LabelsEnum.Areas) ? 1 : 0);
+
+            foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Cast<SpatialElementTag>().Where(s => s.GetType() == typeof(RoomTag)))
             {
-                trans.Start();
+                // Get room tag location
+                LocationPoint locPoint = roomTag.Location as LocationPoint;
+                XYZ tagLocation = locPoint.Point;
 
-                // Duplicate the view
-                ViewFamilyType floorPlanType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(ViewFamilyType))
-                                    .Cast<ViewFamilyType>()
-                                    .FirstOrDefault(x => ViewFamily.FloorPlan == x.ViewFamily);
-                Level lvl = Utils.FindElement(doc, typeof(Level), TrudeStorey.getLevelName(viewProperties.Storey)) as Level;
-                ViewPlan ogView = Utils.FindElement(doc, typeof(ViewPlan), lvl.Name) as ViewPlan;
-                ViewPlan newView = ViewPlan.Create(doc, floorPlanType.Id, lvl.Id);
+                // Get the referenced room
+                Room room = doc.GetElement(roomTag.Room.Id) as Room;
 
-                // Collect room tags in the original view
-                FilteredElementCollector collector = new FilteredElementCollector(doc, ogView.Id);
-
-                ElementId roomTagTypeId = new FilteredElementCollector(doc)
-                    .OfClass(typeof(FamilySymbol))
-                    .Where(rtt => rtt.Name == GetRoomTagTypeName(viewProperties))
-                    .Select(rtt => rtt.Id)
-                    .FirstOrDefault();
-                RoomTagType roomTagTypeOg = doc.GetElement(roomTagTypeId) as RoomTagType;
-
-                RoomTagType roomTagType = roomTagTypeOg.Duplicate(roomTagTypeOg.Name.Concat(newView.Id.ToString()).ToString()) as RoomTagType;
-                // Update room tag type according to view settings
-                roomTagType.LookupParameter("Show Area").Set(viewProperties.Label.Selected.Any(value => value == LabelsEnum.Areas) ? 1 : 0);
-
-                foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Cast<SpatialElementTag>().Where(s => s.GetType() == typeof(RoomTag)))
-                {
-                    // Get room tag location
-                    LocationPoint locPoint = roomTag.Location as LocationPoint;
-                    XYZ tagLocation = locPoint.Point;
-
-                    // Get the referenced room
-                    Room room = doc.GetElement(roomTag.Room.Id) as Room;
-
-                    // Create a new room tag in the new view at the same location
-                    RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
-                    newRoomTag.RoomTagType = roomTagType; // Copy the tag type
-                }
-
-                newView.ApplyViewTemplateParameters(template);
-
-                trans.Commit();
-
-                return newView;
+                // Create a new room tag in the new view at the same location
+                RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
+                newRoomTag.RoomTagType = roomTagType; // Copy the tag type
             }
+
+            newView.ApplyViewTemplateParameters(template);
+
+            return newView;
 
         }
 

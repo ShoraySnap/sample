@@ -14,13 +14,13 @@ namespace TrudeImporter
         [JsonProperty("walls")]
         public List<WallProperties> Walls { get; set; }
 
-        [JsonProperty("views")]
+        [JsonProperty("views", NullValueHandling = NullValueHandling.Ignore)]
         public List<ViewProperties> Views { get; set; }
 
-        [JsonProperty("projectProperties")]
+        [JsonProperty("projectProperties", NullValueHandling = NullValueHandling.Ignore)]
         public ProjectProperties Project {  get; set; }
 
-        [JsonProperty("pdfConfig")]
+        [JsonProperty("pdfConfig", NullValueHandling = NullValueHandling.Ignore)]
         public PDFExportProperties PDFExport { get; set; }
 
         [JsonProperty("beams")]
