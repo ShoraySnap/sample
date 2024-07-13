@@ -763,6 +763,7 @@ namespace TrudeImporter
                                 CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
                                 ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
                                 TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
+                                GlobalVariables.UniqueIdToElementId.Add(mass.UniqueId, directShape.Id);
                             }
                         }
                         deleteOld(mass.ExistingElementId);

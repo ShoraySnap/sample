@@ -99,6 +99,9 @@ namespace SnaptrudeForgeExport
             GlobalVariables.materials = trudeData["materials"] as JArray;
             GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
 
+            //JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
+            //JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
+
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
             {
                 NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
@@ -136,9 +139,31 @@ namespace SnaptrudeForgeExport
                     newDoc.Delete(structuralView.Id);
                     t.Commit();
                 }
-            }
-            catch { }
+            } catch { }
 
+            string outputFormat = (string)trudeData["outputFormat"];
+            switch(outputFormat)
+            {
+                case "dwg":
+                    ExportAllViewsAsDWG(newDoc);
+                    break;
+                case "ifc":
+                    ExportIFC(newDoc);
+                    break;
+                case "pdf":
+                    ExportPDF(newDoc, trudeProperties);
+                    break;
+                default:
+                    SaveDocument(newDoc);
+                    break;
+            }
+        }
+
+        private void ExportPDF(Document newDoc, TrudeProperties trudeProperties)
+        {
+#if REVIT2019 || REVIT2020 || REVIT2021
+            return;
+#else
             using (Transaction t = new Transaction(newDoc, "Set up project information"))
             {
                 t.Start();
@@ -153,7 +178,7 @@ namespace SnaptrudeForgeExport
 
             List<ViewSheet> sheets = null;
 
-            using (Transaction t = new Transaction(newDoc, "Set up view detail levels and sheets"))
+            using (Transaction t = new Transaction(newDoc, "Set up view detail levels, color scheme and sheets"))
             {
                 t.Start();
 
@@ -163,8 +188,7 @@ namespace SnaptrudeForgeExport
                 sheets = trudeProperties.Views.Select(viewProperties =>
                 {
                     ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
-                    viewPlan.DetailLevel = ViewDetailLevel.Coarse;
-                    viewPlan.DisplayStyle = DisplayStyle.Shading;
+                    if (viewPlan == null) return null;
                     SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, 96);
                     viewPlan.SetCategoryHidden(new ElementId(BuiltInCategory.OST_GenericModel), true); // Need to revisit this
                     FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
@@ -174,37 +198,43 @@ namespace SnaptrudeForgeExport
                     ViewSheet sheet = ViewSheet.Create(newDoc, titleBlockType.Id);
                     sheet.Name = viewProperties.Name;
                     Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
+
+                    if (viewProperties.Color.Scheme == ColorSchemeEnum.textured)
+                    {
+                        viewPlan.DisplayStyle = DisplayStyle.Shading;
+                        trudeProperties.Masses.ForEach(mass =>
+                        {
+                            bool doesMassExist = GlobalVariables.UniqueIdToElementId.TryGetValue(mass.UniqueId, out ElementId elemId);
+                            if (doesMassExist)
+                            {
+                                string hex = mass.MaterialHex != null ? mass.MaterialHex.Replace("#", "") : "ffffff";
+                                byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                                byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+                                byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+
+                                OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
+                                overrideGraphicSettings.SetCutForegroundPatternColor(new Color(r, g, b));
+                                overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(newDoc).Id);
+                                overrideGraphicSettings.SetCutForegroundPatternVisible(true);
+
+                                viewPlan.SetElementOverrides(elemId, overrideGraphicSettings);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        viewPlan.DisplayStyle = DisplayStyle.HLR;
+                    }
                     newDoc.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);
                     return sheet;
-                }).ToList();
+                }).Where(sheet => sheet != null).ToList();
 
                 t.Commit();
             }
 
-            string outputFormat = (string)trudeData["outputFormat"];
-            switch (outputFormat)
-            {
-                case "dwg":
-                    ExportAllViewsAsDWG(newDoc);
-                    break;
-                case "ifc":
-                    ExportIFC(newDoc);
-                    break;
-                case "pdf":
-                    ExportPDF(newDoc, sheets, trudeProperties.PDFExport);
-                    break;
-                default:
-                    SaveDocument(newDoc);
-                    break;
-            }
-        }
-
-        private void ExportPDF(Document newDoc, List<ViewSheet> sheets, PDFExportProperties pdfExport)
-        {
-#if REVIT2019 || REVIT2020 || REVIT2021
-            return;
-#else
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
+
+            PDFExportProperties pdfExport = trudeProperties.PDFExport;
 
             using (Transaction t = new Transaction(newDoc, "Export to PDF"))
             {
@@ -256,39 +286,46 @@ namespace SnaptrudeForgeExport
                                 .OfClass(typeof(ViewFamilyType))
                                 .Cast<ViewFamilyType>()
                                 .FirstOrDefault(x => ViewFamily.FloorPlan == x.ViewFamily);
-            Level lvl = Utils.FindElement(doc, typeof(Level), TrudeStorey.getLevelName(viewProperties.Storey)) as Level;
-            ViewPlan ogView = Utils.FindElement(doc, typeof(ViewPlan), lvl.Name) as ViewPlan;
-            ViewPlan newView = ViewPlan.Create(doc, floorPlanType.Id, lvl.Id);
-
-            // Collect room tags in the original view
-            FilteredElementCollector collector = new FilteredElementCollector(doc, ogView.Id);
-
-            ElementId roomTagTypeId = new FilteredElementCollector(doc)
-                .OfClass(typeof(FamilySymbol))
-                .Cast<FamilySymbol>()
-                .Where(rtt => rtt.FamilyName == GetRoomTagTypeFamilyName(viewProperties))
-                .Select(rtt => rtt.Id)
-                .FirstOrDefault();
-            RoomTagType roomTagType = doc.GetElement(roomTagTypeId) as RoomTagType;
-
-            foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Cast<SpatialElementTag>().Where(s => s.GetType() == typeof(RoomTag)))
+            bool doesLevelExist = GlobalVariables.LevelIdByNumber.TryGetValue(viewProperties.Storey, out ElementId lvlId);
+            if (doesLevelExist)
             {
-                // Get room tag location
-                LocationPoint locPoint = roomTag.Location as LocationPoint;
-                XYZ tagLocation = locPoint.Point;
+                Level lvl = doc.GetElement(lvlId) as Level;
+                ViewPlan ogView = Utils.FindElement(doc, typeof(ViewPlan), lvl.Name) as ViewPlan;
+                ViewPlan newView = ViewPlan.Create(doc, floorPlanType.Id, lvl.Id);
+                newView.ApplyViewTemplateParameters(template);
 
-                // Get the referenced room
-                Room room = doc.GetElement(roomTag.Room.Id) as Room;
+                // Collect room tags in the original view
+                FilteredElementCollector collector = new FilteredElementCollector(doc, ogView.Id);
 
-                // Create a new room tag in the new view at the same location
-                RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
-                newRoomTag.RoomTagType = roomTagType; // Copy the tag type
+                ElementId roomTagTypeId = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .Where(rtt => rtt.FamilyName == GetRoomTagTypeFamilyName(viewProperties))
+                    .Select(rtt => rtt.Id)
+                    .FirstOrDefault();
+                RoomTagType roomTagType = doc.GetElement(roomTagTypeId) as RoomTagType;
+
+                foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Where(s => s.GetType() == typeof(RoomTag)).Cast<RoomTag>())
+                {
+                    // Get room tag location
+                    LocationPoint locPoint = roomTag.Location as LocationPoint;
+                    XYZ tagLocation = locPoint.Point;
+
+                    // Get the referenced room
+                    Room room = doc.GetElement(roomTag.Room.Id) as Room;
+
+                    // Create a new room tag in the new view at the same location
+                    RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
+                    newRoomTag.RoomTagType = roomTagType; // Copy the tag type
+                }
+
+                return newView;
             }
-
-            newView.ApplyViewTemplateParameters(template);
-
-            return newView;
-
+            else
+            {
+                Utils.LogTrace("Failed to get level for storey " + viewProperties.Storey.ToString());
+                return null;
+            }
         }
 
         private string GetRoomTagTypeFamilyName(ViewProperties viewProperties)
