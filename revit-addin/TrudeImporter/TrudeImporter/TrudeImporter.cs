@@ -760,7 +760,7 @@ namespace TrudeImporter
                         {
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
                             GlobalVariables.UniqueIdToElementId.Add(mass.UniqueId, directShape.Id);
-                            if (mass.Type == "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
+                            if (mass.Type == "Room" && (mass.RoomType != "Default" || GlobalVariables.ForForgePDFExport) && mass.BottomFaceVertices != null)
                             {
                                 CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
                                 ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];

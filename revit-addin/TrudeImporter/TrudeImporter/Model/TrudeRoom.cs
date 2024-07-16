@@ -81,7 +81,7 @@ namespace TrudeImporter
 
         public static void StoreRoomData(ElementId levelId, string roomType, Element element, CurveArray profile, int uniqueId = -1)
         {
-            if (roomType != "Default")
+            if (roomType != "Default" || GlobalVariables.ForForgePDFExport)
             {
                 element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
                 bool isDirectShape = element is DirectShape;

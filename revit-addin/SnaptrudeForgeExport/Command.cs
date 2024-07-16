@@ -95,6 +95,7 @@ namespace SnaptrudeForgeExport
             GlobalVariables.RvtApp = rvtApp;
             GlobalVariables.Document = newDoc;
             GlobalVariables.ForForge = true;
+            GlobalVariables.ForForgePDFExport = ((string)trudeData["outputFormat"] == "pdf");
 
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
 
