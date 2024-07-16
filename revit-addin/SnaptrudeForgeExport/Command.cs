@@ -3,6 +3,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Events;
+using Autodesk.Revit.UI;
 using DesignAutomationFramework;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 
@@ -190,7 +192,6 @@ namespace SnaptrudeForgeExport
                     ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
                     if (viewPlan == null) return null;
                     SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, 96);
-                    viewPlan.SetCategoryHidden(new ElementId(BuiltInCategory.OST_GenericModel), true); // Need to revisit this
                     FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
                                 .Cast<FamilySymbol>()
                                 .Where(f => f.FamilyName.Replace(" ", "_").ToLower().Contains(Enum.GetName(typeof(SheetSizeEnum), viewProperties.Sheet.SheetSize).ToLower()) && f.Name.Contains("Snaptrude"))
@@ -201,7 +202,7 @@ namespace SnaptrudeForgeExport
 
                     if (viewProperties.Color.Scheme == ColorSchemeEnum.textured)
                     {
-                        viewPlan.DisplayStyle = DisplayStyle.Shading;
+                        viewPlan.DisplayStyle = DisplayStyle.Textures;
                         trudeProperties.Masses.ForEach(mass =>
                         {
                             bool doesMassExist = GlobalVariables.UniqueIdToElementId.TryGetValue(mass.UniqueId, out ElementId elemId);
@@ -217,6 +218,10 @@ namespace SnaptrudeForgeExport
                                 overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(newDoc).Id);
                                 overrideGraphicSettings.SetCutForegroundPatternVisible(true);
 
+                                overrideGraphicSettings.SetCutBackgroundPatternColor(new Color(r, g, b));
+                                overrideGraphicSettings.SetCutBackgroundPatternId(Utils.GetSolidFillPatternElement(newDoc).Id);
+                                overrideGraphicSettings.SetCutBackgroundPatternVisible(true);
+
                                 viewPlan.SetElementOverrides(elemId, overrideGraphicSettings);
                             }
                         });
@@ -224,6 +229,39 @@ namespace SnaptrudeForgeExport
                     else
                     {
                         viewPlan.DisplayStyle = DisplayStyle.HLR;
+                    }
+                    List<ElementId> elementsToHide = viewProperties.Elements.HiddenIds.Select(id =>
+                    {
+                        bool elementExists = GlobalVariables.UniqueIdToElementId.TryGetValue(id, out ElementId elementId);
+                        if (elementExists)
+                        {
+                            return elementId;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }).Where(elementId => elementId != null).Where(elementId => !newDoc.GetElement(elementId).IsHidden(viewPlan)).ToList();
+                    if (elementsToHide.Count > 0)
+                    {
+                        viewPlan.HideElements(elementsToHide);
+                    }
+
+                    List<ElementId> roomsToHide = viewProperties.Elements.HiddenIds.Select(id =>
+                    {
+                        bool elementExists = GlobalVariables.UniqueIdToRoomId.TryGetValue(id, out ElementId elementId);
+                        if (elementExists)
+                        {
+                            return elementId;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }).Where(elementId => elementId != null).Where(elementId => !newDoc.GetElement(elementId).IsHidden(viewPlan)).ToList();
+                    if (roomsToHide.Count > 0)
+                    {
+                        viewPlan.HideElements(roomsToHide);
                     }
                     newDoc.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);
                     return sheet;
@@ -293,6 +331,7 @@ namespace SnaptrudeForgeExport
                 ViewPlan ogView = Utils.FindElement(doc, typeof(ViewPlan), lvl.Name) as ViewPlan;
                 ViewPlan newView = ViewPlan.Create(doc, floorPlanType.Id, lvl.Id);
                 newView.ApplyViewTemplateParameters(template);
+                newView.Scale = viewProperties.Sheet.Scale;
 
                 // Collect room tags in the original view
                 FilteredElementCollector collector = new FilteredElementCollector(doc, ogView.Id);
