@@ -42,7 +42,7 @@ namespace TrudeSerializer
         internal string GetProcessID(Document doc, int length)
         {
             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-            string guid = doc.CreationGUID.ToString();
+            string guid = doc.PathName.ToString();
 
             string combined = string.Join("", new string[] {timestamp, guid});
 
