@@ -26,6 +26,9 @@ namespace SnaptrudeForgeExport
     {
         //Path of the project(i.e)project where your Window family files are present
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
+        private static double mm_to_feet = 1 / (10 * 2.54 * 12);
+        private UV PDFPaddingX = new UV(5 * Command.mm_to_feet, 5 * Command.mm_to_feet);
+        private UV PDFPaddingY = new UV(5 * Command.mm_to_feet, 30 * Command.mm_to_feet);
         public ExternalDBApplicationResult OnStartup(ControlledApplication application)
         {
             DesignAutomationBridge.DesignAutomationReadyEvent += HandleDesignAutomationReadyEvent;
@@ -192,7 +195,7 @@ namespace SnaptrudeForgeExport
                 {
                     ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
                     if (viewPlan == null) return null;
-                    SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, 96);
+                    SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, viewProperties.Sheet);
                     FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
                                 .Cast<FamilySymbol>()
                                 .Where(f => f.FamilyName.Replace(" ", "_").ToLower().Contains(Enum.GetName(typeof(SheetSizeEnum), viewProperties.Sheet.SheetSize).ToLower()) && f.Name.Contains("Snaptrude"))
@@ -201,7 +204,7 @@ namespace SnaptrudeForgeExport
                     sheet.Name = viewProperties.Name;
                     Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
 
-                    if (viewProperties.Color.Scheme == ColorSchemeEnum.textured)
+                    if (viewProperties.Color.Scheme == ColorSchemeEnum.texture)
                     {
                         viewPlan.DisplayStyle = DisplayStyle.Textures;
                         trudeProperties.Masses.ForEach(mass =>
@@ -309,13 +312,11 @@ namespace SnaptrudeForgeExport
 
         private XYZ GetViewPosition(SheetSizeEnum sheetSize)
         {
-            switch (sheetSize)
-            {
-                case SheetSizeEnum.ISO_A1:
-                    return new XYZ(1.3792, 0.975, 0);
-            }
-
-            return new XYZ(0, 0, 0);
+            UV size = GetSheetSize(sheetSize);
+            // Calculate x, y in landscape orientation.
+            double x = size.V / 2 - (PDFPaddingX.V - PDFPaddingX.U);
+            double y = size.U / 2 - (PDFPaddingY.V - PDFPaddingY.U);
+            return new XYZ(x, y, 0);
         }
 
         private ViewPlan DuplicateViewFromTemplateWithRoomTags(Document doc, ViewProperties viewProperties, View template)
@@ -370,7 +371,7 @@ namespace SnaptrudeForgeExport
 
         private string GetRoomTagTypeFamilyName(ViewProperties viewProperties)
         {
-            string area = viewProperties.Label.Selected.Any(value => value == LabelsEnum.Areas) ? "+Area" : "";
+            string area = viewProperties.Label.Selected.Any(value => value == LabelsEnum.areas) ? "+Area" : "";
             switch (viewProperties.Sheet.Scale)
             {
                 case 50:
@@ -388,24 +389,48 @@ namespace SnaptrudeForgeExport
                 case 200:
                 case 192:
                     return "Room Tag" + area + "_Snaptrude_1-16";
-
             }
 
             return "Room Tag" + area + "_Snaptrude_1-8";
         }
 
-        private void SetCropBoxToFitPaperSize(ViewPlan view, XYZ min, XYZ max, int scale)
+        private void SetCropBoxToFitPaperSize(ViewPlan view, XYZ min, XYZ max, SheetSettings sheetSettings)
         {
             BoundingBoxXYZ cropBox = new BoundingBoxXYZ();
 
-            cropBox.Min = new XYZ(min.X, min.Y, cropBox.Min.Z);
-            cropBox.Max = new XYZ(max.X, max.Y, cropBox.Max.Z);
+            double height_delta = ((max.Y - min.Y) - GetSheetSize(sheetSettings.SheetSize).U * view.Scale) / 2;
 
-            view.Scale = scale;
+            cropBox.Min = new XYZ(min.X + PDFPaddingX.U * view.Scale, min.Y + height_delta + PDFPaddingY.U * view.Scale, cropBox.Min.Z);
+            cropBox.Max = new XYZ(max.X - PDFPaddingX.V * view.Scale, max.Y - height_delta - PDFPaddingY.V * view.Scale, cropBox.Max.Z);
+
             view.CropBox = cropBox;
             view.CropBoxActive = true;
             view.CropBoxVisible = false;
             view.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE).Set(1);
+        }
+
+        private UV GetSheetSize(SheetSizeEnum size)
+        {
+            switch (size)
+            {
+                case SheetSizeEnum.ANSI_A: return new UV(0.708, 0.917); // 8.5 x 11 inches
+                case SheetSizeEnum.ANSI_B: return new UV(0.917, 1.417); // 11 x 17 inches
+                case SheetSizeEnum.ANSI_C: return new UV(1.417, 1.833); // 17 x 22 inches
+                case SheetSizeEnum.ANSI_D: return new UV(1.833, 2.833); // 22 x 34 inches
+                case SheetSizeEnum.ANSI_E: return new UV(2.833, 3.666); // 34 x 44 inches
+                case SheetSizeEnum.ISO_A0: return new UV(2.759, 3.901); // 841 x 1189 mm
+                case SheetSizeEnum.ISO_A1: return new UV(1.949, 2.759); // 594 x 841 mm
+                case SheetSizeEnum.ISO_A2: return new UV(1.378, 1.949); // 420 x 594 mm
+                case SheetSizeEnum.ISO_A3: return new UV(0.974, 1.378); // 297 x 420 mm
+                case SheetSizeEnum.ISO_A4: return new UV(0.689, 0.974); // 210 x 297 mm
+                case SheetSizeEnum.ARCH_A: return new UV(0.75, 1.0); // 9 x 12 inches
+                case SheetSizeEnum.ARCH_B: return new UV(1.0, 1.5); // 12 x 18 inches
+                case SheetSizeEnum.ARCH_C: return new UV(1.5, 2.0); // 18 x 24 inches
+                case SheetSizeEnum.ARCH_D: return new UV(2.0, 3.0); // 24 x 36 inches
+                case SheetSizeEnum.ARCH_E: return new UV(3.0, 4.0); // 36 x 48 inches
+                case SheetSizeEnum.ARCH_E1: return new UV(2.5, 3.5); // 30 x 42 inches
+                default: throw new ArgumentOutOfRangeException(nameof(size), size, null);
+            }
         }
 
         private void SaveDocument(Document newDoc)

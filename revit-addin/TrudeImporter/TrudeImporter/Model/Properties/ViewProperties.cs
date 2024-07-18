@@ -9,7 +9,7 @@ namespace TrudeImporter
     public enum ColorSchemeEnum
     {
         monochrome,
-        textured,
+        texture,
         //label = 2,
         //spaceType = 3
     }
@@ -17,8 +17,8 @@ namespace TrudeImporter
     [JsonConverter(typeof(StringEnumConverter))]
     public enum LabelsEnum
     {
-        Label,
-        Areas,
+        objectLabels,
+        areas,
         //Targets = 2,
     }
 
