@@ -95,7 +95,10 @@ namespace TrudeImporter
             bool isSnaptrudeFlipped = Scaling.Z < 0;
             bool flip = (isSnaptrudeFlipped && !isFacingFlip) || (!isSnaptrudeFlipped && isFacingFlip);
             FamilyInstance instance = GlobalVariables.Document.Create.NewFamilyInstance(XYZ.Zero, familySymbol, level, level, Autodesk.Revit.DB.Structure.StructuralType.UnknownFraming);
-            instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
+            if (element != null && !element.LookupParameter("Length").IsNull())
+            {
+                instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
+            }
 
             GlobalVariables.Document.Regenerate();
             BoundingBoxXYZ boundingBox = instance.get_BoundingBox(null);
