@@ -26,9 +26,6 @@ namespace SnaptrudeForgeExport
     {
         //Path of the project(i.e)project where your Window family files are present
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
-        private static double mm_to_feet = 1 / (10 * 2.54 * 12);
-        private UV PDFPaddingX = new UV(5 * Command.mm_to_feet, 5 * Command.mm_to_feet);
-        private UV PDFPaddingY = new UV(5 * Command.mm_to_feet, 30 * Command.mm_to_feet);
         public ExternalDBApplicationResult OnStartup(ControlledApplication application)
         {
             DesignAutomationBridge.DesignAutomationReadyEvent += HandleDesignAutomationReadyEvent;
@@ -313,9 +310,10 @@ namespace SnaptrudeForgeExport
         private XYZ GetViewPosition(SheetSizeEnum sheetSize)
         {
             UV size = GetSheetSize(sheetSize);
-            // Calculate x, y in landscape orientation.
-            double x = size.V / 2 - (PDFPaddingX.V - PDFPaddingX.U);
-            double y = size.U / 2 - (PDFPaddingY.V - PDFPaddingY.U);
+            UV PDFPaddingX = GlobalVariables.PDFPaddingX;
+            UV PDFPaddingY = GlobalVariables.PDFPaddingY;
+            double x = (size.V / 2) + (PDFPaddingX.V - PDFPaddingX.U) / 2;
+            double y = (size.U / 2) + (PDFPaddingY.V - PDFPaddingY.U) / 2;
             return new XYZ(x, y, 0);
         }
 
@@ -397,6 +395,8 @@ namespace SnaptrudeForgeExport
         private void SetCropBoxToFitPaperSize(ViewPlan view, XYZ min, XYZ max, SheetSettings sheetSettings)
         {
             BoundingBoxXYZ cropBox = new BoundingBoxXYZ();
+            UV PDFPaddingX = GlobalVariables.PDFPaddingX;
+            UV PDFPaddingY = GlobalVariables.PDFPaddingY;
 
             double height_delta = ((max.Y - min.Y) - GetSheetSize(sheetSettings.SheetSize).U * view.Scale) / 2;
 
