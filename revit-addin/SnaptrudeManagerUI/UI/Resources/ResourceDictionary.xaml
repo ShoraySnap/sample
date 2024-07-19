@@ -36,6 +36,15 @@
             To="360"
             Duration="0:0:1.5" />
     </Storyboard>
+    <Storyboard x:Key="InvertedRotateStoryboard">
+        <DoubleAnimation
+            RepeatBehavior="Forever"
+            Storyboard.TargetName="invertedRotationTransform"
+            Storyboard.TargetProperty="Angle"
+            From="360"
+            To="0"
+            Duration="0:0:1.5" />
+    </Storyboard>
     <Style x:Key="CustomToolTipStyle" TargetType="ToolTip">
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="Template">
