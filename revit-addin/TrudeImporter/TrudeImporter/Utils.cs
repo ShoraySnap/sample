@@ -244,5 +244,26 @@ namespace TrudeImporter
             }
             return curves;
         }
+
+        public static bool IsElementInsideBoundingBox(Element element, BoundingBoxXYZ boundingBox)
+        {
+            BoundingBoxXYZ elementBoundingBox = element.get_BoundingBox(null);
+
+            if (elementBoundingBox == null)
+                return false;
+
+            XYZ minPoint = elementBoundingBox.Min;
+            XYZ maxPoint = elementBoundingBox.Max;
+
+            // Check if all corners of the element's bounding box are within the given bounding box
+            return IsPointInsideBoundingBox(minPoint, boundingBox) && IsPointInsideBoundingBox(maxPoint, boundingBox);
+        }
+
+        public static bool IsPointInsideBoundingBox(XYZ point, BoundingBoxXYZ boundingBox)
+        {
+            return (point.X >= boundingBox.Min.X && point.X <= boundingBox.Max.X &&
+                    point.Y >= boundingBox.Min.Y && point.Y <= boundingBox.Max.Y &&
+                    point.Z >= boundingBox.Min.Z && point.Z <= boundingBox.Max.Z);
+        }
     }
 }

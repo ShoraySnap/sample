@@ -3,11 +3,11 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Events;
-using Autodesk.Revit.UI;
 using DesignAutomationFramework;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -179,97 +179,35 @@ namespace SnaptrudeForgeExport
                 t.Commit();
             }
 
-            List<ViewSheet> sheets = null;
-
-            using (Transaction t = new Transaction(newDoc, "Set up view detail levels, color scheme and sheets"))
+            // This must be created in host.rvt
+            ViewPlan template = Utils.FindElement(newDoc, typeof(ViewPlan), "View Template") as ViewPlan;
+            List<ViewSheet> sheets = trudeProperties.Views.Select(viewProperties =>
             {
-                t.Start();
-
-                // This must be created in host.rvt
-                ViewPlan template = Utils.FindElement(newDoc, typeof(ViewPlan), "View Template") as ViewPlan;
-
-                sheets = trudeProperties.Views.Select(viewProperties =>
+                using (Transaction t = new Transaction(newDoc, "Set up view detail levels, color scheme and sheet"))
                 {
+                    t.Start();
                     ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
-                    if (viewPlan == null) return null;
-                    SetCropBoxToFitPaperSize(viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, viewProperties.Sheet);
-                    FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
+                    ViewSheet sheet = null;
+                    if (viewPlan != null)
+                    {
+                        viewPlan.ApplyViewTemplateParameters(template);
+                        viewPlan.Scale = viewProperties.Sheet.Scale;
+                        SetCropBoxToFitPaperSize(newDoc, viewPlan, viewProperties.Camera.BottomLeft, viewProperties.Camera.TopRight, viewProperties, trudeProperties);
+                        FamilySymbol titleBlockType = Utils.GetElements(newDoc, typeof(FamilySymbol))
                                 .Cast<FamilySymbol>()
                                 .Where(f => f.FamilyName.Replace(" ", "_").ToLower().Contains(Enum.GetName(typeof(SheetSizeEnum), viewProperties.Sheet.SheetSize).ToLower()) && f.Name.Contains("Snaptrude"))
                                 .FirstOrDefault();
-                    ViewSheet sheet = ViewSheet.Create(newDoc, titleBlockType.Id);
-                    sheet.Name = viewProperties.Name;
-                    Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
-
-                    if (viewProperties.Color.Scheme == ColorSchemeEnum.texture)
-                    {
-                        viewPlan.DisplayStyle = DisplayStyle.Textures;
-                        trudeProperties.Masses.ForEach(mass =>
-                        {
-                            bool doesMassExist = GlobalVariables.UniqueIdToElementId.TryGetValue(mass.UniqueId, out ElementId elemId);
-                            if (doesMassExist)
-                            {
-                                string hex = mass.MaterialHex != null ? mass.MaterialHex.Replace("#", "") : "ffffff";
-                                byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-                                byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-                                byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-
-                                OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
-                                overrideGraphicSettings.SetCutForegroundPatternColor(new Color(r, g, b));
-                                overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(newDoc).Id);
-                                overrideGraphicSettings.SetCutForegroundPatternVisible(true);
-
-                                overrideGraphicSettings.SetCutBackgroundPatternColor(new Color(r, g, b));
-                                overrideGraphicSettings.SetCutBackgroundPatternId(Utils.GetSolidFillPatternElement(newDoc).Id);
-                                overrideGraphicSettings.SetCutBackgroundPatternVisible(true);
-
-                                viewPlan.SetElementOverrides(elemId, overrideGraphicSettings);
-                            }
-                        });
+                        sheet = ViewSheet.Create(newDoc, titleBlockType.Id);
+                        sheet.Name = viewProperties.Name;
+                        Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
+                        SetViewColorScheme(newDoc, viewPlan, trudeProperties, viewProperties);
+                        HideHiddenViewElements(newDoc, viewPlan, viewProperties);
+                        newDoc.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);
+                        t.Commit();
                     }
-                    else
-                    {
-                        viewPlan.DisplayStyle = DisplayStyle.HLR;
-                    }
-                    List<ElementId> elementsToHide = viewProperties.Elements.HiddenIds.Select(id =>
-                    {
-                        bool elementExists = GlobalVariables.UniqueIdToElementId.TryGetValue(id, out ElementId elementId);
-                        if (elementExists)
-                        {
-                            return elementId;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }).Where(elementId => elementId != null).Where(elementId => !newDoc.GetElement(elementId).IsHidden(viewPlan)).ToList();
-                    if (elementsToHide.Count > 0)
-                    {
-                        viewPlan.HideElements(elementsToHide);
-                    }
-
-                    List<ElementId> roomsToHide = viewProperties.Elements.HiddenIds.Select(id =>
-                    {
-                        bool elementExists = GlobalVariables.UniqueIdToRoomId.TryGetValue(id, out ElementId elementId);
-                        if (elementExists)
-                        {
-                            return elementId;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }).Where(elementId => elementId != null).Where(elementId => !newDoc.GetElement(elementId).IsHidden(viewPlan)).ToList();
-                    if (roomsToHide.Count > 0)
-                    {
-                        viewPlan.HideElements(roomsToHide);
-                    }
-                    newDoc.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);
                     return sheet;
-                }).Where(sheet => sheet != null).ToList();
-
-                t.Commit();
-            }
+                }
+            }).Where(sheet => sheet != null).ToList();
 
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
 
@@ -312,8 +250,8 @@ namespace SnaptrudeForgeExport
             UV size = GetSheetSize(sheetSize);
             UV PDFPaddingX = GlobalVariables.PDFPaddingX;
             UV PDFPaddingY = GlobalVariables.PDFPaddingY;
-            double x = (size.V / 2) + (PDFPaddingX.V - PDFPaddingX.U) / 2;
-            double y = (size.U / 2) + (PDFPaddingY.V - PDFPaddingY.U) / 2;
+            double x = (size.V / 2) + 0.008 + (PDFPaddingX.V - PDFPaddingX.U) / 2;
+            double y = (size.U / 2) - 0.0035 + (PDFPaddingY.V - PDFPaddingY.U) / 2;
             return new XYZ(x, y, 0);
         }
 
@@ -367,6 +305,76 @@ namespace SnaptrudeForgeExport
             }
         }
 
+        private void SetViewColorScheme(Document doc, ViewPlan viewPlan, TrudeProperties trudeProperties, ViewProperties viewProperties)
+        {
+            if (viewProperties.Color.Scheme == ColorSchemeEnum.texture)
+            {
+                viewPlan.DisplayStyle = DisplayStyle.Textures;
+                trudeProperties.Masses.ForEach(mass =>
+                {
+                    bool doesMassExist = GlobalVariables.UniqueIdToElementId.TryGetValue(mass.UniqueId, out ElementId elemId);
+                    if (doesMassExist)
+                    {
+                        string hex = mass.MaterialHex != null ? mass.MaterialHex.Replace("#", "") : "ffffff";
+                        byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                        byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+                        byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+
+                        OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
+                        overrideGraphicSettings.SetCutForegroundPatternColor(new Color(r, g, b));
+                        overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
+                        overrideGraphicSettings.SetCutForegroundPatternVisible(true);
+
+                        overrideGraphicSettings.SetCutBackgroundPatternColor(new Color(r, g, b));
+                        overrideGraphicSettings.SetCutBackgroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
+                        overrideGraphicSettings.SetCutBackgroundPatternVisible(true);
+
+                        viewPlan.SetElementOverrides(elemId, overrideGraphicSettings);
+                    }
+                });
+            }
+            else
+            {
+                viewPlan.DisplayStyle = DisplayStyle.HLR;
+            }
+        }
+
+        private void HideHiddenViewElements(Document doc, ViewPlan viewPlan, ViewProperties viewProperties) {
+            List<ElementId> elementsToHide = viewProperties.Elements.HiddenIds.Select(id =>
+            {
+                bool elementExists = GlobalVariables.UniqueIdToElementId.TryGetValue(id, out ElementId elementId);
+                if (elementExists)
+                {
+                    return elementId;
+                }
+                else
+                {
+                    return null;
+                }
+            }).Where(elementId => elementId != null).Where(elementId => !doc.GetElement(elementId).IsHidden(viewPlan)).ToList();
+            if (elementsToHide.Count > 0)
+            {
+                viewPlan.HideElements(elementsToHide);
+            }
+
+            List<ElementId> roomsToHide = viewProperties.Elements.HiddenIds.Select(id =>
+            {
+                bool elementExists = GlobalVariables.UniqueIdToRoomId.TryGetValue(id, out ElementId elementId);
+                if (elementExists)
+                {
+                    return elementId;
+                }
+                else
+                {
+                    return null;
+                }
+            }).Where(elementId => elementId != null).Where(elementId => !doc.GetElement(elementId).IsHidden(viewPlan)).ToList();
+            if (roomsToHide.Count > 0)
+            {
+                viewPlan.HideElements(roomsToHide);
+            }
+        }
+
         private string GetRoomTagTypeFamilyName(ViewProperties viewProperties)
         {
             string area = viewProperties.Label.Selected.Any(value => value == LabelsEnum.areas) ? "+Area" : "";
@@ -392,8 +400,9 @@ namespace SnaptrudeForgeExport
             return "Room Tag" + area + "_Snaptrude_1-8";
         }
 
-        private void SetCropBoxToFitPaperSize(ViewPlan view, XYZ min, XYZ max, SheetSettings sheetSettings)
+        private void SetCropBoxToFitPaperSize(Document doc, ViewPlan view, XYZ min, XYZ max, ViewProperties viewProperties, TrudeProperties trudeProperties)
         {
+            SheetSettings sheetSettings = viewProperties.Sheet;
             BoundingBoxXYZ cropBox = new BoundingBoxXYZ();
             UV PDFPaddingX = GlobalVariables.PDFPaddingX;
             UV PDFPaddingY = GlobalVariables.PDFPaddingY;
@@ -406,7 +415,24 @@ namespace SnaptrudeForgeExport
             view.CropBox = cropBox;
             view.CropBoxActive = true;
             view.CropBoxVisible = false;
-            view.get_Parameter(BuiltInParameter.VIEWER_ANNOTATION_CROP_ACTIVE).Set(1);
+            List<ElementId> roomsToHide = trudeProperties.Masses
+                .Select(mass =>
+                    {
+                        bool doesRoomExist = GlobalVariables.UniqueIdToRoomId.TryGetValue(mass.UniqueId, out ElementId elementId);
+                        if (doesRoomExist && 
+                            !Utils.IsElementInsideBoundingBox(doc.GetElement(elementId), cropBox) && 
+                            !doc.GetElement(elementId).IsHidden(view))
+                        {
+                            return elementId;
+                        }
+                        return null;
+                    })
+                .Where(elementId => elementId != null)
+                .ToList();
+            if (roomsToHide.Count > 0)
+            {
+                view.HideElements(roomsToHide);
+            }
         }
 
         private UV GetSheetSize(SheetSizeEnum size)
