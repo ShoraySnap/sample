@@ -112,7 +112,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     if (response.Access)
                     {
                         RequestStatus = URLValidationStatus.Validated;
-                        Image = new Uri(Urls.Get("snaptrudeDjangoUrl") + "/media/" + response.ImagePath);
+                        Image = new Uri(Urls.Get("snaptrudeBucketUrl") + "/media/" + response.ImagePath);
                         ProjectName = response.ProjectName;
                         floorkey = _floorkey;
                     }
