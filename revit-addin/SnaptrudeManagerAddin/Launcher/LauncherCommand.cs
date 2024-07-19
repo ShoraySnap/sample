@@ -15,7 +15,8 @@ namespace SnaptrudeManagerAddin.Launcher
         {
             View currentView = commandData.Application.ActiveUIDocument.ActiveView;
             Application.Instance.IsAnyDocumentOpened = true;
-            Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
+            if (!Application.Instance.IsViewActivatedSubscribed)
+                Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
             LaunchProcess.StartProcess(new string[] 
             { 
                 Process.GetCurrentProcess().Id.ToString(),

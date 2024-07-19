@@ -35,6 +35,7 @@ namespace SnaptrudeManagerAddin
         public static DataTransferManager TransferManager;
         public bool IsAnyDocumentOpened;
         public bool _abortExport = false;
+        public bool IsViewActivatedSubscribed = false;
         private object mutex = new object();
         public bool AbortExportFlag
         {
@@ -115,6 +116,7 @@ namespace SnaptrudeManagerAddin
 
         public void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
+            IsViewActivatedSubscribed = true;
             IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
             UpdateButtonState(currentView is View3D);
@@ -203,6 +205,7 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.MANAGER_UI_CLOSE:
                             UIControlledApplication.ViewActivated -= OnViewActivated;
+                            Application.Instance.IsViewActivatedSubscribed = false;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
                             break;
