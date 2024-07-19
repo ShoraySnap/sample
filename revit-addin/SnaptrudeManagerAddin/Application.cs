@@ -142,7 +142,7 @@ namespace SnaptrudeManagerAddin
 
             Dictionary<string, string> data = new Dictionary<string, string>
             {
-                { "projectName", projectName },
+                { "projectName", projectName.Replace(".rfa","") },
                 { "fileType", fileType }
             };
             string serializedData = JsonConvert.SerializeObject(data);

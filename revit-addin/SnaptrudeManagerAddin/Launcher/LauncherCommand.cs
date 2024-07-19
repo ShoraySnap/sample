@@ -21,7 +21,7 @@ namespace SnaptrudeManagerAddin.Launcher
                 Process.GetCurrentProcess().Id.ToString(),
                 (currentView is View3D).ToString(),
                 (!commandData.Application.ActiveUIDocument.Document.IsFamilyDocument).ToString(),
-                commandData.Application.ActiveUIDocument.Document.Title
+                commandData.Application.ActiveUIDocument.Document.Title.Replace(".rfa","")
             });
             return Result.Succeeded;
         }
