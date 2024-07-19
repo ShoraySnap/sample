@@ -28,6 +28,7 @@ namespace SnaptrudeManagerUI.ViewModels
         private bool disposed = false; 
         public ICommand BackCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
+        public ICommand ClearURLCommand { get; private set; }
 
         private URLValidationStatus requestStatus = URLValidationStatus.None;
 
@@ -59,6 +60,7 @@ namespace SnaptrudeManagerUI.ViewModels
             set
             {
                 uRL = value;
+                OnPropertyChanged("URL");
                 ValidateURL();
             }
         }
@@ -88,20 +90,21 @@ namespace SnaptrudeManagerUI.ViewModels
         private async Task ValidateURL()
         {
             //WPFTODO: UPDATE THE VALUE 10
-            RequestStatus = URLValidationStatus.Validating;
             if (uRL == "")
             {
-                await Task.Delay(100);
+                await Task.Delay(50);
                 RequestStatus = URLValidationStatus.None;
             }
             else if (!ValidateUrlWithRegex(uRL))
             {
-                await Task.Delay(500);
+                RequestStatus = URLValidationStatus.Validating;
+                await Task.Delay(200);
                 ErrorMessage = "Invalid URL";
                 RequestStatus = URLValidationStatus.Error;
             }
             else
             {
+                RequestStatus = URLValidationStatus.Validating;
                 string _floorkey = extractFloorkey(uRL);
                 var response = await SnaptrudeRepo.ValidateURLAsync(_floorkey);
                 if (response != null)
@@ -164,6 +167,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             BackCommand = new NavigateCommand(backNavigationService);
             BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportToExistingNavigationService); });
+            ClearURLCommand = new RelayCommand((o) => { ClearUrl(); });
             App.OnActivateView2D += SetExportEnablement;
             App.OnActivateView3D += SetExportEnablement;
             SetExportEnablement();
@@ -175,6 +179,11 @@ namespace SnaptrudeManagerUI.ViewModels
             OnPropertyChanged(nameof(ViewIsNot3D));
             OnPropertyChanged(nameof(ExportIsEnabled));
             OnPropertyChanged(nameof(ErrorMessage));
+        }
+
+        private void ClearUrl()
+        {
+            URL = "";
         }
 
         private void BeginExport(object param, NavigationService exportToExistingNavigationService)
