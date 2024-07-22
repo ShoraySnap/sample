@@ -282,18 +282,23 @@ namespace SnaptrudeForgeExport
                     .FirstOrDefault();
                 RoomTagType roomTagType = doc.GetElement(roomTagTypeId) as RoomTagType;
 
-                foreach (RoomTag roomTag in collector.OfClass(typeof(SpatialElementTag)).Where(s => s.GetType() == typeof(RoomTag)).Cast<RoomTag>())
+                if (viewProperties.Label.Selected.Count > 0)
                 {
-                    // Get room tag location
-                    LocationPoint locPoint = roomTag.Location as LocationPoint;
-                    XYZ tagLocation = locPoint.Point;
+                    IEnumerable<RoomTag> tags = collector.OfClass(typeof(SpatialElementTag))
+                        .Where(s => s.GetType() == typeof(RoomTag)).Cast<RoomTag>();
+                    foreach (RoomTag roomTag in tags)
+                    {
+                        // Get room tag location
+                        LocationPoint locPoint = roomTag.Location as LocationPoint;
+                        XYZ tagLocation = locPoint.Point;
 
-                    // Get the referenced room
-                    Room room = doc.GetElement(roomTag.Room.Id) as Room;
+                        // Get the referenced room
+                        Room room = doc.GetElement(roomTag.Room.Id) as Room;
 
-                    // Create a new room tag in the new view at the same location
-                    RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
-                    newRoomTag.RoomTagType = roomTagType; // Copy the tag type
+                        // Create a new room tag in the new view at the same location
+                        RoomTag newRoomTag = doc.Create.NewRoomTag(new LinkElementId(room.Id), new UV(tagLocation.X, tagLocation.Y), newView.Id);
+                        newRoomTag.RoomTagType = roomTagType; // Copy the tag type
+                    }
                 }
 
                 return newView;
