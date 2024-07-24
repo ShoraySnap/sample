@@ -132,10 +132,10 @@ namespace SnaptrudeForgeExport
                 using (Transaction t = new Transaction(newDoc, "remove structural view"))
                 {
 
-                   View structuralView = Utils.GetElements(newDoc, typeof(View))
-                                               .Select(e => e as View)
-                                               .Where(e => e.Title == "Structural Plan: 0")
-                                               .ToList().First();
+                    View structuralView = Utils.GetElements(newDoc, typeof(View))
+                                                .Select(e => e as View)
+                                                .Where(e => e.Title == "Structural Plan: 0")
+                                                .ToList().First();
                     t.Start();
                     newDoc.Delete(structuralView.Id);
                     t.Commit();
@@ -146,24 +146,32 @@ namespace SnaptrudeForgeExport
                                        .Select(e => e as View)
                                        .Where(e => e.CanBePrinted)
                                        .ToList();
+
             using (Transaction t = new Transaction(newDoc, "Set View details levels and filter overrides"))
             {
                 t.Start();
+
                 // ThinWallFilter should be defined in host.rvt
                 FilterElement filterElement = Utils.FindElement(newDoc, typeof(FilterElement), "ThinWallFilter") as FilterElement;
+
                 foreach (View v in printableViews)
                 {
                     v.DetailLevel = ViewDetailLevel.Fine;
+
                     if (v.GetFilters().Contains(filterElement.Id)) continue;
                     v.AddFilter(filterElement.Id);
+
                     OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
                     overrideGraphicSettings.SetCutLineColor(new Color(0, 200, 200));
                     overrideGraphicSettings.SetCutLineWeight(1);
+
                     v.SetFilterOverrides(filterElement.Id, overrideGraphicSettings);
+
                     OverrideGraphicSettings overrides = new OverrideGraphicSettings();
                     overrides.SetSurfaceTransparency(50);
                     v.SetCategoryOverrides(new ElementId(BuiltInCategory.OST_Floors), overrides);
                 }
+
                 t.Commit();
             }
 
