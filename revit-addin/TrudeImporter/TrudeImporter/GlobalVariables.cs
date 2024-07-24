@@ -14,7 +14,7 @@ namespace TrudeImporter
         public static Autodesk.Revit.ApplicationServices.Application RvtApp;
         
         public static bool ForForge = false;
-        public static bool ForForgePDFExport = false;
+        public static bool ForForgeViewsPDFExport = false;
         public static UV PDFPaddingX = new UV(5, 5).Multiply(1 / (10 * 2.54 * 12));
         public static UV PDFPaddingY = new UV(5, 30).Multiply(1 / (10 * 2.54 * 12));
         public static string TrudeFileName = "";

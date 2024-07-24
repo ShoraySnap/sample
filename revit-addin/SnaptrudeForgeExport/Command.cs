@@ -7,11 +7,9 @@ using DesignAutomationFramework;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Windows.Controls;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 
@@ -95,7 +93,7 @@ namespace SnaptrudeForgeExport
             GlobalVariables.RvtApp = rvtApp;
             GlobalVariables.Document = newDoc;
             GlobalVariables.ForForge = true;
-            GlobalVariables.ForForgePDFExport = ((string)trudeData["outputFormat"] == "pdf");
+            GlobalVariables.ForForgeViewsPDFExport = ((string)trudeData["outputFormat"] == "views_pdf");
 
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
 
@@ -134,7 +132,7 @@ namespace SnaptrudeForgeExport
                 using (Transaction t = new Transaction(newDoc, "remove structural view"))
                 {
 
-                    View structuralView = Utils.GetElements(newDoc, typeof(View))
+                   View structuralView = Utils.GetElements(newDoc, typeof(View))
                                                .Select(e => e as View)
                                                .Where(e => e.Title == "Structural Plan: 0")
                                                .ToList().First();
@@ -143,6 +141,31 @@ namespace SnaptrudeForgeExport
                     t.Commit();
                 }
             } catch { }
+
+            List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
+                                       .Select(e => e as View)
+                                       .Where(e => e.CanBePrinted)
+                                       .ToList();
+            using (Transaction t = new Transaction(newDoc, "Set View details levels and filter overrides"))
+            {
+                t.Start();
+                // ThinWallFilter should be defined in host.rvt
+                FilterElement filterElement = Utils.FindElement(newDoc, typeof(FilterElement), "ThinWallFilter") as FilterElement;
+                foreach (View v in printableViews)
+                {
+                    v.DetailLevel = ViewDetailLevel.Fine;
+                    if (v.GetFilters().Contains(filterElement.Id)) continue;
+                    v.AddFilter(filterElement.Id);
+                    OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
+                    overrideGraphicSettings.SetCutLineColor(new Color(0, 200, 200));
+                    overrideGraphicSettings.SetCutLineWeight(1);
+                    v.SetFilterOverrides(filterElement.Id, overrideGraphicSettings);
+                    OverrideGraphicSettings overrides = new OverrideGraphicSettings();
+                    overrides.SetSurfaceTransparency(50);
+                    v.SetCategoryOverrides(new ElementId(BuiltInCategory.OST_Floors), overrides);
+                }
+                t.Commit();
+            }
 
             string outputFormat = (string)trudeData["outputFormat"];
             switch(outputFormat)
@@ -154,7 +177,10 @@ namespace SnaptrudeForgeExport
                     ExportIFC(newDoc);
                     break;
                 case "pdf":
-                    ExportPDF(newDoc, trudeProperties);
+                    ExportPDF(newDoc, printableViews);
+                    break;
+                case "views_pdf":
+                    ExportViewsPDF(newDoc, trudeProperties);
                     break;
                 default:
                     SaveDocument(newDoc);
@@ -162,7 +188,47 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private void ExportPDF(Document newDoc, TrudeProperties trudeProperties)
+        private void ExportPDF(Document newDoc, List<View> allViews)
+        {
+#if REVIT2019 || REVIT2020 || REVIT2021
+            return;
+#else
+            Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
+
+            List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
+
+            using (Transaction t = new Transaction(newDoc, "Export to PDF"))
+            {
+                t.Start();
+
+                PDFExportOptions options = new PDFExportOptions
+                {
+                    ColorDepth = ColorDepthType.Color,
+                    Combine = false,
+                    ExportQuality = PDFExportQualityType.DPI4000,
+                    //HideCropBoundaries = true,
+                    PaperFormat = ExportPaperFormat.Default,
+                    //HideReferencePlane = true,
+                    //HideScopeBoxes = true,
+                    //HideUnreferencedViewTags = true,
+                    //MaskCoincidentLines = true,
+                    //StopOnError = true,
+                    //ViewLinksInBlue = false,
+                    ZoomType = ZoomType.Zoom,
+                    ZoomPercentage = 100
+                };
+                newDoc.Export(Configs.PDF_EXPORT_DIRECTORY, allViewIds, options);
+                t.Commit();
+            }
+
+            if (File.Exists(Configs.OUTPUT_FILE)) File.Delete(Configs.OUTPUT_FILE);
+            ZipFile.CreateFromDirectory(Configs.PDF_EXPORT_DIRECTORY, Configs.OUTPUT_FILE);
+
+            Directory.Delete(Configs.PDF_EXPORT_DIRECTORY, true);
+#endif
+        }
+
+        private void ExportViewsPDF(Document newDoc, TrudeProperties trudeProperties)
         {
 #if REVIT2019 || REVIT2020 || REVIT2021
             return;
