@@ -142,6 +142,33 @@ namespace SnaptrudeForgeExport
                 }
             } catch { }
 
+            string outputFormat = (string)trudeData["outputFormat"];
+            switch(outputFormat)
+            {
+                case "dwg":
+                    ExportAllViewsAsDWG(newDoc);
+                    break;
+                case "ifc":
+                    ExportIFC(newDoc);
+                    break;
+                case "pdf":
+                    ExportPDF(newDoc);
+                    break;
+                case "views_pdf":
+                    ExportViewsPDF(newDoc, trudeProperties);
+                    break;
+                default:
+                    SaveDocument(newDoc);
+                    break;
+            }
+        }
+
+        private void ExportPDF(Document newDoc)
+        {
+#if REVIT2019 || REVIT2020 || REVIT2021
+            return;
+#else
+
             List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
                                        .Select(e => e as View)
                                        .Where(e => e.CanBePrinted)
@@ -175,35 +202,9 @@ namespace SnaptrudeForgeExport
                 t.Commit();
             }
 
-            string outputFormat = (string)trudeData["outputFormat"];
-            switch(outputFormat)
-            {
-                case "dwg":
-                    ExportAllViewsAsDWG(newDoc);
-                    break;
-                case "ifc":
-                    ExportIFC(newDoc);
-                    break;
-                case "pdf":
-                    ExportPDF(newDoc, printableViews);
-                    break;
-                case "views_pdf":
-                    ExportViewsPDF(newDoc, trudeProperties);
-                    break;
-                default:
-                    SaveDocument(newDoc);
-                    break;
-            }
-        }
-
-        private void ExportPDF(Document newDoc, List<View> allViews)
-        {
-#if REVIT2019 || REVIT2020 || REVIT2021
-            return;
-#else
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
 
-            List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
+            List<ElementId> allViewIds = printableViews.Select(v => v.Id).ToList();
 
             using (Transaction t = new Transaction(newDoc, "Export to PDF"))
             {
