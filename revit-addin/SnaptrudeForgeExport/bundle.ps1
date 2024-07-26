@@ -12,3 +12,4 @@ $compressUpdateRvtParamBundle = @{
 Compress-Archive @compressUpdateRvtParamBundle -Force
 
 Copy-Item "./assets/UpdateRVTParam.zip" -Destination "./assets/UpdateRVTParamPdf.zip"
+Copy-Item "./assets/UpdateRVTParam.zip" -Destination "./assets/DirectImport.zip"

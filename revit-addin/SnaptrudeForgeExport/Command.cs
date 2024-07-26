@@ -38,6 +38,25 @@ namespace SnaptrudeForgeExport
             rvtApp.FailuresProcessing += OnFailuresProcessing;
 
             e.Succeeded = true;
+            string filePath = e.DesignAutomationData.FilePath;
+            string extension = Path.GetExtension(filePath);
+            if (extension == ".rvt")
+            {
+                LogTrace("Processing Revit file...");
+                Document doc = e.DesignAutomationData.RevitDoc;
+                if (doc == null) throw new InvalidOperationException("Could not open document.");
+                int count = new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElements().Count;
+                LogTrace("There are" + count + "elements in the document");
+            }
+            else if (extension == ".trude")
+            {
+                LogTrace("Processing Trude file...");
+                ParseTrude(e.DesignAutomationData);
+            }
+            else
+            {
+                LogTrace("Unsupported file type: {0}", extension);
+            }
             ParseTrude(e.DesignAutomationData);
         }
 
