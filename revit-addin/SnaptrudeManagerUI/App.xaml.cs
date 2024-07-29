@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace SnaptrudeManagerUI
 {
@@ -68,7 +69,7 @@ namespace SnaptrudeManagerUI
             }
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected async override void OnStartup(StartupEventArgs e)
         {
             RegisterProtocol();
             base.OnStartup(e);
@@ -107,7 +108,8 @@ namespace SnaptrudeManagerUI
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             else
             {
-                navigationStore.CurrentViewModel = Equals(Store.Get("userId"), "") ? 
+                var isUserLoggedIn = await SnaptrudeRepo.CheckIfUserLoggedInAsync();
+                navigationStore.CurrentViewModel = Equals(Store.Get("userId"), "") || !isUserLoggedIn ? 
                     ViewModelCreator.CreateLoginViewModel() : 
                     ViewModelCreator.CreateHomeViewModel();
             }
