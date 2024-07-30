@@ -263,7 +263,7 @@
                     Foreground="{StaticResource Colors/Neutral/600}"
                     Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                     TextWrapping="Wrap"
-                    Visibility="{Binding ExportIsDisabled, Converter={StaticResource BoolToVisibility}}" />
+                    Visibility="Visible"/>
                 <Button
                     Grid.Column="1"
                     Command="{Binding BackCommand}"
