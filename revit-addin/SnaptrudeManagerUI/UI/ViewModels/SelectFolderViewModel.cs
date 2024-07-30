@@ -38,11 +38,11 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isLoaderVisible = value; OnPropertyChanged("IsLoaderVisible"); OnPropertyChanged("IsBreadcrumbEnabled"); OnPropertyChanged("ExportIsEnabled"); OnPropertyChanged("ExportIsDisbled"); }
         }
 
-        private string errorMessage = !MainWindowViewModel.Instance.IsView3D ? "Switch to 3D view to enable export" : "Select workspace to begin export";
-        public string ErrorMessage
+        private string infoMessage = !MainWindowViewModel.Instance.IsView3D ? "Switch to 3D view to enable export" : "Select workspace to begin export";
+        public string InfoMessage
         {
-            get { return errorMessage; }
-            set { errorMessage = value; OnPropertyChanged("ErrorMessage"); }
+            get { return infoMessage; }
+            set { infoMessage = value; OnPropertyChanged("InfoMessage"); }
         }
 
         private bool addBreadcrumbs = true;
@@ -90,7 +90,7 @@ namespace SnaptrudeManagerUI.ViewModels
             OnPropertyChanged(nameof(ViewIsNot3D));
             OnPropertyChanged(nameof(ExportIsEnabled));
             OnPropertyChanged(nameof(ExportIsDisabled));
-            OnPropertyChanged(nameof(ErrorMessage));
+            OnPropertyChanged(nameof(InfoMessage));
         }
 
         private void BeginExport(object param, NavigationService exportNavigationService)
@@ -150,7 +150,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     }
                     addBreadcrumbs = true;
                     IsLoaderVisible = false;
-                    updateErrorMessage(parentFolder.Name);
+                    updateInfoMessage(parentFolder.Name);
                 }
                 SetSelectedFolder();
             }
@@ -237,9 +237,9 @@ namespace SnaptrudeManagerUI.ViewModels
             Dispose(false);
         }
 
-        private void updateErrorMessage(string folder_name)
+        private void updateInfoMessage(string folder_name)
         {
-            ErrorMessage =
+            InfoMessage =
                 !MainWindowViewModel.Instance.IsView3D ?
                 "Switch to 3D view to enable export" :
                 Breadcrumb.Count == 2 ?
