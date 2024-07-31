@@ -1,0 +1,9 @@
+{
+    "profiles": {
+      " < RevitVersion > ": {
+        "commandName": "Executable",
+        "executablePath": "C:\\Program Files\\Autodesk\\ < RevitVersion > \\Revit.exe",
+        "workingDirectory": " < Insert your sandbox path here > "
+      }
+    }
+  }
