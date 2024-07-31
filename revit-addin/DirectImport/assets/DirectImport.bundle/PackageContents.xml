@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ApplicationPackage Name="DirectImport" Description="Snaptrude Forge Plugin for Revit" Author="snaptrude">
+  <CompanyDetails Name="Snaptrude" Url="https://snaptrude.com" Email="help@snaptrude.com"/>
+  <Components Description="Direct Import for Snaptrude">
+    <RuntimeRequirements SeriesMax="R2024" SeriesMin="R2022" Platform="Revit" OS="Win64"/>
+    <ComponentEntry LoadOnRevitStartup="True" LoadOnCommandInvocation="False" AppDescription="Direct Import for Snaptrude" ModuleName="./Contents/DirectImport.addin" Version="1.0.0" AppName="DirectImport"/>
+  </Components>
+</ApplicationPackage>
