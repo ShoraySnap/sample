@@ -9,17 +9,13 @@
     xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
-    Width="590"
-    Height="350"
+    Width="620"
+    Height="400"
     AllowsTransparency="True"
     Background="Transparent"
     FontSize="13"
-    MouseDown="Window_MouseDown"
-    RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="NoResize"
     ShowInTaskbar="True"
-    SnapsToDevicePixels="False"
-    TextOptions.TextRenderingMode="Aliased"
     Topmost="{Binding TopMost}"
     WindowStartupLocation="Manual"
     WindowStyle="None"
@@ -30,21 +26,21 @@
     <Grid
         Width="560"
         Height="320"
-        Cursor="{StaticResource CustomCursor}">
+        Cursor="{StaticResource CustomCursor}"
+        MouseDown="Window_MouseDown">
+        <Grid.Effect>
+            <DropShadowEffect
+                BlurRadius="40"
+                Direction="-90"
+                Opacity=".3"
+                RenderingBias="Quality"
+                ShadowDepth="8"
+                Color="Gray" />
+        </Grid.Effect>
         <Border
             Background="White"
             CornerRadius="10"
-            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect
-                    BlurRadius="15"
-                    Direction="-90"
-                    Opacity=".4"
-                    RenderingBias="Quality"
-                    ShadowDepth="3"
-                    Color="Gray" />
-            </Border.Effect>
-        </Border>
+            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
