@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace TrudeSerializer.Uploader
+namespace TrudeCommon.Utils
 {
     internal class URLsConfig
     {
@@ -29,6 +29,12 @@ namespace TrudeSerializer.Uploader
         {
             URLsConfig urlsConfig = GetURLObject();
             return urlsConfig?.snaptrudeDjangoUrl;
+        }
+
+        public static string GetSnaptrudeReactUrl()
+        {
+            URLsConfig urlsConfig = GetURLObject();
+            return urlsConfig?.snaptrudeReactUrl;
         }
 
         public static bool IsLocalEnv()

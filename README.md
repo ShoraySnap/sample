@@ -1,11 +1,14 @@
 # Snaptrude Manager
 
-- Sanptrude Manager is used as Revit<>Snaptrude bi-directional link.
+## Snaptrude Manager Addin
+
+
+- Snaptrude Manager is used as Revit <-> Snaptrude bi-directional link.
 - Allowing users to easily import and export models between Revit and Snaptrude.
 - This enables better design changes, client presentations, and sign offs to be completed through Snaptrude's cloud-based collaborative platform.
 - This ensures an efficient design workflow, with instant feedback and ease of use.
 
-## Manager & Repo Setup:
+### Manager & Repo Setup:
 
 1. Install Visual Studio.
 2. Clone SnaptrudeManager repo.
@@ -15,7 +18,7 @@
 4. Install required version of Revit.
 5. Run Revit and check if the Snaptrude manager add-in is installed.
 
-## To use Snaptrude-manager through Visual Studio (development) follow the below steps:
+### To use Snaptrude-manager through Visual Studio (development) follow the below steps:
 
 1. Checkout relevant branch.
 2. Download [IFC.zip](https://drive.google.com/file/d/1IP67UnEYS3VAbzbpW4GEkl3b-Atf9dAL/view?usp=sharing) file. Extract and put the IFC folder in `<repo-path>/revit-addin/SnaptrudeManagerAddin/lib`
@@ -38,7 +41,7 @@
 > Note:
 > Update URLs in `{users}programData\snaptrude-manager\urls.json` to use different snaptrudereact/snaptrudestaging servers (e.g local or PR testing)
 
-## To build the Snaptrude-manager:
+### To build the Snaptrude-manager:
 
 To be done for building and deploying the final plugin installer.
 
@@ -53,6 +56,47 @@ To be done for building and deploying the final plugin installer.
       - The version is read from version.txt file. Update the file with correct version
       - run `<root-directory>/build-installer/build.ps1`.
       - Check inside `<root-directory>/build-installer/out` for the build with correct version names.
+
+## Snaptrude Forge Export
+
+### How SnaptrudeForgeExport works
+
+SnaptrudeForgeExport and ForgeServer work together to enable the user to directly export a Snaptrude project as pdf/ifc/dwg/rvt files from the browser. It uses the same methods to parse a .trude file that comes from the ForgeServer in order to create a 3D Revit model, but it runs in a cloud service called Design Automation in the Autodesk Platform Services. This service simulates a execution of an addin in a remote Revit instance, using an uploaded .zip bundle that contains the addin code. The parsed Revit model is saved or exported into different formats, that come back as a downloaded zip file to the user in SnaptrudeReact. To update the bundle, check ForgeServer repo readme.
+
+### How to debug SnaptrudeForgeExport locally
+
+[APS youtube tutorial reference](https://www.youtube.com/watch?v=i0LJ9JOpKMQ&t=4s)
+
+1. Create a local sandbox folder in your computer and insert its complete path to a SnaptrudeForgeExport/Properties/launchSettings.json file:
+```
+{
+  "profiles": {
+    " < RevitVersion > ": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\ < RevitVersion > \\Revit.exe",
+      "workingDirectory": " < Insert your sandbox path here > "
+    }
+  }
+}
+```
+2. Download the lastest host.rvt file from this [link](https://drive.google.com/drive/folders/1mHcTNFLczXYiKm1hTSS4kWrZQOdUlSI1?usp=sharing) and place it inside the sandbox folder
+3. Download the rfas related to the desired revit version from these links [2019](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2019.zip), [2020](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2020.zip), [2021](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2021.zip), [2022](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2022.zip), [2023](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2023.zip), [2024](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2024.zip), [2025](https://snaptrude-prod-data.s3.ap-south-1.amazonaws.com/media/manager/rfas/2025.zip) and place them inside a `resouceFile` folder in your sandbox environment.
+4. Download [these files](https://drive.google.com/drive/folders/1mR6pXJxwiG6Ui56CEPTMUfxdz2_QFUNP?usp=sharing) and place them in this folder:
+```
+%appdata%\autodesk\Revit\Addins\<REVIT_VERSION>
+```
+5. Build your SnaptrudeForgeExport project and copy the dlls to this folder
+```
+%appdata%\autodesk\Revit\Addins\<REVIT_VERSION>
+```
+> Note: 
+>
+> - Use this line as a post-build command to automate this step:
+> - `if exist "$(AppData)\Autodesk\REVIT\Addins\ < Revit version > " copy "$(ProjectDir)$(OutputPath)*.dll" "$(AppData)\Autodesk\REVIT\Addins\< Revit version >"`
+6. Export a .trude file from a Snaptrude project and place it on your sandbox environment.
+7. Start the debug mode in Visual Studio, it should open Revit.
+8. Click on `Always load` if some popup appear.
+9. Go into `Addins` tab -> `External Tools` dropdown -> `DesignAutomationHandler`. It should trigger the HandleDesignAutomationReadyEvent and start running your addin.
 
 ## Logs
 

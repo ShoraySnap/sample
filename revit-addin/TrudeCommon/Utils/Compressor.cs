@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 
-namespace TrudeSerializer.Uploader
+namespace TrudeCommon.Utils
 {
     class Compressor
     {

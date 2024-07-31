@@ -5,8 +5,11 @@ using Newtonsoft.Json;
 using SnaptrudeManagerAddin;
 using System;
 using System.Linq;
+using TrudeCommon.Analytics;
+using TrudeCommon.Utils;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
+using TrudeSerializer.Uploader;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer
@@ -59,6 +62,10 @@ namespace TrudeSerializer
                 if (IsImportAborted()) return Result.Cancelled; 
                 serializedData.SetProcessId(processId);
 
+                // Analytics Id
+                var config = Config.GetConfigObject();
+                AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl());
+
                 Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
                 OnCleanSerializedTrudeData?.Invoke(serializedData);
@@ -68,7 +75,7 @@ namespace TrudeSerializer
 
 
                 logger.SerializeDone(true);
-                TrudeDebug.StoreSerializedData(serializedObject);
+                TrudeLocalAppData.StoreSerializedData(serializedObject);
                 if (IsImportAborted()) return Result.Cancelled;
 
                 Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
@@ -77,7 +84,7 @@ namespace TrudeSerializer
                     string floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
-                       Uploader.S3helper.UploadAndRedirectToSnaptrude(serializedData);
+                       S3helper.UploadAndRedirectToSnaptrude(serializedData.GetSerializedObject());
                     }
                     logger.UploadDone(true);
 
@@ -107,8 +114,16 @@ namespace TrudeSerializer
                 uiapp.Application.FailuresProcessing -= Application_FailuresProcessing;
                 GlobalVariables.CleanGlobalVariables();
                 logger.Save();
+
+                // Analytics Save
+                AnalyticsManager.SetData(logger.GetSerializedObject());
+                AnalyticsManager.Save();
+
                 if (!testMode)
-                    Uploader.S3helper.UploadLog(logger, processId);
+                {
+                    S3helper.UploadLog(logger.GetSerializedObject(), processId);
+                    S3helper.UploadAnalytics(processId);
+                }
                 isDone = true;
             }
         }
@@ -118,8 +133,11 @@ namespace TrudeSerializer
             if (Application.Instance.AbortExportFlag)
             {
                 Application.Instance.AbortCustomExporter();
+                S3helper.abortFlag = true;
                 return true;
             }
+
+            S3helper.abortFlag = false;
             return false;
         }
 
