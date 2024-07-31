@@ -17,7 +17,7 @@ namespace SnaptrudeManagerAddin.Launcher
         public static Process process = null;
         public static Process CheckProcessRunning()
         {
-            string name = "SnaptrudeManagerUI";
+            string name = "Snaptrude Manager";
             var processes = Process.GetProcessesByName(name);
             if (processes.Length == 1)
             {

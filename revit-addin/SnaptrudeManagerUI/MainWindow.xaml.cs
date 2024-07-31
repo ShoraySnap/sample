@@ -32,7 +32,7 @@ namespace SnaptrudeManagerUI
             DataContext = MainWindowViewModel.Instance;
             InitializeComponent();
 
-            this.Title = "SnaptrudeManagerUI";
+            this.Title = "Snaptrude Manager";
         }
 
 

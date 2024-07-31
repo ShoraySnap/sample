@@ -22,7 +22,7 @@ namespace SnaptrudeManagerUI
         [STAThread]
         public static void Main(string[] args)
         {
-            IntPtr hWnd = FindWindow(null, "SnaptrudeManagerUI");
+            IntPtr hWnd = FindWindow(null, "Snaptrude Manager");
             if (hWnd == IntPtr.Zero)
             {
                 var application = new App();
