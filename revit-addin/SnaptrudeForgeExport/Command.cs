@@ -38,26 +38,7 @@ namespace SnaptrudeForgeExport
             rvtApp.FailuresProcessing += OnFailuresProcessing;
 
             e.Succeeded = true;
-            string filePath = e.DesignAutomationData.FilePath;
-            string extension = Path.GetExtension(filePath);
-            if (extension == ".rvt")
-            {
-                LogTrace("Processing Revit file....");
-                Document doc = e.DesignAutomationData.RevitDoc;
-                if (doc == null) throw new InvalidOperationException("Could not open document.");
-                int count = new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElements().Count;
-                LogTrace("There are " + count + " elements in the document");
-            }
-            else if (extension == ".trude")
-            {
-                LogTrace("Processing Trude file...");
-                ParseTrude(e.DesignAutomationData);
-            }
-            else
-            {
-                LogTrace("Unsupported file type: {0}", extension);
-            }
-            //ParseTrude(e.DesignAutomationData);
+            ParseTrude(e.DesignAutomationData);
         }
 
         // Overwrite the failure processor to ignore all warnings and resolve all resolvable errors.
@@ -158,14 +139,15 @@ namespace SnaptrudeForgeExport
                     newDoc.Delete(structuralView.Id);
                     t.Commit();
                 }
-            } catch { }
+            }
+            catch { }
 
             List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
                                        .Select(e => e as View)
                                        .Where(e => e.CanBePrinted)
                                        .ToList();
 
-            using(Transaction t = new Transaction(newDoc, "Set View details levels and filter overrides"))
+            using (Transaction t = new Transaction(newDoc, "Set View details levels and filter overrides"))
             {
                 t.Start();
 
@@ -194,7 +176,7 @@ namespace SnaptrudeForgeExport
             }
 
             string outputFormat = (string)trudeData["outputFormat"];
-            switch(outputFormat)
+            switch (outputFormat)
             {
                 case "dwg":
                     ExportAllViewsAsDWG(newDoc);
