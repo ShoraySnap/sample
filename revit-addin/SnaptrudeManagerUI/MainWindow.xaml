@@ -21,7 +21,7 @@
     SnapsToDevicePixels="False"
     TextOptions.TextRenderingMode="Aliased"
     Topmost="{Binding TopMost}"
-    WindowStartupLocation="CenterScreen"
+    WindowStartupLocation="Manual"
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>

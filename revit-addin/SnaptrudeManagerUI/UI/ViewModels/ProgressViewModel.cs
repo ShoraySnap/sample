@@ -115,7 +115,6 @@ namespace SnaptrudeManagerUI.ViewModels
                     break;
                 case ProgressViewType.Import:
                     progressViewType = ProgressViewType.Import;
-                    MainWindowViewModel.Instance.TopMost = false;
                     progressMessage = "Import in progress, please don’t close this window.";
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                     break;

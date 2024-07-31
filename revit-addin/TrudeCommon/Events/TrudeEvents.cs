@@ -43,6 +43,7 @@ namespace TrudeCommon.Events
 
         // BROWSER EVENTS
         BROWSER_LOGIN_CREDENTIALS,
+        MANAGER_UI_REQ_SET_FOREGROUND,
     }
 
     public static class TrudeEventUtils

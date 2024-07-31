@@ -31,6 +31,8 @@ namespace SnaptrudeManagerAddin
         }
         public void Execute(UIApplication uiapp)
         {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
+
             Document doc = uiapp.ActiveUIDocument.Document;
 
             GlobalVariables.Document = doc;

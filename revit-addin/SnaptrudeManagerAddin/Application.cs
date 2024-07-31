@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -29,6 +30,9 @@ namespace SnaptrudeManagerAddin
     [Regeneration(RegenerationOption.Manual)]
     public class Application : IExternalApplication
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         public static Application Instance;
         public static UIControlledApplication UIControlledApplication;
         private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -176,6 +180,7 @@ namespace SnaptrudeManagerAddin
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, false);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_SET_FOREGROUND);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
@@ -236,7 +241,7 @@ namespace SnaptrudeManagerAddin
                                 serializer.Converters.Add(new TrudeImporter.XyzConverter());
                                 TrudeImporter.GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeImporter.TrudeProperties>(serializer);
 
-                                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
+                                SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
                                 ExternalEvent evt = ExternalEvent.Create(new ImportToRevitEEH());
                                 evt.Raise();
                             }
@@ -247,6 +252,7 @@ namespace SnaptrudeManagerAddin
                                 logger.Info("Got Request to export from UI: {0}", data);
 
                                 logger.Info("Export to snaptrude start");
+                                SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
                                 ExternalEvent evt = ExternalEvent.Create(new TrudeSerializer.ExportToSnaptrudeEEH());
                                 evt.Raise();
                             }
@@ -256,6 +262,9 @@ namespace SnaptrudeManagerAddin
                                 logger.Info("Abort export");
                                 Application.Instance.AbortExportFlag = true;
                             }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_SET_FOREGROUND:
+                            SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
                             break;
                     }
                 }

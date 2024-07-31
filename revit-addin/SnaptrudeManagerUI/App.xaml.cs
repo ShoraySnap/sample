@@ -289,6 +289,7 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START:
                             {
+                                MainWindowViewModel.Instance.TopMost = false;
                                 logger.Info("Import to revit started!");
                             }
                             break;
