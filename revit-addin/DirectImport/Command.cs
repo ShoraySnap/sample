@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 
@@ -47,17 +48,24 @@ namespace DirectImport
                 if (doc == null) throw new InvalidOperationException("Could not open document.");
                 int count = new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElements().Count;
                 LogTrace("There are " + count + " elements in the document");
-            }
-            else if (extension == ".trude")
-            {
-                LogTrace("Processing Trude file...");
-                ParseTrude(e.DesignAutomationData);
+                LogTrace("File: {0}", filePath);
+                using (WebClient client = new WebClient())
+                {
+                    byte[] imageData = client.DownloadData("https://d23g6qii944o5c.cloudfront.net/media/media/materials/RAL_1026_DeAaB25.jpg");
+                    using (MemoryStream ms = new MemoryStream(imageData))
+                    {
+                        using (System.Drawing.Image image = System.Drawing.Image.FromStream(ms))
+                        {
+                            LogTrace("Image size: {0}x{1} pixels", image.Width, image.Height);
+                        }
+                        LogTrace($"Image file size: {imageData.Length} bytes");
+                    }
+                }
             }
             else
             {
                 LogTrace("Unsupported file type: {0}", extension);
             }
-            //ParseTrude(e.DesignAutomationData);
         }
 
         // Overwrite the failure processor to ignore all warnings and resolve all resolvable errors.
@@ -192,127 +200,6 @@ namespace DirectImport
 
                 t.Commit();
             }
-
-            string outputFormat = (string)trudeData["outputFormat"];
-            switch(outputFormat)
-            {
-                case "dwg":
-                    ExportAllViewsAsDWG(newDoc);
-                    break;
-                case "ifc":
-                    ExportIFC(newDoc);
-                    break;
-                case "pdf":
-                    ExportPDF(newDoc, printableViews);
-                    break;
-                default:
-                    SaveDocument(newDoc);
-                    break;
-            }
-        }
-
-        private void ExportPDF(Document newDoc, List<View> allViews)
-        {
-#if REVIT2019 || REVIT2020 || REVIT2021
-            return;
-#else
-            Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
-
-            List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
-
-            using (Transaction t = new Transaction(newDoc, "Export to PDF"))
-            {
-                t.Start();
-
-                PDFExportOptions options = new PDFExportOptions
-                {
-                    ColorDepth = ColorDepthType.Color,
-                    Combine = false,
-                    ExportQuality = PDFExportQualityType.DPI4000,
-                    //HideCropBoundaries = true,
-                    PaperFormat = ExportPaperFormat.Default,
-                    //HideReferencePlane = true,
-                    //HideScopeBoxes = true,
-                    //HideUnreferencedViewTags = true,
-                    //MaskCoincidentLines = true,
-                    //StopOnError = true,
-                    //ViewLinksInBlue = false,
-                    ZoomType = ZoomType.Zoom,
-                    ZoomPercentage = 100
-                };
-                newDoc.Export(Configs.PDF_EXPORT_DIRECTORY, allViewIds, options);
-                t.Commit();
-            }
-
-            if (File.Exists(Configs.OUTPUT_FILE)) File.Delete(Configs.OUTPUT_FILE);
-            ZipFile.CreateFromDirectory(Configs.PDF_EXPORT_DIRECTORY, Configs.OUTPUT_FILE);
-
-            Directory.Delete(Configs.PDF_EXPORT_DIRECTORY, true);
-#endif
-        }
-
-        private void SaveDocument(Document newDoc)
-        {
-            ModelPath ProjectModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(Configs.OUTPUT_FILE);
-            SaveAsOptions SAO = new SaveAsOptions();
-            SAO.OverwriteExistingFile = true;
-
-            newDoc.SaveAs(ProjectModelPath, SAO);
-            newDoc.Close();
-        }
-
-        private void ExportAllViewsAsDWG(Document newDoc)
-        {
-            Directory.CreateDirectory(Configs.DWG_EXPORT_DIRECTORY);
-
-            List<View> allViews = Utils.GetElements(newDoc, typeof(View))
-                                       .Select(e => e as View)
-                                       .Where(e => e.CanBePrinted)
-                                       .ToList();
-
-            foreach (var view in allViews)
-            {
-                ExportDWG(newDoc, view);
-            }
-
-            if (File.Exists(Configs.OUTPUT_FILE)) File.Delete(Configs.OUTPUT_FILE);
-            ZipFile.CreateFromDirectory(Configs.DWG_EXPORT_DIRECTORY, Configs.OUTPUT_FILE);
-
-            Directory.Delete(Configs.DWG_EXPORT_DIRECTORY, true);
-        }
-
-        private bool ExportDWG(Document newDoc, View view)
-        {
-            List<ElementId> viewIds = new List<ElementId>(1);
-            viewIds.Add(view.Id);
-
-            bool exported = false;
-            using (Transaction t = new Transaction(newDoc, "Export to DWG"))
-            {
-                t.Start();
-
-                string filename = String.Concat(view.Title.Split(Path.GetInvalidFileNameChars()));
-
-                exported = newDoc.Export(Configs.DWG_EXPORT_DIRECTORY, filename, viewIds, new DWGExportOptions());
-
-                t.Commit();
-            }
-
-            return exported;
-        }
-        private void ExportIFC(Document newDoc)
-        {
-            using (Transaction t = new Transaction(newDoc, "Export to IFC"))
-            {
-                t.Start();
-
-                IFCExportOptions options = new IFCExportOptions();
-                newDoc.Export(".", Configs.OUTPUT_FILE, options);
-
-                t.Commit();
-
-                File.Move(Configs.OUTPUT_FILE + ".ifc", Configs.OUTPUT_FILE);
-            }
         }
         public ExternalDBApplicationResult OnShutdown(ControlledApplication application)
         {
@@ -331,14 +218,6 @@ namespace DirectImport
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        private static bool IsThrowAway(string meshType)
-        {
-            return meshType.Contains("throwAway");
-        }
-        private static bool IsThrowAway(JToken data)
-        {
-            return IsThrowAway(data["meshes"][0]["type"].ToString());
-        }
     }
 }
 
