@@ -42,11 +42,11 @@ namespace SnaptrudeForgeExport
             string extension = Path.GetExtension(filePath);
             if (extension == ".rvt")
             {
-                LogTrace("Processing Revit file...");
+                LogTrace("Processing Revit file....");
                 Document doc = e.DesignAutomationData.RevitDoc;
                 if (doc == null) throw new InvalidOperationException("Could not open document.");
                 int count = new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElements().Count;
-                LogTrace("There are" + count + "elements in the document");
+                LogTrace("There are " + count + " elements in the document");
             }
             else if (extension == ".trude")
             {
@@ -57,7 +57,7 @@ namespace SnaptrudeForgeExport
             {
                 LogTrace("Unsupported file type: {0}", extension);
             }
-            ParseTrude(e.DesignAutomationData);
+            //ParseTrude(e.DesignAutomationData);
         }
 
         // Overwrite the failure processor to ignore all warnings and resolve all resolvable errors.
