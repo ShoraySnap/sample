@@ -31,6 +31,8 @@ namespace TrudeImporter
             using (Transaction transaction = new Transaction(fdoc, "create column rfa file"))
             {
                 transaction.Start();
+                Parameter joinParam = fdoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_AUTOJOIN);
+                joinParam.Set(0);
 
                 FamilyParameter depthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Depth");
                 FamilyParameter widthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Width");
