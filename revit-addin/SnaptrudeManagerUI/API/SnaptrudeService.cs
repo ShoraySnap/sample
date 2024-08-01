@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -221,7 +222,10 @@ namespace SnaptrudeManagerUI.API
                 { "refreshToken", refreshToken }
             };
 
-            var response = await httpClient.PostAsync($"{djangoUrl}/refreshAccessToken/", new FormUrlEncodedContent(data));
+            var serializedData = JsonConvert.SerializeObject(data);
+            var stringContentData = new StringContent(serializedData, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync($"{djangoUrl}/refreshAccessToken/", stringContentData);
 
             if (response != null && response.IsSuccessStatusCode)
             {

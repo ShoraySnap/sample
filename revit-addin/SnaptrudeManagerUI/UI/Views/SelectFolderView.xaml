@@ -255,15 +255,15 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock
-                    Margin="12,0,0,8"
+                    Margin="1,0,0,8"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
                     d:Text="Select workspace to begin export"
                     FontWeight="Regular"
                     Foreground="{StaticResource Colors/Neutral/600}"
-                    Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                    Text="{Binding InfoMessage, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                     TextWrapping="Wrap"
-                    Visibility="{Binding ExportIsDisabled, Converter={StaticResource BoolToVisibility}}" />
+                    Visibility="Visible"/>
                 <Button
                     Grid.Column="1"
                     Command="{Binding BackCommand}"
