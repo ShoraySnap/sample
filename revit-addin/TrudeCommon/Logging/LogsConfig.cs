@@ -17,7 +17,7 @@ namespace TrudeCommon.Logging
             var configuration = new NLog.Config.LoggingConfiguration();
             string snaptrudeManagerPath = "snaptrude-manager";
             string prefixFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 snaptrudeManagerPath,
                 "logs"
             );
