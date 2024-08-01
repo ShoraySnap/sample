@@ -47,12 +47,18 @@ To be done for building and deploying the final plugin installer.
 
 1. One time setup
       - Install [inno-setup](https://jrsoftware.org/isinfo.php).
-2. On feature branches:
+2. Remove/Comment out the the following line from the `SnaptrudeManagerAddin.csproj` file
+```xml
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="&quot;C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe&quot; -file $(ProjectDir)InstallAddinForDebugging.ps1 $(ConfigurationName) $(ProjectName) $(ProjectDir) $(TargetPath)&#xD;&#xA;:exit" />
+	</Target>
+```
+3. On feature branches:
       - For building branch name should not have "/" in it. We can't have branch name like "feature/export", instead we can use "feature-export".
       - Checkout the branch.
       - Run `<root-directory>/build-installer/build.ps1` file to create the installer for the new Snaptrude manager.
       - Go inside `<root-directory>/build-installer/out` and check new files' version in the format `<branch-name>_<YYYYMMDD>`.
-3. On master and dev:
+4. On master and dev:
       - The version is read from version.txt file. Update the file with correct version
       - run `<root-directory>/build-installer/build.ps1`.
       - Check inside `<root-directory>/build-installer/out` for the build with correct version names.
