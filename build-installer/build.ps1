@@ -101,6 +101,7 @@ $branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
 $version = -join($branch, "_", $date)
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
+$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 
 function Sign-File {
     param (
@@ -147,7 +148,7 @@ if ($branch -eq "master") {
         Sign-File -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -plainPwd $plainPwd
     }
 
-    Sign-File -filePath "installers\snaptrude-manager-1.0.0 Setup.exe" -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath "uiRelativePath\SnaptrudeManagerUI.exe" -certPath $certPath -plainPwd $plainPwd
 
     $version = Get-Content -Path .\version.txt -TotalCount 1
 
