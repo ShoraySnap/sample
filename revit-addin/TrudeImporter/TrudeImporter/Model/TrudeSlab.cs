@@ -13,7 +13,7 @@ namespace TrudeImporter
         private float thickness;
         private TrudeLayer[] Layers;
         public static FloorTypeStore TypeStore = new FloorTypeStore();
-        private Floor slab { get; set; }
+        public Floor slab { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
         private string materialName = null;

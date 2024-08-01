@@ -163,23 +163,22 @@ namespace SnaptrudeForgeExport
         {
             if (viewProperties.Color.Scheme == ColorSchemeEnum.texture)
             {
-                viewPlan.DisplayStyle = DisplayStyle.Textures;
+                viewPlan.DisplayStyle = DisplayStyle.FlatColors;
                 trudeProperties.Masses.ForEach(mass =>
                 {
                     bool doesMassExist = GlobalVariables.UniqueIdToElementId.TryGetValue(mass.UniqueId, out ElementId elemId);
                     if (doesMassExist)
                     {
-                        string hex = mass.MaterialHex != null ? mass.MaterialHex.Replace("#", "") : "ffffff";
-                        byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-                        byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-                        byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+                        ApplyColorOverridesToElement(doc, viewPlan, elemId, mass.MaterialHex);
+                    }
+                });
 
-                        OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
-                        overrideGraphicSettings.SetCutForegroundPatternColor(new Color(r, g, b));
-                        overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
-                        overrideGraphicSettings.SetCutForegroundPatternVisible(true);
-
-                        viewPlan.SetElementOverrides(elemId, overrideGraphicSettings);
+                trudeProperties.Slabs.ForEach(slab =>
+                {
+                    bool doesSlabExist = GlobalVariables.UniqueIdToElementId.TryGetValue(slab.UniqueId, out ElementId elemId);
+                    if (doesSlabExist)
+                    {
+                        ApplyColorOverridesToElement(doc, viewPlan, elemId, slab.MaterialHex);
                     }
                 });
             }
@@ -187,6 +186,27 @@ namespace SnaptrudeForgeExport
             {
                 viewPlan.DisplayStyle = DisplayStyle.HLR;
             }
+        }
+
+        private static void ApplyColorOverridesToElement(Document doc, View view, ElementId elemId, string materialHex)
+        {
+            string hex = materialHex != null ? materialHex.Replace("#", "") : "ffffff";
+            byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+            byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+            byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+
+            Color color = new Color(r, g, b);
+
+            OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
+            overrideGraphicSettings.SetCutForegroundPatternColor(color);
+            overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
+            overrideGraphicSettings.SetCutForegroundPatternVisible(true);
+
+            overrideGraphicSettings.SetSurfaceForegroundPatternColor(color);
+            overrideGraphicSettings.SetSurfaceForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
+            overrideGraphicSettings.SetSurfaceForegroundPatternVisible(true);
+
+            view.SetElementOverrides(elemId, overrideGraphicSettings);
         }
 
         private static void HideHiddenViewElements(Document doc, ViewPlan viewPlan, ViewProperties viewProperties)

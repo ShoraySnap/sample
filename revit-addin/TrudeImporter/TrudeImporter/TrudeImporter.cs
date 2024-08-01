@@ -595,11 +595,13 @@ namespace TrudeImporter
                             );
                         if (slab.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            DirectShape slabShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            GlobalVariables.UniqueIdToElementId.Add(slab.UniqueId, slabShape.Id);
                         }
                         else
                         {
-                            new TrudeSlab(slab);
+                            TrudeSlab trudeSlab = new TrudeSlab(slab);
+                            GlobalVariables.UniqueIdToElementId.Add(slab.UniqueId, trudeSlab.slab.Id);
                         }
 
                         if (t.Commit() != TransactionStatus.Committed)
