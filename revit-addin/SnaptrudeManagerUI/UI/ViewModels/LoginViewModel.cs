@@ -79,7 +79,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             ShowButton = false;
             ShowLoader = true;
-            Message = "Logging in...";
+            Message = "Redirecting to browser. Please ensure your pop-up blocker is disabled.";
             LoginHelper.Login(parameter);
         }
         private void OnFailedLogin()
