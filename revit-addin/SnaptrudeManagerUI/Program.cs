@@ -6,6 +6,7 @@ using TrudeCommon.DataTransfer;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
 using System.Web;
+using System.Reflection;
 
 namespace SnaptrudeManagerUI
 {
@@ -22,6 +23,7 @@ namespace SnaptrudeManagerUI
         [STAThread]
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += OnResolveAssembly;
             IntPtr hWnd = FindWindow(null, "Snaptrude Manager");
             if (hWnd == IntPtr.Zero)
             {
@@ -57,6 +59,25 @@ namespace SnaptrudeManagerUI
                 Thread.Sleep(1000);
                 LogsConfig.Shutdown();
             }
+        }
+        private static Assembly OnResolveAssembly(object sender, ResolveEventArgs args)
+        {
+            string resourceName = new AssemblyName(args.Name).Name + ".dll";
+            string resource = Array.Find(
+                Assembly.GetExecutingAssembly().GetManifestResourceNames(),
+                element => element.EndsWith(resourceName));
+
+            if (resource != null)
+            {
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource))
+                {
+                    byte[] assemblyData = new byte[stream.Length];
+                    stream.Read(assemblyData, 0, assemblyData.Length);
+                    return Assembly.Load(assemblyData);
+                }
+            }
+
+            return null;
         }
     }
 }
