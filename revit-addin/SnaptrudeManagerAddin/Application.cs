@@ -129,8 +129,11 @@ namespace SnaptrudeManagerAddin
 
         private void DocumentClosing(object sender, DocumentClosingEventArgs e)
         {
+            if (!e.Document.Title.Contains("_custom_"))
+            {
             IsAnyDocumentOpened = false;
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
+            }
             // SHOULD WE CLOSE THE MANAGER UI IF NO DOCUMENT IS OPEN?
         }
 
