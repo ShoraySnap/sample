@@ -109,6 +109,7 @@ namespace SnaptrudeManagerUI
             else
             {
                 var isUserLoggedIn = await SnaptrudeRepo.CheckIfUserLoggedInAsync();
+                MainWindowViewModel.Instance.IsLoaderVisible = false;
                 navigationStore.CurrentViewModel = Equals(Store.Get("userId"), "") || !isUserLoggedIn ? 
                     ViewModelCreator.CreateLoginViewModel() : 
                     ViewModelCreator.CreateHomeViewModel();

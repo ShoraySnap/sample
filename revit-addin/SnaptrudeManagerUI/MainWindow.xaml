@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:SnaptrudeManagerUI.UI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gif="http://wpfanimatedgif.codeplex.com"
     xmlns:local="clr-namespace:SnaptrudeManagerUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
@@ -17,7 +18,7 @@
     ResizeMode="NoResize"
     ShowInTaskbar="True"
     Topmost="{Binding TopMost}"
-    WindowStartupLocation="Manual"
+    WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
@@ -473,6 +474,13 @@
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>
+            <Image
+                Margin="0,0,0,20"
+                Grid.Row="1"
+                Width="100"
+                Height="100"
+                gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerUI;component/UI/Images/loader.gif"
+                Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </Grid>
 </Window>

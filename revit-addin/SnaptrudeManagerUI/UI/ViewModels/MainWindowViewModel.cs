@@ -157,6 +157,7 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel?.GetType().Name != "ProgressViewModel";
 
         public bool LoginButtonVisible =>
+            CurrentViewModel != null &&
             !ImageBackground && CurrentViewModel?.GetType().Name != "EndViewModel" &&
             CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
             CurrentViewModel?.GetType().Name != "WarningViewModel";
@@ -173,8 +174,18 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private bool isLoaderVisible;
+
+        public bool IsLoaderVisible
+        {
+            get { return isLoaderVisible; }
+            set { isLoaderVisible = value; OnPropertyChanged(nameof(IsLoaderVisible)); }
+        }
+
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
+            WhiteBackground = true;
+            IsLoaderVisible = true;
             ProjectFileName = fileName + (isDocumentOpen ? (isDocumentRvt ? ".rvt" : ".rfa") : "");
             IsDocumentOpen = isDocumentOpen;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));

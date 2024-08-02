@@ -74,7 +74,10 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void OnSuccessfullLogin()
         {
-            SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            if (App.RevitProcess != null)
+            {
+                SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            }
             LoginCommand.Execute(new object());
         }
 
