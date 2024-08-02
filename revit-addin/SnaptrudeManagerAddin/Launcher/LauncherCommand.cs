@@ -15,13 +15,14 @@ namespace SnaptrudeManagerAddin.Launcher
         {
             View currentView = commandData.Application.ActiveUIDocument.ActiveView;
             Application.Instance.IsAnyDocumentOpened = true;
-            Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
+            if (!Application.Instance.IsViewActivatedSubscribed)
+                Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
             LaunchProcess.StartProcess(new string[] 
             { 
                 Process.GetCurrentProcess().Id.ToString(),
                 (currentView is View3D).ToString(),
                 (!commandData.Application.ActiveUIDocument.Document.IsFamilyDocument).ToString(),
-                commandData.Application.ActiveUIDocument.Document.Title
+                commandData.Application.ActiveUIDocument.Document.Title.Replace(".rfa","")
             });
             return Result.Succeeded;
         }

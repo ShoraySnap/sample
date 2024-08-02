@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -29,12 +30,16 @@ namespace SnaptrudeManagerAddin
     [Regeneration(RegenerationOption.Manual)]
     public class Application : IExternalApplication
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         public static Application Instance;
         public static UIControlledApplication UIControlledApplication;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
         public bool IsAnyDocumentOpened;
         public bool _abortExport = false;
+        public bool IsViewActivatedSubscribed = false;
         private object mutex = new object();
         public bool AbortExportFlag
         {
@@ -115,6 +120,7 @@ namespace SnaptrudeManagerAddin
 
         public void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
+            IsViewActivatedSubscribed = true;
             IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
             UpdateButtonState(currentView is View3D);
@@ -123,8 +129,11 @@ namespace SnaptrudeManagerAddin
 
         private void DocumentClosing(object sender, DocumentClosingEventArgs e)
         {
+            if (!e.Document.Title.Contains("_custom_"))
+            {
             IsAnyDocumentOpened = false;
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
+            }
             // SHOULD WE CLOSE THE MANAGER UI IF NO DOCUMENT IS OPEN?
         }
 
@@ -142,7 +151,7 @@ namespace SnaptrudeManagerAddin
 
             Dictionary<string, string> data = new Dictionary<string, string>
             {
-                { "projectName", projectName },
+                { "projectName", projectName.Replace(".rfa","") },
                 { "fileType", fileType }
             };
             string serializedData = JsonConvert.SerializeObject(data);
@@ -174,6 +183,7 @@ namespace SnaptrudeManagerAddin
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT, false);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_SET_FOREGROUND);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, false);
             TrudeEventSystem.Instance.AddThreadEventHandler(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT, () =>
@@ -203,6 +213,7 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.MANAGER_UI_CLOSE:
                             UIControlledApplication.ViewActivated -= OnViewActivated;
+                            Application.Instance.IsViewActivatedSubscribed = false;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
                             break;
@@ -233,7 +244,7 @@ namespace SnaptrudeManagerAddin
                                 serializer.Converters.Add(new TrudeImporter.XyzConverter());
                                 TrudeImporter.GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeImporter.TrudeProperties>(serializer);
 
-                                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
+                                SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
                                 ExternalEvent evt = ExternalEvent.Create(new ImportToRevitEEH());
                                 evt.Raise();
                             }
@@ -244,6 +255,7 @@ namespace SnaptrudeManagerAddin
                                 logger.Info("Got Request to export from UI: {0}", data);
 
                                 logger.Info("Export to snaptrude start");
+                                SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
                                 ExternalEvent evt = ExternalEvent.Create(new TrudeSerializer.ExportToSnaptrudeEEH());
                                 evt.Raise();
                             }
@@ -253,6 +265,9 @@ namespace SnaptrudeManagerAddin
                                 logger.Info("Abort export");
                                 Application.Instance.AbortExportFlag = true;
                             }
+                            break;
+                        case TRUDE_EVENT.MANAGER_UI_REQ_SET_FOREGROUND:
+                            SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
                             break;
                     }
                 }

@@ -34,6 +34,12 @@ namespace TrudeImporter
         [JsonProperty("uniqueId")]
         public int UniqueIdDS { get; set; }
 
+        [JsonProperty("isCircular")]
+        public bool IsCircular { get; set; }
+
+        [JsonProperty("diameter")]
+        public double Diameter { get; set; }
+
         [JsonProperty("existingElementId")]
         public int? ExistingElementIdDS { get; set; }
 

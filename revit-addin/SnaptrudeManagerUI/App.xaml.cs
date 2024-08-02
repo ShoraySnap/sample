@@ -291,11 +291,14 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START:
                             {
+                                MainWindowViewModel.Instance.TopMost = false;
                                 logger.Info("Import to revit started!");
                             }
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE:
                             {
+                                Current.MainWindow.Activate();
+                                Current.MainWindow.Focus();
                                 string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE);
                                 string[] progressData = data.Split(';');
                                 logger.Info("progress update {0}  {1}", progressData[0], progressData[1]);
@@ -343,6 +346,8 @@ namespace SnaptrudeManagerUI
                             break;
                         case TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID:
                             {
+                                Current.MainWindow.Activate();
+                                Current.MainWindow.Focus();
                                 string data = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID);
                                 UpdateRevitProcess(int.Parse(data));
                                 logger.Info("Changed Revit instance.");

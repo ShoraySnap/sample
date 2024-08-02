@@ -11,6 +11,8 @@ namespace TrudeImporter
     {
         private List<XYZ> faceVertices = new List<XYZ>();
         private float columnHeight;
+        private double Diameter;
+        private bool IsCircular;
         private int submeshCount;
         private List<SubMeshProperties> submeshes;
         private List<ColumnInstanceProperties> instances;
@@ -26,19 +28,27 @@ namespace TrudeImporter
             materialName = columnProps.MaterialName;
             submeshCount = columnProps.SubMeshes.Count;
             submeshes = columnProps.SubMeshes;
+            IsCircular = columnProps.IsCircular;
+            Diameter = columnProps.Diameter;
             CreateColumn();
         }
 
         public void CreateColumn()
         {
-            ShapeProperties shapeProperties;
+            ShapeProperties shapeProperties = null;
             try
             {
-                shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+                if (IsCircular)
+                {
+                    shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices, false, Diameter);
+                }
+                else
+                {
+                    shapeProperties = (new ShapeIdentifier(ShapeIdentifier.XY)).GetShapeProperties(faceVertices);
+                }
             }
             catch (Exception e)
             {
-                shapeProperties = null;
             }
 
             string familyName = shapeProperties is null
@@ -82,6 +92,17 @@ namespace TrudeImporter
 
                     columnRfaGenerator.CreateRFAFile(app, familyName, faceVertices, width, depth);
                 }
+                else if (shapeProperties.GetType() == typeof(CircularProperties))
+                {
+                    FamilyLoader.LoadCustomFamily("round_column", FamilyLoader.FamilyFolder.Columns);
+
+                    FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "round_column");
+                    FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
+
+                    newFamilyType.LookupParameter("Diameter").Set((shapeProperties as CircularProperties).diameter);
+
+                    types.Add(familyName, newFamilyType);
+                }
                 else if (shapeProperties.GetType() == typeof(RectangularProperties))
                 {
                     FamilyLoader.LoadCustomFamily("rectangular_column", FamilyLoader.FamilyFolder.Columns);
@@ -97,7 +118,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(LShapeProperties))
                 {
                     FamilyLoader.LoadCustomFamily("l_shaped_column", FamilyLoader.FamilyFolder.Columns);
-                    
+
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "l_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 
@@ -124,7 +145,7 @@ namespace TrudeImporter
                 else if (shapeProperties.GetType() == typeof(CShapeProperties))
                 {
                     FamilyLoader.LoadCustomFamily("c_shaped_column", FamilyLoader.FamilyFolder.Columns);
-                    
+
                     FamilySymbol defaultFamilyType = GetFamilySymbolByName(doc, "c_shaped_column");
                     FamilySymbol newFamilyType = defaultFamilyType.Duplicate(familyName) as FamilySymbol;
 

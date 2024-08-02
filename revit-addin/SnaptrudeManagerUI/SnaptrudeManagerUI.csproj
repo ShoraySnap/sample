@@ -44,7 +44,27 @@
 	<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
+    <ItemGroup>
+	    <EmbeddedResource Include="$(NuGetPackageRoot)Newtonsoft.Json\13.0.3\lib\net45\Newtonsoft.Json.dll">
+		    <LogicalName>Newtonsoft.Json.dll</LogicalName>
+	    </EmbeddedResource>
+	    <EmbeddedResource Include="$(NuGetPackageRoot)NLog\5.3.2\lib\net45\NLog.dll">
+		    <LogicalName>NLog.dll</LogicalName>
+	    </EmbeddedResource>
+	    <EmbeddedResource Include="$(NuGetPackageRoot)WpfAnimatedGif\2.0.2\lib\net40\WpfAnimatedGif.dll">
+		    <LogicalName>WpfAnimatedGif.dll</LogicalName>
+	    </EmbeddedResource>
+    </ItemGroup>
+	
+	<Target Name="RemoveCopiedDlls" AfterTargets="ResolveReferences">
+		<ItemGroup>
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)Newtonsoft.Json.dll')" />
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)NLog.dll')" />
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)WpfAnimatedGif.dll')" />
+		</ItemGroup>
+	</Target>
+
+	<ItemGroup>
 	  <Reference Include="System.Net.Http" />
 	  <Reference Include="System.Web" />
 	  <Reference Include="Microsoft.CSharp" />

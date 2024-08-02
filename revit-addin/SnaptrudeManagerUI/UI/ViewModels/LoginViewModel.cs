@@ -15,6 +15,7 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 using SnaptrudeManagerUI.UI.Helpers;
 using System.Windows;
+using TrudeCommon.Events;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -70,6 +71,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void OnSuccessfullLogin()
         {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_SET_FOREGROUND);
             LoginCommand.Execute(new object());
         }
 
@@ -77,7 +79,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             ShowButton = false;
             ShowLoader = true;
-            Message = "Logging in...";
+            Message = "Redirecting to browser. Please ensure your pop-up blocker is disabled.";
             LoginHelper.Login(parameter);
         }
         private void OnFailedLogin()

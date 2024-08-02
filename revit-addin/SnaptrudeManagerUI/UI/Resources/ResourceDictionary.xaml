@@ -36,6 +36,15 @@
             To="360"
             Duration="0:0:1.5" />
     </Storyboard>
+    <Storyboard x:Key="InvertedRotateStoryboard">
+        <DoubleAnimation
+            RepeatBehavior="Forever"
+            Storyboard.TargetName="invertedRotationTransform"
+            Storyboard.TargetProperty="Angle"
+            From="360"
+            To="0"
+            Duration="0:0:1.5" />
+    </Storyboard>
     <Style x:Key="CustomToolTipStyle" TargetType="ToolTip">
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="Template">
@@ -146,7 +155,32 @@
             </Setter.Value>
         </Setter>
     </Style>
-
+    <Style x:Key="Button_ClearText" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="border" Background="Transparent">
+                        <ContentPresenter x:Name="contentPresenter" Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsDefaulted" Value="true">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="Transparent" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="Transparent" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="Transparent" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="Transparent" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style x:Key="Button_Cancel" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
