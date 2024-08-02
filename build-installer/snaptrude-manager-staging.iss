@@ -13,7 +13,7 @@
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"  
 #define RevitAddinDllPath "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
-#define UIBuildPath "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net6.0-windows"
+#define UIBuildPath "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 #define BaseOut Base + "\out"
 
 [Setup]
