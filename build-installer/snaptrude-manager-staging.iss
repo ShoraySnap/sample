@@ -87,6 +87,9 @@ begin
     end;
   // Create a download page
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+  DownloadPage.Msg1Label.Top := 40
+  DownloadPage.Msg2Label.Top := -400
+  DownloadPage.Msg2Label.Visible := False;
 end;
 
 procedure unzip(ZipFile, TargetFldr: PAnsiChar);
@@ -158,6 +161,7 @@ begin
             if CheckListBoxPage.Values[I] then
               try
                 DownloadPage.Add(InstalledVersionsURLs[I], InstalledVersions[I] + '.zip', '');
+                DownloadPage.SetText('Downloading Revit ' + InstalledVersions[I] + ' RFAs...' ,'');
                 Result := True;
               except
                 Log(GetExceptionMessage);
