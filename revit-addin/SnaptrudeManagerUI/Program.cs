@@ -17,8 +17,6 @@ namespace SnaptrudeManagerUI
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         [STAThread]
         public static void Main(string[] args)

@@ -16,11 +16,14 @@ using Newtonsoft.Json;
 using SnaptrudeManagerUI.UI.Helpers;
 using System.Windows;
 using TrudeCommon.Events;
+using System.Runtime.InteropServices;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class LoginViewModel : ViewModelBase
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
         public ICommand LoginCommand { get; }
         public ICommand AuthCommand { get; private set; }
 
@@ -71,7 +74,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void OnSuccessfullLogin()
         {
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.MANAGER_UI_REQ_SET_FOREGROUND);
+            SetForegroundWindow(App.RevitProcess.MainWindowHandle);
             LoginCommand.Execute(new object());
         }
 

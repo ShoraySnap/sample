@@ -12,11 +12,16 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using TrudeCommon.Events;
 using NLog;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class ProgressViewModel : ViewModelBase
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         static Logger logger = LogManager.GetCurrentClassLogger();
         public enum ProgressViewType
         {
@@ -85,6 +90,8 @@ namespace SnaptrudeManagerUI.ViewModels
         /// <param name="failureNavigationService"></param>
         public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService)
         {
+            SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+
             IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
             FailureCommand = new NavigateCommand(failureNavigationService);

@@ -51,7 +51,7 @@ namespace SnaptrudeManagerUI
         public static Action OnDocumentChanged;
         public static Action OnRevitClosed;
 
-        private Process RevitProcess;
+        public static Process RevitProcess;
 
         public static void RegisterProtocol()
         {

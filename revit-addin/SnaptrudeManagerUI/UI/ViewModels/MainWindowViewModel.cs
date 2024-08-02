@@ -154,7 +154,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
         public bool CloseButtonVisible =>
-            CurrentViewModel.GetType().Name != "ProgressViewModel";
+            CurrentViewModel?.GetType().Name != "ProgressViewModel";
 
         public bool LoginButtonVisible =>
             !ImageBackground && CurrentViewModel?.GetType().Name != "EndViewModel" &&
