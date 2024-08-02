@@ -65,6 +65,19 @@ namespace TrudeImporter
             }
         }
 
+        private void FlipHand(FamilyInstance instance)
+        {
+            bool facingFlipResult = instance.flipHand();
+
+            if (!facingFlipResult)
+            {
+                XYZ normal = instance.FacingOrientation;
+                XYZ origin = (instance.Location as LocationPoint).Point;
+                Plane pl = Plane.CreateByNormalAndOrigin(normal, origin);
+                var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { instance.Id }, pl, false);
+            }
+        }
+
         public void SnaptrudeFlip(Element element, XYZ origin = null, bool isFamilyFromRevitImport = false)
         {
             Parameter offset = GetOffsetParameter(element as FamilyInstance);
@@ -98,12 +111,12 @@ namespace TrudeImporter
             {
                 instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
             }
-            if (isSnaptrudeFlipped) instance.flipHand();
+            if (isSnaptrudeFlipped) FlipHand(instance);
 
             GlobalVariables.Document.Regenerate();
             BoundingBoxXYZ boundingBox = instance.get_BoundingBox(null);
             XYZ boundingBoxCenter = (boundingBox.Max + boundingBox.Min)/2;
-            if (isFacingFlip) instance.flipFacing();
+            if (isFacingFlip) FlipFacing(instance);
 
             Transform offsetRotationTransform = Transform.CreateRotation(XYZ.BasisZ, familyRotation);
 
