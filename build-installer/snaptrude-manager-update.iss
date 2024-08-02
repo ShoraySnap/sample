@@ -62,7 +62,8 @@ Type: files; Name: "{userappdata}\Autodesk\Revit\Addins\2024\Revit2Snaptrude.add
 
 [Files]
 
-Source: "{#UIBuildPath}\*"; DestDir: "{commonappdata}\snaptrude-manager\UI"; Flags: ignoreversion;
+Source: "{#BaseMisc}\urlsstaging.json"; DestDir: "{commonappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
+Source: "{#UIBuildPath}\SnaptrudeManagerUI.exe"; DestDir: "{commonappdata}\snaptrude-manager\UI"; Flags: ignoreversion;
 
 ;2019
 Source: "{#RevitAddinDllPath}\2019\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{autoappdata}\Autodesk\Revit\Addins\2019'))
