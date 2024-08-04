@@ -4,6 +4,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Events;
 using DesignAutomationFramework;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Windows.Markup;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 
@@ -46,21 +48,22 @@ namespace DirectImport
                 LogTrace("Processing Revit file....");
                 Document doc = e.DesignAutomationData.RevitDoc;
                 if (doc == null) throw new InvalidOperationException("Could not open document.");
-                int count = new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElements().Count;
-                LogTrace("There are " + count + " elements in the document");
-                LogTrace("File: {0}", filePath);
-                using (WebClient client = new WebClient())
+                LogTrace("Recieved File: {0}", filePath);
+                List<data> _data = new List<data>();
+                _data.Add(new data()
                 {
-                    byte[] imageData = client.DownloadData("https://d23g6qii944o5c.cloudfront.net/media/media/materials/RAL_1026_DeAaB25.jpg");
-                    using (MemoryStream ms = new MemoryStream(imageData))
-                    {
-                        using (System.Drawing.Image image = System.Drawing.Image.FromStream(ms))
-                        {
-                            LogTrace("Image size: {0}x{1} pixels", image.Width, image.Height);
-                        }
-                        LogTrace($"Image file size: {imageData.Length} bytes");
-                    }
+                    Id = 1,
+                    SSN = 2,
+                    Message = "A Message"
+                });
+                string json = JsonConvert.SerializeObject(_data.ToArray(), Formatting.Indented);
+                using (StreamWriter sw = File.CreateText("result.trude"))
+                {
+                    sw.WriteLine(JsonConvert.SerializeObject(_data, Formatting.Indented));
+
+                    sw.Close();
                 }
+                LogTrace("Json file created successfully....");
             }
             else
             {
@@ -218,6 +221,13 @@ namespace DirectImport
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+    }
+
+    public class data
+    {
+        public int Id { get; set; }
+        public int SSN { get; set; }
+        public string Message { get; set; }
     }
 }
 
