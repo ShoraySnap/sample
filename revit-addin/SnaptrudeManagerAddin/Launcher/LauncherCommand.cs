@@ -17,6 +17,7 @@ namespace SnaptrudeManagerAddin.Launcher
             Application.Instance.IsAnyDocumentOpened = true;
             if (!Application.Instance.IsViewActivatedSubscribed)
                 Application.UIControlledApplication.ViewActivated += Application.Instance.OnViewActivated;
+            Application.UIControlledApplication.Idling += Application.Instance.OnRevitIdling;
             LaunchProcess.StartProcess(new string[] 
             { 
                 Process.GetCurrentProcess().Id.ToString(),

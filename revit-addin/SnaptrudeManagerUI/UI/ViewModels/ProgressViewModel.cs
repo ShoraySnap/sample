@@ -22,6 +22,9 @@ namespace SnaptrudeManagerUI.ViewModels
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        private static extern bool GetForegroundWindow(IntPtr hWnd);
+        
         static Logger logger = LogManager.GetCurrentClassLogger();
         public enum ProgressViewType
         {
@@ -92,6 +95,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             MainWindowViewModel.Instance.TopMost = false;
             SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
 
             IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
