@@ -62,13 +62,20 @@
 	  <None Remove="lib\**" />
 	</ItemGroup>
 
-
+	
 	<ItemGroup>
 		<Reference Include="PresentationCore" />
 		<Reference Include="PresentationFramework" />
+		<Reference Include="Revit.IFC.Export">
+		  <HintPath>lib\IFC\$(RevitVersion)\Revit.IFC.Export.dll</HintPath>
+		</Reference>
+		<Reference Include="RevitAPIIFC" Version="$(RevitVersion)">
+			<HintPath>lib\IFC\$(RevitVersion)\RevitAPIIFC.dll</HintPath>
+		</Reference>
 		<Reference Include="System" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Drawing" />
+		<Reference Include="System.Net.Http" />
 		<Reference Include="System.Windows.Forms" />
 		<Reference Include="System.Xaml" />
 		<Reference Include="System.Xml" />
@@ -85,6 +92,8 @@
 	</Target>
 
 	<Import Project="..\TrudeImporter\TrudeImporter.projitems" Label="Shared" />
+
+	<Import Project="..\TrudeSerializer\TrudeSerializer.projitems" Label="Shared" />
 
 	<PropertyGroup>
 		<Optimize>False</Optimize>

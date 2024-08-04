@@ -12,9 +12,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
+using TrudeSerializer;
+using TrudeSerializer.Importer;
 
 namespace DirectImport
 {
@@ -25,6 +28,7 @@ namespace DirectImport
     /// </summary>
     public class Command : IExternalDBApplication
     {
+        internal Action<SerializedTrudeData> OnCleanSerializedTrudeData;
         //Path of the project(i.e)project where your Window family files are present
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public ExternalDBApplicationResult OnStartup(ControlledApplication application)
@@ -43,27 +47,13 @@ namespace DirectImport
             e.Succeeded = true;
             string filePath = e.DesignAutomationData.FilePath;
             string extension = Path.GetExtension(filePath);
+            string filename = Path.GetFileName(filePath);
             if (extension == ".rvt")
             {
                 LogTrace("Processing Revit file....");
-                Document doc = e.DesignAutomationData.RevitDoc;
-                if (doc == null) throw new InvalidOperationException("Could not open document.");
+                Document doc = e.DesignAutomationData.RevitDoc ?? throw new InvalidOperationException("Could not open document.");
                 LogTrace("Recieved File: {0}", filePath);
-                List<data> _data = new List<data>();
-                _data.Add(new data()
-                {
-                    Id = 1,
-                    SSN = 2,
-                    Message = "A Message"
-                });
-                string json = JsonConvert.SerializeObject(_data.ToArray(), Formatting.Indented);
-                using (StreamWriter sw = File.CreateText("result.trude"))
-                {
-                    sw.WriteLine(JsonConvert.SerializeObject(_data, Formatting.Indented));
-
-                    sw.Close();
-                }
-                LogTrace("Json file created successfully....");
+                ExportTrude(e.DesignAutomationData, filename);
             }
             else
             {
@@ -108,102 +98,46 @@ namespace DirectImport
         }
 
         /// <summary>
-        ///  This method parses the trude file and creates corresponding revit document.
+        ///  This method exports the trude file.
         /// </summary>
-        private void ParseTrude(DesignAutomationData data)
+        private void ExportTrude(DesignAutomationData data, string filename)
         {
             if (data == null) throw new InvalidDataException(nameof(data));
             if (data.RevitApp == null) throw new InvalidDataException(nameof(data.RevitApp));
 
-            JObject trudeData = JObject.Parse(File.ReadAllText(Configs.INPUT_TRUDE));
+            //List<data> _data = new List<data>();
+            //_data.Add(new data()
+            //{
+            //    Id = 1,
+            //    SSN = 2,
+            //    Message = "A Message"
+            //});
+            //string json = JsonConvert.SerializeObject(_data.ToArray(), Formatting.Indented);
+            //using (StreamWriter sw = File.CreateText("result.trude"))
+            //{
+            //    sw.WriteLine(JsonConvert.SerializeObject(_data, Formatting.Indented));
+
+            //    sw.Close();
+            //}
 
             Application rvtApp = data.RevitApp;
-            Document newDoc = rvtApp.OpenDocumentFile("host.rvt");
-
-            GlobalVariables.RvtApp = rvtApp;
-            GlobalVariables.Document = newDoc;
-            GlobalVariables.ForForge = true;
-
+            Document newDoc = rvtApp.OpenDocumentFile(filename);
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
+            View3D view = Get3dView(newDoc);
+            SerializedTrudeData serializedData = ExportViewUsingCustomExporter(newDoc, view);
+            ComponentHandler.Instance.CleanSerializedData(serializedData);
+            OnCleanSerializedTrudeData?.Invoke(serializedData);
+            string serializedObject = JsonConvert.SerializeObject(serializedData);
 
-            GlobalVariables.materials = trudeData["materials"] as JArray;
-            GlobalVariables.multiMaterials = trudeData["multiMaterials"] as JArray;
-
-            //JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator();
-            //JsonSchema jsonSchema = jsonSchemaGenerator.Generate(typeof(TrudeProperties));
-
-            Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer()
+            using (StreamWriter sw = File.CreateText("result.trude"))
             {
-                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore,
-            };
-            serializer.Converters.Add(new XyzConverter());
-
-            TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
-
-            using (TransactionGroup tg = new TransactionGroup(newDoc, "Parse Trude"))
-            {
-                tg.Start();
-                using (Transaction t = new Transaction(newDoc, "Parse Trude"))
-                {
-                    GlobalVariables.Transaction = t;
-                    t.Start();
-                    TrudeImporterMain.Import(trudeProperties);
-                    t.Commit();
-                }
-                tg.Assimilate();
+                sw.WriteLine(serializedObject);
+                sw.Close();
             }
 
-            //ImportSnaptrude(structureCollection, newDoc);
-
-            try
-            {
-                using (Transaction t = new Transaction(newDoc, "remove structural view"))
-                {
-
-                    View structuralView = Utils.GetElements(newDoc, typeof(View))
-                                               .Select(e => e as View)
-                                               .Where(e => e.Title == "Structural Plan: 0")
-                                               .ToList().First();
-                    t.Start();
-                    newDoc.Delete(structuralView.Id);
-                    t.Commit();
-                }
-            } catch { }
-
-            List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
-                                       .Select(e => e as View)
-                                       .Where(e => e.CanBePrinted)
-                                       .ToList();
-
-            using(Transaction t = new Transaction(newDoc, "Set View details levels and filter overrides"))
-            {
-                t.Start();
-
-                // ThinWallFilter should be defined in host.rvt
-                FilterElement filterElement = Utils.FindElement(newDoc, typeof(FilterElement), "ThinWallFilter") as FilterElement;
-
-                foreach (View v in printableViews)
-                {
-                    v.DetailLevel = ViewDetailLevel.Fine;
-
-                    if (v.GetFilters().Contains(filterElement.Id)) continue;
-                    v.AddFilter(filterElement.Id);
-
-                    OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
-                    overrideGraphicSettings.SetCutLineColor(new Color(0, 200, 200));
-                    overrideGraphicSettings.SetCutLineWeight(1);
-
-                    v.SetFilterOverrides(filterElement.Id, overrideGraphicSettings);
-
-                    OverrideGraphicSettings overrides = new OverrideGraphicSettings();
-                    overrides.SetSurfaceTransparency(50);
-                    v.SetCategoryOverrides(new ElementId(BuiltInCategory.OST_Floors), overrides);
-                }
-
-                t.Commit();
-            }
+            LogTrace("Json file created successfully....");
         }
+
         public ExternalDBApplicationResult OnShutdown(ControlledApplication application)
         {
             return ExternalDBApplicationResult.Succeeded;
@@ -221,6 +155,33 @@ namespace DirectImport
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+        private SerializedTrudeData ExportViewUsingCustomExporter(Document doc, View3D view)
+        {
+            if (doc.IsFamilyDocument)
+            {
+                TrudeCustomExporterForRFA exporterContextForRFA = new TrudeCustomExporterForRFA(doc);
+                CustomExporter exporterForRFA = new CustomExporter(doc, exporterContextForRFA);
+
+                exporterForRFA.Export(view);
+                return exporterContextForRFA.GetExportData();
+            }
+
+            TrudeCustomExporter exporterContext = new TrudeCustomExporter(doc);
+            CustomExporter exporter = new CustomExporter(doc, exporterContext);
+
+            exporter.Export(view);
+            return exporterContext.GetExportData();
+        }
+
+        private View3D Get3dView(Document doc)
+        {
+            View currentView = doc.ActiveView;
+            if (currentView is View3D) return currentView as View3D;
+
+            Element default3DView = new FilteredElementCollector(doc).OfClass(typeof(View3D)).ToElements().FirstOrDefault();
+
+            return default3DView as View3D;
+        }
     }
 
     public class data
