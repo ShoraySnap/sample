@@ -2,7 +2,6 @@ using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using TrudeImporter.TrudeImporter.Model;
 using System.Diagnostics;
 using NLog;
 
@@ -37,6 +36,8 @@ namespace TrudeImporter
         private static string ImportDurationMessage;
         public static void Import(TrudeProperties trudeProperties)
         {
+
+
             Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
             GlobalVariables.MissingWindowFamiliesCount.Clear();
@@ -112,6 +113,9 @@ namespace TrudeImporter
                     ElementId id = new ElementId((Int64)elementId);
 #endif
                     Element element = GlobalVariables.Document.GetElement(id);
+
+                    TrudeExportLoggerHelper.DeleteCountLogger(element);
+
                     if (!element.GroupId.Equals(ElementId.InvalidElementId))
                         TrudeImporterMain.deleteIfInGroup(element);
                     else
@@ -332,6 +336,12 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_WALL_KEY,
+                            props.AllFaceVertices == null,
+                            props.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -383,6 +393,12 @@ namespace TrudeImporter
 
                     deleteOld(beam.ExistingElementId);
                     GlobalVariables.Transaction.Commit();
+
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_BEAM_KEY,
+                        beam.AllFaceVertices == null,
+                        beam.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
@@ -430,6 +446,12 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_COLUMN_KEY,
+                            column.AllFaceVertices == null,
+                            column.ExistingElementIdDS != null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -653,6 +675,12 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_FLOOR_KEY,
+                            floor.AllFaceVertices == null,
+                            floor.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -691,6 +719,12 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_SLAB_KEY,
+                            slab.AllFaceVertices == null,
+                            slab.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -717,6 +751,11 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_DOOR_KEY,
+                            true,
+                            door.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -743,6 +782,11 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_WINDOW_KEY,
+                            true,
+                            window.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -769,6 +813,11 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_FURNITURE_KEY,
+                            true,
+                            furniture.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -782,6 +831,11 @@ namespace TrudeImporter
                 t.Start();
                 GlobalVariables.Document.Delete(sourceIdsToDelete);
                 t.Commit();
+                TrudeExportLogger.Instance.CountOutputElements(
+                    TrudeExportLoggerHelper.BASIC_FURNITURE_KEY,
+                    true,
+                    "deleted"
+                );
             }
         }
 
@@ -815,6 +869,11 @@ namespace TrudeImporter
                         {
                             t.RollBack();
                         }
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_CEILING_KEY,
+                            ceiling.AllFaceVertices == null,
+                            ceiling.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     catch (Exception e)
                     {
@@ -850,6 +909,11 @@ namespace TrudeImporter
                                 ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
                                 TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
                             }
+                            TrudeExportLogger.Instance.CountOutputElements(
+                                TrudeExportLoggerHelper.MASSES_KEY,
+                                false,
+                                mass.ExistingElementId == null ? "added" : "updated"
+                            );
                         }
                         deleteOld(mass.ExistingElementId);
                         if (t.Commit() != TransactionStatus.Committed)

@@ -31,6 +31,8 @@ namespace SnaptrudeManagerAddin
         }
         public void Execute(UIApplication uiapp)
         {
+            TrudeExportLogger exportLogger = new TrudeExportLogger();
+            exportLogger.Init();
             Document doc = uiapp.ActiveUIDocument.Document;
 
             GlobalVariables.Document = doc;

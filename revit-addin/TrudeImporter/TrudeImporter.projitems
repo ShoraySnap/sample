@@ -9,6 +9,8 @@
     <Import_RootNamespace>TrudeImporter</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\ComponentIdentifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\exportdebug\TrudeExportLoggerHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ListViewExtender.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)trudeimporter\MaterialOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\AWS\GetObject.cs" />
@@ -71,5 +73,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\TypeStore\WindowTypeStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\UnitsAdapter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\ExportDebug\TrudeExportLogger.cs" />
   </ItemGroup>
 </Project>
