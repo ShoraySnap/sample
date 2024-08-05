@@ -15,7 +15,6 @@ using System.Net;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media.Media3D;
-using TrudeImporter;
 using TrudeSerializer;
 using TrudeSerializer.Importer;
 
@@ -105,28 +104,16 @@ namespace DirectImport
             if (data == null) throw new InvalidDataException(nameof(data));
             if (data.RevitApp == null) throw new InvalidDataException(nameof(data.RevitApp));
 
-            //List<data> _data = new List<data>();
-            //_data.Add(new data()
-            //{
-            //    Id = 1,
-            //    SSN = 2,
-            //    Message = "A Message"
-            //});
-            //string json = JsonConvert.SerializeObject(_data.ToArray(), Formatting.Indented);
-            //using (StreamWriter sw = File.CreateText("result.trude"))
-            //{
-            //    sw.WriteLine(JsonConvert.SerializeObject(_data, Formatting.Indented));
-
-            //    sw.Close();
-            //}
-
             Application rvtApp = data.RevitApp;
             Document newDoc = rvtApp.OpenDocumentFile(filename);
+            GlobalVariables.Document = newDoc;
+            GlobalVariables.RvtApp = rvtApp;
+            GlobalVariables.isDirectImport = true;
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
             View3D view = Get3dView(newDoc);
             SerializedTrudeData serializedData = ExportViewUsingCustomExporter(newDoc, view);
-            ComponentHandler.Instance.CleanSerializedData(serializedData);
-            OnCleanSerializedTrudeData?.Invoke(serializedData);
+            //ComponentHandler.Instance.CleanSerializedData(serializedData);
+            //OnCleanSerializedTrudeData?.Invoke(serializedData);
             string serializedObject = JsonConvert.SerializeObject(serializedData);
 
             using (StreamWriter sw = File.CreateText("result.trude"))
@@ -175,12 +162,47 @@ namespace DirectImport
 
         private View3D Get3dView(Document doc)
         {
-            View currentView = doc.ActiveView;
-            if (currentView is View3D) return currentView as View3D;
+            // Check if the active view is a 3D view
+            if (doc.ActiveView is View3D activeView3D)
+            { 
+                LogTrace("Using active 3D view: {0}", activeView3D.Name);
+                return activeView3D; 
+            }
 
-            Element default3DView = new FilteredElementCollector(doc).OfClass(typeof(View3D)).ToElements().FirstOrDefault();
+            // Try to find any 3D view
+            View3D default3DView = new FilteredElementCollector(doc)
+                .OfClass(typeof(View3D))
+                .Cast<View3D>()
+                .FirstOrDefault(v => !v.IsTemplate);
 
-            return default3DView as View3D;
+            if (default3DView != null)
+            { 
+                LogTrace("Using default 3D view: {0}", default3DView.Name);
+                return default3DView; 
+            }
+
+            // If no 3D view exists, create a new one
+            using (Transaction trans = new Transaction(doc, "Create 3D View"))
+            {
+                trans.Start();
+                ViewFamilyType viewFamilyType = new FilteredElementCollector(doc)
+                    .OfClass(typeof(ViewFamilyType))
+                    .Cast<ViewFamilyType>()
+                    .FirstOrDefault(v => v.ViewFamily == ViewFamily.ThreeDimensional);
+
+                if (viewFamilyType != null)
+                {
+                    View3D newView = View3D.CreateIsometric(doc, viewFamilyType.Id);
+                    trans.Commit();
+                    LogTrace("Created a new 3D view.");
+                    return newView;
+                }
+                else
+                {
+                    trans.RollBack();
+                    throw new Exception("Unable to find or create a 3D view family type.");
+                }
+            }
         }
     }
 

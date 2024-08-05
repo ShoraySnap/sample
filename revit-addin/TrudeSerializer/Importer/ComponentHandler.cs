@@ -72,7 +72,9 @@ namespace TrudeSerializer.Importer
         */
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
-            TrudeLogger.Instance.CountInput(element);
+            if (!GlobalVariables.isDirectImport)
+            { TrudeLogger.Instance.CountInput(element); }
+
             if (TrudeWall.IsValidWall(element))
             {
                 return TrudeWall.GetSerializedComponent(serializedData, element);
@@ -191,7 +193,8 @@ namespace TrudeSerializer.Importer
                 serializedData.AddWindowInstance(instanceId, windowInstance);
             }
 
-            TrudeLogger.Instance.CountOutput(component, element);
+            if (!GlobalVariables.isDirectImport)
+            { TrudeLogger.Instance.CountOutput(component, element); }
         }
 
         /*!

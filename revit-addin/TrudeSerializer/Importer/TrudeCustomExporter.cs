@@ -195,6 +195,7 @@ namespace TrudeSerializer
                 }
                 catch (Exception e)
                 {
+                    System.Console.WriteLine(e);
                     return RenderNodeAction.Skip;
                 }
             }
@@ -203,6 +204,7 @@ namespace TrudeSerializer
             {
                 return RenderNodeAction.Skip;
             }
+
 
             this.currentElement = CurrentElement.SetCurrentElement(component);
 

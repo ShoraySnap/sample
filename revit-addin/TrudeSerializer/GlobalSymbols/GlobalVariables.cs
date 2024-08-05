@@ -10,15 +10,15 @@ namespace TrudeSerializer
         // Current document of revit project (used in TrudeCustomExporter)
         public static Document CurrentDocument;
         public static Application RvtApp;
+        public static bool isDirectImport;
 
         public static void CleanGlobalVariables()
         {
             Document = null;
             RvtApp = null;
             CurrentDocument = null;
+            isDirectImport = false;
         }
-
-
     }
 
     public static class GlobalConstants
