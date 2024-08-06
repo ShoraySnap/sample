@@ -106,5 +106,4 @@
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="&quot;C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe&quot; -file $(ProjectDir)bundler.ps1 -RevitVersion $(RevitVersion) " />
 	</Target>
-
 </Project>
