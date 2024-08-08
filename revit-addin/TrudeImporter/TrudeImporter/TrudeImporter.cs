@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using TrudeImporter.TrudeImporter.Model;
 using System.Diagnostics;
 using NLog;
 
