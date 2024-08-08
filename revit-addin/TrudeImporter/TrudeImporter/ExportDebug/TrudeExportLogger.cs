@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Autodesk.Revit.DB;
 using Newtonsoft.Json;
-using TrudeCommon.Utils;
 
 namespace TrudeImporter
 {
@@ -56,8 +55,8 @@ namespace TrudeImporter
             walls.Add(TrudeExportLoggerHelper.BASIC_WALL_KEY, new CountData());
             floors.Add(TrudeExportLoggerHelper.BASIC_FLOOR_KEY, new CountData());
             ceilings.Add(TrudeExportLoggerHelper.BASIC_CEILING_KEY, new CountData());
-            curtainWalls.Add(TrudeExportLoggerHelper.MULLIONS_KEY, new CountData());
-            curtainWalls.Add(TrudeExportLoggerHelper.PANELS_KEY, new CountData());
+            //curtainWalls.Add(TrudeExportLoggerHelper.MULLIONS_KEY, new CountData());
+            //curtainWalls.Add(TrudeExportLoggerHelper.PANELS_KEY, new CountData());
             columns.Add(TrudeExportLoggerHelper.BASIC_COLUMN_KEY, new CountData());
             beams.Add(TrudeExportLoggerHelper.BASIC_BEAM_KEY, new CountData());
             doors.Add(TrudeExportLoggerHelper.BASIC_DOOR_KEY, new CountData());
@@ -118,7 +117,6 @@ namespace TrudeImporter
         SnaptrudeData snaptrudeData;
         RevitData revitData;
 
-        private static string currentKey = "";
         public void Init()
         {
             TrudeExportLogger.Instance = this;
@@ -140,10 +138,10 @@ namespace TrudeImporter
             File.WriteAllText(filePath, serializedLog);
         }
 
-        private void CountComponent(Dictionary<string, CountData> componentDict, bool isParametric, string type)
+        private void CountComponent(Dictionary<string, CountData> componentDict, string subComponent, bool isParametric, string type)
         {
-            CountData countData = componentDict[currentKey];
-            if (componentDict.ContainsKey(currentKey))
+            CountData countData = componentDict[subComponent];
+            if (componentDict.ContainsKey(subComponent))
             {
                 if (type == "added")
                 {
@@ -162,7 +160,6 @@ namespace TrudeImporter
                     // else countData.deleted.nonParametric += 1;
                 }
             }
-            currentKey = "";
         }
 
         public void CountOutputElements(string subComponent, bool isParametric, string type)
@@ -171,43 +168,43 @@ namespace TrudeImporter
 
             if (subComponent == TrudeExportLoggerHelper.BASIC_WALL_KEY)
             {
-                CountComponent(revitData.components.walls, isParametric, type);
+                CountComponent(revitData.components.walls, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_FLOOR_KEY)
             {
-                CountComponent(revitData.components.floors, isParametric, type);
+                CountComponent(revitData.components.floors, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_CEILING_KEY)
             {
-                CountComponent(revitData.components.ceilings, isParametric, type);
+                CountComponent(revitData.components.ceilings, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_COLUMN_KEY)
             {
-                CountComponent(revitData.components.columns, isParametric, type);
+                CountComponent(revitData.components.columns, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_BEAM_KEY)
             {
-                CountComponent(revitData.components.beams, isParametric, type);
+                CountComponent(revitData.components.beams, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_SLAB_KEY)
             {
-                CountComponent(revitData.components.slabs, isParametric, type);
+                CountComponent(revitData.components.slabs, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_DOOR_KEY)
             {
-                CountComponent(revitData.components.doors, isParametric, type);
+                CountComponent(revitData.components.doors, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_WINDOW_KEY)
             {
-                CountComponent(revitData.components.windows, isParametric, type);
+                CountComponent(revitData.components.windows, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.MASSES_KEY)
             {
-                CountComponent(revitData.components.unrecognizedComponents, isParametric, type);
+                CountComponent(revitData.components.unrecognizedComponents, subComponent, isParametric, type);
             }
             else if (subComponent == TrudeExportLoggerHelper.BASIC_FURNITURE_KEY)
             {
-                CountComponent(revitData.components.furniture, isParametric, type);
+                CountComponent(revitData.components.furniture, subComponent, isParametric, type);
             }
         }
         
