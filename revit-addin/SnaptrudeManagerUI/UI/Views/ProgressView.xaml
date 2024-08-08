@@ -89,7 +89,7 @@
             </Grid>
         </StackPanel>
         <TextBlock
-            Margin="0,0,0,15"
+            Margin="0,0,0,5"
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
             d:Text="Update in progress, please don’t close this window."

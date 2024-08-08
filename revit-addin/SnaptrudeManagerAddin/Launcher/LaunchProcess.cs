@@ -40,7 +40,7 @@ namespace SnaptrudeManagerAddin.Launcher
                 HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
                 Application.UpdateButtonState(bool.Parse(args[1]));
                 Application.UpdateNameAndFiletype(args[3], bool.Parse(args[2]) ? "rvt" : "rfa");
-                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, process.Id.ToString(), Application.TransferManager);
+                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, Process.GetCurrentProcess().Id.ToString(), Application.TransferManager);
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace SnaptrudeManagerAddin.Launcher
                 {
                     logger.Info("UI Process started successfully!");
                     HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
-                    TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, process.Id.ToString(), Application.TransferManager);
+                    TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, Process.GetCurrentProcess().Id.ToString(), Application.TransferManager);
                 }
             }
             else

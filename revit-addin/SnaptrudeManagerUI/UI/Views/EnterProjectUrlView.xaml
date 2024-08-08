@@ -10,11 +10,12 @@
     d:DesignHeight="272"
     d:DesignWidth="560"
     FontSize="13"
+    Loaded="EnterProjectUrlView_Loaded"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
     </UserControl.Resources>
-    <Grid>
+    <Grid Focusable="True">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="64" />
@@ -104,7 +105,9 @@
                             VerticalContentAlignment="Center"
                             Background="Transparent"
                             BorderThickness="0"
-                            Text="{Binding URL, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                            FontFamily="{StaticResource Inter400}"
+                            Text="{Binding URL, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            Typography.StylisticAlternates="1" />
                         <TextBlock
                             Margin="10,0,0,0"
                             HorizontalAlignment="Left"
@@ -129,6 +132,16 @@
                     </Grid>
 
                     <Grid Grid.Column="2" Margin="0,6,6,6">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RequestStatus}" Value="None">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid
                             Width="20"
                             Height="20"
@@ -244,9 +257,15 @@
                                 StrokeThickness="1.25" />
                         </Grid>
                         <Grid Width="20" Height="18">
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Grid.Style>
-                                    <Style TargetType="Grid">
+                            <Button
+                                Width="20"
+                                Height="18"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="ClearValue_Button_Click"
+                                Command="{Binding ClearURLCommand}">
+                                <Button.Style>
+                                    <Style BasedOn="{StaticResource Button_ClearText}" TargetType="Button">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
@@ -254,16 +273,17 @@
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Grid.Style>
-                                <Path
-                                    Data="M1 1L8.5 8.5M1 8.5L8.5 1"
-                                    Stroke="{StaticResource Colors/Neutral/800}"
-                                    StrokeEndLineCap="round"
-                                    StrokeLineJoin="round"
-                                    StrokeStartLineCap="round"
-                                    StrokeThickness="1.25" />
-                            </Grid>
-
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path
+                                        Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                        Stroke="{StaticResource Colors/Neutral/800}"
+                                        StrokeEndLineCap="round"
+                                        StrokeLineJoin="round"
+                                        StrokeStartLineCap="round"
+                                        StrokeThickness="1.25" />
+                                </Grid>
+                            </Button>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -272,6 +292,7 @@
                 Grid.Row="2"
                 Margin="0,8,0,0"
                 Padding="8"
+                d:Visibility="Visible"
                 BorderBrush="{StaticResource Colors/Neutral/200}"
                 BorderThickness="1"
                 CornerRadius="6">
@@ -299,6 +320,78 @@
                             <ImageBrush ImageSource="/SnaptrudeManagerUI;component/UI/Images/thumbnail.png" Stretch="UniformToFill" />
                         </Border.Background>
                     </Border>
+                    <Grid
+                        Width="20"
+                        Height="20"
+                        Margin="2,0,4,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        d:Visibility="Visible">
+                        <Grid.RenderTransform>
+                            <RotateTransform x:Name="invertedRotationTransform" CenterX="10.5" CenterY="10" />
+                        </Grid.RenderTransform>
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                <BeginStoryboard Storyboard="{StaticResource InvertedRotateStoryboard}" />
+                            </EventTrigger>
+                        </Grid.Triggers>
+                        <Path
+                            Data="M10.4998 17.5031V15.0021"
+                            Stroke="{DynamicResource Colors/Neutral/100}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M15.8053 15.3055L14.0371 13.5373"
+                            Stroke="{DynamicResource Colors/Neutral/200}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M18.003 10H15.502"
+                            Stroke="{DynamicResource Colors/Neutral/300}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M14.0371 6.46269L15.8053 4.69446"
+                            Stroke="{DynamicResource Colors/Neutral/400}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M10.4998 2.49687V4.99792"
+                            Stroke="{DynamicResource Colors/Neutral/500}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M5.19531 4.69446L6.96355 6.46269"
+                            Stroke="{DynamicResource Colors/Neutral/600}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M2.99707 10H5.49811"
+                            Stroke="{DynamicResource Colors/Neutral/600}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M6.96355 13.5373L5.19531 15.3055"
+                            Stroke="{DynamicResource Colors/Neutral/800}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                    </Grid>
                     <Border
                         Width="40"
                         Height="40"
@@ -310,6 +403,7 @@
                     <TextBlock
                         Grid.Column="2"
                         VerticalAlignment="Center"
+                        d:Text="ProjectName"
                         FontFamily="{StaticResource Inter500}"
                         Foreground="{StaticResource Colors/Neutral/600}"
                         Text="{Binding ProjectName}" />

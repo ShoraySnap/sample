@@ -24,5 +24,15 @@ namespace SnaptrudeManagerUI.Views
         {
             InitializeComponent();
         }
+
+        private void ClearValue_Button_Click(object sender, RoutedEventArgs e)
+        {
+            URLTextBox.Focus();
+        }
+
+        private void EnterProjectUrlView_Loaded(object sender, RoutedEventArgs e)
+        {
+            URLTextBox.Focus();
+        }
     }
 }

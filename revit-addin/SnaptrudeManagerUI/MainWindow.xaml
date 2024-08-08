@@ -4,22 +4,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:SnaptrudeManagerUI.UI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gif="http://wpfanimatedgif.codeplex.com"
     xmlns:local="clr-namespace:SnaptrudeManagerUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
-    Width="590"
-    Height="350"
+    Width="620"
+    Height="400"
     AllowsTransparency="True"
     Background="Transparent"
     FontSize="13"
-    MouseDown="Window_MouseDown"
-    RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="NoResize"
     ShowInTaskbar="True"
-    SnapsToDevicePixels="False"
-    TextOptions.TextRenderingMode="Aliased"
     Topmost="{Binding TopMost}"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
@@ -30,21 +27,21 @@
     <Grid
         Width="560"
         Height="320"
-        Cursor="{StaticResource CustomCursor}">
+        Cursor="{StaticResource CustomCursor}"
+        MouseDown="Window_MouseDown">
+        <Grid.Effect>
+            <DropShadowEffect
+                BlurRadius="40"
+                Direction="-90"
+                Opacity=".3"
+                RenderingBias="Quality"
+                ShadowDepth="8"
+                Color="Gray" />
+        </Grid.Effect>
         <Border
             Background="White"
             CornerRadius="10"
-            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
-                <DropShadowEffect
-                    BlurRadius="15"
-                    Direction="-90"
-                    Opacity=".4"
-                    RenderingBias="Quality"
-                    ShadowDepth="3"
-                    Color="Gray" />
-            </Border.Effect>
-        </Border>
+            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
@@ -171,56 +168,56 @@
                                                 </Grid.Triggers>
                                                 <Path
                                                     Data="M10.4998 17.5031V15.0021"
-                                                    Stroke="{DynamicResource Colors/Neutral/100}"
+                                                    Stroke="{DynamicResource Colors/Neutral/900}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
                                                     StrokeThickness="1.5" />
                                                 <Path
                                                     Data="M15.8053 15.3055L14.0371 13.5373"
-                                                    Stroke="{DynamicResource Colors/Neutral/200}"
+                                                    Stroke="{DynamicResource Colors/Neutral/800}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
                                                     StrokeThickness="1.5" />
                                                 <Path
                                                     Data="M18.003 10H15.502"
-                                                    Stroke="{DynamicResource Colors/Neutral/300}"
+                                                    Stroke="{DynamicResource Colors/Neutral/600}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
                                                     StrokeThickness="1.5" />
                                                 <Path
                                                     Data="M14.0371 6.46269L15.8053 4.69446"
-                                                    Stroke="{DynamicResource Colors/Neutral/400}"
-                                                    StrokeEndLineCap="round"
-                                                    StrokeLineJoin="round"
-                                                    StrokeStartLineCap="round"
-                                                    StrokeThickness="1.5" />
-                                                <Path
-                                                    Data="M10.4998 2.49687V4.99792"
                                                     Stroke="{DynamicResource Colors/Neutral/500}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
                                                     StrokeThickness="1.5" />
                                                 <Path
+                                                    Data="M10.4998 2.49687V4.99792"
+                                                    Stroke="{DynamicResource Colors/Neutral/400}"
+                                                    StrokeEndLineCap="round"
+                                                    StrokeLineJoin="round"
+                                                    StrokeStartLineCap="round"
+                                                    StrokeThickness="1.5" />
+                                                <Path
                                                     Data="M5.19531 4.69446L6.96355 6.46269"
-                                                    Stroke="{DynamicResource Colors/Neutral/600}"
+                                                    Stroke="{DynamicResource Colors/Neutral/300}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
                                                     StrokeThickness="1.5" />
                                                 <Path
                                                     Data="M2.99707 10H5.49811"
-                                                    Stroke="{DynamicResource Colors/Neutral/600}"
+                                                    Stroke="{DynamicResource Colors/Neutral/200}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
                                                     StrokeThickness="1.5" />
                                                 <Path
                                                     Data="M6.96355 13.5373L5.19531 15.3055"
-                                                    Stroke="{DynamicResource Colors/Neutral/800}"
+                                                    Stroke="{DynamicResource Colors/Neutral/100}"
                                                     StrokeEndLineCap="round"
                                                     StrokeLineJoin="round"
                                                     StrokeStartLineCap="round"
@@ -477,6 +474,13 @@
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>
+            <Image
+                Margin="0,0,0,20"
+                Grid.Row="1"
+                Width="100"
+                Height="100"
+                gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerUI;component/UI/Images/loader.gif"
+                Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </Grid>
 </Window>

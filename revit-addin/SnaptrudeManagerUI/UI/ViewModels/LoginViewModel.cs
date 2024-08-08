@@ -15,11 +15,15 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 using SnaptrudeManagerUI.UI.Helpers;
 using System.Windows;
+using TrudeCommon.Events;
+using System.Runtime.InteropServices;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class LoginViewModel : ViewModelBase
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
         public ICommand LoginCommand { get; }
         public ICommand AuthCommand { get; private set; }
 
@@ -70,6 +74,10 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void OnSuccessfullLogin()
         {
+            if (App.RevitProcess != null)
+            {
+                SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            }
             LoginCommand.Execute(new object());
         }
 
@@ -77,7 +85,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             ShowButton = false;
             ShowLoader = true;
-            Message = "Logging in...";
+            Message = "Redirecting to browser. Please ensure your pop-up blocker is disabled.";
             LoginHelper.Login(parameter);
         }
         private void OnFailedLogin()

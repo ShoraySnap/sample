@@ -13,7 +13,7 @@
 #define BaseMisc Base + "\misc"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"
 #define RevitAddinDllPath "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
-#define UIBuildPath "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net6.0-windows"
+#define UIBuildPath "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 #define BaseOut Base + "\out"
 
 [Setup]
@@ -87,6 +87,9 @@ begin
     end;
   // Create a download page
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+  DownloadPage.Msg1Label.Top := 40
+  DownloadPage.Msg2Label.Top := -400
+  DownloadPage.Msg2Label.Visible := False;
 end;
 
 procedure unzip(ZipFile, TargetFldr: PAnsiChar);
@@ -158,6 +161,7 @@ begin
             if CheckListBoxPage.Values[I] then
               try
                 DownloadPage.Add(InstalledVersionsURLs[I], InstalledVersions[I] + '.zip', '');
+                DownloadPage.SetText('Downloading Revit ' + InstalledVersions[I] + ' RFAs...' ,'');
                 Result := True;
               except
                 Log(GetExceptionMessage);
@@ -200,8 +204,8 @@ Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude.add
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.addin"; 
 
 [Files]
-Source: "{#BaseMisc}\urlswework.json"; DestDir: "{autoappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
-Source: "{#UIBuildPath}\*"; DestDir: "{commonappdata}\snaptrude-manager\UI"; Flags: ignoreversion;
+Source: "{#BaseMisc}\urlswework.json"; DestDir: "{commonappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
+Source: "{#UIBuildPath}\SnaptrudeManagerUI.exe"; DestDir: "{commonappdata}\snaptrude-manager\UI"; Flags: ignoreversion;
 
 ;2019
 Source: "{#RevitAddinDllPath}\2019\*.dll"; DestDir: "{autoappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019');

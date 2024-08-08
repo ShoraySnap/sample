@@ -101,6 +101,7 @@ $branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
 $version = -join($branch, "_", $date)
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
+$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 
 function Sign-File {
     param (
@@ -108,14 +109,23 @@ function Sign-File {
         [string]$certPath,
         [string]$plainPwd
     )
+
+    function Clear-Line {
+        Write-Host "`r" -NoNewline
+    }
+
     Write-Host "Signing $filePath ..." -NoNewline
-    & signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd /t http://timestamp.digicert.com "$filePath"
+    $output = & {
+        signtool.exe sign /f $certPath /fd SHA256 /p $plainPwd /t http://timestamp.digicert.com "$filePath" 2>&1
+    }
+    
+    Clear-Line
+    
     if ($LASTEXITCODE -eq 0) {
-        Clear-Line
         Write-Host "Signing $filePath - Done" -ForegroundColor Green
     } else {
-        Clear-Line
         Write-Host "Signing $filePath - Error" -ForegroundColor Red
+        Write-Host $output
         exit 1
     }
 }
@@ -147,7 +157,7 @@ if ($branch -eq "master") {
         Sign-File -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -plainPwd $plainPwd
     }
 
-    Sign-File -filePath "installers\snaptrude-manager-1.0.0 Setup.exe" -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath "$uiRelativePath\SnaptrudeManagerUI.exe" -certPath $certPath -plainPwd $plainPwd
 
     $version = Get-Content -Path .\version.txt -TotalCount 1
 

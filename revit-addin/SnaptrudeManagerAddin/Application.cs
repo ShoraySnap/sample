@@ -15,6 +15,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -29,12 +31,14 @@ namespace SnaptrudeManagerAddin
     [Regeneration(RegenerationOption.Manual)]
     public class Application : IExternalApplication
     {
+
         public static Application Instance;
         public static UIControlledApplication UIControlledApplication;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static DataTransferManager TransferManager;
         public bool IsAnyDocumentOpened;
         public bool _abortExport = false;
+        public bool IsViewActivatedSubscribed = false;
         private object mutex = new object();
         public bool AbortExportFlag
         {
@@ -83,7 +87,6 @@ namespace SnaptrudeManagerAddin
 
             SetupDataChannels();
             SetupEvents();
-            application.Idling += OnRevitIdling;
             application.ControlledApplication.DocumentClosing += DocumentClosing;
 
             return Result.Succeeded;
@@ -97,9 +100,11 @@ namespace SnaptrudeManagerAddin
             }
         }
 
-        private void OnRevitIdling(object sender, IdlingEventArgs e)
+        public void OnRevitIdling(object sender, IdlingEventArgs e)
         {
+            Task.Delay(100);
             ProcessEventQueue();
+            e.SetRaiseWithoutDelay();
         }
 
         public Result OnShutdown(UIControlledApplication application)
@@ -115,6 +120,7 @@ namespace SnaptrudeManagerAddin
 
         public void OnViewActivated(object sender, ViewActivatedEventArgs e)
         {
+            IsViewActivatedSubscribed = true;
             IsAnyDocumentOpened = true;
             View currentView = e.CurrentActiveView;
             UpdateButtonState(currentView is View3D);
@@ -123,8 +129,11 @@ namespace SnaptrudeManagerAddin
 
         private void DocumentClosing(object sender, DocumentClosingEventArgs e)
         {
+            if (!e.Document.Title.Contains("_custom_"))
+            {
             IsAnyDocumentOpened = false;
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
+            }
             // SHOULD WE CLOSE THE MANAGER UI IF NO DOCUMENT IS OPEN?
         }
 
@@ -142,7 +151,7 @@ namespace SnaptrudeManagerAddin
 
             Dictionary<string, string> data = new Dictionary<string, string>
             {
-                { "projectName", projectName },
+                { "projectName", projectName.Replace(".rfa","") },
                 { "fileType", fileType }
             };
             string serializedData = JsonConvert.SerializeObject(data);
@@ -203,6 +212,8 @@ namespace SnaptrudeManagerAddin
                             break;
                         case TRUDE_EVENT.MANAGER_UI_CLOSE:
                             UIControlledApplication.ViewActivated -= OnViewActivated;
+                            UIControlledApplication.Idling -= OnRevitIdling;
+                            Application.Instance.IsViewActivatedSubscribed = false;
                             break;
                         case TRUDE_EVENT.MANAGER_UI_MAIN_WINDOW_RMOUSE:
                             break;
@@ -233,7 +244,6 @@ namespace SnaptrudeManagerAddin
                                 serializer.Converters.Add(new TrudeImporter.XyzConverter());
                                 TrudeImporter.GlobalVariables.TrudeProperties = trudeData.ToObject<TrudeImporter.TrudeProperties>(serializer);
 
-                                TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_START);
                                 ExternalEvent evt = ExternalEvent.Create(new ImportToRevitEEH());
                                 evt.Raise();
                             }

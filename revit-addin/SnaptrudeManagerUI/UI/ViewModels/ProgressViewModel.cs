@@ -12,11 +12,19 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using TrudeCommon.Events;
 using NLog;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
     public class ProgressViewModel : ViewModelBase
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetForegroundWindow(IntPtr hWnd);
+        
         static Logger logger = LogManager.GetCurrentClassLogger();
         public enum ProgressViewType
         {
@@ -85,6 +93,10 @@ namespace SnaptrudeManagerUI.ViewModels
         /// <param name="failureNavigationService"></param>
         public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService)
         {
+            MainWindowViewModel.Instance.TopMost = false;
+            SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
+
             IsProgressBarIndeterminate = false;
             SuccessCommand = new NavigateCommand(successNavigationService);
             FailureCommand = new NavigateCommand(failureNavigationService);
@@ -95,28 +107,27 @@ namespace SnaptrudeManagerUI.ViewModels
                 case ProgressViewType.ExportProjectNew:
                     progressViewType = ProgressViewType.ExportProjectNew;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExportNewProject());
-                    progressMessage = "Export in progress, please don’t close this window.";
+                    progressMessage = "Export hasn't started yet, please ensure Revit is not busy.";
                     StartProgressCommand.Execute(null);
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.ExportRFANew:
                     progressViewType = ProgressViewType.ExportRFANew;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExportRFANew());
-                    progressMessage = "Export in progress, please don’t close this window.";
+                    progressMessage = "Export hasn't started yet, please ensure Revit is not busy.";
                     StartProgressCommand.Execute(null);
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.ExportRFAExisting:
                     progressViewType = ProgressViewType.ExportRFAExisting;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExportRFAExisting());
-                    progressMessage = "Export in progress, please don’t close this window.";
+                    progressMessage = "Export hasn't started yet, please ensure Revit is not busy.";
                     StartProgressCommand.Execute(null);
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.Import:
                     progressViewType = ProgressViewType.Import;
-                    MainWindowViewModel.Instance.TopMost = false;
-                    progressMessage = "Import in progress, please don’t close this window.";
+                    progressMessage = "Import hasn't started yet, please ensure Revit is not busy.";
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                     break;
                 case ProgressViewType.Update:
@@ -139,9 +150,9 @@ namespace SnaptrudeManagerUI.ViewModels
         public void Cancel(TRUDE_EVENT trudeEvent)
         {
             TrudeEventEmitter.EmitEvent(trudeEvent);
-            UpdateProgress(0, "Rolling back changes...");
-            IsProgressBarIndeterminate = true;
-        }
+                UpdateProgress(0, "Rolling back changes...");
+                IsProgressBarIndeterminate = true;
+            }
 
         public void UpdateProgress(int Value, string message)
         {
@@ -162,7 +173,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void Abort()
         {
-            BackHomeCommand.Execute(new object());
+                BackHomeCommand.Execute(new object());
         }
 
         public async Task StartExportNewProject()

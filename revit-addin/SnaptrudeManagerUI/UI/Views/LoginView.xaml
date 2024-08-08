@@ -24,85 +24,109 @@
             TextWrapping="Wrap" />
         <Grid>
             <Button
-            HorizontalAlignment="Center"
-            Command="{Binding AuthCommand}"
-            Content="Login to Snaptrude"
-            FontFamily="{StaticResource Inter500}"
-            Style="{DynamicResource Button_Quaternary}" 
-            Visibility="{Binding ShowButton, Converter={StaticResource BoolToVisibility}}"
-        />
+                HorizontalAlignment="Center"
+                Command="{Binding AuthCommand}"
+                FontFamily="{StaticResource Inter500}"
+                Style="{DynamicResource Button_Quaternary}"
+                Visibility="{Binding ShowButton, Converter={StaticResource BoolToVisibility}}">
+                <Button.Content>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center">Login to Snaptrude</TextBlock>
+                        <Border Height="20" Padding="8,0,0,0">
+                            <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Path
+                                    Data="M9.125 0.875L0.875 9.125"
+                                    Stroke="#484B5B"
+                                    StrokeEndLineCap="Round"
+                                    StrokeLineJoin="Round"
+                                    StrokeStartLineCap="Round"
+                                    StrokeThickness="1.25" />
+                                <Path
+                                    Data="M3.33325 0.833496L9.12492 0.874329L9.16659 6.66683"
+                                    Stroke="#484B5B"
+                                    StrokeEndLineCap="Round"
+                                    StrokeLineJoin="Round"
+                                    StrokeStartLineCap="Round"
+                                    StrokeThickness="1.25" />
 
-            <Grid 
-            HorizontalAlignment="Center" 
-            VerticalAlignment="Center"
-            Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}"
-            >
-            <Grid.RenderTransform>
-                <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
-            </Grid.RenderTransform>
+                            </Grid>
+
+                        </Border>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <Grid
+                Width="32"
+                Height="32"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RenderTransform>
+                    <RotateTransform x:Name="rotationTransform" CenterX="16" CenterY="16" />
+                </Grid.RenderTransform>
                 <Grid.Triggers>
                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                         <BeginStoryboard Storyboard="{StaticResource RotateStoryboard}" />
                     </EventTrigger>
                 </Grid.Triggers>
                 <Path
-        Data="M10.4998 17.5031V15.0021"
-        Stroke="{DynamicResource Colors/Neutral/100}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
-            <Path
-        Data="M15.8053 15.3055L14.0371 13.5373"
-        Stroke="{DynamicResource Colors/Neutral/200}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
+                    Data="M15.9996 28.0051V24.0034"
+                    Stroke="{DynamicResource Colors/Neutral/900}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
                 <Path
-        Data="M18.003 10H15.502"
-        Stroke="{DynamicResource Colors/Neutral/300}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
+                    Data="M7.51067 24.4893L10.3398 21.6602"
+                    Stroke="{DynamicResource Colors/Neutral/800}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
                 <Path
-        Data="M14.0371 6.46269L15.8053 4.69446"
-        Stroke="{DynamicResource Colors/Neutral/400}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
-
-           <Path
-        Data="M10.4998 2.49687V4.99792"
-        Stroke="{DynamicResource Colors/Neutral/500}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
+                    Data="M3.99491 16.0004H7.99658"
+                    Stroke="{DynamicResource Colors/Neutral/600}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
                 <Path
-        Data="M5.19531 4.69446L6.96355 6.46269"
-        Stroke="{DynamicResource Colors/Neutral/600}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
+                    Data="M10.3398 10.3404L7.51067 7.51123"
+                    Stroke="{DynamicResource Colors/Neutral/500}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
                 <Path
-        Data="M2.99707 10H5.49811"
-        Stroke="{DynamicResource Colors/Neutral/600}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
-            <Path
-        Data="M6.96355 13.5373L5.19531 15.3055"
-        Stroke="{DynamicResource Colors/Neutral/800}"
-        StrokeEndLineCap="round"
-        StrokeLineJoin="round"
-        StrokeStartLineCap="round"
-        StrokeThickness="1.5" />
-        </Grid>
+                    Data="M15.9996 3.99561V7.99727"
+                    Stroke="{DynamicResource Colors/Neutral/400}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M24.4888 7.51123L21.6596 10.3404"
+                    Stroke="{DynamicResource Colors/Neutral/300}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M28.0044 16.0004H24.0027"
+                    Stroke="{DynamicResource Colors/Neutral/200}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M21.6596 21.6602L24.4888 24.4893"
+                    Stroke="{DynamicResource Colors/Neutral/100}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+            </Grid>
         </Grid>
 
     </DockPanel>
