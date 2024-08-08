@@ -112,7 +112,8 @@ namespace SnaptrudeManagerUI.ViewModels
                     if (response.Access)
                     {
                         RequestStatus = URLValidationStatus.Validated;
-                        Image = new Uri(Urls.Get("snaptrudeBucketUrl") + "/media/" + response.ImagePath);
+                        var snaptrudeBucketUrl = await SnaptrudeService.GetPresignedUrlAsync("media/" + response.ImagePath);
+                        Image = new Uri(snaptrudeBucketUrl);
                         ProjectName = response.ProjectName;
                         floorkey = _floorkey;
                     }

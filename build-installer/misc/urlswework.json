@@ -1,5 +1,4 @@
 {
   "snaptrudeReactUrl": "https://wework.snaptrude.co",
-  "snaptrudeDjangoUrl": "https://weworkapi.snaptrude.co",
-  "snaptrudeBucketUrl": "https://dbui02vtijpdd.cloudfront.net"
+  "snaptrudeDjangoUrl": "https://weworkapi.snaptrude.co"
 }
