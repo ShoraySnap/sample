@@ -34,6 +34,10 @@ namespace TrudeImporter
         public ModifiedCountType updated = new ModifiedCountType();
         public DeletedCountType deleted = new DeletedCountType();
     }
+    public class CountDWFData : CountData
+    {
+        public int missingRFA = 0;
+    }
     public class ComponentLogData
     {
         public Dictionary<string, CountData> walls = new Dictionary<string, CountData>();
@@ -43,9 +47,9 @@ namespace TrudeImporter
         public Dictionary<string, CountData> columns = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> beams = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> slabs = new Dictionary<string, CountData>();
-        public Dictionary<string, CountData> doors = new Dictionary<string, CountData>();
-        public Dictionary<string, CountData> windows = new Dictionary<string, CountData>();
-        public Dictionary<string, CountData> furniture = new Dictionary<string, CountData>();
+        public Dictionary<string, CountDWFData> doors = new Dictionary<string, CountDWFData>();
+        public Dictionary<string, CountDWFData> windows = new Dictionary<string, CountDWFData>();
+        public Dictionary<string, CountDWFData> furniture = new Dictionary<string, CountDWFData>();
         public Dictionary<string, CountData> roofs = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> genericModels = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> unrecognizedComponents = new Dictionary<string, CountData>();
@@ -59,9 +63,9 @@ namespace TrudeImporter
             //curtainWalls.Add(TrudeExportLoggerHelper.PANELS_KEY, new CountData());
             columns.Add(TrudeExportLoggerHelper.BASIC_COLUMN_KEY, new CountData());
             beams.Add(TrudeExportLoggerHelper.BASIC_BEAM_KEY, new CountData());
-            doors.Add(TrudeExportLoggerHelper.BASIC_DOOR_KEY, new CountData());
-            windows.Add(TrudeExportLoggerHelper.BASIC_WINDOW_KEY, new CountData());
-            furniture.Add(TrudeExportLoggerHelper.BASIC_FURNITURE_KEY, new CountData());
+            doors.Add(TrudeExportLoggerHelper.BASIC_DOOR_KEY, new CountDWFData());
+            windows.Add(TrudeExportLoggerHelper.BASIC_WINDOW_KEY, new CountDWFData());
+            furniture.Add(TrudeExportLoggerHelper.BASIC_FURNITURE_KEY, new CountDWFData());
             genericModels.Add(TrudeExportLoggerHelper.GENERIC_MODELS_KEY, new CountData());
             unrecognizedComponents.Add(TrudeExportLoggerHelper.MASSES_KEY, new CountData());
             roofs.Add(TrudeExportLoggerHelper.BASIC_ROOF_KEY, new CountData());
@@ -94,14 +98,16 @@ namespace TrudeImporter
 
     public class LogError
     {
-      // TODO: to add later - all catch blocks will add to this
+        public string errorType;
+        public string message;
+        public int? objectId;
     }
 
     public class LogDataContainer
     {
         public SnaptrudeData snaptrude = new SnaptrudeData();
         public RevitData revit = new RevitData();
-        public LogError errors = new LogError();
+        public List<LogError> errors = new List<LogError>();
     }
 
     public class FullLogData
@@ -116,6 +122,7 @@ namespace TrudeImporter
         FullLogData fullData;
         SnaptrudeData snaptrudeData;
         RevitData revitData;
+        List<LogError> errorData;
 
         public void Init()
         {
@@ -123,6 +130,7 @@ namespace TrudeImporter
             fullData = new FullLogData();
             snaptrudeData = fullData.data.snaptrude;
             revitData = fullData.data.revit;
+            errorData = fullData.data.errors;
         }
 
         public void Save()
@@ -158,6 +166,28 @@ namespace TrudeImporter
                     countData.deleted.total += 1;
                     // if (isParametric) countData.deleted.parametric += 1;
                     // else countData.deleted.nonParametric += 1;
+                }
+            }
+        }
+
+        private void CountComponent(Dictionary<string, CountDWFData> componentDict, string subComponent, bool isParametric, string type)
+        {
+            CountData countData = componentDict[subComponent];
+            if (componentDict.ContainsKey(subComponent))
+            {
+                if (type == "added")
+                {
+                    if (isParametric) countData.added.parametric += 1;
+                    else countData.added.nonParametric += 1;
+                }
+                else if (type == "updated")
+                {
+                    if (isParametric) countData.updated.parametric += 1;
+                    else countData.updated.nonParametric += 1;
+                }
+                else if (type == "deleted")
+                {
+                    countData.deleted.total += 1;
                 }
             }
         }
@@ -208,6 +238,22 @@ namespace TrudeImporter
             }
         }
         
+        public void LogError(string type, string message, int? id)
+        {
+            LogError errorLog = new LogError();
+            errorLog.errorType = type;
+            errorLog.message = message;
+            errorLog.objectId = id;
+
+            errorData.Add(errorLog);
+        }
+
+        public void LogMissingRFA(string type, int count)
+        {
+            if (type == "door") revitData.components.doors["basic door"].missingRFA = count;
+            else if (type == "window") revitData.components.doors["basic window"].missingRFA = count;
+            else if (type == "furniture") revitData.components.doors["basic furniture"].missingRFA = count;
+        }
         public void CountInputElements(ComponentLogData logs)
         {
             snaptrudeData.components = logs;

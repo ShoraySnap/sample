@@ -5,6 +5,10 @@ using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 using System.Diagnostics;
 using NLog;
+using System.Data.Common;
+using Autodesk.Revit.DB.Architecture;
+
+
 
 #if !FORGE
 using SnaptrudeManagerAddin;
@@ -318,6 +322,7 @@ namespace TrudeImporter
                     t.Start();
                     try
                     {
+                        throw new InvalidOperationException("Logfile cannot be read-only");
                         DirectShapeProperties directShapeProps = new DirectShapeProperties(
                             props.MaterialName,
                             props.FaceMaterialIds,
@@ -346,6 +351,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit wall",
+                            e.Message,
+                            props.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Wall: " + props.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -403,6 +413,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit beam",
+                        e.Message,
+                        beam.UniqueId
+                    );
                     GlobalVariables.Transaction.RollBack();
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
                 }
@@ -456,6 +471,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit column",
+                            e.Message,
+                            column.UniqueIdDS
+                        );
                         int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                         t.RollBack();
@@ -685,6 +705,12 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+
+                        TrudeExportLogger.Instance.LogError(
+                            "revit floor",
+                            e.Message,
+                            floor.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Floor: " + floor.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -729,6 +755,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit slab",
+                            e.Message,
+                            slab.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Slab: " + slab.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -760,6 +791,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit door",
+                            e.Message,
+                            door.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -791,6 +827,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit window",
+                            e.Message,
+                            window.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -822,6 +863,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit furniture",
+                            e.Message,
+                            furniture.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -878,6 +924,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit ceiling",
+                            e.Message,
+                            ceiling.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -924,6 +975,11 @@ namespace TrudeImporter
                     }
                     catch (Exception e)
                     {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit mass",
+                            e.Message,
+                            mass.UniqueId
+                        );
                         System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                         t.RollBack();
                     }
@@ -961,6 +1017,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit staircase",
+                        e.Message,
+                        staircase.UniqueId
+                    );
                     if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.RollBack();
                     if (GlobalVariables.StairsEditScope.IsActive) GlobalVariables.StairsEditScope.Cancel();
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
@@ -987,13 +1048,22 @@ namespace TrudeImporter
                     try
                     {
                         if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+                        {
                             TrudeMissing.ImportMissingDoors(propsListDoors);
+                            TrudeExportLogger.Instance.LogMissingRFA("door", GlobalVariables.MissingDoorFamiliesCount.Count);
+                        }
 
                         if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                        {
                             TrudeMissing.ImportMissingWindows(propsListWindows);
+                            TrudeExportLogger.Instance.LogMissingRFA("window", GlobalVariables.MissingWindowFamiliesCount.Count);
+                        }
 
                         if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                        {
                             TrudeMissing.ImportMissingFurniture(propsListFurniture);
+                            TrudeExportLogger.Instance.LogMissingRFA("furniture", GlobalVariables.MissingFurnitureFamiliesCount.Count);
+                        }
 
                         if (t.Commit() != TransactionStatus.Committed)
                         {
