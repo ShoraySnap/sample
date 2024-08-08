@@ -36,8 +36,7 @@ namespace TrudeImporter
         private static string ImportDurationMessage;
         public static void Import(TrudeProperties trudeProperties)
         {
-
-
+            TrudeExportLogger.Instance.CountInputElements(trudeProperties.SnaptrudeLog);
             Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
             GlobalVariables.MissingWindowFamiliesCount.Clear();
@@ -74,6 +73,7 @@ namespace TrudeImporter
 
             ImportDurationMessage += $"Total: {Math.Round(sw.Elapsed.TotalSeconds, 2)}s.";
             logger.Info(ImportDurationMessage);
+            TrudeExportLogger.Instance.Save();
         }
 
         private static void ImportCategory(string categoryName, Action task, string progressMessage, int progressValue)

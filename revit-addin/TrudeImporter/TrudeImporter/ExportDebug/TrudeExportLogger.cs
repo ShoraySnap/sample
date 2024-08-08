@@ -1,34 +1,41 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Autodesk.Revit.DB;
+using Newtonsoft.Json;
+using TrudeCommon.Utils;
 
 namespace TrudeImporter
 {
-    internal class ErrorData
+    public class ErrorData
     {
         public string callStack = "";
         public string revitId = "";
         public string message = "";
     }
 
-    internal class ProcessStageLogData
+    public class ProcessStageLogData
     {
         public const string STATUS_DONE = "DONE";
         public const string STATUS_FAILED = "FAILED";
         public string status = "NONE";
     }
-    internal class CountType
+    public class ModifiedCountType
     {
         public int parametric = 0;
         public int nonParametric = 0;
     }
-    internal class CountData
+    public class DeletedCountType
     {
-        public CountType added = new CountType();
-        public CountType updated = new CountType();
-        public CountType deleted = new CountType();
+        public int total = 0;
     }
-    internal class ComponentLogData
+    public class CountData
+    {
+        public ModifiedCountType added = new ModifiedCountType();
+        public ModifiedCountType updated = new ModifiedCountType();
+        public DeletedCountType deleted = new DeletedCountType();
+    }
+    public class ComponentLogData
     {
         public Dictionary<string, CountData> walls = new Dictionary<string, CountData>();
         public Dictionary<string, CountData> floors = new Dictionary<string, CountData>();
@@ -62,49 +69,49 @@ namespace TrudeImporter
         }
     }
 
-    internal class ExportStatus 
+    public class ExportStatus 
     {
       public int timeTaken = 0;
       public string status = "";
       public string type = "";
     }
 
-    internal class ExportIdentifier
+    public class ExportIdentifier
     {
       // TODO: taufiq will add these meta data 
     }
 
-    internal class SnaptrudeData
+    public class SnaptrudeData
     {
         public ExportStatus trudeGeneration = new ExportStatus();
         public ComponentLogData components = new ComponentLogData();
     }
 
-    internal class RevitData
+    public class RevitData
     {
         public ExportStatus reconcile = new ExportStatus();
         public ComponentLogData components = new ComponentLogData();
     }
 
-    internal class LogError
+    public class LogError
     {
       // TODO: to add later - all catch blocks will add to this
     }
 
-    internal class LogDataContainer
+    public class LogDataContainer
     {
         public SnaptrudeData snaptrude = new SnaptrudeData();
         public RevitData revit = new RevitData();
         public LogError errors = new LogError();
     }
 
-    internal class FullLogData
+    public class FullLogData
     {
         public ExportIdentifier identifier = new ExportIdentifier();
         public LogDataContainer data = new LogDataContainer();
     }
 
-    internal class TrudeExportLogger
+    public class TrudeExportLogger
     {
         public static TrudeExportLogger Instance = new TrudeExportLogger();
         FullLogData fullData;
@@ -122,9 +129,15 @@ namespace TrudeImporter
 
         public void Save()
         {
-            // TODO: enable save feature
-            // var serializedLog = JsonConvert.SerializeObject(fullData);
-            // TrudeDebug.StoreData(serializedLog, "exportlog.json");
+            string serializedLog = JsonConvert.SerializeObject(fullData);
+            string snaptrudeManagerPath = "snaptrude-manager";
+            string filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                snaptrudeManagerPath,
+                "exportlogger_august.json"
+            );
+
+            File.WriteAllText(filePath, serializedLog);
         }
 
         private void CountComponent(Dictionary<string, CountData> componentDict, bool isParametric, string type)
@@ -144,8 +157,9 @@ namespace TrudeImporter
                 }
                 else if (type == "deleted")
                 {
-                    if (isParametric) countData.deleted.parametric += 1;
-                    else countData.deleted.nonParametric += 1;
+                    countData.deleted.total += 1;
+                    // if (isParametric) countData.deleted.parametric += 1;
+                    // else countData.deleted.nonParametric += 1;
                 }
             }
             currentKey = "";
@@ -197,6 +211,11 @@ namespace TrudeImporter
             }
         }
         
+        public void CountInputElements(ComponentLogData logs)
+        {
+            snaptrudeData.components = logs;
+        }
+
         public string GetSerializedObject()
         {
             return "";
