@@ -480,10 +480,10 @@
                                                                                         </Grid>
                                                                                     </Grid>
                                                                                     <TextBlock
-                                                                                        MaxWidth="420"
+                                                                                        MaxWidth="370"
                                                                                         Padding="0,6"
                                                                                         VerticalAlignment="Center"
-                                                                                        d:Text="1200 x 1400 2 Shutter Wood Frame"
+                                                                                        d:Text="1200 x 1400 2 Shutter Wood Frameaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                                                                                         FontSize="13"
                                                                                         Foreground="{StaticResource Colors/Neutral/600}"
                                                                                         Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
