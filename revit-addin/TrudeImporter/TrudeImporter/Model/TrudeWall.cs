@@ -228,22 +228,20 @@ namespace TrudeImporter
                         WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
                     }
 
-                    TransactionStatus transactionStatus = trans.Commit();
+                    //// For some reason in a few rare cases, some transactions rolledback when walls are joined.
+                    //// This handles those cases to create the wall without being joined.
+                    //// This is not a perfect solution, ideally wall should be joined.
+                    //if (transactionStatus == TransactionStatus.RolledBack)
+                    //{
+                    //    trans.Start();
+                    //    this.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
+                    //    wallId = this.wall.Id;
 
-                    // For some reason in a few rare cases, some transactions rolledback when walls are joined.
-                    // This handles those cases to create the wall without being joined.
-                    // This is not a perfect solution, ideally wall should be joined.
-                    if (transactionStatus == TransactionStatus.RolledBack)
-                    {
-                        trans.Start();
-                        this.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
-                        wallId = this.wall.Id;
+                    //    WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                    //    WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
 
-                        WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
-                        WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
-
-                        transactionStatus = trans.Commit();
-                    }
+                    //    transactionStatus = trans.Commit();
+                    //}
 
                     Utils.LogTrace("wall created");
 
