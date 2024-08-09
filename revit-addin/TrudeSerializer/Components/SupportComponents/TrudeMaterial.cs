@@ -3,6 +3,7 @@ using Autodesk.Revit.DB.Visual;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TrudeCommon.Utils;
 using TrudeSerializer.CustomDataTypes;
 using TrudeSerializer.Uploader;
 using TrudeSerializer.Utils;
@@ -235,6 +236,10 @@ namespace TrudeSerializer.Components
                 return;
 
             string[] texturePath = connectTextureString.Value.Split('|');
+            for (int i= 0; i < texturePath.Length; i++)
+            {
+                texturePath[i] = texturePath[i].Replace("/", "\\");
+            }
             bool isPathRooted = Path.IsPathRooted(texturePath[0]);
             string materialPath = texturePath[0];
             if (!isPathRooted)

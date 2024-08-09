@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>0cc4e0e8-d40c-48de-8085-a862fe788c8b</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>TrudeCommon</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Analytics\AnalyticsManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataTransfer\DataChannel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataTransfer\DataTransferManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventEmitter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEvents.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\TrudeEventSystem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\LogsConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Compressor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\PreSignedURLResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\S3helper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\URLsConfig.cs" />
+    <Compile Include="..\TrudeCommon\Utils\TrudeLocalAppData.cs" />
+  </ItemGroup>
+</Project>

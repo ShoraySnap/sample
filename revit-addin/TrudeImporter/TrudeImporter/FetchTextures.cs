@@ -3,8 +3,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
 using TrudeImporter;
-
 
 namespace FetchTextures
 {
@@ -21,7 +21,7 @@ namespace FetchTextures
                     if (material["diffuseTexture"] != null)
                     {
                         JObject diffuseTexture = (JObject)material["diffuseTexture"];
-                        string name = SanitizeFilename((string)material["name"])+"_snaptrude";
+                        string name = SanitizeFilename((string)material["name"]) + "_snaptrude";
                         float alpha = (float)material["alpha"];
                         TextureProperties textureProps = new TextureProperties(
                             (string)diffuseTexture["url"],
@@ -38,7 +38,29 @@ namespace FetchTextures
                         if (savedPath != "")
                         {
                             textureProps.TexturePath = savedPath;
-                            MaterialOperations.MaterialOperations.CreateMaterial(GlobalVariables.Document, name, textureProps, alpha);
+                            MaterialOperations.MaterialOperations.CreateMaterialFromTexture(GlobalVariables.Document, name, textureProps, alpha);
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            string pattern = @"#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})";
+                            System.Diagnostics.Debug.WriteLine("No texture found for material: " + (string)material["name"]);
+                            Regex regex = new Regex(pattern);
+                            MatchCollection matches = regex.Matches((string)material["id"]);
+                            string name = SanitizeFilename((string)material["name"]) + "_snaptrude";
+                            float alpha = (float)material["alpha"];
+                            if (matches.Count > 0)
+                            {
+                                string hex = matches[0].Value;
+                                System.Diagnostics.Debug.WriteLine("Creating material: " + hex);
+                                MaterialOperations.MaterialOperations.CreateMaterialFromHEX(GlobalVariables.Document, name, hex, alpha);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Error");
                         }
                     }
                 }
@@ -62,12 +84,14 @@ namespace FetchTextures
                 url = ValidateAndEncodeUrl(url);
                 if (string.IsNullOrEmpty(url))
                 {
-                    System.Diagnostics.Debug.WriteLine("Invalid URL provided.");
+                    System.Diagnostics.Debug.WriteLine("Invalid was Null or Empty");
                     return "";
                 }
 
                 using (WebClient client = new WebClient())
                 {
+                    client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
                     string extension = Path.GetExtension(url).ToLower();
                     if (extension != ".jpg" && extension != ".png" && extension != ".bmp" && extension != ".jpeg")
                     {

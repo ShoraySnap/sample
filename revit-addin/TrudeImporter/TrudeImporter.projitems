@@ -52,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeMissing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStairCase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeRoom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeStorey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Model\TrudeWall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TrudeImporter\Repository\TrudeRepository.cs" />

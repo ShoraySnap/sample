@@ -17,19 +17,23 @@
     <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudePlanViewIndicator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeRFAComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\CurrentLink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\Dimensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\FamilyElement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeCeilingType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeColumnType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeFloorType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeLayer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeRoofType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeWallType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\MaterialAppliedByPaint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utils\TrudeCategoryUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporterForRFA.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAssemblies.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeRoofType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Uploader\MaterialUploader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\MaterialUploader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversionImpl.cs" />
     <Compile Include="..\TrudeSerializer\TrudeDebug\TrudeLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Uploader\Compressor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\PreSignedURLResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Uploader\URLsConfig.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TrudeDebug\TrudeDebug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\FamilyInstanceUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\InstanceUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeCeiling.cs" />
@@ -42,30 +46,20 @@
     <Compile Include="$(MSBuildThisFileDirectory)Components\SupportComponents\TrudeMaterial.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeWall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GlobalSymbols\GlobalVariables.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Command.cs" />
+    <Compile Include="..\TrudeSerializer\ExportToSnaptrudeEEH.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\SerializedTrudeData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\ComponentHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\FamilyElement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeCeilingType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeFloorType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeColumnType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\CurrentLink.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeLayer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeWallType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Uploader\S3helper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GlobalSymbols\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\CurveUtils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\Dimensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\TransformObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversion.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Components\CoreComponents\" />
     <Folder Include="$(MSBuildThisFileDirectory)Components\SupportComponents\" />
-    <Folder Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\" />
     <Folder Include="$(MSBuildThisFileDirectory)GlobalSymbols\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Uploader\" />
     <Folder Include="$(MSBuildThisFileDirectory)utils\GeometryUtils\" />
   </ItemGroup>
 </Project>

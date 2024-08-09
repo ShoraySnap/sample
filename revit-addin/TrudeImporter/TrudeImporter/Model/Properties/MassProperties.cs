@@ -19,10 +19,18 @@ namespace TrudeImporter
         [JsonProperty("type")]
         public string Type { get; set; }
 
+        [JsonProperty("roomType")]
+        public string RoomType { get; set; }
+
         [JsonProperty("allFaceVertices")]
         public List<List<XYZ>> AllFaceVertices { get; set; }
+
+        [JsonProperty("bottomFaceVertices")]
+        public List<XYZ> BottomFaceVertices { get; set; }
+
         [JsonProperty("faceMaterialIds")]
         public List<int> FaceMaterialIds { get; set; }
+
         [JsonProperty("materialName")]
         public string MaterialName { get; set; }
     }

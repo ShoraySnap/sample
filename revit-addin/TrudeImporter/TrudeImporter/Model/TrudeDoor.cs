@@ -13,16 +13,19 @@ namespace TrudeImporter
     {
         string doorFamilyName = null;
         string fsName = null;
+        double Height;
         XYZ CenterPosition = null;
+        XYZ Direction = null;
+        bool HandFlipped = false;
         public static DoorTypeStore TypeStore = new DoorTypeStore();
 
         public TrudeDoor(DoorProperties doorProps, ElementId levelId, int index)
         {
             System.Diagnostics.Debug.WriteLine("Creating door: " + doorProps.Name);
-            XYZ direction = doorProps.Direction == null
-                                ? XYZ.Zero
-                                : doorProps.Direction;
             CenterPosition = doorProps.CenterPosition;
+            Direction = doorProps.Direction;
+            HandFlipped = doorProps.HandFlipped;
+            Height = doorProps.Height;
             try
             {
                 if (doorProps.RevitFamilyName != null)
@@ -88,7 +91,7 @@ namespace TrudeImporter
                     familySymbol = defaultFamilySymbol;
                 }
 
-                var instance = CreateDoor(familySymbol, levelId, wall, direction);
+                var instance = CreateDoor(familySymbol, levelId, wall);
 
                 (Parameter widthInstanceParam, Parameter heightInstanceParam) = instance.FindWidthAndHeightParameters();
                 if (!setHeightAndWidthParamsInFamilySymbol)
@@ -105,37 +108,34 @@ namespace TrudeImporter
             }
         }
 
-        private FamilyInstance CreateDoor(FamilySymbol familySymbol, ElementId levelId, Wall wall, XYZ direction)
+        private FamilyInstance CreateDoor(FamilySymbol familySymbol, ElementId levelId, Wall wall)
         {
             FamilyInstance instance;
             var doc = GlobalVariables.Document;
             Level level = doc.GetElement(levelId) as Level;
 
-            XYZ xyz = new XYZ(CenterPosition.X, CenterPosition.Y, 0.0);
+            XYZ xyz = new XYZ(CenterPosition.X, CenterPosition.Y, CenterPosition.Z - Height / 2);
 
             if (wall is null)
             {
-                wall = GetProximateWall(xyz, doc, level.Id);
+                wall = GetProximateWall(xyz, doc);
             }
 
-            BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
-            XYZ loc = new XYZ(CenterPosition.X, CenterPosition.Y, bbox.Min.Z);
-
-            instance = doc.Create.NewFamilyInstance(loc, familySymbol, wall, (Level)doc.GetElement(wall.LevelId), StructuralType.NonStructural);
-
+            instance = doc.Create.NewFamilyInstance(xyz, familySymbol, wall, level, StructuralType.NonStructural);
             // Done to make sure door is cutting the wall
             // See https://forums.autodesk.com/t5/revit-api-forum/create-doors-but-not-cutting-through-wall/td-p/5564330
-            instance.flipFacing();
+            instance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("a");
             doc.Regenerate();
+            instance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("");
 
-            instance.flipFacing();
-            doc.Regenerate();
+            if (!instance.FacingOrientation.IsAlmostEqualTo(Direction,0.01))
+                    instance.flipFacing();
 
-            if (!instance.FacingOrientation.IsAlmostEqualTo(direction))
-            {
-                instance.flipFacing();
+            bool isFlipped = (instance.FacingFlipped && !instance.HandFlipped) ||
+                (!instance.FacingFlipped && instance.HandFlipped);
+            if (HandFlipped != isFlipped)
                 instance.flipHand();
-            }
+
             System.Diagnostics.Debug.WriteLine("Door created: " + instance.Id);
             return instance;
         }

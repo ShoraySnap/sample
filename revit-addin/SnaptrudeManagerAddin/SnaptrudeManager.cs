@@ -1,10 +1,13 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using NLog;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
 {
@@ -12,9 +15,10 @@ namespace SnaptrudeManagerAddin
     [Regeneration(RegenerationOption.Manual)]
     public class SnaptrudeManager : IExternalCommand
     {
+        static Logger logger = LogManager.GetCurrentClassLogger();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-
             StringBuilder sb = new StringBuilder();
             string logFileName = @"revit.log";
             string logFilePath = getAppDataPath(logFileName);
@@ -44,83 +48,34 @@ namespace SnaptrudeManagerAddin
 
             try
             {
-
                 UIApplication uiapp = commandData.Application;
                 UIDocument uidoc = uiapp.ActiveUIDocument;
                 Document doc = uidoc.Document;
+                GlobalVariables.Document = doc;
                 string name = doc.Title; // name of the current project
                 string path = doc.PathName;
                 string fileType = doc.IsFamilyDocument ? "rfa" : "rvt";
 
-
                 log("Revit addin clicked");
+                logger.Info("Revit addin clicked!");
 
-                string requestURL = "snaptrude://start?name=" + name + "&fileType=" + fileType;
-                // System.Diagnostics.Process.Start("explorer", requestURL);
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(requestURL) { UseShellExecute = true });
+                //WPFTODO: CHECKFORUPDATES
+                var currentVersion = "2.1";
+                var updateVersion = "2.2";
 
 
-                var server = new NamedPipeServerStream("snaptrudeRevitPipe");
-
-                log("Waiting for Connection");
-                server.WaitForConnection();
-                log("Connection Established");
-
-                var ss = new StreamString(server);
-                // Validate the server's signature string.
-                var data = ss.ReadString();
-
-                var REVIT_PIPE_MSG_BEGIN_IMPORT = "beginImport"; // 11 characters
-                var REVIT_PIPE_MSG_BEGIN_EXPORT = "beginExport"; // 11 characters
-                var REVIT_PIPE_MSG_STOP = "stopWaiting"; // 11 characters
-
-                if (data == REVIT_PIPE_MSG_BEGIN_EXPORT)
-                {
-                    server.Close();
-
-                    log("Calling revit importer");
-                    writeAndClose();
-
-                    TrudeSerializer.Command trudeSerializer = new TrudeSerializer.Command();
-                    return trudeSerializer.Execute(commandData, ref message, elements);
-                }
-                else if (data == REVIT_PIPE_MSG_STOP)
-                {
-                    server.Close();
-
-                    log("Manager closed or did not respond");
-                    writeAndClose();
-
-                    return Result.Failed;
-                }
-                else if (data == REVIT_PIPE_MSG_BEGIN_IMPORT)
-                {
-                    server.Close();
-
-                    log("Calling snaptrude importer");
-                    writeAndClose();
-
-                    Command trudeImporter = new Command();
-                    return trudeImporter.Execute(commandData, ref message, elements);
-
-                }
-                else
-                {
-                    server.Close();
-
-                    log("Unknown response");
-                    log(data);
-                    writeAndClose();
-
-                    return Result.Failed;
-                }
+                writeAndClose();
 
             }
             catch (Exception ex)
             {
+                logger.Error(ex.Message);
                 message = ex.Message;
                 return Result.Failed;
             }
+
+            return Result.Succeeded;
+
         }
 
         private void ShowFailedDialogue()
@@ -135,6 +90,7 @@ namespace SnaptrudeManagerAddin
             TaskDialogResult tResult = mainDialog.Show();
         }
 
+        // TODO: Move this to common assembly
         private string getAppDataPath(string fileName)
         {
             string snaptrudeManagerPath = "snaptrude-manager";
