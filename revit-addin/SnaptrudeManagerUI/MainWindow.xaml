@@ -18,7 +18,7 @@
     ResizeMode="NoResize"
     ShowInTaskbar="True"
     Topmost="{Binding TopMost}"
-    WindowStartupLocation="CenterScreen"
+    WindowStartupLocation="Manual"
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
@@ -475,10 +475,10 @@
                 </ContentControl.Resources>
             </ContentControl>
             <Image
-                Margin="0,0,0,20"
                 Grid.Row="1"
                 Width="100"
                 Height="100"
+                Margin="0,0,0,20"
                 gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerUI;component/UI/Images/loader.gif"
                 Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
