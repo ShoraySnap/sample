@@ -189,22 +189,17 @@ namespace TrudeImporter
                 {
                     if (levelsToDelete.Select(l => l.Name).Contains(levelAssociatedWithActiveView.Name))
                     {
-                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                        {
-                            TrudeStorey firstStorey = storiesToCreate.Any() ? storiesToCreate[0] : storiesWithMatchingLevelIds[0].Storey;
-                            t.Start();
+                        TrudeStorey firstStorey = storiesToCreate.Any() ? storiesToCreate[0] : storiesWithMatchingLevelIds[0].Storey;
 
-                            levelAssociatedWithActiveView.Name = firstStorey.RevitName;
-                            levelAssociatedWithActiveView.Elevation = firstStorey.Elevation;
-                            GlobalVariables.LevelIdByNumber.Add(firstStorey.LevelNumber, levelAssociatedWithActiveView.Id);
+                        levelAssociatedWithActiveView.Name = firstStorey.RevitName;
+                        levelAssociatedWithActiveView.Elevation = firstStorey.Elevation;
+                        GlobalVariables.LevelIdByNumber.Add(firstStorey.LevelNumber, levelAssociatedWithActiveView.Id);
 
-                            t.Commit();
-                            if (storiesToCreate.Any())
-                                storiesToCreate = storiesToCreate.Skip(1).ToList();
-                            else
-                                storiesWithMatchingLevelIds = storiesWithMatchingLevelIds.Skip(1).ToList();
-                            levelsToDelete = levelsToDelete.Where(l => l.Name != firstStorey.RevitName).ToList();
-                        }
+                        if (storiesToCreate.Any())
+                            storiesToCreate = storiesToCreate.Skip(1).ToList();
+                        else
+                            storiesWithMatchingLevelIds = storiesWithMatchingLevelIds.Skip(1).ToList();
+                        levelsToDelete = levelsToDelete.Where(l => l.Name != firstStorey.RevitName).ToList();
                     }
                 }
             }
@@ -218,19 +213,11 @@ namespace TrudeImporter
             {
                 try
                 {
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                    {
-                        t.Start();
-
-                        const int levelNumber = 0;
-                        const double elevation = 0;
-                        TrudeStorey newStorey = new TrudeStorey(levelNumber, elevation, Utils.RandomString());
-                        newStorey.CreateLevel(GlobalVariables.Document);
-                        GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
-
-                        t.Commit();
-                    }
-
+                    const int levelNumber = 0;
+                    const double elevation = 0;
+                    TrudeStorey newStorey = new TrudeStorey(levelNumber, elevation, Utils.RandomString());
+                    newStorey.CreateLevel(GlobalVariables.Document);
+                    GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
                 }
                 catch (Exception e)
                 {
@@ -240,27 +227,21 @@ namespace TrudeImporter
 
             try
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                foreach (var matchById in storiesWithMatchingLevelIds)
                 {
-                    t.Start();
-
-                    foreach (var matchById in storiesWithMatchingLevelIds)
-                    {
-                        matchById.Level.Name = matchById.Storey.RevitName;
-                        matchById.Level.Elevation = matchById.Storey.Elevation;
-                    }
-
-                    foreach (var level in levelsToCheckElevation)
-                    {
-                        StoreyProperties matchProp = propsList.First(prop => level.Name == prop.Name || level.Name == (prop.LevelNumber - 1).ToString());
-                        if (!GlobalVariables.LevelIdByNumber.ContainsKey(matchProp.LevelNumber))
-                            GlobalVariables.LevelIdByNumber.Add(matchProp.LevelNumber, level.Id);
-                        if (matchProp.Elevation != level.Elevation) level.Elevation = matchProp.Elevation;
-                    }
-                    if (levelsToDelete.Any()) GlobalVariables.Document.Delete(levelsToDelete.Select(level => level.Id).ToList());
-
-                    t.Commit();
+                    matchById.Level.Name = matchById.Storey.RevitName;
+                    matchById.Level.Elevation = matchById.Storey.Elevation;
                 }
+
+                foreach (var level in levelsToCheckElevation)
+                {
+                    StoreyProperties matchProp = propsList.First(prop => level.Name == prop.Name || level.Name == (prop.LevelNumber - 1).ToString());
+                    if (!GlobalVariables.LevelIdByNumber.ContainsKey(matchProp.LevelNumber))
+                        GlobalVariables.LevelIdByNumber.Add(matchProp.LevelNumber, level.Id);
+                    if (matchProp.Elevation != level.Elevation) level.Elevation = matchProp.Elevation;
+                }
+                if (levelsToDelete.Any()) GlobalVariables.Document.Delete(levelsToDelete.Select(level => level.Id).ToList());
+
                 LogTrace("stories edited/deleted");
 
             }
@@ -274,17 +255,8 @@ namespace TrudeImporter
             {
                 try
                 {
-
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                    {
-                        t.Start();
-
-                        newStorey.CreateLevel(GlobalVariables.Document);
-                        GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
-
-                        t.Commit();
-                    }
-
+                    newStorey.CreateLevel(GlobalVariables.Document);
+                    GlobalVariables.LevelIdByNumber.Add(newStorey.LevelNumber, newStorey.Level.Id);
                 }
                 catch (Exception e)
                 {
@@ -293,68 +265,52 @@ namespace TrudeImporter
             }
             LogTrace("stories created");
 
-            
-
         }
 
         private static void ImportWalls(List<WallProperties> propsList)
         {
             if (propsList == null || !propsList.Any()) return;
-            GlobalVariables.Transaction.Commit(); // Temporary commit before complete refactor of transactions
-            GlobalVariables.Transaction.Start();
-            TrudeWall.HandleWallWarnings(GlobalVariables.Transaction);
+            Utils.TryStartTransaction();
             foreach (WallProperties props in propsList)
             {
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
                 // if (props.Storey is null) continue;
 
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
-                    {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            props.MaterialName,
-                            props.FaceMaterialIds,
-                            props.AllFaceVertices
-                        );
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        props.MaterialName,
+                        props.FaceMaterialIds,
+                        props.AllFaceVertices
+                    );
 
-                        if (props.AllFaceVertices != null)
-                        {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Walls);
-                        }
-                        else
-                        {
-                            TrudeWall trudeWall = new TrudeWall(props, false);
-                        }
-                        deleteOld(props.ExistingElementId);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
+                    if (props.AllFaceVertices != null)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Wall: " + props.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Walls);
                     }
+                    else
+                    {
+                        TrudeWall trudeWall = new TrudeWall(props, false);
+                    }
+                    deleteOld(props.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Wall: " + props.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
 
-            GlobalVariables.Transaction.Commit();
-
-            GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
             foreach (var wallIdToRecreate in GlobalVariables.WallElementIdsToRecreate)
             {
                 int matchUniqueId = GlobalVariables.UniqueIdToElementId.First(x => x.Value == wallIdToRecreate).Key;
                 WallProperties props = propsList.First(p => matchUniqueId == p.UniqueId);
                 TrudeWall trudeWall = new TrudeWall(props, true);
             }
-            GlobalVariables.Transaction.Commit();
+            Utils.TryStartTransaction(); // Temporary start before complete refactor of transactions
 
             TrudeWall.TypeStore.Clear();
             LogTrace("Finished Walls");
-            GlobalVariables.Transaction.Start(); // Temporary start before complete refactor of transactions
         }
 
         private static void ImportBeams(List<BeamProperties> propsList)
@@ -366,7 +322,7 @@ namespace TrudeImporter
             {
                 try
                 {
-                    GlobalVariables.Transaction.Start();
+                    Utils.TryStartTransaction();
                     DirectShapeProperties directShapeProps = new DirectShapeProperties(
                         beam.MaterialName,
                         beam.FaceMaterialIds,
@@ -391,7 +347,7 @@ namespace TrudeImporter
                 }
             }
 
-            GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
         }
 
         private static void ImportColumns(List<ColumnProperties> propsList)
@@ -399,44 +355,33 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var column in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        column.MaterialName,
+                        column.FaceMaterialIds,
+                        column.AllFaceVertices
+                        );
 
-                    try
+                    if (column.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            column.MaterialName,
-                            column.FaceMaterialIds,
-                            column.AllFaceVertices
-                            );
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Columns);
+                        deleteOld(column.ExistingElementIdDS);
+                    }
+                    else
+                    {
+                        new TrudeColumn(column);
 
-                        if (column.AllFaceVertices != null)
+                        foreach (var instance in column.Instances)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Columns);
-                            deleteOld(column.ExistingElementIdDS);
-                        }
-                        else
-                        {
-                            new TrudeColumn(column);
-
-                            foreach (var instance in column.Instances)
-                            {
-                                deleteOld(instance.ExistingElementId);
-                            }
-                        }
-
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
+                            deleteOld(instance.ExistingElementId);
                         }
                     }
-                    catch (Exception e)
-                    {
-                        int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                }
+                catch (Exception e)
+                {
+                    int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -623,42 +568,33 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var floor in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        floor.MaterialName,
+                        floor.FaceMaterialIds,
+                        floor.AllFaceVertices
+                        );
+                    if (floor.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            floor.MaterialName,
-                            floor.FaceMaterialIds,
-                            floor.AllFaceVertices
-                            );
-                        if (floor.AllFaceVertices != null)
+                        DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                        if (GlobalVariables.ImportLabels && floor.FaceVertices != null)
                         {
-                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
-                            if (GlobalVariables.ImportLabels && floor.FaceVertices != null)
-                            {
-                                ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
-                                CurveArray profile = TrudeRoom.getProfile(floor.FaceVertices);
-                                TrudeRoom.StoreRoomData(levelId, floor.RoomType, directShape, profile);
-                            }
+                            ElementId levelId = GlobalVariables.LevelIdByNumber[floor.Storey];
+                            CurveArray profile = TrudeRoom.getProfile(floor.FaceVertices);
+                            TrudeRoom.StoreRoomData(levelId, floor.RoomType, directShape, profile);
                         }
-                        else
-                        {
-                            new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
-                        }
+                    }
+                    else
+                    {
+                        new TrudeFloor(floor, GlobalVariables.LevelIdByNumber[floor.Storey]);
+                    }
 
-                        deleteOld(floor.ExistingElementId);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Floor: " + floor.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    deleteOld(floor.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Floor: " + floor.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -668,35 +604,25 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var slab in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        slab.MaterialName,
+                        slab.FaceMaterialIds,
+                        slab.AllFaceVertices
+                        );
+                    if (slab.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            slab.MaterialName,
-                            slab.FaceMaterialIds,
-                            slab.AllFaceVertices
-                            );
-                        if (slab.AllFaceVertices != null)
-                        {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
-                        }
-                        else
-                        {
-                            new TrudeSlab(slab);
-                        }
-
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
                     }
-                    catch (Exception e)
+                    else
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Slab: " + slab.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
+                        new TrudeSlab(slab);
                     }
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Slab: " + slab.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -706,23 +632,14 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var (door, index) in propsList.WithIndex())
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                deleteOld(door.ExistingElementId);
+                try
                 {
-                    t.Start();
-                    deleteOld(door.ExistingElementId);
-                    try
-                    {
-                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -732,23 +649,14 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var (window, index) in propsList.WithIndex())
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                deleteOld(window.ExistingElementId);
+                try
                 {
-                    t.Start();
-                    deleteOld(window.ExistingElementId);
-                    try
-                    {
-                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -759,30 +667,16 @@ namespace TrudeImporter
             List<ElementId> sourceIdsToDelete = new List<ElementId>();
             foreach (var (furniture, index) in propsList.WithIndex())
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
-                    {
-                        new TrudeFurniture(furniture, sourceIdsToDelete, index);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    new TrudeFurniture(furniture, sourceIdsToDelete, index);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
-            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-            {
-                t.Start();
-                GlobalVariables.Document.Delete(sourceIdsToDelete);
-                t.Commit();
-            }
+            GlobalVariables.Document.Delete(sourceIdsToDelete);
         }
 
         private static void ImportCeilings(List<FloorProperties> propsList)
@@ -791,36 +685,27 @@ namespace TrudeImporter
 
             foreach (var ceiling in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        ceiling.MaterialName,
+                        ceiling.FaceMaterialIds,
+                        ceiling.AllFaceVertices
+                        );
+                    if (ceiling.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            ceiling.MaterialName,
-                            ceiling.FaceMaterialIds,
-                            ceiling.AllFaceVertices
-                            );
-                        if (ceiling.AllFaceVertices != null)
-                        {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Ceilings);
-                        }
-                        else
-                        {
-                            new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
-                        }
+                        TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Ceilings);
+                    }
+                    else
+                    {
+                        new TrudeCeiling(ceiling, GlobalVariables.LevelIdByNumber[ceiling.Storey]);
+                    }
 
-                        deleteOld(ceiling.ExistingElementId);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    deleteOld(ceiling.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -831,37 +716,28 @@ namespace TrudeImporter
 
             foreach (var mass in propsList)
             {
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
+                    DirectShapeProperties directShapeProps = new DirectShapeProperties(
+                        mass.MaterialName,
+                        mass.FaceMaterialIds,
+                        mass.AllFaceVertices
+                        );
+                    if (mass.AllFaceVertices != null)
                     {
-                        DirectShapeProperties directShapeProps = new DirectShapeProperties(
-                            mass.MaterialName,
-                            mass.FaceMaterialIds,
-                            mass.AllFaceVertices
-                            );
-                        if (mass.AllFaceVertices != null)
+                        DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
+                        if (mass.Type == "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
                         {
-                            DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
-                            if (mass.Type == "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
-                            {
-                                CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
-                                ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
-                                TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
-                            }
-                        }
-                        deleteOld(mass.ExistingElementId);
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
+                            CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
+                            ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
+                            TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
                         }
                     }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    deleteOld(mass.ExistingElementId);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
         }
@@ -883,7 +759,7 @@ namespace TrudeImporter
                         staircase.FaceMaterialIds,
                         staircase.AllFaceVertices
                     );
-                        GlobalVariables.Transaction.Start();
+                        Utils.TryStartTransaction();
                         TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Stairs);
                         GlobalVariables.Transaction.Commit();
                     }
@@ -901,7 +777,7 @@ namespace TrudeImporter
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
-            if (!GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
 
         }
 
@@ -916,30 +792,20 @@ namespace TrudeImporter
             if (!familyUploadMVVM.WindowViewModel._skipAll)
             {
                 System.Diagnostics.Debug.WriteLine("Importing Missing Families");
-                using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    t.Start();
-                    try
-                    {
-                        if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
-                            TrudeMissing.ImportMissingDoors(propsListDoors);
+                    if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+                        TrudeMissing.ImportMissingDoors(propsListDoors);
 
-                        if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
-                            TrudeMissing.ImportMissingWindows(propsListWindows);
+                    if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                        TrudeMissing.ImportMissingWindows(propsListWindows);
 
-                        if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
-                            TrudeMissing.ImportMissingFurniture(propsListFurniture);
-
-                        if (t.Commit() != TransactionStatus.Committed)
-                        {
-                            t.RollBack();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Families: " + "\nError is: " + e.Message + "\n");
-                        t.RollBack();
-                    }
+                    if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                        TrudeMissing.ImportMissingFurniture(propsListFurniture);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Families: " + "\nError is: " + e.Message + "\n");
                 }
             }
 #endif

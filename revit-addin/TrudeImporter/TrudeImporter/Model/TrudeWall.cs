@@ -23,286 +23,267 @@ namespace TrudeImporter
                 WallType existingWallType = null;
                 if (!GlobalVariables.ForForge && wallProps.ExistingElementId != null)
                 {
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    try
                     {
-                        try
+                        Element e;
+                        bool isExistingWall = GlobalVariables.idToElement.TryGetValue(wallProps.ExistingElementId.ToString(), out e);
+                        if (isExistingWall)
                         {
-                            t.Start();
-
-                            Element e;
-                            bool isExistingWall = GlobalVariables.idToElement.TryGetValue(wallProps.ExistingElementId.ToString(), out e);
-                            if (isExistingWall)
-                            {
-                                existingWall = (Wall)e;
-                                existingLevelId = existingWall.LevelId;
-                                existingWallType = existingWall.WallType;
-
-                                t.Commit();
-                            }
+                            existingWall = (Wall)e;
+                            existingLevelId = existingWall.LevelId;
+                            existingWallType = existingWall.WallType;
                         }
-                        catch (Exception e)
-                        {
-                            Utils.LogTrace(e.Message);
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.LogTrace(e.Message);
                     }
                 }
 
-                using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
+                try
                 {
-                    trans.Start();
-                    try
+                    double baseHeight = wallProps.BaseHeight;
+                    double height = wallProps.Height;
+
+                    bool useOriginalMesh = false;
+
+                    this.Layers = wallProps.Layers.Select(layer => layer.ToTrudeLayer(wallProps.Type)).ToArray();
+
+                    this.levelNumber = (int)wallProps.Storey;
+
+                    IList<Curve> profile = TrudeWall.GetProfile(wallProps.ProfilePoints);
+
+                    ElementId levelIdForWall;
+                    levelIdForWall = GlobalVariables.LevelIdByNumber[this.levelNumber];
+                    Level level = (Level)GlobalVariables.Document.GetElement(levelIdForWall);
+
+                    if (existingWall == null)
                     {
-                        double baseHeight = wallProps.BaseHeight;
-                        double height = wallProps.Height;
+                        string familyName = wallProps.RevitFamily;
 
-                        bool useOriginalMesh = false;
+                        FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
+                        WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
 
-                        this.Layers = wallProps.Layers.Select(layer => layer.ToTrudeLayer(wallProps.Type)).ToArray();
-
-                        this.levelNumber = (int)wallProps.Storey;
-
-                        IList<Curve> profile = TrudeWall.GetProfile(wallProps.ProfilePoints);
-
-                        ElementId levelIdForWall;
-                        levelIdForWall = GlobalVariables.LevelIdByNumber[this.levelNumber];
-                        Level level = (Level)GlobalVariables.Document.GetElement(levelIdForWall);
-
-                        if (existingWall == null)
+                        foreach (WallType wt in collector.ToElements())
                         {
-                            string familyName = wallProps.RevitFamily;
-
-                            FilteredElementCollector collector = new FilteredElementCollector(GlobalVariables.Document).OfClass(typeof(WallType));
-                            WallType wallType = collector.Where(wt => ((WallType)wt).Name == familyName) as WallType;
-
-                            foreach (WallType wt in collector.ToElements())
+                            if (wt.Name == familyName)
                             {
-                                if (wt.Name == familyName)
-                                {
-                                    wallType = wt;
-                                    break;
-                                }
+                                wallType = wt;
+                                break;
                             }
+                        }
 
-                            if (wallType is null)
-                            {
-                                wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document);
-                            }
-                            else if (!AreLayersSame(this.Layers, wallType) && !wallProps.IsStackedWallParent)
-                            {
-                                wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document);
-                            }
+                        if (wallType is null)
+                        {
+                            wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document);
+                        }
+                        else if (!AreLayersSame(this.Layers, wallType) && !wallProps.IsStackedWallParent)
+                        {
+                            wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document);
+                        }
 
+                        if (wallProps.IsStackedWallParent)
+                        {
+                            this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
+                        }
+                        else
+                        {
+                            this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
+                        }
+                    }
+                    else
+                    {
+                        bool areLayersSame = AreLayersSame(this.Layers, existingWallType);
+
+                        if (areLayersSame || wallProps.IsStackedWallParent)
+                        {
+                            this.wall = this.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
                             if (wallProps.IsStackedWallParent)
                             {
-                                this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level);
-                            }
-                            else
-                            {
-                                this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
+                                var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
+                                var newHeightParam = this.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
+                                if (!newHeightParam.IsReadOnly) newHeightParam.SetValueString(existingHeightParam.AsValueString());
                             }
                         }
                         else
                         {
-                            bool areLayersSame = AreLayersSame(this.Layers, existingWallType);
+                            WallType wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document, existingWallType);
 
-                            if (areLayersSame || wallProps.IsStackedWallParent)
+                            this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
+                        }
+                    }
+                    ElementId wallId = this.wall.Id;
+
+                    // Create holes
+                    GlobalVariables.Document.Regenerate();
+
+                    foreach (List<XYZ> hole in wallProps.Holes)
+                    {
+                        try
+                        {
+                            // Create cutting family
+                            VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
+                            string familyName = "snaptrudeVoidFamily" + Utils.RandomString();
+                            Plane plane = Plane.CreateByThreePoints(wallProps.ProfilePoints[0], wallProps.ProfilePoints[1], wallProps.ProfilePoints[2]);
+
+                            // Project points on to the plane to make sure all the points are co-planar.
+                            // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
+                            // this is especially true for walls that are rotated.
+                            List<XYZ> projectedPoints = new List<XYZ>();
+                            projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
+
+                            voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, this.wall.WallType.Width, plane);
+                            GlobalVariables.Document.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
+
+                            FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
+
+                            if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
+
+                            FamilyInstance cuttingFamilyInstance = GlobalVariables.Document.Create.NewFamilyInstance(
+                                XYZ.Zero,
+                                cuttingFamilySymbol,
+                                Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                            InstanceVoidCutUtils.AddInstanceVoidCut(GlobalVariables.Document, this.wall, cuttingFamilyInstance);
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
+                    GlobalVariables.Document.Regenerate();
+                    try
+                    {
+                        if (wallProps.SubMeshes.Count == 1)
+                        {
+                            int _materialIndex = wallProps.SubMeshes.First().MaterialIndex;
+                            String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
+                                wallProps.MaterialName,
+                                GlobalVariables.materials,
+                                GlobalVariables.multiMaterials,
+                                _materialIndex);
+                            snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName) + "_snaptrude";
+
+                            FilteredElementCollector materialCollector =
+                                new FilteredElementCollector(GlobalVariables.Document)
+                                .OfClass(typeof(Material));
+
+                            IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
+
+                            Material _materialElement = null;
+
+                            foreach (var materialElement in materialsEnum)
                             {
-                                this.wall = this.CreateWall(GlobalVariables.Document, profile, existingWallType.Id, level, height, baseHeight);
-                                if (wallProps.IsStackedWallParent)
+                                string matName = GlobalVariables.sanitizeString(materialElement.Name);
+                                if (matName == snaptrudeMaterialName)
                                 {
-                                    var existingHeightParam = existingWall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-                                    var newHeightParam = this.wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-                                    if (!newHeightParam.IsReadOnly) newHeightParam.SetValueString(existingHeightParam.AsValueString());
+                                    _materialElement = materialElement;
+                                    break;
                                 }
                             }
-                            else
+                            try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
                             {
-                                WallType wallType = TrudeWall.GetWallTypeByWallLayers(this.Layers, GlobalVariables.Document, existingWallType);
-
-                                this.wall = this.CreateWall(GlobalVariables.Document, profile, wallType.Id, level, height, baseHeight);
-                            }
-                        }
-                        ElementId wallId = this.wall.Id;
-
-                        // Create holes
-                        GlobalVariables.Document.Regenerate();
-
-                        foreach (List<XYZ> hole in wallProps.Holes)
-                        {
-                            try
-                            {
-                                // Create cutting family
-                                VoidRfaGenerator voidRfaGenerator = new VoidRfaGenerator();
-                                string familyName = "snaptrudeVoidFamily" + Utils.RandomString();
-                                Plane plane = Plane.CreateByThreePoints(wallProps.ProfilePoints[0], wallProps.ProfilePoints[1], wallProps.ProfilePoints[2]);
-
-                                // Project points on to the plane to make sure all the points are co-planar.
-                                // In some cases, the points coming in from snaptrude are not co-planar due to reasons unknown, 
-                                // this is especially true for walls that are rotated.
-                                List<XYZ> projectedPoints = new List<XYZ>();
-                                projectedPoints = hole.Select(p => plane.ProjectOnto(p)).ToList();
-
-                                voidRfaGenerator.CreateRFAFile(GlobalVariables.RvtApp, familyName, projectedPoints, this.wall.WallType.Width, plane);
-                                GlobalVariables.Document.LoadFamily(voidRfaGenerator.fileName(familyName), out Family beamFamily);
-
-                                FamilySymbol cuttingFamilySymbol = TrudeModel.GetFamilySymbolByName(GlobalVariables.Document, familyName);
-
-                                if (!cuttingFamilySymbol.IsActive) cuttingFamilySymbol.Activate();
-
-                                FamilyInstance cuttingFamilyInstance = GlobalVariables.Document.Create.NewFamilyInstance(
-                                    XYZ.Zero,
-                                    cuttingFamilySymbol,
-                                    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-                                InstanceVoidCutUtils.AddInstanceVoidCut(GlobalVariables.Document, this.wall, cuttingFamilyInstance);
+                                if (snaptrudeMaterialName != null)
+                                {
+                                    if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
+                                    {
+                                        foreach (var materialElement in materialsEnum)
+                                        {
+                                            String matName = materialElement.Name;
+                                            if (matName.ToLower().Contains("glass"))
+                                            {
+                                                _materialElement = materialElement;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             catch
                             {
 
                             }
-                        }
 
-                        GlobalVariables.Document.Regenerate();
+                            if (_materialElement != null)
+                            {
+                                this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
+                            }
+                        }
+                        else
+                        {
+                            this.ApplyMaterialByFace(GlobalVariables.Document, wallProps.MaterialName, wallProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
+                        }
+                    }
+                    catch
+                    {
+                        Utils.LogTrace("Failed to set wall material");
+                    }
+
+                    WallType _wallType = this.wall.WallType;
+
+                    if (recreate)
+                    {
+                        WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                        WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+                    }
+
+                    TransactionStatus transactionStatus = trans.Commit();
+
+                    // For some reason in a few rare cases, some transactions rolledback when walls are joined.
+                    // This handles those cases to create the wall without being joined.
+                    // This is not a perfect solution, ideally wall should be joined.
+                    if (transactionStatus == TransactionStatus.RolledBack)
+                    {
+                        trans.Start();
+                        this.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
+                        wallId = this.wall.Id;
+
+                        WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
+                        WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
+
+                        transactionStatus = trans.Commit();
+                    }
+
+                    Utils.LogTrace("wall created");
+
+                    if (!recreate)
+                    {
+                        foreach (JToken childUID in wallProps.ChildrenUniqueIds)
+                        {
+                            GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
+                        }
+                        GlobalVariables.UniqueIdToElementId.Add((int)wallProps.UniqueId, wallId);
+                    }
+
+                    if (!GlobalVariables.ForForge && wallProps.SourceElementId != null)
+                    {
+                        Element element = GlobalVariables.Document.GetElement(wallProps.SourceElementId);
+                        if (element != null)
+                        {
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                            ElementId sourceElementId = new ElementId(int.Parse(wallProps.SourceElementId));
+#else
+                            ElementId sourceElementId = new ElementId(Int64.Parse(wallProps.SourceElementId));
+#endif
+                            GlobalVariables.Document.Delete(sourceElementId);
+                        }
+                    }
+
+                    if (existingWall != null)
+                    {
                         try
                         {
-                            if (wallProps.SubMeshes.Count == 1)
-                            {
-                                int _materialIndex = wallProps.SubMeshes.First().MaterialIndex;
-                                String snaptrudeMaterialName = Utils.getMaterialNameFromMaterialId(
-                                    wallProps.MaterialName,
-                                    GlobalVariables.materials,
-                                    GlobalVariables.multiMaterials,
-                                    _materialIndex);
-                                snaptrudeMaterialName = GlobalVariables.sanitizeString(snaptrudeMaterialName) + "_snaptrude";
-
-                                FilteredElementCollector materialCollector =
-                                    new FilteredElementCollector(GlobalVariables.Document)
-                                    .OfClass(typeof(Material));
-
-                                IEnumerable<Material> materialsEnum = materialCollector.ToElements().Cast<Material>();
-
-                                Material _materialElement = null;
-
-                                foreach (var materialElement in materialsEnum)
-                                {
-                                    string matName = GlobalVariables.sanitizeString(materialElement.Name);
-                                    if (matName == snaptrudeMaterialName)
-                                    {
-                                        _materialElement = materialElement;
-                                        break;
-                                    }
-                                }
-                                try/* (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))*/
-                                {
-                                    if (snaptrudeMaterialName != null)
-                                    {
-                                        if (_materialElement is null && snaptrudeMaterialName.ToLower().Contains("glass"))
-                                        {
-                                            foreach (var materialElement in materialsEnum)
-                                            {
-                                                String matName = materialElement.Name;
-                                                if (matName.ToLower().Contains("glass"))
-                                                {
-                                                    _materialElement = materialElement;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                catch
-                                {
-
-                                }
-
-                                if (_materialElement != null)
-                                {
-                                    this.ApplyMaterialByObject(GlobalVariables.Document, this.wall, _materialElement);
-                                }
-                            }
-                            else
-                            {
-                                this.ApplyMaterialByFace(GlobalVariables.Document, wallProps.MaterialName, wallProps.SubMeshes, GlobalVariables.materials, GlobalVariables.multiMaterials, this.wall);
-                            }
+                            var val = GlobalVariables.Document.Delete(existingWall.Id);
                         }
-                        catch
-                        {
-                            Utils.LogTrace("Failed to set wall material");
-                        }
-
-                        WallType _wallType = this.wall.WallType;
-
-                        if (recreate)
-                        {
-                            WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
-                            WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
-                        }
-
-                        TransactionStatus transactionStatus = trans.Commit();
-
-                        // For some reason in a few rare cases, some transactions rolledback when walls are joined.
-                        // This handles those cases to create the wall without being joined.
-                        // This is not a perfect solution, ideally wall should be joined.
-                        if (transactionStatus == TransactionStatus.RolledBack)
-                        {
-                            trans.Start();
-                            this.CreateWall(GlobalVariables.Document, profile, _wallType.Id, level, height, baseHeight);
-                            wallId = this.wall.Id;
-
-                            WallUtils.DisallowWallJoinAtEnd(this.wall, 0);
-                            WallUtils.DisallowWallJoinAtEnd(this.wall, 1);
-
-                            transactionStatus = trans.Commit();
-                        }
-
-                        Utils.LogTrace("wall created");
-
-                        if (!recreate)
-                        {
-                            foreach (JToken childUID in wallProps.ChildrenUniqueIds)
-                            {
-                                GlobalVariables.childUniqueIdToWallElementId.Add((int)childUID, wallId);
-                            }
-                            GlobalVariables.UniqueIdToElementId.Add((int)wallProps.UniqueId, wallId);
-                        }
-
-                        using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-                        {
-                            t.Start();
-
-                            if (!GlobalVariables.ForForge && wallProps.SourceElementId != null)
-                            {
-                                Element element = GlobalVariables.Document.GetElement(wallProps.SourceElementId);
-                                if (element != null)
-                                {
-#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
-                                    ElementId sourceElementId = new ElementId(int.Parse(wallProps.SourceElementId));
-#else
-                                    ElementId sourceElementId = new ElementId(Int64.Parse(wallProps.SourceElementId));
-#endif
-                                    GlobalVariables.Document.Delete(sourceElementId);
-                                }
-                            }
-
-                            if (existingWall != null)
-                            {
-                                try
-                                {
-                                    var val = GlobalVariables.Document.Delete(existingWall.Id);
-                                }
-                                catch { }
-                            }
-
-                            var transstatus = t.Commit();
-
-                            Utils.LogTrace(transstatus.ToString());
-                        }
+                        catch { }
                     }
-                    catch (Exception e)
-                    {
-                        Utils.LogTrace("Error in creating wall", e.ToString());
-                        throw e;
-                    }
+
+                }
+                catch (Exception e)
+                {
+                    Utils.LogTrace("Error in creating wall", e.ToString());
+                    throw e;
                 }
             }
             catch (Exception e)
@@ -623,35 +604,6 @@ namespace TrudeImporter
                 return false;
             }
         }
-        public static void HandleWallWarnings(Transaction trans)
-        {
-            FailureHandlingOptions options = trans.GetFailureHandlingOptions();
-            WallsPreProcessor preproccessor = new WallsPreProcessor();
-            options.SetClearAfterRollback(true);
-            options.SetFailuresPreprocessor(preproccessor);
-            trans.SetFailureHandlingOptions(options);
-        }
-
-        class WallsPreProcessor : IFailuresPreprocessor
-        {
-            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
-            {
-                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
-
-                if (fmas.Count == 0)
-                    return FailureProcessingResult.Continue;
-                foreach (FailureMessageAccessor fma in fmas)
-                {
-                    if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
-                    {
-                        GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
-                        failuresAccessor.ResolveFailure(fma);
-
-                        return FailureProcessingResult.ProceedWithCommit;
-                    }
-                }
-                return FailureProcessingResult.Continue;
-            }
-        }
+        
     }
 }
