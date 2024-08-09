@@ -135,6 +135,8 @@ namespace TrudeImporter
             // Get levels to create, delete and change
             try
             {
+                if (Abort) return;
+
                 var existingLevels = new FilteredElementCollector(GlobalVariables.Document)
                     .WhereElementIsNotElementType()
                     .OfCategory(BuiltInCategory.OST_Levels)
@@ -273,6 +275,7 @@ namespace TrudeImporter
             Utils.TryStartTransaction();
             foreach (WallProperties props in propsList)
             {
+                if (Abort) return;
                 if (props.IsStackedWall && !props.IsStackedWallParent) continue;
                 // if (props.Storey is null) continue;
 
@@ -320,6 +323,8 @@ namespace TrudeImporter
 
             foreach (var beam in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     Utils.TryStartTransaction();
@@ -355,6 +360,8 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var column in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     DirectShapeProperties directShapeProps = new DirectShapeProperties(
@@ -408,6 +415,8 @@ namespace TrudeImporter
 
             foreach (var levelId in GlobalVariables.CreatedFloorsByLevel.Keys)
             {
+                if (Abort) return;
+
                 try
                 {
                     double cutPlaneElevation = (GlobalVariables.Document.GetElement(levelId) as Level).ProjectElevation + UnitsAdapter.MMToFeet(computationalHeightInMM);
@@ -568,6 +577,8 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var floor in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     DirectShapeProperties directShapeProps = new DirectShapeProperties(
@@ -604,6 +615,8 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var slab in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     DirectShapeProperties directShapeProps = new DirectShapeProperties(
@@ -632,6 +645,8 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var (door, index) in propsList.WithIndex())
             {
+                if (Abort) return;
+
                 deleteOld(door.ExistingElementId);
                 try
                 {
@@ -649,6 +664,8 @@ namespace TrudeImporter
             if (propsList == null || !propsList.Any()) return;
             foreach (var (window, index) in propsList.WithIndex())
             {
+                if (Abort) return;
+
                 deleteOld(window.ExistingElementId);
                 try
                 {
@@ -667,6 +684,7 @@ namespace TrudeImporter
             List<ElementId> sourceIdsToDelete = new List<ElementId>();
             foreach (var (furniture, index) in propsList.WithIndex())
             {
+                if (Abort) return;
                 try
                 {
                     new TrudeFurniture(furniture, sourceIdsToDelete, index);
@@ -685,6 +703,8 @@ namespace TrudeImporter
 
             foreach (var ceiling in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     DirectShapeProperties directShapeProps = new DirectShapeProperties(
@@ -716,6 +736,8 @@ namespace TrudeImporter
 
             foreach (var mass in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     DirectShapeProperties directShapeProps = new DirectShapeProperties(
@@ -750,6 +772,8 @@ namespace TrudeImporter
             GlobalVariables.StairsEditScope = new StairsEditScope(GlobalVariables.Document, "Stairs");
             foreach (var staircase in propsList)
             {
+                if (Abort) return;
+
                 try
                 {
                     if (staircase.AllFaceVertices != null)
@@ -794,12 +818,13 @@ namespace TrudeImporter
                 System.Diagnostics.Debug.WriteLine("Importing Missing Families");
                 try
                 {
+                    if (Abort) return;
                     if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
                         TrudeMissing.ImportMissingDoors(propsListDoors);
-
+                    if (Abort) return;
                     if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                         TrudeMissing.ImportMissingWindows(propsListWindows);
-
+                    if (Abort) return;
                     if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
                         TrudeMissing.ImportMissingFurniture(propsListFurniture);
                 }
