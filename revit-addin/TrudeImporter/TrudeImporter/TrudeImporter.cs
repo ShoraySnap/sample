@@ -322,7 +322,6 @@ namespace TrudeImporter
                     t.Start();
                     try
                     {
-                        throw new InvalidOperationException("Logfile cannot be read-only");
                         DirectShapeProperties directShapeProps = new DirectShapeProperties(
                             props.MaterialName,
                             props.FaceMaterialIds,
