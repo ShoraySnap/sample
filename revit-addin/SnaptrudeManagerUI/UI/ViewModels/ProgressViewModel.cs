@@ -223,6 +223,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     await SnaptrudeService.SetRevitImportState(floorkey, "RFA");
                     break;
             }
+            SuccessCommand.Execute(new object());
         }
 
         private async Task StartImport()

@@ -248,9 +248,6 @@ namespace SnaptrudeManagerUI
                                     logger.Info("data : \"{0}\"", floorkey);
 
                                     await MainWindowViewModel.Instance.ProgressViewModel.FinishExport(floorkey);
-
-                                    var navigateCmd = new NavigateCommand(new NavigationService(NavigationStore.Instance, ViewModelCreator.CreateModelExportedViewModel));
-                                    navigateCmd.Execute(new object());
                                 }
                                 catch (Exception ex)
                                 {
