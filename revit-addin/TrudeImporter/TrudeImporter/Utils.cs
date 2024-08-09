@@ -277,6 +277,7 @@ namespace TrudeImporter
                     if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
                     {
                         GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
+                        failuresAccessor.ResolveFailure(fma);
                     }
                     if (fma.GetDefaultResolutionCaption() == "Unjoin Elements")
                     {
