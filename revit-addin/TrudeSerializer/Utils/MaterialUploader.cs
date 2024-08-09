@@ -82,7 +82,6 @@ namespace TrudeSerializer.Utils
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("\n\n\n\n\nOMG AN ERROR OCCURED OH NOOOO:\n");
                 System.Diagnostics.Debug.WriteLine(e?.Message);
             }
         }
