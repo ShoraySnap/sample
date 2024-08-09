@@ -342,33 +342,6 @@ namespace SnaptrudeManagerUI.API
 
         }
 
-        public static async Task<string> GetPresignedUrlAsync(string path)
-        {
-            logger.Info("Getting presigned s3 url");
-            string endPoint = $"/s3/presigned-url/download/";
-
-            var data = new Dictionary<string, string>
-            {
-                { "object_name", path },
-            };
-
-            var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
-
-            if (response != null && response.IsSuccessStatusCode)
-            {
-                var responseData = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-                if (result != null)
-                {
-                    string s3Url = result["url"].ToString();
-                    logger.Info("Got presigned s3 url", s3Url);
-                    return s3Url;
-                }
-            }
-
-            return null;
-        }
-
     }
 
 }
