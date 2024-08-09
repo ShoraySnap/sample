@@ -190,23 +190,30 @@ namespace SnaptrudeForgeExport
 
         private static void ApplyColorOverridesToElement(Document doc, View view, ElementId elemId, string materialHex)
         {
-            string hex = materialHex != null ? materialHex.Replace("#", "") : "ffffff";
-            byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-            byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-            byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+            try
+            {
+                string hex = materialHex != null ? materialHex.Replace("#", "") : "ffffff";
+                byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+                byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
 
-            Color color = new Color(r, g, b);
+                Color color = new Color(r, g, b);
 
-            OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
-            overrideGraphicSettings.SetCutForegroundPatternColor(color);
-            overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
-            overrideGraphicSettings.SetCutForegroundPatternVisible(true);
+                OverrideGraphicSettings overrideGraphicSettings = new OverrideGraphicSettings();
+                overrideGraphicSettings.SetCutForegroundPatternColor(color);
+                overrideGraphicSettings.SetCutForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
+                overrideGraphicSettings.SetCutForegroundPatternVisible(true);
 
-            overrideGraphicSettings.SetSurfaceForegroundPatternColor(color);
-            overrideGraphicSettings.SetSurfaceForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
-            overrideGraphicSettings.SetSurfaceForegroundPatternVisible(true);
+                overrideGraphicSettings.SetSurfaceForegroundPatternColor(color);
+                overrideGraphicSettings.SetSurfaceForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
+                overrideGraphicSettings.SetSurfaceForegroundPatternVisible(true);
 
-            view.SetElementOverrides(elemId, overrideGraphicSettings);
+                view.SetElementOverrides(elemId, overrideGraphicSettings);
+            } catch
+            {
+                Utils.LogTrace("Failed to apply color overrides for color " + materialHex);
+
+            }
         }
 
         private static void HideHiddenViewElements(Document doc, ViewPlan viewPlan, ViewProperties viewProperties)
