@@ -84,11 +84,9 @@ namespace TrudeSerializer
                     string floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
-                       S3helper.UploadAndRedirectToSnaptrude(serializedData.GetSerializedObject());
+                        S3UploadHelper.Upload(serializedData.GetSerializedObject(), floorkey);
                     }
                     logger.UploadDone(true);
-
-                    Application.Instance.FinishExportSuccess(floorkey);
                 }
                 catch(Exception ex)
                 {
