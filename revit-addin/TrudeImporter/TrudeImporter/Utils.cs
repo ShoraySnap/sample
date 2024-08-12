@@ -187,6 +187,13 @@ namespace TrudeImporter
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+        public static void LogProgress(double progress, string step)
+        {
+            Utils.LogTrace("!ACESAPI:acesHttpOperation({0},\"\",\"\",{1},null)",
+                    "onProgress",
+                    "{ \"current-progress\": " + progress + ", \"step\": \"" + step + "\" }");
+        }
+
         public static void LogTrace(string format, params object[] args) { System.Console.WriteLine(format, args); }
 
         public static Element FindElement(Document doc, Type targetType, string targetName = null)

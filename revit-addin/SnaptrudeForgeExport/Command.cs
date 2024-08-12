@@ -112,6 +112,9 @@ namespace SnaptrudeForgeExport
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
 
+            if (GlobalVariables.ForForgeViewsPDFExport)
+                Utils.LogProgress(5, "Importing trude objects");
+
             using (TransactionGroup tg = new TransactionGroup(newDoc, "Parse Trude"))
             {
                 tg.Start();

@@ -11,6 +11,8 @@ namespace SnaptrudeForgeExport
 {
     public static class ExportPDFViews
     {
+        private const double ProgressBeforeHand = 50;
+        private const double ProgressAfterSheetsSetup = 95;
         public static void Export(Document newDoc, TrudeProperties trudeProperties)
         {
 #if REVIT2019 || REVIT2020 || REVIT2021
@@ -30,10 +32,14 @@ namespace SnaptrudeForgeExport
 
             // This must be created in host.rvt
             ViewPlan template = Utils.FindElement(newDoc, typeof(ViewPlan), "View Template") as ViewPlan;
+            double progress = ProgressBeforeHand;
+            double delta = (ProgressAfterSheetsSetup - ProgressBeforeHand) / trudeProperties.Views.Count;
             List<ViewSheet> sheets = trudeProperties.Views.Select(viewProperties =>
             {
                 using (Transaction t = new Transaction(newDoc, "Set up view detail levels, color scheme and sheet"))
                 {
+                    Utils.LogProgress(progress, "Importing view " + viewProperties.Name);
+                    progress += delta;
                     t.Start();
                     ViewPlan viewPlan = DuplicateViewFromTemplateWithRoomTags(newDoc, viewProperties, template);
                     ViewSheet sheet = null;
@@ -61,6 +67,7 @@ namespace SnaptrudeForgeExport
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
 
             PDFExportProperties pdfExport = trudeProperties.PDFExport;
+            Utils.LogProgress(ProgressAfterSheetsSetup, "Almost done...");
 
             using (Transaction t = new Transaction(newDoc, "Export to PDF"))
             {
