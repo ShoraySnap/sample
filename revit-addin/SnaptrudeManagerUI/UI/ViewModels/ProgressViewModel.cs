@@ -150,7 +150,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public void Cancel(TRUDE_EVENT trudeEvent)
         {
             TrudeEventEmitter.EmitEvent(trudeEvent);
-                UpdateProgress(0, "Rolling back changes...");
+                UpdateProgress(0, "Rolling back changes, this could take some time...");
                 IsProgressBarIndeterminate = true;
             }
 
