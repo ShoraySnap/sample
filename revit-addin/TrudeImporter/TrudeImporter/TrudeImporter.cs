@@ -7,6 +7,8 @@ using System.Diagnostics;
 using NLog;
 using System.Data.Common;
 using Autodesk.Revit.DB.Architecture;
+using TrudeCommon.Analytics;
+
 
 
 
@@ -50,6 +52,7 @@ namespace TrudeImporter
             {
                 TrudeExportLogger.Instance.LogError(error);
             }
+            ExportIdentifier identifier = trudeProperties.Identifier;
 
             Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
