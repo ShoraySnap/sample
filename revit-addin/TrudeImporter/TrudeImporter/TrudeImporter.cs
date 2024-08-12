@@ -7,7 +7,6 @@ using System.Diagnostics;
 using NLog;
 using System.Data.Common;
 using Autodesk.Revit.DB.Architecture;
-using TrudeCommon.Analytics;
 
 
 
