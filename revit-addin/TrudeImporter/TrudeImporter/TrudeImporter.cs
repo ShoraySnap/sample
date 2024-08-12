@@ -42,6 +42,15 @@ namespace TrudeImporter
         public static void Import(TrudeProperties trudeProperties)
         {
             TrudeExportLogger.Instance.CountInputElements(trudeProperties.SnaptrudeLog);
+            TrudeExportLogger.Instance.LogExportStatus(
+                trudeProperties.TrudeGeneration,
+                "snaptrude"
+            );
+            foreach (var error in trudeProperties.Errors)
+            {
+                TrudeExportLogger.Instance.LogError(error);
+            }
+
             Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
             GlobalVariables.MissingWindowFamiliesCount.Clear();
@@ -78,6 +87,12 @@ namespace TrudeImporter
 
             ImportDurationMessage += $"Total: {Math.Round(sw.Elapsed.TotalSeconds, 2)}s.";
             logger.Info(ImportDurationMessage);
+            TrudeExportLogger.Instance.LogExportStatus(
+                sw.Elapsed.TotalSeconds, 
+                "success", 
+                trudeProperties.IsRevitImport ? "existing" : "new", 
+                "revit"
+            );
             TrudeExportLogger.Instance.Save();
         }
 
@@ -905,6 +920,9 @@ namespace TrudeImporter
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
             if (propsListDoors.Count == 0 && propsListWindows.Count == 0 && propsListFurniture.Count == 0) return;
+            TrudeExportLogger.Instance.LogMissingRFA("window", GlobalVariables.MissingWindowFamiliesCount.Count);
+            TrudeExportLogger.Instance.LogMissingRFA("door", GlobalVariables.MissingDoorFamiliesCount.Count);
+            TrudeExportLogger.Instance.LogMissingRFA("furniture", GlobalVariables.MissingFurnitureFamiliesCount.Count);
 
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
@@ -916,20 +934,17 @@ namespace TrudeImporter
                 {
                     if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
                     {
-                    TrudeMissing.ImportMissingDoors(propsListDoors);
-                        TrudeExportLogger.Instance.LogMissingRFA("door", GlobalVariables.MissingDoorFamiliesCount.Count);
+                        TrudeMissing.ImportMissingDoors(propsListDoors);
                     }
 
                     if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                     {
-                    TrudeMissing.ImportMissingWindows(propsListWindows);
-                        TrudeExportLogger.Instance.LogMissingRFA("window", GlobalVariables.MissingWindowFamiliesCount.Count);
+                        TrudeMissing.ImportMissingWindows(propsListWindows);
                     }
 
                     if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
                     {
-                    TrudeMissing.ImportMissingFurniture(propsListFurniture);
-                        TrudeExportLogger.Instance.LogMissingRFA("furniture", GlobalVariables.MissingFurnitureFamiliesCount.Count);
+                        TrudeMissing.ImportMissingFurniture(propsListFurniture);
                     }
                 }
                 catch (Exception e)

@@ -49,5 +49,11 @@ namespace TrudeImporter
 
         [JsonProperty("snaptrudeLog")]
         public ComponentLogData SnaptrudeLog { get; set; }
+
+        [JsonProperty("errors")]
+        public List<LogError> Errors { get; set; }
+
+        [JsonProperty("trudeGeneration")]
+        public ExportStatus TrudeGeneration { get; set; }
     }
 }

@@ -74,7 +74,7 @@ namespace TrudeImporter
 
     public class ExportStatus 
     {
-      public int timeTaken = 0;
+      public double timeTaken = 0;
       public string status = "";
       public string type = "";
     }
@@ -248,15 +248,48 @@ namespace TrudeImporter
             errorData.Add(errorLog);
         }
 
+        public void LogError(LogError errorLog)
+        {
+            errorData.Add(errorLog);
+        }
+
         public void LogMissingRFA(string type, int count)
         {
             if (type == "door") revitData.components.doors["basic door"].missingRFA = count;
-            else if (type == "window") revitData.components.doors["basic window"].missingRFA = count;
-            else if (type == "furniture") revitData.components.doors["basic furniture"].missingRFA = count;
+            else if (type == "window") revitData.components.windows["basic window"].missingRFA = count;
+            else if (type == "furniture") revitData.components.furniture["basic furniture"].missingRFA = count;
         }
         public void CountInputElements(ComponentLogData logs)
         {
             snaptrudeData.components = logs;
+        }
+
+        public void LogExportStatus(double timeTaken, string status, string type, string from)
+        {
+            if (from == "snaptrude")
+            {
+                snaptrudeData.trudeGeneration.status = status;
+                snaptrudeData.trudeGeneration.timeTaken = timeTaken;
+                snaptrudeData.trudeGeneration.type = type;
+            }
+            else
+            {
+                revitData.reconcile.status = status;
+                revitData.reconcile.timeTaken = timeTaken;
+                revitData.reconcile.type = type;
+            }
+        }
+
+        public void LogExportStatus(ExportStatus data, string from)
+        {
+            if (from == "snaptrude")
+            {
+                snaptrudeData.trudeGeneration = data;
+            }
+            else
+            {
+                revitData.reconcile = data;
+            }
         }
 
         public string GetSerializedObject()
