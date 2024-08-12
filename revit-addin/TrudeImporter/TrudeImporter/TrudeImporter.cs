@@ -7,6 +7,12 @@ using System.Diagnostics;
 using NLog;
 using System.Data.Common;
 using Autodesk.Revit.DB.Architecture;
+using TrudeCommon.Analytics;
+using TrudeCommon.Utils;
+using Autodesk.Revit.UI;
+
+
+
 
 
 
@@ -96,6 +102,24 @@ namespace TrudeImporter
                 "revit"
             );
             TrudeExportLogger.Instance.Save();
+
+
+            ExportIdentifier expId = trudeProperties.Identifier;
+            if(expId != null)
+            {
+                Config config = Config.GetConfigObject();
+                string hash = Util.GetUniqueHash(GlobalVariables.Document.PathName, 12);
+                string env = Application.Instance.GetVersion();
+                AnalyticsManager.SetIdentifer(expId.email, config.userId, expId.floorkey, expId.units, env, hash);
+                AnalyticsManager.SetData(TrudeExportLogger.Instance.GetSerializedObject());
+                AnalyticsManager.Save("export_analytics.json");
+
+                AnalyticsManager.CommitExportDataToAPI();
+            }
+            else
+            {
+                logger.Error("Unsupported .trude file for analytics!");
+            }
         }
 
         private static void ImportCategory(string categoryName, Action task, string progressMessage, int progressValue)
@@ -962,10 +986,12 @@ namespace TrudeImporter
                     if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
                     {
                         TrudeMissing.ImportMissingDoors(propsListDoors);
+                    }
                     if (Abort) return;
                     if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
                     {
                         TrudeMissing.ImportMissingWindows(propsListWindows);
+                    }
                     if (Abort) return;
                     if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
                     {

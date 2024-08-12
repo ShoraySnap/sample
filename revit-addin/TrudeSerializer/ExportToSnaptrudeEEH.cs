@@ -39,7 +39,7 @@ namespace TrudeSerializer
             return ExecuteWithUIApplication(commandData.Application);
         }
 
-        internal string GetProcessID(Document doc, int length)
+        internal string GetUniqueProcessId(Document doc, int length)
         {
             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
             string guid = doc.PathName.ToString();
@@ -60,7 +60,7 @@ namespace TrudeSerializer
             logger.Init();
 
             Document doc = uiapp.ActiveUIDocument.Document;
-            string processId = GetProcessID(doc, 12);
+            string processId = GetUniqueProcessId(doc, 12);
 
             GlobalVariables.Document = doc;
             GlobalVariables.RvtApp = uiapp.Application;
@@ -134,12 +134,12 @@ namespace TrudeSerializer
 
                 // Analytics Save
                 AnalyticsManager.SetData(logger.GetSerializedObject());
-                AnalyticsManager.Save();
+                AnalyticsManager.Save("import_analytics.json");
 
                 if (!testMode)
                 {
                     S3helper.UploadLog(logger.GetSerializedObject(), processId);
-                    S3helper.UploadAnalytics(processId);
+                    S3helper.UploadAnalytics(processId, "revitImport");
                 }
                 isDone = true;
 

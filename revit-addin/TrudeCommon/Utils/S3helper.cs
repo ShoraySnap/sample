@@ -133,21 +133,20 @@ namespace TrudeCommon.Utils
             await uploadTask;
         }
 
-        public static async void UploadAnalytics(string processId)
+        public static async void UploadAnalytics(string processId, string folder = "revitImport")
         {
             var jsonData = AnalyticsManager.GetUploadData();
 
-            Config config = Config.GetConfigObject();
-
-            string userId = config.userId;
-            string projectFloorKey = config.floorKey;
+            var identifier = AnalyticsManager.GetIdentifier();
+            string userId = identifier.userId;
+            string projectFloorKey = identifier.floorkey;
 
             Task<HttpResponseMessage> uploadTask;
 
             byte[] data = Encoding.UTF8.GetBytes(jsonData.ToString());
-            string path = $"media/{userId}/revitImport/{projectFloorKey}/analytics/{processId}_analytics.json";
+            string path = $"media/{userId}/{folder}/{projectFloorKey}/analytics/{processId}_analytics.json";
 
-            var presignedUrlResponse = await GetPresignedURL(path, config);
+            var presignedUrlResponse = await GetPresignedURL(path, Config.GetConfigObject());
             var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
             PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
             uploadTask = UploadUsingPresignedURL(data, presignedURL);

@@ -297,9 +297,8 @@ namespace TrudeImporter
 
         public string GetSerializedObject()
         {
-            return "";
-            //var serializedLog = JsonConvert.SerializeObject(fullData);
-            //return serializedLog;
+            var serializedLog = JsonConvert.SerializeObject(fullData.data, Formatting.Indented);
+            return serializedLog;
         }
 
         public static bool ToIgnoreUnrecognizedCategories(Element element)
