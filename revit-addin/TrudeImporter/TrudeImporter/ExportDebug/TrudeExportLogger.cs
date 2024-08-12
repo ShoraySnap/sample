@@ -81,7 +81,10 @@ namespace TrudeImporter
 
     public class ExportIdentifier
     {
-      // TODO: taufiq will add these meta data 
+        public string email;
+        public string units;
+        public string floorkey;
+        public Dictionary<string,string> team;
     }
 
     public class SnaptrudeData

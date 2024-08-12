@@ -10,6 +10,7 @@ using Autodesk.Revit.DB.Architecture;
 
 
 
+
 #if !FORGE
 using SnaptrudeManagerAddin;
 #endif
@@ -50,6 +51,7 @@ namespace TrudeImporter
             {
                 TrudeExportLogger.Instance.LogError(error);
             }
+            ExportIdentifier identifier = trudeProperties.Identifier;
 
             Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();

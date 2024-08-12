@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using TrudeCommon.Analytics;
 
 namespace TrudeImporter
 {
@@ -55,5 +56,8 @@ namespace TrudeImporter
 
         [JsonProperty("trudeGeneration")]
         public ExportStatus TrudeGeneration { get; set; }
+
+        [JsonProperty("identifier")]
+        public ExportIdentifier Identifier { get; set; }
     }
 }
