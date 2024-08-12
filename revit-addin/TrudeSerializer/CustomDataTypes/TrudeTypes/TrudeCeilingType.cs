@@ -30,13 +30,13 @@ namespace TrudeSerializer.Types
                 TrudeMaterial snaptrudeMaterial;
 
                 ICollection<ElementId> materialIds = ceiling.GetMaterialIds(false);
-                if(materialIds.Count == 0)
+                if (materialIds.Count == 0)
                 {
-                    snaptrudeMaterial = TrudeMaterial.GetMaterial(null, category);
+                    snaptrudeMaterial = TrudeMaterial.GetMaterial(null, TrudeCategory.Ceiling);
                 }
                 else
                 {
-                    snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material, category);
+                    snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material, TrudeCategory.Ceiling);
                 }
 
                 TrudeLayer Snaptrudelayer = new TrudeLayer(DEFAULT_LAYER_WIDTH, DEFAULT_LAYER_FUNCTION, snaptrudeMaterial);
@@ -52,14 +52,14 @@ namespace TrudeSerializer.Types
 
                     Material material = document.GetElement(layer.MaterialId) as Material;
 
-                    TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, category);
+                    TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, TrudeCategory.Ceiling);
 
                     TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 
                     layersData.Add(Snaptrudelayer);
                 }
             }
-            
+
             return new TrudeCeilingType(layersData);
         }
     }

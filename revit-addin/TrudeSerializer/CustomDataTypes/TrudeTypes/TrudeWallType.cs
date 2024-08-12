@@ -16,7 +16,6 @@ namespace TrudeSerializer.Types
 
         static public TrudeWallType GetLayersData(Wall wall)
         {
-            string category = "Walls";
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
             CompoundStructure compoundStructure = wall.WallType.GetCompoundStructure();
@@ -29,13 +28,17 @@ namespace TrudeSerializer.Types
 
                 Material material = document.GetElement(layer.MaterialId) as Material;
 
-                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, category);
+                TrudeMaterial snaptrudeMaterial = TrudeMaterial.GetMaterial(material, TrudeCategory.Wall);
+
 
                 TrudeLayer Snaptrudelayer = new TrudeLayer(width, function, snaptrudeMaterial);
 
                 layersData.Add(Snaptrudelayer);
             }
+
             return new TrudeWallType(layersData);
         }
+
+
     }
 }

@@ -3,11 +3,14 @@ using Autodesk.Revit.DB.Visual;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TrudeCommon.Utils;
+using TrudeSerializer.CustomDataTypes;
+using TrudeSerializer.Uploader;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
 {
-    internal class TrudeMaterial
+    public class TrudeMaterial
     {
         public double[] diffuseColor;
         public string name;
@@ -18,6 +21,9 @@ namespace TrudeSerializer.Components
         public double vOffset;
         public double wAng;
         public string texturePath;
+        public bool isUploadable;
+
+        private readonly string DefaultMaterialPath = "Common Files\\Autodesk Shared\\Materials\\Textures";
 
         private readonly Dictionary<string, double[]> GLASS_COLOR_MAP = new Dictionary<string, double[]>
         {
@@ -31,14 +37,14 @@ namespace TrudeSerializer.Components
 
         private readonly static double[] DEFAULT_DIFFUSE_COLOR = { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 };
 
-        private static readonly Dictionary<string, double[]> DEFAULT_DIFFUSE_COLOR_MAP = new Dictionary<string, double[]>
+        private static readonly Dictionary<TrudeCategory, double[]> DEFAULT_DIFFUSE_COLOR_MAP = new Dictionary<TrudeCategory, double[]>
         {
-            { "Wall", new double[] { 1, 1, 1, 1 } },
-            { "Floor", new double[] { 0.5, 0.5, 0.5, 1 } },
-            { "Roof", new double[] { 0.4, 0.4, 0.4, 1 } },
-            { "Furniture", new double[] { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 } },
-            { "Columns", new double[] { 0.55, 0.55, 0.55, 1 } },
-            { "Default", new double[] { 0.3, 0.3, 0.3, 1 } },
+            { TrudeCategory.Wall, new double[] { 1, 1, 1, 1 } },
+            { TrudeCategory.Floor, new double[] { 0.5, 0.5, 0.5, 1 } },
+            { TrudeCategory.Roof, new double[] { 0.4, 0.4, 0.4, 1 } },
+            { TrudeCategory.Furniture, new double[] { 80.0 / 255.0, 80.0 / 255.0, 80.0 / 255.0, 1 } },
+            { TrudeCategory.Column, new double[] { 0.55, 0.55, 0.55, 1 } },
+            { TrudeCategory.Default, new double[] { 0.3, 0.3, 0.3, 1 } },
         };
 
         public TrudeMaterial()
@@ -52,7 +58,7 @@ namespace TrudeSerializer.Components
             this.name = name;
         }
 
-        public static TrudeMaterial GetDefaultMaterial(string category)
+        public static TrudeMaterial GetDefaultMaterial(TrudeCategory category)
         {
             string name = "defaultMat-" + category;
             double[] color;
@@ -62,12 +68,12 @@ namespace TrudeSerializer.Components
             }
             else
             {
-                color = DEFAULT_DIFFUSE_COLOR_MAP["Default"];
+                color = DEFAULT_DIFFUSE_COLOR_MAP[TrudeCategory.Default];
             }
             return new TrudeMaterial(color, name);
         }
 
-        public static TrudeMaterial GetMaterial(Material material, string category = "Default")
+        public static TrudeMaterial GetMaterial(Material material, TrudeCategory category = TrudeCategory.Default)
         {
             if (material == null)
             {
@@ -197,7 +203,7 @@ namespace TrudeSerializer.Components
 
                 if (currentAsset is AssetPropertyDoubleArray4d)
                 {
-                    IList<Double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
+                    IList<double> color = (currentAsset as AssetPropertyDoubleArray4d)?.GetValueAsDoubles();
                     if (color == null) continue;
                     diffuseColor = new double[] { color[0], color[1], color[2], color[3] };
                     AssetPropertyDouble alphaProperty = asset.FindByName("generic_transparency") as AssetPropertyDouble;
@@ -214,6 +220,7 @@ namespace TrudeSerializer.Components
                 if (!(connectedAssetProperty is Asset) || (connectedAssetProperty as Asset).Size == 0) continue;
 
                 ReadMaterialInformationFromAsset(connectedAssetProperty as Asset);
+
                 //break;
             }
         }
@@ -229,7 +236,35 @@ namespace TrudeSerializer.Components
                 return;
 
             string[] texturePath = connectTextureString.Value.Split('|');
+            for (int i= 0; i < texturePath.Length; i++)
+            {
+                texturePath[i] = texturePath[i].Replace("/", "\\");
+            }
+            bool isPathRooted = Path.IsPathRooted(texturePath[0]);
+            string materialPath = texturePath[0];
+            if (!isPathRooted)
+            {
+                materialPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                DefaultMaterialPath,
+                texturePath[0]
+            );
+            }
+
             this.texturePath = texturePath.Length == 0 ? "" : Path.GetFileName(texturePath[0]);
+
+            bool fileExists = File.Exists(materialPath);
+
+            if (fileExists)
+            {
+                MaterialUploader.Instance.AddMaterial(this.texturePath, materialPath);
+                isUploadable = true;
+            }
+            else
+            {
+                MaterialUploader.Instance.AddFailedMaterial(this.texturePath, texturePath[0]);
+                isUploadable = false;
+            }
 
             SetTextureScales(textureAsset);
             SetTextureOffset(textureAsset);
@@ -287,11 +322,53 @@ namespace TrudeSerializer.Components
         {
             string propertyName = asset.Name.ToString();
 
-            bool isCommonTintColor = propertyName.Equals("common_Tint_color");
+            bool isCommonTintColor = propertyName.Equals("common_Tint_color") || propertyName.Contains("surface_albedo");
 
-            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing") || propertyName.Contains("albedo") ;
+            bool isDiffuseColorProperty = propertyName.Contains("diffuse") || propertyName.Contains("color") || propertyName.Contains("glazing") || propertyName.Contains("albedo") || propertyName.Contains("metal");
 
             return isDiffuseColorProperty && !isCommonTintColor;
+        }
+
+        static public MaterialAppliedByPaint GetMaterialByAppliedByPaint(Element element, TrudeCategory category)
+        {
+            Options geomOptions = new Options();
+            Document document = GlobalVariables.Document;
+            geomOptions.ComputeReferences = false;
+            GeometryElement geomElement = element.get_Geometry(geomOptions);
+            Dictionary<string, TrudeMaterial> materialsMap = new Dictionary<string, TrudeMaterial>();
+            Dictionary<string, FaceToMaterialMap> faceToMaterialMap = new Dictionary<string, FaceToMaterialMap>();
+
+            // Iterate through geometry objects to find faces
+            foreach (GeometryObject geomObj in geomElement)
+            {
+                Solid solid = geomObj as Solid;
+                if (solid == null) continue;
+
+                foreach (Face face in solid.Faces)
+                {
+                    ElementId materialId = document.GetPaintedMaterial(element.Id, face);
+                    if (materialId == ElementId.InvalidElementId) continue;
+
+                    string id = materialId.ToString();
+
+                    if (!materialsMap.ContainsKey(id))
+                    {
+                        Material material = document.GetElement(materialId) as Material;
+                        TrudeMaterial trudeMaterial = TrudeMaterial.GetMaterial(material, category);
+                        materialsMap[id] = trudeMaterial;
+                    }
+
+                    XYZ normal = face.ComputeNormal(new UV(0.5, 0.5));
+
+                    List<double> normalPoints = new List<double> { normal.X, normal.Z, normal.Y };
+
+                    string faceId = face.Id.ToString();
+
+                    faceToMaterialMap.Add(faceId, new FaceToMaterialMap(normalPoints, materialId.ToString()));
+                }
+            }
+            MaterialAppliedByPaint materialAppliedByPaint = new MaterialAppliedByPaint(materialsMap, faceToMaterialMap);
+            return materialAppliedByPaint;
         }
     }
 }
