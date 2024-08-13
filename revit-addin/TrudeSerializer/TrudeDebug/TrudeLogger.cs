@@ -277,8 +277,12 @@ namespace TrudeSerializer.Debug
 
         public string GetSerializedObject()
         {
+            if (fullData == null)
+            {
+                System.Console.WriteLine("No data to serialize");
+            }
+            System.Console.WriteLine("fullData.revit.serialize.status: ", fullData.revit.serialize.status);
             var serializedLog = JsonConvert.SerializeObject(fullData);
-
             return serializedLog;
         }
 

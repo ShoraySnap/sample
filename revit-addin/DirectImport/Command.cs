@@ -17,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media.Media3D;
 using TrudeSerializer;
+using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 
 namespace DirectImport
@@ -104,28 +105,55 @@ namespace DirectImport
         {
             if (data == null) throw new InvalidDataException(nameof(data));
             if (data.RevitApp == null) throw new InvalidDataException(nameof(data.RevitApp));
+            TrudeLogger logger = new TrudeLogger();
+            logger.Init();
             Application rvtApp = data.RevitApp;
             Document newDoc = rvtApp.OpenDocumentFile(filename);
             GlobalVariables.Document = newDoc;
             GlobalVariables.RvtApp = rvtApp;
             GlobalVariables.isDirectImport = true;
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
-            View3D view = Get3dView(newDoc);
-            GlobalVariables.customActiveView = view;
-            LogTrace("ActiveView.Name2",  GlobalVariables.Document.ActiveView );
-
-            SerializedTrudeData serializedData = ExportViewUsingCustomExporter(newDoc, view);
-            ComponentHandler.Instance.CleanSerializedData(serializedData);
-            OnCleanSerializedTrudeData?.Invoke(serializedData);
-            string serializedObject = JsonConvert.SerializeObject(serializedData);
-
-            using (StreamWriter sw = File.CreateText("result.trude"))
+            try
             {
-                sw.WriteLine(serializedObject);
-                sw.Close();
+                View3D view = Get3dView(newDoc);
+                GlobalVariables.customActiveView = view;
+                SerializedTrudeData serializedData = ExportViewUsingCustomExporter(newDoc, view);
+                serializedData.SetProcessId(RandomString(10));
+                ComponentHandler.Instance.CleanSerializedData(serializedData);
+                OnCleanSerializedTrudeData?.Invoke(serializedData);
+                string serializedObject = JsonConvert.SerializeObject(serializedData);
+                logger.SerializeDone(true);
+                try
+                {
+                    using (StreamWriter sw = File.CreateText("result.trude"))
+                    {
+                        sw.WriteLine(serializedObject);
+                        sw.Close();
+                    }
+                    logger.UploadDone(true);
+                }
+                catch (Exception ex)
+                {
+                    logger.UploadDone(false);
+                    LogTrace("Error while creating json file: {0}", ex.Message);
+                }
+                LogTrace("Json file created successfully....");
             }
-
-            LogTrace("Json file created successfully....");
+            catch (Exception ex)
+            {
+                logger.SerializeDone(false);
+                logger.UploadDone(false);
+                GlobalVariables.CleanGlobalVariables();
+                LogTrace("Error while exporting trude file: {0}", ex.Message);
+            }
+            finally
+            {
+                //logger.Save();
+                var jsonData = logger.GetSerializedObject();
+                LogTrace("Log Data length: ", jsonData.Length);
+                LogTrace("Log Data: ", jsonData);
+                GlobalVariables.CleanGlobalVariables();
+            }
         }
 
         public ExternalDBApplicationResult OnShutdown(ControlledApplication application)
