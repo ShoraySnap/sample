@@ -53,9 +53,12 @@ namespace TrudeImporter
                 trudeProperties.TrudeGeneration,
                 "snaptrude"
             );
-            foreach (var error in trudeProperties.Errors)
+            if(trudeProperties.Errors != null)
             {
-                TrudeExportLogger.Instance.LogError(error);
+                foreach (var error in trudeProperties.Errors)
+                {
+                    TrudeExportLogger.Instance.LogError(error);
+                }
             }
             ExportIdentifier identifier = trudeProperties.Identifier;
 
@@ -104,13 +107,12 @@ namespace TrudeImporter
             TrudeExportLogger.Instance.Save();
 
 
-            ExportIdentifier expId = trudeProperties.Identifier;
-            if(expId != null)
+            if(identifier != null)
             {
                 Config config = Config.GetConfigObject();
                 string hash = Util.GetUniqueHash(GlobalVariables.Document.PathName, 12);
                 string env = Application.Instance.GetVersion();
-                AnalyticsManager.SetIdentifer(expId.email, config.userId, expId.floorkey, expId.units, env, hash);
+                AnalyticsManager.SetIdentifer(identifier.email, config.userId, identifier.floorkey, identifier.units, env, hash);
                 AnalyticsManager.SetData(TrudeExportLogger.Instance.GetSerializedObject());
                 AnalyticsManager.Save("export_analytics.json");
 
