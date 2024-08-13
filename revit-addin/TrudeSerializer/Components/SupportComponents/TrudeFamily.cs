@@ -33,7 +33,7 @@ namespace TrudeSerializer.Components
         {
             Options options = new Options
             {
-                View = GlobalVariables.Document.ActiveView
+                View = TrudeSerializer.GlobalVariables.isDirectImport ? TrudeSerializer.GlobalVariables.customActiveView : TrudeSerializer.GlobalVariables.Document.ActiveView
             };
 
             GeometryElement geometry = element.get_Geometry(options);

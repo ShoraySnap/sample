@@ -11,6 +11,7 @@ namespace TrudeSerializer
         public static Document CurrentDocument;
         public static Application RvtApp;
         public static bool isDirectImport;
+        public static View customActiveView;
 
         public static void CleanGlobalVariables()
         {
@@ -18,6 +19,7 @@ namespace TrudeSerializer
             RvtApp = null;
             CurrentDocument = null;
             isDirectImport = false;
+            customActiveView = null;
         }
     }
 

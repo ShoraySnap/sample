@@ -88,7 +88,7 @@ namespace TrudeSerializer.Components
         {
             bool tooManyFaces = false;
             var options = new Options();
-            options.View = GlobalVariables.Document.ActiveView;
+            options.View = TrudeSerializer.GlobalVariables.isDirectImport ? TrudeSerializer.GlobalVariables.customActiveView : TrudeSerializer.GlobalVariables.Document.ActiveView;
             GeometryElement geometry = element.get_Geometry(options);
 
             List<XYZ> bottomFace = new List<XYZ>();

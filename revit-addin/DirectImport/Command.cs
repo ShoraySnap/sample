@@ -3,6 +3,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Events;
+using Autodesk.Revit.UI;
 using DesignAutomationFramework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -103,7 +104,6 @@ namespace DirectImport
         {
             if (data == null) throw new InvalidDataException(nameof(data));
             if (data.RevitApp == null) throw new InvalidDataException(nameof(data.RevitApp));
-
             Application rvtApp = data.RevitApp;
             Document newDoc = rvtApp.OpenDocumentFile(filename);
             GlobalVariables.Document = newDoc;
@@ -111,9 +111,12 @@ namespace DirectImport
             GlobalVariables.isDirectImport = true;
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
             View3D view = Get3dView(newDoc);
+            GlobalVariables.customActiveView = view;
+            LogTrace("ActiveView.Name2",  GlobalVariables.Document.ActiveView );
+
             SerializedTrudeData serializedData = ExportViewUsingCustomExporter(newDoc, view);
-            //ComponentHandler.Instance.CleanSerializedData(serializedData);
-            //OnCleanSerializedTrudeData?.Invoke(serializedData);
+            ComponentHandler.Instance.CleanSerializedData(serializedData);
+            OnCleanSerializedTrudeData?.Invoke(serializedData);
             string serializedObject = JsonConvert.SerializeObject(serializedData);
 
             using (StreamWriter sw = File.CreateText("result.trude"))
