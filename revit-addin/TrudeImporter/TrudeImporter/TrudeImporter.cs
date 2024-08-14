@@ -7,13 +7,12 @@ using System.Diagnostics;
 using NLog;
 using System.Data.Common;
 using Autodesk.Revit.DB.Architecture;
+#if !FORGE
 using TrudeCommon.Analytics;
 using TrudeCommon.Utils;
+#endif
+
 using Autodesk.Revit.UI;
-
-
-
-
 
 
 
@@ -106,6 +105,7 @@ namespace TrudeImporter
             );
             TrudeExportLogger.Instance.Save();
 
+#if !FORGE
 
             if(identifier != null)
             {
@@ -122,6 +122,7 @@ namespace TrudeImporter
             {
                 logger.Error("Unsupported .trude file for analytics!");
             }
+#endif
         }
 
         private static void ImportCategory(string categoryName, Action task, string progressMessage, int progressValue)
