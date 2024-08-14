@@ -42,8 +42,6 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        public ICommand SwitchUserError;
-
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
@@ -56,11 +54,8 @@ namespace SnaptrudeManagerUI.ViewModels
             get
             {
                 string fullName = Store.Get("fullname")?.ToString();
-                if (fullName != "Switching Account")
-                {
-                    string[] names = fullName.Split(' ');
-                    username = names.Count() > 1 ? $"{names[0]} {names.Last().First()}." : fullName;
-                }
+                string[] names = fullName.Split(' ');
+                username = names.Count() > 1 ? $"{names[0]} {names.Last().First()}." : fullName;
                 
                 return username;
             }
@@ -142,7 +137,6 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand CloseCommand { get; private set; }
         public ICommand NavigateHomeCommand { get; private set; }
         public ICommand UpdateCommand { get; private set; }
-        public ICommand SwitchAccountCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
         public ICommand BackToLoginCommand { get; private set; }
         public ICommand RevitClosedCommand { get; private set; }
@@ -204,7 +198,6 @@ namespace SnaptrudeManagerUI.ViewModels
             RevitClosedCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateRevitClosedWarningViewModel));
             LogOutCommand = new RelayCommand(LogoutAccount);
             BackToLoginCommand =  new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateLoginViewModel));
-            SwitchAccountCommand = new RelayCommand(SwitchAccount);
             App.OnActivateView2D += Set2DView;
             App.OnActivateView3D += Set3DView;
             App.OnRvtOpened += SetProjectRvt;
@@ -263,25 +256,6 @@ namespace SnaptrudeManagerUI.ViewModels
             OnPropertyChanged(nameof(IsProjectFileNameVisible));
         }
 
-        private void SwitchAccount(object parameter)
-        {
-            ShowUserIcon = false;
-            ShowLoader = true;
-            Store.Set("fullname", "Switching Account");
-            Username = "Switching Account";
-            LoginHelper.Login(parameter);
-            if (SwitchUserError != null)
-            {
-                var param =
-                new Dictionary<string, string>{
-                    {"infotext", ""},
-                    {"infocolor", "#767B93"},
-                    {"showinfo", "false"}
-                };
-                SwitchUserError.Execute(param);
-            }
-        }
-
         private void LogoutAccount(object parameter)
         {
             ShowUserIcon = false;
@@ -303,17 +277,6 @@ namespace SnaptrudeManagerUI.ViewModels
             ShowUserIcon = true;
             ShowLoader = false;
             OnPropertyChanged("Username");
-
-            if (SwitchUserError != null)
-            {
-                var param =
-                new Dictionary<string, string>{
-                    {"infotext", "Failed to switch account. Please try again."},
-                    {"infocolor", "#D24B4E"},
-                    {"showinfo", "true"}
-                };
-                SwitchUserError.Execute(param);
-            }
         }
 
         private void OnSuccessfulLogin()
@@ -321,18 +284,6 @@ namespace SnaptrudeManagerUI.ViewModels
             ShowUserIcon = true;
             ShowLoader = false;
             OnPropertyChanged("Username");
-
-
-            if (SwitchUserError != null)
-            {
-                var param =
-                new Dictionary<string, string>{
-                    {"infotext", ""},
-                    {"infocolor", "#767B93"},
-                    {"showinfo", "false"}
-                };
-                SwitchUserError.Execute(param);
-            }
         }
 
         protected override void Dispose(bool disposing)
