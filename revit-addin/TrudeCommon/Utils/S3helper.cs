@@ -14,7 +14,7 @@ namespace TrudeCommon.Utils
         private static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
 
         public static volatile bool abortFlag = false;
-        public static async void UploadAndRedirectToSnaptrude(Dictionary<string,string> jsonData)
+        public static async Task UploadAndRedirectToSnaptrude(Dictionary<string,string> jsonData)
         {
             Dictionary<string, byte[]> compressedJsonData = new Dictionary<string, byte[]>();
 
