@@ -26,9 +26,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeRoofType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\TrudeTypes\TrudeWallType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDataTypes\MaterialAppliedByPaint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)utils\TrudeCategoryUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Importer\TrudeCustomExporterForRFA.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Components\CoreComponents\TrudeRoof.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAssemblies.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\MaterialUploader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utils\S3UploadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\UnitConversionImpl.cs" />
     <Compile Include="..\TrudeSerializer\TrudeDebug\TrudeLogger.cs" />

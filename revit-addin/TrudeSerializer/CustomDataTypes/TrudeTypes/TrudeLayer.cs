@@ -6,7 +6,7 @@ namespace TrudeSerializer.Types
     internal class TrudeLayer
     {
         public double width;
-        public String function;
+        public string function;
         public TrudeMaterial material;
 
         public TrudeLayer(double width, String function, TrudeMaterial material)

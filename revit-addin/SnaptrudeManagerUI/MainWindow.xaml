@@ -18,7 +18,7 @@
     ResizeMode="NoResize"
     ShowInTaskbar="True"
     Topmost="{Binding TopMost}"
-    WindowStartupLocation="CenterScreen"
+    WindowStartupLocation="Manual"
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
@@ -315,7 +315,7 @@
                         </Popup.HorizontalOffset>
                         <Border
                             Width="{Binding ElementName=LoginButton, Path=ActualWidth}"
-                            Height="72"
+                            Height="44"
                             MinWidth="160"
                             Background="White"
                             BorderBrush="{StaticResource Colors/Neutral/200}"
@@ -323,60 +323,6 @@
                             CornerRadius="14"
                             Cursor="{StaticResource CustomCursor}">
                             <StackPanel VerticalAlignment="Center">
-                                <Button
-                                    Height="28"
-                                    HorizontalContentAlignment="Left"
-                                    VerticalContentAlignment="Center"
-                                    Command="{Binding SwitchAccountCommand}"
-                                    Style="{StaticResource Button_Login}">
-                                    <Grid
-                                        Width="400"
-                                        Height="28"
-                                        VerticalAlignment="Center"
-                                        Background="Transparent">
-                                        <StackPanel
-                                            Margin="12,0"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal">
-                                            <Grid
-                                                Width="18"
-                                                Margin="0,0,6,0"
-                                                VerticalAlignment="Center">
-                                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Path
-                                                        Data="M9.56256 1.77096C10.7016 2.91 10.7016 4.75672 9.56256 5.89575C8.42353 7.03479 6.5768 7.03479 5.43777 5.89575C4.29874 4.75672 4.29874 2.91 5.43777 1.77096C6.5768 0.631929 8.42353 0.631929 9.56256 1.77096"
-                                                        Stroke="#484B5B"
-                                                        StrokeEndLineCap="Round"
-                                                        StrokeLineJoin="round"
-                                                        StrokeStartLineCap="round"
-                                                        StrokeThickness="1.125" />
-                                                    <Path
-                                                        Data="M0.833496 13.4167V14.25C0.833496 14.71 1.20683 15.0834 1.66683 15.0834H13.3335C13.7935 15.0834 14.1668 14.71 14.1668 14.25V13.4167C14.1668 10.895 10.8735 9.25671 7.50016 9.25671C4.12683 9.25671 0.833496 10.895 0.833496 13.4167Z"
-                                                        Stroke="#484B5B"
-                                                        StrokeEndLineCap="Round"
-                                                        StrokeLineJoin="round"
-                                                        StrokeStartLineCap="round"
-                                                        StrokeThickness="1.125" />
-                                                </Grid>
-                                            </Grid>
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                Foreground="{StaticResource Colors/Neutral/600}"
-                                                Text="Switch account" />
-                                        </StackPanel>
-                                    </Grid>
-                                    <Button.Triggers>
-                                        <EventTrigger RoutedEvent="Button.Click">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <BooleanAnimationUsingKeyFrames Storyboard.TargetName="popup" Storyboard.TargetProperty="IsOpen">
-                                                        <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="False" />
-                                                    </BooleanAnimationUsingKeyFrames>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Button.Triggers>
-                                </Button>
                                 <Button
                                     Height="28"
                                     HorizontalContentAlignment="Left"
@@ -475,10 +421,10 @@
                 </ContentControl.Resources>
             </ContentControl>
             <Image
-                Margin="0,0,0,20"
                 Grid.Row="1"
                 Width="100"
                 Height="100"
+                Margin="0,0,0,20"
                 gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerUI;component/UI/Images/loader.gif"
                 Visibility="{Binding IsLoaderVisible, Converter={StaticResource BoolToVisibility}}" />
         </Grid>

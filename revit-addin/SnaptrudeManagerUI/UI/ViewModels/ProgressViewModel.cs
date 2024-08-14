@@ -107,27 +107,27 @@ namespace SnaptrudeManagerUI.ViewModels
                 case ProgressViewType.ExportProjectNew:
                     progressViewType = ProgressViewType.ExportProjectNew;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExportNewProject());
-                    progressMessage = "Export hasn't started yet, please ensure Revit is not busy.";
+                    progressMessage = "Export has started, please ensure Revit is not busy.";
                     StartProgressCommand.Execute(null);
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.ExportRFANew:
                     progressViewType = ProgressViewType.ExportRFANew;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExportRFANew());
-                    progressMessage = "Export hasn't started yet, please ensure Revit is not busy.";
+                    progressMessage = "Export has started, please ensure Revit is not busy.";
                     StartProgressCommand.Execute(null);
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.ExportRFAExisting:
                     progressViewType = ProgressViewType.ExportRFAExisting;
                     StartProgressCommand = new RelayCommand(async (o) => await StartExportRFAExisting());
-                    progressMessage = "Export hasn't started yet, please ensure Revit is not busy.";
+                    progressMessage = "Export has started, please ensure Revit is not busy.";
                     StartProgressCommand.Execute(null);
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
                     break;
                 case ProgressViewType.Import:
                     progressViewType = ProgressViewType.Import;
-                    progressMessage = "Import hasn't started yet, please ensure Revit is not busy.";
+                    progressMessage = "Import has started, please ensure Revit is not busy.";
                     CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                     break;
                 case ProgressViewType.Update:
@@ -150,7 +150,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public void Cancel(TRUDE_EVENT trudeEvent)
         {
             TrudeEventEmitter.EmitEvent(trudeEvent);
-                UpdateProgress(0, "Rolling back changes...");
+                UpdateProgress(0, "Rolling back changes, this could take some time...");
                 IsProgressBarIndeterminate = true;
             }
 

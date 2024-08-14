@@ -85,6 +85,7 @@ namespace TrudeSerializer
                     if(!testMode)
                     {
                         S3UploadHelper.Upload(serializedData.GetSerializedObject(), floorkey);
+                        MaterialUploader.Instance.Upload();
                     }
                     logger.UploadDone(true);
                 }
