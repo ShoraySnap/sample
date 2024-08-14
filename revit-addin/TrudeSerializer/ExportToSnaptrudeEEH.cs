@@ -82,7 +82,9 @@ namespace TrudeSerializer
 
                 // Analytics Id
                 var config = Config.GetConfigObject();
-                AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl(), processId);
+
+                string version = Application.Instance.GetVersion();
+                AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl(), processId, version);
 
                 Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
                 ComponentHandler.Instance.CleanSerializedData(serializedData);

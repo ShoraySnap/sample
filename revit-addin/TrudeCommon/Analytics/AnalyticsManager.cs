@@ -20,8 +20,9 @@ namespace TrudeCommon.Analytics
         public string floorkey;
         public string units;
         public string env;
+        public string revit_version;
 
-        public Identifier(string email, string userId, string floorkey, string units, string env, string id = "-1")
+        public Identifier(string email, string userId, string floorkey, string units, string env, string id = "-1", string revit_version = "UNKNOWN")
         {
             created = DateTime.Now.ToString();
             this._id = id;
@@ -30,6 +31,7 @@ namespace TrudeCommon.Analytics
             this.floorkey = floorkey;
             this.units = units;
             this.env = env;
+            this.revit_version = revit_version;
         }
 
         public void SetTeamData(Dictionary<string, string> team)
@@ -47,9 +49,9 @@ namespace TrudeCommon.Analytics
         public static UploadData uploadData = new UploadData();
 
         private static Logger logger = LogManager.GetCurrentClassLogger();
-        public static void SetIdentifer(string email, string userId, string floorkey, string units, string env, string processId)
+        public static void SetIdentifer(string email, string userId, string floorkey, string units, string env, string processId, string rvt)
         {
-            uploadData.identifier = new Identifier(email, userId, floorkey, units, env, processId);
+            uploadData.identifier = new Identifier(email, userId, floorkey, units, env, processId, rvt);
         }
 
         public static void SetTeamData(Dictionary <string, string> team)

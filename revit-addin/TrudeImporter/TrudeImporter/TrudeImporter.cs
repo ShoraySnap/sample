@@ -111,8 +111,8 @@ namespace TrudeImporter
             {
                 Config config = Config.GetConfigObject();
                 string hash = Util.GetUniqueHash(GlobalVariables.Document.PathName, 12);
-                string env = Application.Instance.GetVersion();
-                AnalyticsManager.SetIdentifer(identifier.email, config.userId, identifier.floorkey, identifier.units, env, hash);
+                string version = Application.Instance.GetVersion();
+                AnalyticsManager.SetIdentifer(identifier.email, config.userId, identifier.floorkey, identifier.units, identifier.env, hash, version);
                 AnalyticsManager.SetData(TrudeExportLogger.Instance.GetSerializedObject());
                 AnalyticsManager.Save("export_analytics.json");
 

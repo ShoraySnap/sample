@@ -85,6 +85,7 @@ namespace TrudeImporter
         public string units;
         public string floorkey;
         public Dictionary<string,string> team;
+        public string env;
     }
 
     public class SnaptrudeData
