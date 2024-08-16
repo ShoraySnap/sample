@@ -54,7 +54,8 @@ namespace SnaptrudeForgeExport
                                 .FirstOrDefault();
                         sheet = ViewSheet.Create(newDoc, titleBlockType.Id);
                         sheet.Name = viewProperties.Name;
-                        Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id, GetViewPosition(viewProperties.Sheet.SheetSize));
+                        Viewport vp = Viewport.Create(newDoc, sheet.Id, viewPlan.Id,
+                            GetViewPosition(viewProperties.Sheet.SheetSize, GlobalVariables.PDFPaddingX, GlobalVariables.PDFPaddingY, new UV(0.008, -0.0035)));
                         SetViewColorScheme(newDoc, viewPlan, trudeProperties, viewProperties);
                         HideHiddenViewElements(newDoc, viewPlan, viewProperties);
                         newDoc.GetElement(vp.GetTypeId()).get_Parameter(BuiltInParameter.VIEWPORT_ATTR_SHOW_LABEL).Set(0);
@@ -101,17 +102,15 @@ namespace SnaptrudeForgeExport
 #endif
         }
 
-        private static XYZ GetViewPosition(SheetSizeEnum sheetSize)
+        public static XYZ GetViewPosition(SheetSizeEnum sheetSize, UV PDFPaddingX, UV PDFPaddingY, UV corrections)
         {
             UV size = GetSheetSize(sheetSize);
-            UV PDFPaddingX = GlobalVariables.PDFPaddingX;
-            UV PDFPaddingY = GlobalVariables.PDFPaddingY;
-            double x = (size.V / 2) + 0.008 + (PDFPaddingX.V - PDFPaddingX.U) / 2;
-            double y = (size.U / 2) - 0.0035 + (PDFPaddingY.V - PDFPaddingY.U) / 2;
+            double x = (size.V / 2) + corrections.U + (PDFPaddingX.V - PDFPaddingX.U) / 2;
+            double y = (size.U / 2) + corrections.V + (PDFPaddingY.V - PDFPaddingY.U) / 2;
             return new XYZ(x, y, 0);
         }
 
-        private static ViewPlan DuplicateViewFromTemplateWithRoomTags(Document doc, ViewProperties viewProperties, View template)
+        public static ViewPlan DuplicateViewFromTemplateWithRoomTags(Document doc, ViewProperties viewProperties, View template)
         {
             // Duplicate the view
             ViewFamilyType floorPlanType = new FilteredElementCollector(doc)
@@ -166,7 +165,7 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private static void SetViewColorScheme(Document doc, ViewPlan viewPlan, TrudeProperties trudeProperties, ViewProperties viewProperties)
+        public static void SetViewColorScheme(Document doc, ViewPlan viewPlan, TrudeProperties trudeProperties, ViewProperties viewProperties)
         {
             if (viewProperties.Color.Scheme == ColorSchemeEnum.texture)
             {
@@ -195,7 +194,7 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private static void ApplyColorOverridesToElement(Document doc, View view, ElementId elemId, string materialHex)
+        public static void ApplyColorOverridesToElement(Document doc, View view, ElementId elemId, string materialHex)
         {
             try
             {
@@ -219,11 +218,10 @@ namespace SnaptrudeForgeExport
             } catch
             {
                 Utils.LogTrace("Failed to apply color overrides for color " + materialHex);
-
             }
         }
 
-        private static void HideHiddenViewElements(Document doc, ViewPlan viewPlan, ViewProperties viewProperties)
+        public static void HideHiddenViewElements(Document doc, ViewPlan viewPlan, ViewProperties viewProperties)
         {
             List<ElementId> elementsToHide = viewProperties.Elements.HiddenIds.Select(id =>
             {
@@ -260,7 +258,7 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private static string GetRoomTagTypeFamilyName(ViewProperties viewProperties)
+        public static string GetRoomTagTypeFamilyName(ViewProperties viewProperties)
         {
             string area = viewProperties.Label.Selected.Any(value => value == LabelsEnum.areas) ? "+Area" : "";
             switch (viewProperties.Sheet.Scale)
@@ -285,7 +283,7 @@ namespace SnaptrudeForgeExport
             return "Room Tag" + area + "_Snaptrude_1-8";
         }
 
-        private static void SetCropBoxToFitPaperSize(Document doc, ViewPlan view, XYZ min, XYZ max, ViewProperties viewProperties, TrudeProperties trudeProperties)
+        public static void SetCropBoxToFitPaperSize(Document doc, ViewPlan view, XYZ min, XYZ max, ViewProperties viewProperties, TrudeProperties trudeProperties)
         {
             SheetSettings sheetSettings = viewProperties.Sheet;
             BoundingBoxXYZ cropBox = new BoundingBoxXYZ();
@@ -320,7 +318,7 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        private static UV GetSheetSize(SheetSizeEnum size)
+        public static UV GetSheetSize(SheetSizeEnum size)
         {
             switch (size)
             {

@@ -272,5 +272,10 @@ namespace TrudeImporter
                     point.Y >= boundingBox.Min.Y && point.Y <= boundingBox.Max.Y &&
                     point.Z >= boundingBox.Min.Z && point.Z <= boundingBox.Max.Z);
         }
+
+        public static string ConvertColorToHex(Color color)
+        {
+            return ("#" + color.Red.ToString("X2") + color.Green.ToString("X2") + color.Blue.ToString("X2")).ToLower();
+        }
     }
 }
