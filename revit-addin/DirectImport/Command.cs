@@ -51,6 +51,8 @@ namespace DirectImport
             string filename = Path.GetFileName(filePath);
             if (extension == ".rvt")
             {
+                var basicFileInfo = BasicFileInfo.Extract(filePath);
+                var format = basicFileInfo.Format;
                 LogTrace("Processing Revit file....");
                 Document doc = e.DesignAutomationData.RevitDoc ?? throw new InvalidOperationException("Could not open document.");
                 LogTrace("Recieved File: {0}", filePath);
@@ -148,10 +150,19 @@ namespace DirectImport
             }
             finally
             {
-                //logger.Save();
                 var jsonData = logger.GetSerializedObject();
-                LogTrace("Log Data length: ", jsonData.Length);
-                LogTrace("Log Data: ", jsonData);
+                try { 
+                    using (StreamWriter sw = File.CreateText("log.json"))
+                        {
+                            sw.WriteLine(jsonData);
+                            sw.Close();
+                        }
+                }
+                catch (Exception ex)
+                {
+                    logger.UploadDone(false);
+                    LogTrace("Error while creating log file: {0}", ex.Message);
+                }
                 GlobalVariables.CleanGlobalVariables();
             }
         }
