@@ -25,48 +25,6 @@
                 Width="200"
                 Height="144"
                 Margin="0,0,16,0"
-                Command="{Binding SelectTrudeFileCommand}"
-                IsEnabled="{Binding IsImportButtonEnable}"
-                Style="{DynamicResource Button_Quinary}">
-                <StackPanel>
-                    <StackPanel.Resources>
-                        <Style TargetType="Path">
-                            <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/800}" />
-                            <Setter Property="StrokeEndLineCap" Value="round" />
-                            <Setter Property="StrokeLineJoin" Value="round" />
-                            <Setter Property="StrokeStartLineCap" Value="round" />
-                            <Setter Property="StrokeThickness" Value="1.25" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsImportButtonEnable}" Value="false">
-                                    <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/400}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsImportButtonEnable}" Value="false">
-                                    <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Resources>
-                    <Grid HorizontalAlignment="Center">
-                        <Path Data="M13.4648 9.75903L10.5002 12.7236L7.53564 9.75903" />
-                        <Path Data="M10.5003 3.83081V12.7237" />
-                        <Path Data="M17.1695 14.2048C17.1695 15.8421 15.8422 17.1694 14.2049 17.1694H6.79513C5.15785 17.1694 3.83057 15.8421 3.83057 14.2048" />
-                    </Grid>
-                    <TextBlock
-                        Margin="0,12,0,0"
-                        FontFamily="{StaticResource Inter500}"
-                        Typography.StylisticAlternates="1">
-                        Import to Revit
-                    </TextBlock>
-                </StackPanel>
-            </Button>
-            <Button
-                Width="200"
-                Height="144"
                 Command="{Binding ExportCommand}"
                 IsEnabled="{Binding IsExportButtonEnable}"
                 Style="{DynamicResource Button_Quinary}">
@@ -103,6 +61,48 @@
                         FontFamily="{StaticResource Inter500}"
                         Typography.StylisticAlternates="1">
                         Export to Snaptrude
+                    </TextBlock>
+                </StackPanel>
+            </Button>
+            <Button
+                Width="200"
+                Height="144"
+                Command="{Binding SelectTrudeFileCommand}"
+                IsEnabled="{Binding IsImportButtonEnable}"
+                Style="{DynamicResource Button_Quinary}">
+                <StackPanel>
+                    <StackPanel.Resources>
+                        <Style TargetType="Path">
+                            <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/800}" />
+                            <Setter Property="StrokeEndLineCap" Value="round" />
+                            <Setter Property="StrokeLineJoin" Value="round" />
+                            <Setter Property="StrokeStartLineCap" Value="round" />
+                            <Setter Property="StrokeThickness" Value="1.25" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsImportButtonEnable}" Value="false">
+                                    <Setter Property="Stroke" Value="{StaticResource Colors/Neutral/400}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsImportButtonEnable}" Value="false">
+                                    <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Resources>
+                    <Grid HorizontalAlignment="Center">
+                        <Path Data="M13.4648 9.75903L10.5002 12.7236L7.53564 9.75903" />
+                        <Path Data="M10.5003 3.83081V12.7237" />
+                        <Path Data="M17.1695 14.2048C17.1695 15.8421 15.8422 17.1694 14.2049 17.1694H6.79513C5.15785 17.1694 3.83057 15.8421 3.83057 14.2048" />
+                    </Grid>
+                    <TextBlock
+                        Margin="0,12,0,0"
+                        FontFamily="{StaticResource Inter500}"
+                        Typography.StylisticAlternates="1">
+                        Import to Revit
                     </TextBlock>
                 </StackPanel>
             </Button>

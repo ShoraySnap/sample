@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using TrudeSerializer.Components;
+using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Importer
 {
@@ -42,15 +43,13 @@ namespace TrudeSerializer.Importer
             return this.materials.Contains(subMaterialId);
         }
 
-        public static string GetCategory(CurrentElement currentElement)
+        public static TrudeCategory GetCategory(CurrentElement currentElement)
         {
             string category = currentElement.component.category;
-            if (category == "Mass")
-            {
-                category = (currentElement.component as TrudeMass)?.subCategory;
-            }
-            return category;
+            TrudeCategory trudeCategory = TrudeCategoryUtils.MapStringToSubCategory(category);
+            return trudeCategory;
         }
+
 
         public static CurrentElement SetCurrentElement(TrudeComponent component)
         {

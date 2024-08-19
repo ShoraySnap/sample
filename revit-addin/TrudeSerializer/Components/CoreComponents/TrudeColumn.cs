@@ -2,8 +2,6 @@
 using Autodesk.Revit.DB.IFC;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Windows;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
@@ -31,7 +29,7 @@ namespace TrudeSerializer.Components
             List<double> normal,
             List<double> center,
             double height
-            ) : base(elementId, "Columns", family, level)
+            ) : base(elementId, "Column", family, level)
         {
             this.type = type;
             this.isInstance = isInstance;
@@ -149,15 +147,15 @@ namespace TrudeSerializer.Components
                 height = element.LookupParameter("Height").AsDouble();
             }
 
-            if(height != 0)
+            if (height != 0)
             {
                 height = UnitConversion.ConvertToSnaptrudeUnitsFromFeet(height);
                 return height;
             }
 
-            
-                height = GetHeightFromBoundingBox(element);
-            
+
+            height = GetHeightFromBoundingBox(element);
+
 
             return height;
         }
@@ -179,7 +177,7 @@ namespace TrudeSerializer.Components
             string family = InstanceUtility.GetFamily(element);
             bool isInstance = false;
 
-           
+
             List<double> center = GetCenter(element);
 
             var (bottomFace, normal, tooManyFaces) = GetBottomFaceAndNormal(element);

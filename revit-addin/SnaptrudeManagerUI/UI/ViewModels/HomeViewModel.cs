@@ -73,7 +73,6 @@ namespace SnaptrudeManagerUI.ViewModels
         public HomeViewModel(NavigationService incompatibleTrudeNavigationService, NavigationService labelConfigNavigationService, NavigationService importNavigationService, NavigationService exportNavigationService, NavigationService updateNavigationService)
         {
             MainWindowViewModel.Instance.TopMost = true;
-            MainWindowViewModel.Instance.SwitchUserError = new RelayCommand((o) => { UpdateInfoTextBlock(o); });
             MainWindowViewModel.Instance.WhiteBackground = true;
             ExportCommand = new NavigateCommand(exportNavigationService);
             ImportCommand = new NavigateCommand(importNavigationService);
