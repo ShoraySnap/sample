@@ -110,9 +110,23 @@ namespace SnaptrudeManagerUI
             {
                 var isUserLoggedIn = await SnaptrudeRepo.CheckIfUserLoggedInAsync();
                 MainWindowViewModel.Instance.IsLoaderVisible = false;
-                navigationStore.CurrentViewModel = Equals(Store.Get("userId"), "") || !isUserLoggedIn ? 
-                    ViewModelCreator.CreateLoginViewModel() : 
-                    ViewModelCreator.CreateHomeViewModel();
+                string content = await isUserLoggedIn.Content.ReadAsStringAsync();
+                if (content.Contains("Snaptrude API URL is blocked or unreachable") || content.Contains("The connection to the Snaptrude API was refused"))
+                {
+                    navigationStore.CurrentViewModel = ViewModelCreator.CreateAPIBlockedViewModel(content);
+                }
+                else if (content.Contains("Network error occurred"))
+                {
+                    navigationStore.CurrentViewModel = ViewModelCreator.CreateStartupInternetIssueWarningViewModel(content);
+                }
+                else if (Equals(Store.Get("userId"), "") || !isUserLoggedIn.IsSuccessStatusCode)
+                {
+                    navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
+                }
+                else
+                {
+                    navigationStore.CurrentViewModel = ViewModelCreator.CreateHomeViewModel();
+                }
             }
 
             // SnaptrudeService snaptrudeService = new SnaptrudeService();

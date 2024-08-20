@@ -82,10 +82,19 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public static ViewModelBase CreateSelectFolderWarningViewModel()
         {
-            return new WarningViewModel(WarningId.SelectFolderError,
+            return new WarningViewModel(WarningId.InternetConnectionIssue,
                 new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel)
                 );
+        }
+        public static ViewModelBase CreateStartupInternetIssueWarningViewModel(string errorMessage)
+        {
+            return new WarningViewModel(WarningId.StartupInternetConnectionIssue, null, null, errorMessage);
+        }
+
+        public static ViewModelBase CreateAPIBlockedViewModel(string errorMessage)
+        {
+            return new WarningViewModel(WarningId.APIBlocked, null, null, errorMessage);
         }
 
         public static ViewModelBase CreateRevitClosedWarningViewModel()

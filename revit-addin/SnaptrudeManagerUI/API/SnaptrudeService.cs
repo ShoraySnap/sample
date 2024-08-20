@@ -210,7 +210,7 @@ namespace SnaptrudeManagerUI.API
             return true;
         }
 
-        public static async Task<bool> CheckIfUserLoggedInAsync()
+        public static async Task<HttpResponseMessage> CheckIfUserLoggedInAsync()
         {
             string accessToken = Store.Get("accessToken")?.ToString();
             string refreshToken = Store.Get("refreshToken")?.ToString();
@@ -237,11 +237,10 @@ namespace SnaptrudeManagerUI.API
                     Store.Set("accessToken", result["accessToken"]);
                     Store.Save();
                     // Update user data in your application state here
-                    return true;
                 }
             }
 
-            return false;
+            return response;
         }
 
         public static async Task<bool> IsPaidUserAccountAsync()

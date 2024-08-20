@@ -5,6 +5,7 @@ using SnaptrudeManagerUI.ViewModels;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
+using System.Net.Http;
 
 namespace SnaptrudeManagerUI.API
 {
@@ -54,7 +55,7 @@ namespace SnaptrudeManagerUI.API
             return validateUrl;
         }
 
-        public static async Task<bool> CheckIfUserLoggedInAsync()
+        public static async Task<HttpResponseMessage> CheckIfUserLoggedInAsync()
         {
             var response = await SnaptrudeService.CheckIfUserLoggedInAsync();
             return response;

@@ -12,8 +12,10 @@ namespace SnaptrudeManagerUI.ViewModels
 {
     public enum WarningId
     {
-        SelectFolderError,
-        RevitClosed
+        InternetConnectionIssue,
+        RevitClosed,
+        StartupInternetConnectionIssue,
+        APIBlocked
     }
 
     public class WarningViewModel : ViewModelBase
@@ -60,24 +62,44 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public ICommand SecondaryCommand { get; }
         public ICommand PrimaryCommand { get; }
-        public WarningViewModel(WarningId warningId, NavigationService primaryNavigationService = null, NavigationService secondaryNavigationService = null)
+        public WarningViewModel(WarningId warningId, NavigationService primaryNavigationService = null, NavigationService secondaryNavigationService = null, string errorMessage = null)
         {
             MainWindowViewModel.Instance.WhiteBackground = true;
             PrimaryCommand = new NavigateCommand(primaryNavigationService);
             SecondaryCommand = new NavigateCommand(secondaryNavigationService);
             switch (warningId)
             {
-                case WarningId.SelectFolderError:
-                    ShowSecondaryButton = true;
-                    Title = "Something went wrong";
-                    Message = "Try again to refresh and load the workspaces, or go back to the previous screen.";
-                    PrimaryButtonText = "Try again";
-                    SecondaryButtonText = "Go back";
-                    break;
                 case WarningId.RevitClosed:
                     ShowSecondaryButton = false;
                     Title = "Revit closed unexpectedly";
                     Message = "Relaunch Revit and open Snaptrude Manager.";
+                    PrimaryButtonText = "Close";
+                    PrimaryCommand = new RelayCommand(new Action<object>((o) =>
+                    {
+                        App.Current.Shutdown();
+                    }));
+                    break;
+                case WarningId.InternetConnectionIssue:
+                    ShowSecondaryButton = true;
+                    Title = "Connection lost";
+                    Message = "Please check your internet connection and try again.";
+                    PrimaryButtonText = "Try again";
+                    SecondaryButtonText = "Go back";
+                    break;
+                case WarningId.StartupInternetConnectionIssue:
+                    ShowSecondaryButton = false;
+                    Title = "Connection lost";
+                    Message = $"Please check your internet connection and try again.\n{errorMessage}";
+                    PrimaryButtonText = "Close";
+                    PrimaryCommand = new RelayCommand(new Action<object>((o) =>
+                    {
+                        App.Current.Shutdown();
+                    }));
+                    break;
+                case WarningId.APIBlocked:
+                    ShowSecondaryButton = false;
+                    Title = "Snpatrude API is blocked";
+                    Message = $"Please check your firewall settings.\n{errorMessage}";
                     PrimaryButtonText = "Close";
                     PrimaryCommand = new RelayCommand(new Action<object>((o) =>
                     {
