@@ -40,6 +40,7 @@ namespace SnaptrudeManagerAddin
         public bool _abortExport = false;
         public bool IsViewActivatedSubscribed = false;
         private object mutex = new object();
+        string version = "REVIT";
         public bool AbortExportFlag
         {
             get
@@ -61,6 +62,7 @@ namespace SnaptrudeManagerAddin
             logger.Info("Startup Snaptrude Manager Addin...");
             Instance = this;
             UIControlledApplication = application;
+            version = application.ControlledApplication.VersionName;
 
             Assembly myAssembly = typeof(Application).Assembly;
             string assemblyPath = myAssembly.Location;
@@ -295,6 +297,11 @@ namespace SnaptrudeManagerAddin
         internal void ExportFailure()
         {
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
+        }
+
+        internal string GetVersion()
+        {
+            return version;
         }
     }
 }

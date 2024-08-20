@@ -285,7 +285,7 @@ namespace TrudeSerializer.Debug
 
         public string GetSerializedObject()
         {
-            var serializedLog = JsonConvert.SerializeObject(fullData);
+            var serializedLog = JsonConvert.SerializeObject(fullData, Formatting.Indented);
 
             return serializedLog;
         }

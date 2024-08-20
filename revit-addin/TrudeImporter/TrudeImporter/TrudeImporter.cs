@@ -5,6 +5,16 @@ using System.Linq;
 using TrudeImporter.TrudeImporter.Model;
 using System.Diagnostics;
 using NLog;
+using System.Data.Common;
+using Autodesk.Revit.DB.Architecture;
+#if !FORGE
+using TrudeCommon.Analytics;
+using TrudeCommon.Utils;
+#endif
+
+using Autodesk.Revit.UI;
+
+
 
 #if !FORGE
 using SnaptrudeManagerAddin;
@@ -37,6 +47,20 @@ namespace TrudeImporter
         private static string ImportDurationMessage;
         public static void Import(TrudeProperties trudeProperties)
         {
+            TrudeExportLogger.Instance.CountInputElements(trudeProperties.SnaptrudeLog);
+            TrudeExportLogger.Instance.LogExportStatus(
+                trudeProperties.TrudeGeneration,
+                "snaptrude"
+            );
+            if(trudeProperties.Errors != null)
+            {
+                foreach (var error in trudeProperties.Errors)
+                {
+                    TrudeExportLogger.Instance.LogError(error);
+                }
+            }
+            ExportIdentifier identifier = trudeProperties.Identifier;
+
             Abort = false;
             GlobalVariables.MissingDoorFamiliesCount.Clear();
             GlobalVariables.MissingWindowFamiliesCount.Clear();
@@ -73,6 +97,32 @@ namespace TrudeImporter
 
             ImportDurationMessage += $"Total: {Math.Round(sw.Elapsed.TotalSeconds, 2)}s.";
             logger.Info(ImportDurationMessage);
+            TrudeExportLogger.Instance.LogExportStatus(
+                sw.Elapsed.TotalSeconds, 
+                "success", 
+                trudeProperties.IsRevitImport ? "existing" : "new", 
+                "revit"
+            );
+            TrudeExportLogger.Instance.Save();
+
+#if !FORGE
+
+            if(identifier != null)
+            {
+                Config config = Config.GetConfigObject();
+                string hash = Util.GetUniqueHash(GlobalVariables.Document.PathName, 12);
+                string version = Application.Instance.GetVersion();
+                AnalyticsManager.SetIdentifer(identifier.email, config.userId, identifier.floorkey, identifier.units, identifier.env, hash, version);
+                AnalyticsManager.SetData(TrudeExportLogger.Instance.GetSerializedObject());
+                AnalyticsManager.Save("export_analytics.json");
+
+                AnalyticsManager.CommitExportDataToAPI();
+            }
+            else
+            {
+                logger.Error("Unsupported .trude file for analytics!");
+            }
+#endif
         }
 
         private static void ImportCategory(string categoryName, Action task, string progressMessage, int progressValue)
@@ -112,6 +162,9 @@ namespace TrudeImporter
                     ElementId id = new ElementId((Int64)elementId);
 #endif
                     Element element = GlobalVariables.Document.GetElement(id);
+
+                    TrudeExportLoggerHelper.DeleteCountLogger(element);
+
                     if (!element.GroupId.Equals(ElementId.InvalidElementId))
                         TrudeImporterMain.deleteIfInGroup(element);
                     else
@@ -296,9 +349,20 @@ namespace TrudeImporter
                         TrudeWall trudeWall = new TrudeWall(props, false);
                     }
                     deleteOld(props.ExistingElementId);
+
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_WALL_KEY,
+                        props.AllFaceVertices == null,
+                        props.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit wall",
+                            e.Message,
+                            props.UniqueId
+                        );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Wall: " + props.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -344,9 +408,20 @@ namespace TrudeImporter
 
                     deleteOld(beam.ExistingElementId);
                     GlobalVariables.Transaction.Commit();
+
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_BEAM_KEY,
+                        beam.AllFaceVertices == null,
+                        beam.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit beam",
+                        e.Message,
+                        beam.UniqueId
+                    );
                     GlobalVariables.Transaction.RollBack();
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
                 }
@@ -384,9 +459,20 @@ namespace TrudeImporter
                             deleteOld(instance.ExistingElementId);
                         }
                     }
+
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.BASIC_COLUMN_KEY,
+                            column.AllFaceVertices == null,
+                            column.ExistingElementIdDS != null ? "added" : "updated"
+                        );
                 }
                 catch (Exception e)
                 {
+                        TrudeExportLogger.Instance.LogError(
+                            "revit column",
+                            e.Message,
+                            column.UniqueIdDS
+                        );
                     int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                 }
@@ -602,9 +688,21 @@ namespace TrudeImporter
                     }
 
                     deleteOld(floor.ExistingElementId);
+
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_FLOOR_KEY,
+                        floor.AllFaceVertices == null,
+                        floor.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+
+                    TrudeExportLogger.Instance.LogError(
+                        "revit floor",
+                        e.Message,
+                        floor.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Floor: " + floor.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -632,9 +730,20 @@ namespace TrudeImporter
                     {
                         new TrudeSlab(slab);
                     }
+
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_SLAB_KEY,
+                        slab.AllFaceVertices == null,
+                        slab.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit slab",
+                        e.Message,
+                        slab.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Slab: " + slab.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -651,9 +760,19 @@ namespace TrudeImporter
                 try
                 {
                     new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_DOOR_KEY,
+                        true,
+                        door.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit door",
+                        e.Message,
+                        door.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -670,9 +789,19 @@ namespace TrudeImporter
                 try
                 {
                     new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_WINDOW_KEY,
+                        true,
+                        window.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit window",
+                        e.Message,
+                        window.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -688,9 +817,19 @@ namespace TrudeImporter
                 try
                 {
                     new TrudeFurniture(furniture, sourceIdsToDelete, index);
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_FURNITURE_KEY,
+                        true,
+                        furniture.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit furniture",
+                        e.Message,
+                        furniture.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -722,9 +861,19 @@ namespace TrudeImporter
                     }
 
                     deleteOld(ceiling.ExistingElementId);
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_CEILING_KEY,
+                        ceiling.AllFaceVertices == null,
+                        ceiling.ExistingElementId == null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit ceiling",
+                        e.Message,
+                        ceiling.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -754,11 +903,21 @@ namespace TrudeImporter
                             ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
                             TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
                         }
+                        TrudeExportLogger.Instance.CountOutputElements(
+                            TrudeExportLoggerHelper.MASSES_KEY,
+                            false,
+                            mass.ExistingElementId == null ? "added" : "updated"
+                        );
                     }
                     deleteOld(mass.ExistingElementId);
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit mass",
+                        e.Message,
+                        mass.UniqueId
+                    );
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -796,6 +955,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    TrudeExportLogger.Instance.LogError(
+                        "revit staircase",
+                        e.Message,
+                        staircase.UniqueId
+                    );
                     if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.RollBack();
                     if (GlobalVariables.StairsEditScope.IsActive) GlobalVariables.StairsEditScope.Cancel();
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
@@ -809,6 +973,9 @@ namespace TrudeImporter
         private static void ImportMissing(List<DoorProperties> propsListDoors, List<WindowProperties> propsListWindows, List<FurnitureProperties> propsListFurniture)
         {
             if (propsListDoors.Count == 0 && propsListWindows.Count == 0 && propsListFurniture.Count == 0) return;
+            TrudeExportLogger.Instance.LogMissingRFA("window", GlobalVariables.MissingWindowFamiliesCount.Count);
+            TrudeExportLogger.Instance.LogMissingRFA("door", GlobalVariables.MissingDoorFamiliesCount.Count);
+            TrudeExportLogger.Instance.LogMissingRFA("furniture", GlobalVariables.MissingFurnitureFamiliesCount.Count);
 
 #if !FORGE
             FamilyUploadMVVM familyUploadMVVM = new FamilyUploadMVVM();
@@ -820,13 +987,19 @@ namespace TrudeImporter
                 {
                     if (Abort) return;
                     if (GlobalVariables.MissingDoorFamiliesCount.Count > 0)
+                    {
                         TrudeMissing.ImportMissingDoors(propsListDoors);
+                    }
                     if (Abort) return;
                     if (GlobalVariables.MissingWindowFamiliesCount.Count > 0)
+                    {
                         TrudeMissing.ImportMissingWindows(propsListWindows);
+                    }
                     if (Abort) return;
                     if (GlobalVariables.MissingFurnitureFamiliesCount.Count > 0)
+                    {
                         TrudeMissing.ImportMissingFurniture(propsListFurniture);
+                    }
                 }
                 catch (Exception e)
                 {
