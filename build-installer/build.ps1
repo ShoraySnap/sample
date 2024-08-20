@@ -37,7 +37,7 @@ function Restore-And-Build-Project {
 
     # Determine the TargetFramework based on the project and configuration year
     if ($projectName -eq "SnaptrudeManagerUI") {
-        $targetFramework = "net6.0-windows"
+        $targetFramework = "net48"
     } elseif ($config -in @("2019", "2020")) {
         $targetFramework = "net47"
     } elseif ($config -eq "2025") {
