@@ -25,4 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Util.cs" />
     <Compile Include="..\TrudeCommon\Utils\TrudeLocalAppData.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)ManagerVersion.props" />
+  </ItemGroup>
 </Project>

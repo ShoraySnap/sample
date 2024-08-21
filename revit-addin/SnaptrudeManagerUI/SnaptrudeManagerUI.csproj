@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\TrudeCommon\ManagerVersion.props" />
 
-  <PropertyGroup>
+	<PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <OutputPath>bin\$(Configuration)\</OutputPath>
