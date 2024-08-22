@@ -731,6 +731,8 @@ namespace TrudeImporter
                         new TrudeSlab(slab);
                     }
 
+                    deleteOld(slab.ExistingElementId);
+
                     TrudeExportLogger.Instance.CountOutputElements(
                         TrudeExportLoggerHelper.BASIC_SLAB_KEY,
                         slab.AllFaceVertices == null,
