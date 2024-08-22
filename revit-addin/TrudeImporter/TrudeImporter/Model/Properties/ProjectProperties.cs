@@ -13,5 +13,8 @@ namespace TrudeImporter
     {
         [JsonProperty("units")]
         public UnitEnum Unit { get; set; }
+
+        [JsonProperty("tolerance")]
+        public double Tolerance { get; set; }
     }
 }
