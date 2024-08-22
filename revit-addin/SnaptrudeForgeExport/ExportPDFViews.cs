@@ -25,7 +25,15 @@ namespace SnaptrudeForgeExport
                 ProjectInfo projectInfo = newDoc.ProjectInformation;
                 projectInfo.ClientName = trudeProperties.PDFExport.CompanyName;
                 projectInfo.LookupParameter("Project Name").Set(trudeProperties.PDFExport.ProjectName);
-                newDoc.SetUnits(new Units(trudeProperties.Project.Unit == UnitEnum.Metric ? UnitSystem.Metric : UnitSystem.Imperial));
+
+                Units units = new Units(trudeProperties.Project.Unit == UnitEnum.Metric ? UnitSystem.Metric : UnitSystem.Imperial);
+                
+                // modify the accuracy of the spec used to display areas
+                FormatOptions formatOptions = units.GetFormatOptions(SpecTypeId.Area);
+                formatOptions.Accuracy = trudeProperties.Project.Tolerance;
+                units.SetFormatOptions(SpecTypeId.Area, formatOptions);
+
+                newDoc.SetUnits(units);
 
                 t.Commit();
             }
