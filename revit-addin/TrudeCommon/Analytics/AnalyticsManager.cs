@@ -4,6 +4,7 @@ using NLog.LayoutRenderers.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TrudeCommon.Utils;
@@ -21,6 +22,7 @@ namespace TrudeCommon.Analytics
         public string units;
         public string env;
         public string revit_version;
+        public string manager_version;
 
         public Identifier(string email, string userId, string floorkey, string units, string env, string id = "-1", string revit_version = "UNKNOWN")
         {
@@ -32,6 +34,7 @@ namespace TrudeCommon.Analytics
             this.units = units;
             this.env = env;
             this.revit_version = revit_version;
+            this.manager_version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
 
         public void SetTeamData(Dictionary<string, string> team)
