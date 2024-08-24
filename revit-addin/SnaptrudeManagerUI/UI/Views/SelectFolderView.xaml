@@ -245,7 +245,7 @@
                 Background="{DynamicResource Colors/Neutral/200}"
                 BorderThickness="0"
                 Foreground="#2d6be6"
-                IsIndeterminate="True" />
+                IsIndeterminate="{Binding IsLoaderVisible}" />
         </Border>
         <Grid Grid.Row="1" Margin="16">
             <Grid>
@@ -263,7 +263,7 @@
                     Foreground="{StaticResource Colors/Neutral/600}"
                     Text="{Binding InfoMessage, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                     TextWrapping="Wrap"
-                    Visibility="Visible"/>
+                    Visibility="Visible" />
                 <Button
                     Grid.Column="1"
                     Command="{Binding BackCommand}"
