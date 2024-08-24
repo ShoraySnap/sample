@@ -29,17 +29,10 @@
         Height="320"
         Cursor="{StaticResource CustomCursor}"
         MouseDown="Window_MouseDown">
-        <Grid.Effect>
-            <DropShadowEffect
-                BlurRadius="40"
-                Direction="-90"
-                Opacity=".3"
-                RenderingBias="Quality"
-                ShadowDepth="8"
-                Color="Gray" />
-        </Grid.Effect>
         <Border
             Background="White"
+            BorderBrush="{StaticResource Colors/Neutral/300}"
+            BorderThickness="2"
             CornerRadius="10"
             Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
