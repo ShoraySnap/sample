@@ -189,6 +189,62 @@ begin
   end;
 end.
 
+function IsRevitOrSnaptrudeManagerRunning(): Boolean;
+var
+  ResultCode: Integer;
+  OutputFilePath: string;
+  Output: TStringList;
+begin
+  OutputFilePath := ExpandConstant('{tmp}\output.txt');
+  Output := TStringList.Create();
+  try
+    // Execute tasklist and search for both Revit.exe and SnaptrudeManagerUI.exe using findstr
+    Exec('cmd.exe', '/C tasklist | findstr /I "Revit.exe SnaptrudeManagerUI.exe" > "' + OutputFilePath + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    
+    // Check if the command executed successfully and if the file exists
+    if (ResultCode = 0) and FileExists(OutputFilePath) then
+    begin
+      // Load the output from the file
+      Output.LoadFromFile(OutputFilePath);
+      
+      // Check if the output contains either Revit.exe or SnaptrudeManagerUI.exe
+      if (Pos('Revit.exe', Output.Text) > 0) or (Pos('SnaptrudeManagerUI.exe', Output.Text) > 0) then
+      begin
+        Result := True;
+        Exit; // Return True if either process is running
+      end;
+    end;
+
+    // If neither process is found, return False
+    Result := False;
+  finally
+    Output.Free;
+    // Clean up the temporary file
+    if FileExists(OutputFilePath) then
+      DeleteFile(OutputFilePath);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  case CurUninstallStep of
+    usUninstall:
+      begin
+        while IsRevitOrSnaptrudeManagerRunning do
+        begin
+          case MsgBox('To proceed, please ensure that all instances of Revit and Snaptrude Manager are closed.', mbCriticalError, MB_RETRYCANCEL) of
+            IDRETRY:
+              begin
+                if not IsRevitOrSnaptrudeManagerRunning then
+                  Break;
+              end;
+            IDCANCEL:Abort;
+          end;
+        end;
+      end;
+  end;
+end;
+
 [InstallDelete]
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2019\Revit2Snaptrude\Revit2Snaptrude.dll"
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude\Revit2Snaptrude.dll"; 
