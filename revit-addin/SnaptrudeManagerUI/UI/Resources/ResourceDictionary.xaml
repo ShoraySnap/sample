@@ -63,18 +63,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type TextBlock}">
-        <Setter Property="Typography.StylisticAlternates" Value="1" />
-        <Setter Property="FontFamily" Value="{DynamicResource Inter400}" />
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding ImageBackground}" Value="true">
-                <Setter Property="Foreground" Value="White" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding WhiteBackground}" Value="true">
-                <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/900}" />
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
+
     <Style TargetType="{x:Type Button}">
         <Setter Property="Typography.StylisticAlternates" Value="1" />
         <Setter Property="FontFamily" Value="{StaticResource Inter500}" />
@@ -99,6 +88,7 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+
     <converters:ProgressBarWidthConverter x:Key="ProgressBarWidthConverter" />
     <Style x:Key="RoundedProgressBar" TargetType="{x:Type ProgressBar}">
         <Setter Property="Background" Value="{StaticResource Colors/Neutral/300}" />
@@ -732,9 +722,6 @@
                             Typography.StylisticAlternates="1" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <DataTrigger Binding="{Binding Selected}" Value="true">
-                            <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
-                        </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Foreground" Value="{DynamicResource Colors/Neutral/900}" />
                         </Trigger>

@@ -77,6 +77,20 @@
                         VerticalAlignment="Center"
                         FontFamily="{StaticResource Inter600}">
                         Snaptrude Manager
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Typography.StylisticAlternates" Value="1" />
+                                <Setter Property="FontFamily" Value="{DynamicResource Inter400}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ImageBackground}" Value="true">
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding WhiteBackground}" Value="true">
+                                        <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/900}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
                     </TextBlock>
                 </StackPanel>
                 <Grid Grid.Column="1" Margin="10,0">
