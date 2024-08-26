@@ -10,31 +10,30 @@
     xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
-    Width="620"
-    Height="400"
-    AllowsTransparency="True"
-    Background="Transparent"
+    Width="560"
+    Height="320"
     FontSize="13"
     ResizeMode="NoResize"
     ShowInTaskbar="True"
     Topmost="{Binding TopMost}"
     WindowStartupLocation="Manual"
-    WindowStyle="None"
+    WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="0"
+            CornerRadius="30"
+            GlassFrameThickness="1"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
     </Window.Resources>
     <Grid
-        Width="560"
-        Height="320"
+        Background="White"
         Cursor="{StaticResource CustomCursor}"
         MouseDown="Window_MouseDown">
-        <Border
-            Background="White"
-            BorderBrush="{StaticResource Colors/Neutral/300}"
-            BorderThickness="2"
-            CornerRadius="10"
-            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
+        <Border BorderBrush="{StaticResource Colors/Neutral/300}" Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
@@ -109,7 +108,6 @@
                         Padding="8"
                         BorderBrush="WhiteSmoke"
                         BorderThickness="1"
-                        DockPanel.Dock="Right"
                         Visibility="{Binding LoginButtonVisible, Converter={StaticResource BoolToVisibility}}">
                         <Button.Template>
                             <ControlTemplate>
@@ -238,7 +236,7 @@
                                     </Grid>
                                     <Border.Style>
                                         <Style TargetType="{x:Type Border}">
-                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Background" Value="White" />
                                             <Style.Triggers>
                                                 <Trigger Property="Button.IsMouseOver" Value="true">
                                                     <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />
