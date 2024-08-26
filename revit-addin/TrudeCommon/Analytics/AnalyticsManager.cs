@@ -84,7 +84,7 @@ namespace TrudeCommon.Analytics
 
         public static async Task CommitExportDataToAPI()
         {
-            string url = "http://localhost:6066/metrics/revitExport";
+            string url = "https://snaptrudemanageranalytics-977aea40ef93.herokuapp.com/metrics/revitExport";
             var config = Config.GetConfigObject();
 
             using (HttpClient client = new HttpClient())
@@ -99,6 +99,7 @@ namespace TrudeCommon.Analytics
                     {
                         string responseData = await response.Content.ReadAsStringAsync();
                         logger.Info("Response: " + responseData);
+                        logger.Info("Analytics for export uploaded!");
                     }
                     else
                     {
