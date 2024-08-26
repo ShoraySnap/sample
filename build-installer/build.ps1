@@ -99,7 +99,8 @@ Write-Host "Compilation process completed for all projects." -ForegroundColor Gr
 # Additional post-build tasks
 $branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
-$version = -join($branch, "_", $date)
+$version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
+$version = -join($branch, "_", $date, "_", $version_number)
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 
@@ -159,8 +160,8 @@ if ($branch -eq "master") {
 
     Sign-File -filePath "$uiRelativePath\SnaptrudeManagerUI.exe" -certPath $certPath -plainPwd $plainPwd
 
-    $version = Get-Content -Path .\version.txt -TotalCount 1
-
+    $version = $version_number
+    
     Run-InnoSetup -name "Prod" -script "..\build-installer\snaptrude-manager-prod.iss" -version $version
     Run-InnoSetup -name "Wework" -script "..\build-installer\snaptrude-manager-wework.iss" -version $version
     Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
@@ -170,7 +171,6 @@ if ($branch -eq "master") {
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-Update.exe" -certPath $certPath -plainPwd $plainPwd
 
 } elseif ($branch -eq "dev") {
-    $version_number = Get-Content -Path .\version.txt -TotalCount 1
     $version = -join("dev-", $version_number)
     Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager-staging.iss" -version $version
     Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
