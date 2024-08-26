@@ -37,7 +37,8 @@ SetupIconFile={#Base}\favicon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion={#MyAppVersion}
+UninstallDisplayName=Snaptrude Manager
 
 OutputBaseFilename=snaptrude-manager-setup-{#MyAppVersion}-WeWork
 
