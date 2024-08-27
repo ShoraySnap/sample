@@ -99,6 +99,7 @@ var
   ZipFileV, TargetFldrV: variant;
   SrcFldr, DestFldr: variant;
   shellfldritems: variant;
+  noUIOptions: Integer;
 begin
   if FileExists(ZipFile) then begin
     ForceDirectories(TargetFldr);
@@ -108,7 +109,8 @@ begin
     SrcFldr := shellobj.NameSpace(ZipFileV);
     DestFldr := shellobj.NameSpace(TargetFldrV);
     shellfldritems := SrcFldr.Items;
-    DestFldr.CopyHere(shellfldritems);  
+    noUIOptions := 4;
+    DestFldr.CopyHere(shellfldritems, noUIOptions);  
   end;
 end;
 
@@ -139,6 +141,7 @@ function NextButtonClick(CurPageID: Integer): Boolean;
 var
   I: Integer;
   CheckedCount: Integer;
+  FileToDownload, TargetZip, ExtractFolder: string;
 begin
   Result := True;
   if CurPageID = CheckListBoxPage.ID then
@@ -158,23 +161,21 @@ begin
       else
         begin
           DownloadPage.Clear;
-          for I := 0 to InstalledVersions.Count - 1 do
-            if CheckListBoxPage.Values[I] then
-              try
-                DownloadPage.Add(InstalledVersionsURLs[I], InstalledVersions[I] + '.zip', '');
-                DownloadPage.SetText('Downloading Revit ' + InstalledVersions[I] + ' RFAs...' ,'');
-                Result := True;
-              except
-                Log(GetExceptionMessage);
-                Result := False;
-              end;
           DownloadPage.Show;
           try
-            try
-              DownloadPage.Download; // This downloads the files to {tmp}
-              Result := True;
               for I := 0 to InstalledVersions.Count - 1 do
                 if CheckListBoxPage.Values[I] then
+          begin
+            DownloadPage.SetText('Downloading Revit ' + InstalledVersions[I] + ' RFAs...', '');
+            WizardForm.Update;
+            FileToDownload := InstalledVersionsURLs[I];
+            TargetZip := InstalledVersions[I] + '.zip';
+            DownloadPage.Clear;
+            DownloadPage.Add(FileToDownload, TargetZip, '');
+            try
+              DownloadPage.Download;
+              DownloadPage.SetText('Extracting ' + InstalledVersions[I] + ' RFAs...', '');
+              WizardForm.Update;
                   ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
             except
               if DownloadPage.AbortedByUser then
@@ -182,14 +183,15 @@ begin
               else
                 SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
               Result := False;
+              Exit;
             end;
+          end;
             finally
               DownloadPage.Hide;
             end;
       end;
     end;
   end;
-end.
 
 function IsRevitOrSnaptrudeManagerRunning(): Boolean;
 var
