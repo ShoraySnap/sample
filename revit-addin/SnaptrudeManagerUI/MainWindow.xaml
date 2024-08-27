@@ -10,30 +10,38 @@
     xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
-    Width="560"
-    Height="320"
+    Width="600"
+    Height="360"
+    AllowsTransparency="True"
+    Background="Transparent"
     FontSize="13"
     ResizeMode="NoResize"
     ShowInTaskbar="True"
     Topmost="{Binding TopMost}"
     WindowStartupLocation="Manual"
-    WindowStyle="SingleBorderWindow"
+    WindowStyle="None"
     mc:Ignorable="d">
-    <WindowChrome.WindowChrome>
-        <WindowChrome
-            CaptionHeight="0"
-            CornerRadius="30"
-            GlassFrameThickness="1"
-            UseAeroCaptionButtons="False" />
-    </WindowChrome.WindowChrome>
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
     </Window.Resources>
     <Grid
-        Background="White"
+        Width="560"
+        Height="320"
         Cursor="{StaticResource CustomCursor}"
         MouseDown="Window_MouseDown">
-        <Border BorderBrush="{StaticResource Colors/Neutral/300}" Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
+        <Border
+            Background="White"
+            BorderBrush="{StaticResource Colors/Neutral/300}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="20"
+                    Direction="-90"
+                    Color="LightGray" />
+            </Border.Effect>
+        </Border>
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
