@@ -79,6 +79,91 @@ begin
   end;
 end;
 
+var
+  UninstallSecondPage: TNewNotebookPage;
+  UninstallNextButton: TNewButton;
+
+procedure UpdateUninstallWizard;
+begin
+  if UninstallProgressForm.InnerNotebook.ActivePage = UninstallSecondPage then
+  begin
+    UninstallProgressForm.PageNameLabel.Caption := 'We’re sorry to see you go.';
+    UninstallProgressForm.PageDescriptionLabel.Caption :=
+      'Thank you for being a valueble part of our community.';
+  end;
+  UninstallNextButton.Caption := 'Uninstall';
+  UninstallNextButton.ModalResult := mrOk;
+end;  
+
+procedure UninstallNextButtonClick(Sender: TObject);
+begin
+  UpdateUninstallWizard;
+end;
+
+var 
+  RemoveUserDataCheckBox: TNewCheckBox;
+
+procedure InitializeUninstallProgressForm();
+var
+  PageText: TNewStaticText;
+  PageNameLabel: string;
+  PageDescriptionLabel: string;
+  CancelButtonEnabled: Boolean;
+  CancelButtonModalResult: Integer;
+  
+begin
+  PageNameLabel := UninstallProgressForm.PageNameLabel.Caption;
+  PageDescriptionLabel := UninstallProgressForm.PageDescriptionLabel.Caption;
+
+    // Create the second page
+    UninstallSecondPage := TNewNotebookPage.Create(UninstallProgressForm);
+    UninstallSecondPage.Notebook := UninstallProgressForm.InnerNotebook;
+    UninstallSecondPage.Parent := UninstallProgressForm.InnerNotebook;
+    UninstallSecondPage.Align := alClient;
+    UninstallSecondPage.Color := clWindow;
+    
+    RemoveUserDataCheckBox := TNewCheckBox.Create(UninstallProgressForm);
+    with RemoveUserDataCheckBox do
+    begin
+      Parent := UninstallSecondPage;
+      Left := UninstallProgressForm.StatusLabel.Left;
+      Top := UninstallProgressForm.StatusLabel.Top;
+      Width := UninstallProgressForm.StatusLabel.Width;
+      Height := ScaleY(30);
+      Caption := 'Delete user preferences and logs (NOT RECOMENDED)';
+    end;
+
+    UninstallNextButton := TNewButton.Create(UninstallProgressForm);
+    UninstallNextButton.Parent := UninstallProgressForm;
+    UninstallNextButton.Left :=
+      UninstallProgressForm.CancelButton.Left -
+      UninstallProgressForm.CancelButton.Width -
+      ScaleX(10);
+    UninstallNextButton.Top := UninstallProgressForm.CancelButton.Top;
+    UninstallNextButton.Width := UninstallProgressForm.CancelButton.Width;
+    UninstallNextButton.Height := UninstallProgressForm.CancelButton.Height;
+    UninstallNextButton.OnClick := @UninstallNextButtonClick;
+    UninstallProgressForm.InnerNotebook.ActivePage := UninstallSecondPage;
+  // Run our wizard pages
+  UpdateUninstallWizard;
+  CancelButtonEnabled := UninstallProgressForm.CancelButton.Enabled
+  UninstallProgressForm.CancelButton.Enabled := True;
+  CancelButtonModalResult := UninstallProgressForm.CancelButton.ModalResult;
+  UninstallProgressForm.CancelButton.ModalResult := mrCancel;
+
+  if UninstallProgressForm.ShowModal = mrCancel then Abort;
+
+  // Restore the standard page payout
+  UninstallProgressForm.CancelButton.Enabled := CancelButtonEnabled;
+  UninstallProgressForm.CancelButton.ModalResult := CancelButtonModalResult;
+
+  UninstallProgressForm.PageNameLabel.Caption := PageNameLabel;
+  UninstallProgressForm.PageDescriptionLabel.Caption := PageDescriptionLabel;
+
+  UninstallProgressForm.InnerNotebook.ActivePage :=
+    UninstallProgressForm.InstallingPage;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   case CurUninstallStep of
@@ -94,6 +179,21 @@ begin
               end;
             IDCANCEL:Abort;
           end;
+        end;
+        if RemoveUserDataCheckBox.Checked then
+        begin
+          if DirExists(ExpandConstant('{userappdata}\snaptrude-manager')) then
+          begin
+            Log('Deleting folder');
+            if DelTree(ExpandConstant('{userappdata}\snaptrude-manager'), True, True, True) then
+            begin
+              Log('Deleted folder');
+            end
+            else
+            begin
+              MsgBox('Error deleting folder', mbError, MB_OK);
+            end;
+          end
         end;
       end;
   end;

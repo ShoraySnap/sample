@@ -145,26 +145,26 @@ var
 begin
   Result := True;
   if CurPageID = CheckListBoxPage.ID then
-    begin
-      CheckedCount := 0;
-      
-      for I := 0 to InstalledVersions.Count - 1 do
-      
+  begin
+    CheckedCount := 0;
+
+    for I := 0 to InstalledVersions.Count - 1 do
+
       if CheckListBoxPage.Values[I] then
         Inc(CheckedCount);
-      
-      if CheckedCount = 0 then
-        begin
-        MsgBox('Please select at least one version to install.', mbError, MB_OK);
-        Result := False;
-        end
-      else
-        begin
-          DownloadPage.Clear;
-          DownloadPage.Show;
-          try
-              for I := 0 to InstalledVersions.Count - 1 do
-                if CheckListBoxPage.Values[I] then
+
+    if CheckedCount = 0 then
+    begin
+      MsgBox('Please select at least one version to install.', mbError, MB_OK);
+      Result := False;
+    end
+    else
+    begin
+      DownloadPage.Clear;
+      DownloadPage.Show;
+      try
+        for I := 0 to InstalledVersions.Count - 1 do
+          if CheckListBoxPage.Values[I] then
           begin
             DownloadPage.SetText('Downloading Revit ' + InstalledVersions[I] + ' RFAs...', '');
             WizardForm.Update;
@@ -176,7 +176,7 @@ begin
               DownloadPage.Download;
               DownloadPage.SetText('Extracting ' + InstalledVersions[I] + ' RFAs...', '');
               WizardForm.Update;
-                  ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
+              ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
             except
               if DownloadPage.AbortedByUser then
                 Log('Aborted by user.')
@@ -185,13 +185,13 @@ begin
               Result := False;
               Exit;
             end;
-            end;
-            finally
-              DownloadPage.Hide;
-            end;
+          end;
+      finally
+        DownloadPage.Hide;
       end;
     end;
   end;
+end;
 
 
 function IsRevitOrSnaptrudeManagerRunning(): Boolean;
@@ -230,6 +230,91 @@ begin
   end;
 end;
 
+var
+  UninstallSecondPage: TNewNotebookPage;
+  UninstallNextButton: TNewButton;
+
+procedure UpdateUninstallWizard;
+begin
+  if UninstallProgressForm.InnerNotebook.ActivePage = UninstallSecondPage then
+  begin
+    UninstallProgressForm.PageNameLabel.Caption := 'We’re sorry to see you go.';
+    UninstallProgressForm.PageDescriptionLabel.Caption :=
+      'Thank you for being a valueble part of our community.';
+  end;
+  UninstallNextButton.Caption := 'Uninstall';
+  UninstallNextButton.ModalResult := mrOk;
+end;  
+
+procedure UninstallNextButtonClick(Sender: TObject);
+begin
+  UpdateUninstallWizard;
+end;
+
+var 
+  RemoveUserDataCheckBox: TNewCheckBox;
+
+procedure InitializeUninstallProgressForm();
+var
+  PageText: TNewStaticText;
+  PageNameLabel: string;
+  PageDescriptionLabel: string;
+  CancelButtonEnabled: Boolean;
+  CancelButtonModalResult: Integer;
+  
+begin
+  PageNameLabel := UninstallProgressForm.PageNameLabel.Caption;
+  PageDescriptionLabel := UninstallProgressForm.PageDescriptionLabel.Caption;
+
+    // Create the second page
+    UninstallSecondPage := TNewNotebookPage.Create(UninstallProgressForm);
+    UninstallSecondPage.Notebook := UninstallProgressForm.InnerNotebook;
+    UninstallSecondPage.Parent := UninstallProgressForm.InnerNotebook;
+    UninstallSecondPage.Align := alClient;
+    UninstallSecondPage.Color := clWindow;
+    
+    RemoveUserDataCheckBox := TNewCheckBox.Create(UninstallProgressForm);
+    with RemoveUserDataCheckBox do
+    begin
+      Parent := UninstallSecondPage;
+      Left := UninstallProgressForm.StatusLabel.Left;
+      Top := UninstallProgressForm.StatusLabel.Top;
+      Width := UninstallProgressForm.StatusLabel.Width;
+      Height := ScaleY(30);
+      Caption := 'Delete user preferences and logs (NOT RECOMENDED)';
+    end;
+
+    UninstallNextButton := TNewButton.Create(UninstallProgressForm);
+    UninstallNextButton.Parent := UninstallProgressForm;
+    UninstallNextButton.Left :=
+      UninstallProgressForm.CancelButton.Left -
+      UninstallProgressForm.CancelButton.Width -
+      ScaleX(10);
+    UninstallNextButton.Top := UninstallProgressForm.CancelButton.Top;
+    UninstallNextButton.Width := UninstallProgressForm.CancelButton.Width;
+    UninstallNextButton.Height := UninstallProgressForm.CancelButton.Height;
+    UninstallNextButton.OnClick := @UninstallNextButtonClick;
+    UninstallProgressForm.InnerNotebook.ActivePage := UninstallSecondPage;
+  // Run our wizard pages
+  UpdateUninstallWizard;
+  CancelButtonEnabled := UninstallProgressForm.CancelButton.Enabled
+  UninstallProgressForm.CancelButton.Enabled := True;
+  CancelButtonModalResult := UninstallProgressForm.CancelButton.ModalResult;
+  UninstallProgressForm.CancelButton.ModalResult := mrCancel;
+
+  if UninstallProgressForm.ShowModal = mrCancel then Abort;
+
+  // Restore the standard page payout
+  UninstallProgressForm.CancelButton.Enabled := CancelButtonEnabled;
+  UninstallProgressForm.CancelButton.ModalResult := CancelButtonModalResult;
+
+  UninstallProgressForm.PageNameLabel.Caption := PageNameLabel;
+  UninstallProgressForm.PageDescriptionLabel.Caption := PageDescriptionLabel;
+
+  UninstallProgressForm.InnerNotebook.ActivePage :=
+    UninstallProgressForm.InstallingPage;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   case CurUninstallStep of
@@ -245,6 +330,21 @@ begin
               end;
             IDCANCEL:Abort;
           end;
+        end;
+        if RemoveUserDataCheckBox.Checked then
+        begin
+          if DirExists(ExpandConstant('{userappdata}\snaptrude-manager')) then
+          begin
+            Log('Deleting folder');
+            if DelTree(ExpandConstant('{userappdata}\snaptrude-manager'), True, True, True) then
+            begin
+              Log('Deleted folder');
+            end
+            else
+            begin
+              MsgBox('Error deleting folder', mbError, MB_OK);
+            end;
+          end
         end;
       end;
   end;
