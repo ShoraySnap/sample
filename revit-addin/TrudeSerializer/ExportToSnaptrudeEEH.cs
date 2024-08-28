@@ -1,14 +1,19 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Events;
 using Newtonsoft.Json;
+using NLog;
 using SnaptrudeManagerAddin;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using TrudeCommon.Analytics;
 using TrudeCommon.Utils;
+using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Uploader;
@@ -24,9 +29,17 @@ namespace TrudeSerializer
         internal Action<string, UIApplication, Document> OnInit;
         internal Action<View3D, Document> OnView3D;
         internal Action<SerializedTrudeData> OnCleanSerializedTrudeData;
+
+
+        internal int processedElements = 0;
+        internal Dictionary<ElementId, bool> elementsDone;
+
+        internal Logger classLogger = LogManager.GetCurrentClassLogger();
+
         public void Execute(UIApplication app)
         {
-            ExecuteWithUIApplication(app);
+            Application.Instance.AbortExportFlag = false;
+            ExecuteWithUIApplication(app, true);
         }
 
         public string GetName()
@@ -36,7 +49,9 @@ namespace TrudeSerializer
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            return ExecuteWithUIApplication(commandData.Application);
+            Application.Instance.AbortExportFlag = false;
+            var result = ExecuteWithUIApplication(commandData.Application);
+            return result;
         }
 
         internal string GetUniqueProcessId(Document doc, int length)
@@ -54,6 +69,55 @@ namespace TrudeSerializer
             }
         }
 
+
+        void CountTotalElements(Document doc, View view)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc, view.Id);
+
+            var list = collector.WhereElementIsNotElementType().Where(e =>
+            {
+                if (e is Autodesk.Revit.DB.Group) return true;
+                if (e.Category == null) return false;
+                if (e.ViewSpecific) return false;
+                if (((BuiltInCategory)e.Category.Id.Value) == BuiltInCategory.OST_HVAC_Zones) return false;
+
+                return e.Category.CategoryType == CategoryType.Model && e.Category.CanAddSubcategory;
+            });
+
+            foreach (var item in list)
+            {
+                elementsDone.Add(item.Id, false);
+            }
+        }
+
+        void CountElementAndUpdateProgress(TrudeComponent component, Element e)
+        {
+            if (IsImportAborted()) return;
+
+            if(elementsDone.TryGetValue(e.Id, out bool done))
+            {
+                if(done)
+                {
+                    classLogger.Warn("Same element serializing twice!");
+                }
+                else if(component != null)
+                {
+                    elementsDone[e.Id] = true;
+                }
+            }
+            else
+            {
+                classLogger.Info("Element not in list : {0}, {1}", component.elementId, e);
+            }
+
+            processedElements = elementsDone.Where((elem) => elem.Value == true).Count();
+            float p = processedElements / (float)elementsDone.Count();
+            int progress = (int)Math.Round(p * 40.0);
+
+            Application.Instance.UpdateProgressForExport(progress, "Serializing elements...");
+        }
+
+
         internal Result ExecuteWithUIApplication(UIApplication uiapp, bool testMode = false)
         {
             TrudeLogger logger = new TrudeLogger();
@@ -69,6 +133,10 @@ namespace TrudeSerializer
             string floorkey = Config.GetConfigObject().floorKey;
 
             OnInit?.Invoke(processId, uiapp, doc);
+
+            processedElements = 0;
+            elementsDone = new Dictionary<ElementId, bool>();
+
             try
             {
                 View3D view = Get3dView(doc);
@@ -76,8 +144,17 @@ namespace TrudeSerializer
                 OnView3D?.Invoke(view, doc);
 
                 Application.Instance.UpdateProgressForExport(0, "Serializing Revit project...");
+                CountTotalElements(doc, view);
+                ComponentHandler.OnCountOutput += CountElementAndUpdateProgress;
+
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
-                if (IsImportAborted()) return Result.Cancelled; 
+                if (IsImportAborted())
+                {
+                    return Result.Cancelled;
+                }
+
+                classLogger.Info("Serialization done. Elements serialized: {0} / {1}", processedElements, elementsDone.Count());
+
                 serializedData.SetProcessId(processId);
 
                 // Analytics Id
@@ -86,17 +163,22 @@ namespace TrudeSerializer
                 string version = Application.Instance.GetVersion();
                 AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl(), processId, version);
 
-                Application.Instance.UpdateProgressForExport(20, "Cleaning Serialized data...");
+                Application.Instance.UpdateProgressForExport(40, "Cleaning Serialized data...");
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
                 OnCleanSerializedTrudeData?.Invoke(serializedData);
 
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
-                if (IsImportAborted()) return Result.Cancelled;
-
+                if (IsImportAborted())
+                {
+                    return Result.Cancelled;
+                }
 
                 logger.SerializeDone(true);
                 TrudeLocalAppData.StoreSerializedData(serializedObject);
-                if (IsImportAborted()) return Result.Cancelled;
+                if (IsImportAborted())
+                {
+                    return Result.Cancelled;
+                }
 
                 Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
                 try
@@ -145,8 +227,14 @@ namespace TrudeSerializer
                     S3helper.UploadAnalytics(processId, "revitImport");
                 }
                 isDone = true;
-
-                Application.Instance.FinishExportSuccess(floorkey);
+                if (IsImportAborted())
+                {
+                    Application.Instance.EmitAbortEvent();
+                }
+                else
+                {
+                    Application.Instance.FinishExportSuccess(floorkey);
+                }
             }
         }
 
@@ -154,7 +242,6 @@ namespace TrudeSerializer
         {
             if (Application.Instance.AbortExportFlag)
             {
-                Application.Instance.AbortCustomExporter();
                 S3helper.abortFlag = true;
                 return true;
             }
