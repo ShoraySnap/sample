@@ -36,10 +36,39 @@ namespace TrudeSerializer
 
         internal Logger classLogger = LogManager.GetCurrentClassLogger();
 
+        public static bool ExportInterrupted = false;
+
         public void Execute(UIApplication app)
         {
             Application.Instance.AbortExportFlag = false;
+            app.DialogBoxShowing += App_DialogBoxShowing;
             ExecuteWithUIApplication(app, true);
+            app.DialogBoxShowing -= App_DialogBoxShowing;
+        }
+
+        private static void App_DialogBoxShowing(object sender, DialogBoxShowingEventArgs e)
+        {
+            if(e is TaskDialogShowingEventArgs tde)
+            {
+                if(tde.Message.ToLower().Contains("interrupted"))
+                {
+                    ExportInterrupted = true;
+                }
+            }
+        }
+
+        public static void InterruptWithAbort()
+        {
+            InterruptsReset();
+            Application.Instance.AbortExportFlag = true;
+        }
+
+        public static void InterruptsReset()
+        {
+            if(ExportInterrupted)
+            {
+                ExportInterrupted = false;
+            }
         }
 
         public string GetName()
@@ -114,7 +143,7 @@ namespace TrudeSerializer
             float p = processedElements / (float)elementsDone.Count();
             int progress = (int)Math.Round(p * 40.0);
 
-            Application.Instance.UpdateProgressForExport(progress, "Serializing elements...");
+            Application.Instance.UpdateProgressForExport(progress,$"Serializing Elements... {processedElements} / {elementsDone.Count()}");
         }
 
 

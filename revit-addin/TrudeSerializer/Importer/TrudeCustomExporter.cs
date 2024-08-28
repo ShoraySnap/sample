@@ -84,6 +84,10 @@ namespace TrudeSerializer
         */
         void IExportContext.Finish()
         {
+            if(ExportToSnaptrudeEEH.ExportInterrupted)
+            {
+                ExportToSnaptrudeEEH.InterruptWithAbort();
+            }
             ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
@@ -111,6 +115,8 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
+
             Document doc = node.GetDocument();
             ChangeCurrentDocument(doc);
             isRevitLink = true;
@@ -161,6 +167,8 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
+
             Element element = doc.GetElement(elementId);
             string category = element?.Category?.Name;
             if (category == "Levels")
@@ -272,6 +280,7 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnInstanceBegin(InstanceNode node)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
             return RenderNodeAction.Proceed;
         }
@@ -288,6 +297,7 @@ namespace TrudeSerializer
 
         RenderNodeAction IExportContext.OnFaceBegin(FaceNode node)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
             return RenderNodeAction.Proceed;
         }
 
