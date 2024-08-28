@@ -14,6 +14,7 @@ using TrudeCommon.Events;
 using NLog;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using TrudeCommon.Utils;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -149,6 +150,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void Cancel(TRUDE_EVENT trudeEvent)
         {
+            S3helper.abortFlag = true;
             TrudeEventEmitter.EmitEvent(trudeEvent);
                 UpdateProgress(0, "Rolling back changes, this could take some time...");
                 IsProgressBarIndeterminate = true;

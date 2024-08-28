@@ -232,7 +232,7 @@ namespace TrudeSerializer
                     return Result.Cancelled;
                 }
 
-                Application.Instance.UpdateProgressForExport(80, "Uploading Serialized data...");
+                Application.Instance.UpdateProgressForExport(80, "Uploading Serialized Data...");
                 try
                 {
                     floorkey = Config.GetConfigObject().floorKey;

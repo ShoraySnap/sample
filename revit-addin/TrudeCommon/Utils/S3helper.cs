@@ -45,15 +45,17 @@ namespace TrudeCommon.Utils
             int uploadTasksDone = 0;
             foreach (KeyValuePair<string, PreSignedURLResponse> presignedURL in presignedURLs)
             {
-                var task = UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value).ContinueWith((a) =>
-                    {
-                        uploadTasksDone++;
-                        float p = uploadTasksDone / (float)uploadTasks.Count;
-                        OnUploadProgressUpdate?.Invoke(p, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
-                    });
-                uploadTasks.Add(task);
+                if (!abortFlag)
+                {
+                    var task = UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value).ContinueWith((a) =>
+                        {
+                            uploadTasksDone++;
+                            float p = uploadTasksDone / (float)uploadTasks.Count;
+                            OnUploadProgressUpdate?.Invoke(p, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
+                        });
+                    uploadTasks.Add(task);
+                }
             }
-
             await Task.WhenAll(uploadTasks);
         }
 

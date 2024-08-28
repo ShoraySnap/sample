@@ -22,7 +22,10 @@ namespace TrudeSerializer
             if (S3helper.OnUploadProgressUpdate != null) S3helper.OnUploadProgressUpdate = null;
             S3helper.OnUploadProgressUpdate += action;
             await S3helper.UploadAndRedirectToSnaptrude(jsonData);
-            Application.Instance.FinishExportSuccess(floorkey);
+            if (ExportToSnaptrudeEEH.IsImportAborted())
+                Application.Instance.EmitAbortEvent();
+            else
+                Application.Instance.FinishExportSuccess(floorkey);
         }
     }
 }
