@@ -99,10 +99,10 @@ Write-Host "Compilation process completed for all projects." -ForegroundColor Gr
 # Additional post-build tasks
 $branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
+$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
+$dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 $version = -join($branch, "_", $date, "_", $version_number)
-$dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
-$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 
 function Sign-File {
     param (
@@ -135,10 +135,18 @@ function Run-InnoSetup {
     param (
 	    [string]$name,
         [string]$script,
-        [string]$version
+        [string]$version, 
+	    [string]$urlPath
     )
+    $outputBaseFileName = "snaptrude-manager-setup-" + $version;
+    if ($name -eq "Update") {
+        $outputBaseFileName += "-Update"
+    }
+    if ($name -eq "Wework") {
+        $outputBaseFileName += "-WeWork"
+    }
     Write-Host "Creating $name installer ..." -NoNewline
-    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version -quiet
+    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName -quiet
     if ($LASTEXITCODE -eq 0) {
         Clear-Line
         Write-Host "Creating $name installer - Done" -ForegroundColor Green
@@ -148,6 +156,10 @@ function Run-InnoSetup {
         exit 1
     }
 }
+
+$stagingUrlPath = "..\build-installer\misc\urlsstaging.json"
+$prodUrlPath = "..\build-installer\misc\urls.json"
+$weworkUrlPath = "..\build-installer\misc\urlswework.json"
 
 if ($branch -eq "master") {
     $certPath = Read-Host "Enter pfx file path"
@@ -162,9 +174,9 @@ if ($branch -eq "master") {
 
     $version = $version_number
     
-    Run-InnoSetup -name "Prod" -script "..\build-installer\snaptrude-manager-prod.iss" -version $version
-    Run-InnoSetup -name "Wework" -script "..\build-installer\snaptrude-manager-wework.iss" -version $version
-    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
+    Run-InnoSetup -name "Prod" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $prodUrlPath -includeDownloadSection "true"
+    Run-InnoSetup -name "Wework" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $weworkUrlPath -includeDownloadSection "true"
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "false"
 
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-WeWork.exe" -certPath $certPath -plainPwd $plainPwd
@@ -172,11 +184,11 @@ if ($branch -eq "master") {
 
 } elseif ($branch -eq "dev") {
     $version = -join("dev-", $version_number)
-    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager-staging.iss" -version $version
-    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
+    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "true"
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "false"
 } else {
-    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager-staging.iss" -version $version
-    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager-update.iss" -version $version
+    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "true"
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "false"
 }
 
 git tag -a $version -m $version
