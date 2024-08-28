@@ -108,7 +108,11 @@ namespace TrudeSerializer
                 if (e is Autodesk.Revit.DB.Group) return true;
                 if (e.Category == null) return false;
                 if (e.ViewSpecific) return false;
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
+                if (((BuiltInCategory)e.Category.Id.IntegerValue) == BuiltInCategory.OST_HVAC_Zones) return false;
+#else
                 if (((BuiltInCategory)e.Category.Id.Value) == BuiltInCategory.OST_HVAC_Zones) return false;
+#endif
 
                 return e.Category.CategoryType == CategoryType.Model && e.Category.CanAddSubcategory;
             });
