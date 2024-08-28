@@ -138,8 +138,10 @@ function Run-InnoSetup {
         [string]$version, 
 	    [string]$urlPath
     )
+    $includeDownloadSection = "true";
     $outputBaseFileName = "snaptrude-manager-setup-" + $version;
     if ($name -eq "Update") {
+	$includeDownloadSection = "false";
         $outputBaseFileName += "-Update"
     }
     if ($name -eq "Wework") {
