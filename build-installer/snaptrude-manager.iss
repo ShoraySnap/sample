@@ -38,6 +38,12 @@ WizardStyle=modern
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[InstallRun]
+Filename: "{localappdata}\snaptrude_manager\Update.exe"; Parameters: "--uninstall"; Flags: runhidden; Check: ShouldRunUninstaller
+
+[UninstallRun]
+Filename: "{localappdata}\snaptrude_manager\Update.exe"; Parameters: "--uninstall"; Flags: runhidden; Check: ShouldRunUninstaller
+
 [Code]
 
 var
@@ -49,6 +55,72 @@ var
   InstalledVersionsURLs: TStringList;
   IncludeDownloadSectionStr: String;
   IncludeDownloadSection: Boolean;
+
+function ShouldRunUninstaller(): Boolean;
+begin
+  Result := FileExists(ExpandConstant('{localappdata}\snaptrude_manager\Update.exe'));
+end;
+
+function IsInList(Item: string; Excludes: array of string): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to GetArrayLength(Excludes) - 1 do
+  begin
+    if CompareText(Item, Excludes[I]) = 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+procedure DeleteFolderExcept(Dir: string; ExcludeFilesAndFolders: array of string);
+var
+  FindRec: TFindRec;
+  FilePath: string;
+begin
+  if FindFirst(ExpandConstant(Dir + '\*'), FindRec) then
+  begin
+    try
+      repeat
+        FilePath := Dir + '\' + FindRec.Name;
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+        begin
+          if not IsInList(FindRec.Name, ExcludeFilesAndFolders) then
+          begin
+            if FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0 then
+            begin
+              DelTree(FilePath, True, True, True);
+            end
+            else
+            begin
+              DeleteFile(FilePath);
+            end;
+          end;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  Excludes: array of string;
+begin
+  if CurStep = ssInstall then
+  begin
+    SetArrayLength(Excludes, 3);
+    Excludes[0] := 'userPreferences.json';
+    Excludes[1] := 'config.json';
+    Excludes[2] := 'logs';
+
+    DeleteFolderExcept(ExpandConstant('{userappdata}\snaptrude-manager'), Excludes);
+  end;
+end;
 
 function InstallVersion (VersionToCheck: String; RFAs: Boolean): Boolean;
 var
@@ -360,6 +432,11 @@ Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2020\Revit2Snaptrude.add
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2021\Revit2Snaptrude.addin"; 
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude.addin"; 
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.addin"; 
+Type: filesandordirs; Name: "{localappdata}\snaptrude_manager";
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{commonappdata}\Snaptrude";
+Type: filesandordirs; Name: "{localappdata}\snaptrude_manager";
 
 [Files]
 Source: "{#UrlPath}"; DestDir: "{commonappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
