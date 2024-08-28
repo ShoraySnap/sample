@@ -42,7 +42,7 @@ namespace TrudeSerializer
         {
             Application.Instance.AbortExportFlag = false;
             app.DialogBoxShowing += App_DialogBoxShowing;
-            ExecuteWithUIApplication(app, true);
+            ExecuteWithUIApplication(app);
             app.DialogBoxShowing -= App_DialogBoxShowing;
         }
 
@@ -119,6 +119,22 @@ namespace TrudeSerializer
             }
         }
 
+        static void UploadProgressUpdate(float p, string message)
+        {
+            if (IsImportAborted()) return;
+            int progress = (int)Math.Round(60.0 + p * 40.0);
+
+            Application.Instance.UpdateProgressForExport(progress, message);
+        }
+        void CountCleansAndUpdateProgress(int cleans, int total)
+        {
+            if (IsImportAborted()) return;
+            float p = cleans / (float)total;
+            int progress = (int)Math.Round(40.0 + p * 20.0);
+
+            Application.Instance.UpdateProgressForExport(progress,$"Cleaning Serialized Data... {cleans} / {total}");
+        }
+
         void CountElementAndUpdateProgress(TrudeComponent component, Element e)
         {
             if (IsImportAborted()) return;
@@ -182,6 +198,7 @@ namespace TrudeSerializer
                     return Result.Cancelled;
                 }
 
+                ComponentHandler.OnCountOutput -= CountElementAndUpdateProgress;
                 classLogger.Info("Serialization done. Elements serialized: {0} / {1}", processedElements, elementsDone.Count());
 
                 serializedData.SetProcessId(processId);
@@ -193,8 +210,10 @@ namespace TrudeSerializer
                 AnalyticsManager.SetIdentifer("EMAIL", config.userId, config.floorKey, serializedData.ProjectProperties.ProjectUnit, URLsConfig.GetSnaptrudeReactUrl(), processId, version);
 
                 Application.Instance.UpdateProgressForExport(40, "Cleaning Serialized data...");
+                SerializedTrudeData.CleanProgressUpdate += CountCleansAndUpdateProgress;
                 ComponentHandler.Instance.CleanSerializedData(serializedData);
                 OnCleanSerializedTrudeData?.Invoke(serializedData);
+                SerializedTrudeData.CleanProgressUpdate -= CountCleansAndUpdateProgress;
 
                 string serializedObject = JsonConvert.SerializeObject(serializedData);
                 if (IsImportAborted())
@@ -215,6 +234,7 @@ namespace TrudeSerializer
                     floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
+                        S3UploadHelper.SetProgressUpdate(UploadProgressUpdate);
                         S3UploadHelper.Upload(serializedData.GetSerializedObject(), floorkey);
                         MaterialUploader.Instance.Upload();
                     }
@@ -262,7 +282,6 @@ namespace TrudeSerializer
                 }
                 else
                 {
-                    Application.Instance.FinishExportSuccess(floorkey);
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -14,6 +15,8 @@ namespace TrudeCommon.Utils
         private static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
 
         public static volatile bool abortFlag = false;
+
+        public static Action<float, string> OnUploadProgressUpdate;
         public static async Task UploadAndRedirectToSnaptrude(Dictionary<string,string> jsonData)
         {
             Dictionary<string, byte[]> compressedJsonData = new Dictionary<string, byte[]>();
@@ -23,7 +26,7 @@ namespace TrudeCommon.Utils
             string userId = config.userId;
             string projectFloorKey = config.floorKey;
 
-            List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
+            List<Task> uploadTasks = new List<Task>();
             Dictionary<string, string> paths = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> entry in jsonData)
@@ -39,10 +42,18 @@ namespace TrudeCommon.Utils
             var presignedUrlsResponseData = await presignedUrlsResponse.Content.ReadAsStringAsync();
             Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
 
+            int uploadTasksDone = 0;
             foreach (KeyValuePair<string, PreSignedURLResponse> presignedURL in presignedURLs)
             {
-                uploadTasks.Add(UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value));
+                var task = UploadUsingPresignedURL(compressedJsonData[presignedURL.Key], presignedURL.Value).ContinueWith((a) =>
+                    {
+                        uploadTasksDone++;
+                        float p = uploadTasksDone / (float)uploadTasks.Count;
+                        OnUploadProgressUpdate?.Invoke(p, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
+                    });
+                uploadTasks.Add(task);
             }
+
             await Task.WhenAll(uploadTasks);
         }
 
@@ -152,7 +163,6 @@ namespace TrudeCommon.Utils
             uploadTask = UploadUsingPresignedURL(data, presignedURL);
 
             await uploadTask;
-
         }
     }
 }
