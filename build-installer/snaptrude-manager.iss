@@ -473,6 +473,7 @@ Type: filesandordirs; Name: "{commonappdata}\Snaptrude";
 Type: filesandordirs; Name: "{userappdata}\snaptrude_manager";
 Type: filesandordirs; Name: "{commonappdata}\snaptrudeTemp";
 Type: filesandordirs; Name: "{commonappdata}\snaptrude-manager";
+Type: filesandordirs; Name: "{userappdata}\SnaptrudeManager\resourceFile";
 
 [Files]
 Source: "{#UrlPath}"; DestDir: "{commonappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
