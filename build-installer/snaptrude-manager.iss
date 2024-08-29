@@ -40,8 +40,6 @@ WizardImageFile=background.bmp
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[InstallRun]
-Filename: "{localappdata}\snaptrude_manager\Update.exe"; Parameters: "--uninstall"; Flags: runhidden; Check: ShouldRunUninstaller
 
 [UninstallRun]
 Filename: "{localappdata}\snaptrude_manager\Update.exe"; Parameters: "--uninstall"; Flags: runhidden; Check: ShouldRunUninstaller
@@ -109,12 +107,27 @@ begin
   end;
 end;
 
+var
+  UninstallDone: Boolean;
+  ResultCode: Integer;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   Excludes: array of string;
 begin
   if CurStep = ssInstall then
   begin
+    if ShouldRunUninstaller then
+      begin
+        WizardForm.StatusLabel.Caption := 'Uninstalling previous version...';
+        WizardForm.ProgressGauge.Position := 0;
+        if not UninstallDone then
+        begin
+          Exec(ExpandConstant('{localappdata}\snaptrude_manager\Update.exe'), '--uninstall', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+          UninstallDone := True;
+        end;
+        WizardForm.StatusLabel.Caption := SetupMessage(msgInstallingLabel);
+      end;
     SetArrayLength(Excludes, 3);
     Excludes[0] := 'userPreferences.json';
     Excludes[1] := 'config.json';
@@ -293,11 +306,11 @@ begin
   OutputFilePath := ExpandConstant('{tmp}\output.txt');
   Output := TStringList.Create();
   try
-    Exec('cmd.exe', '/C tasklist | findstr /I "Revit.exe SnaptrudeManagerUI.exe" > "' + OutputFilePath + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec('cmd.exe', '/C tasklist | findstr /I "Revit.exe SnaptrudeManagerUI.exe snaptrude-manager.exe" > "' + OutputFilePath + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     if (ResultCode = 0) and FileExists(OutputFilePath) then
     begin
       Output.LoadFromFile(OutputFilePath);
-      if (Pos('Revit.exe', Output.Text) > 0) or (Pos('SnaptrudeManagerUI.exe', Output.Text) > 0) then
+      if (Pos('Revit.exe', Output.Text) > 0) or (Pos('SnaptrudeManagerUI.exe', Output.Text) > 0) or (Pos('snaptrude-manager.exe', Output.Text) > 0) then
       begin
         Result := True;
         Exit;
