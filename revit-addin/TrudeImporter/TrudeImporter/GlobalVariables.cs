@@ -27,7 +27,6 @@ namespace TrudeImporter
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingWindowFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingFurnitureFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<ElementId, List<TrudeRoom>> CreatedFloorsByLevel = new Dictionary<ElementId, List<TrudeRoom>>();
-        public static IDictionary<int, List<Element>> StoreyToElements = new Dictionary<int, List<Element>>();
 
         public static List<ElementId> WallElementIdsToRecreate = new List<ElementId>();
 
