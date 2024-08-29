@@ -476,7 +476,7 @@ Type: filesandordirs; Name: "{commonappdata}\snaptrude-manager";
 Type: filesandordirs; Name: "{userappdata}\SnaptrudeManager\resourceFile";
 
 [Files]
-Source: "{#UrlPath}"; DestDir: "{commonappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
+Source: "{#UrlPath}"; DestDir: "{commonappdata}\SnaptrudeManager"; DestName: "urls.json"; Flags: ignoreversion;
 Source: "{#UIBuildPath}\SnaptrudeManagerUI.exe"; DestDir: "{commonappdata}\SnaptrudeManager\UI"; Flags: ignoreversion;
 
 ;2019
