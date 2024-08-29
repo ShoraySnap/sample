@@ -444,15 +444,8 @@ begin
         begin
           if DirExists(ExpandConstant('{userappdata}\snaptrude-manager')) then
           begin
-            Log('Deleting folder');
-            if DelTree(ExpandConstant('{userappdata}\snaptrude-manager'), True, True, True) then
-            begin
-              Log('Deleted folder');
-            end
-            else
-            begin
-              MsgBox('Error deleting folder', mbError, MB_OK);
-            end;
+            DelTree(ExpandConstant('{userappdata}\snaptrude-manager'), True, True, True);
+            DelTree(ExpandConstant('{userappdata}\SnaptrudeManager'), True, True, True)
           end
         end;
       end;
@@ -478,8 +471,8 @@ Type: filesandordirs; Name: "{commonappdata}\snaptrude-manager";
 [UninstallDelete]
 Type: filesandordirs; Name: "{commonappdata}\Snaptrude";
 Type: filesandordirs; Name: "{userappdata}\snaptrude_manager";
+Type: filesandordirs; Name: "{commonappdata}\snaptrudeTemp";
 Type: filesandordirs; Name: "{commonappdata}\snaptrude-manager";
-Type: filesandordirs; Name: "{userappdata}\snaptrude-manager";
 
 [Files]
 Source: "{#UrlPath}"; DestDir: "{commonappdata}\snaptrude-manager"; DestName: "urls.json"; Flags: ignoreversion;
