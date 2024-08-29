@@ -445,8 +445,11 @@ begin
           if DirExists(ExpandConstant('{userappdata}\snaptrude-manager')) then
           begin
             DelTree(ExpandConstant('{userappdata}\snaptrude-manager'), True, True, True);
+          end;
+          if DirExists(ExpandConstant('{userappdata}\SnaptrudeManager')) then
+          begin
             DelTree(ExpandConstant('{userappdata}\SnaptrudeManager'), True, True, True)
-          end
+          end;
         end;
       end;
   end;
