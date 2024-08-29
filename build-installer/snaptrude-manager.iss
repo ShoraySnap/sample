@@ -35,7 +35,7 @@ SetupIconFile={#Base}\snaptrude.ico
 SolidCompression=yes
 UninstallDisplayName=Snaptrude Manager
 WizardStyle=modern
-WizardImageFile=background.bmp
+WizardImageFile=misc\background.bmp
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
