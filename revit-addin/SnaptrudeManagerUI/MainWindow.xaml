@@ -39,7 +39,9 @@
                 <DropShadowEffect
                     BlurRadius="20"
                     Direction="-90"
-                    Color="LightGray" />
+                    Opacity=".5"
+                    ShadowDepth="10"
+                    Color="Black" />
             </Border.Effect>
         </Border>
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
