@@ -9,8 +9,8 @@ namespace TrudeImporter
 {
     public class BeamRfaGenerator
     {
-        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\Snaptrude\tmp\tmp_beams";
-        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\{Configs.CUSTOM_FAMILY_DIRECTORY}\tmp\tmp_beams";
+        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         static string TEMPLATE_FILE_NAME = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Structural Framing - Beams and Braces.rft";
         public double height;
 

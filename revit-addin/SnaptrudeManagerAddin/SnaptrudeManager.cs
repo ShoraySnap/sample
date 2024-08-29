@@ -93,7 +93,7 @@ namespace SnaptrudeManagerAddin
         // TODO: Move this to common assembly
         private string getAppDataPath(string fileName)
         {
-            string snaptrudeManagerPath = "snaptrude-manager";
+            string snaptrudeManagerPath = "SnaptrudeManager";
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 snaptrudeManagerPath,

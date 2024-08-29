@@ -140,7 +140,7 @@ namespace TrudeImporter
         public void Save()
         {
             string serializedLog = JsonConvert.SerializeObject(fullData);
-            string snaptrudeManagerPath = "snaptrude-manager";
+            string snaptrudeManagerPath = "SnaptrudeManager";
             string filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 snaptrudeManagerPath,

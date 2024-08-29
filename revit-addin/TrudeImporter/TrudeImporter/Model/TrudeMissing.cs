@@ -13,7 +13,7 @@ namespace TrudeImporter.TrudeImporter.Model
         public static void ImportMissingDoors(List<DoorProperties> doorProps)
         {
             if (GlobalVariables.MissingDoorFamiliesCount.Count == 0) return;
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Doors"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Doors");
@@ -59,7 +59,7 @@ namespace TrudeImporter.TrudeImporter.Model
         public static void ImportMissingWindows(List<WindowProperties> windowProps)
         {
             if (GlobalVariables.MissingWindowFamiliesCount.Count == 0) return;
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Windows"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Windows");
@@ -105,7 +105,7 @@ namespace TrudeImporter.TrudeImporter.Model
         public static void ImportMissingFurniture(List<FurnitureProperties> furnitureProps)
         {
             if (GlobalVariables.MissingFurnitureFamiliesCount.Count == 0) return;
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Furniture"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Furniture");
