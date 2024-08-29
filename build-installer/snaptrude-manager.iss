@@ -137,6 +137,23 @@ begin
   end;
 end;
 
+function IsRevitVersionInstalled(Version: string): Boolean;
+var
+  RegKey: string;
+  Value: string;
+begin
+  // Initialize result as False
+  Result := False;
+  // Define the registry path for the given Revit version
+
+  // Check if the registry key exists
+  if RegKeyExists(HKCU, 'Software\Autodesk\Revit\Autodesk Revit ' + Version) then
+  begin
+    // If the ProductName exists in the registry, it means Revit is installed
+    Result := True;
+  end
+end;
+
 function InstallVersion (VersionToCheck: String; RFAs: Boolean): Boolean;
 var
   I: Integer;
@@ -196,17 +213,24 @@ begin
     ];
     AllVersions := ['2019','2020','2021','2022','2023','2024','2025'];
 
-  CheckListBoxPage := CreateInputOptionPage(wpSelectTasks, 'Select Revit versions', 'ATTENTION: Only select the versions that you are going to use the Snaptrude <-> Revit Link. Several families will be downloaded for each selected Revit version.', '', False, True);
+  CheckListBoxPage := CreateInputOptionPage(wpSelectTasks, 'Select Revit versions', 'IMPORTANT: Only select the versions that you are going to use the Snaptrude <-> Revit Link. Several families will be downloaded for each selected Revit version.', '', False, True);
   InstalledVersions := TStringList.Create;
   InstalledVersionsURLs := TStringList.Create;
   for I := 0 to High(AllVersions) do
     begin
-      InstalledVersions.Add(AllVersions[I]);
-      InstalledVersionsURLs.Add(AllFileURLs[I]);
-      CheckListBoxPage.Add('Revit ' + AllVersions[I]);
+      if IsRevitVersionInstalled(AllVersions[I]) then
+      begin
+          InstalledVersions.Add(AllVersions[I]);
+          InstalledVersionsURLs.Add(AllFileURLs[I]);
+          CheckListBoxPage.Add('Revit ' + AllVersions[I]);
+      end
     end;
-  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
-  DownloadPage.Msg1Label.Top := 40
+  for I := 0 to InstalledVersions.Count - 1 do
+    begin
+      CheckListBoxPage.Values[I] := True;
+    end;
+  DownloadPage := CreateDownloadPage('Downloading Revit family files', 'Please wait while the setup downloads the required files. This could take a little while', @OnDownloadProgress);
+  DownloadPage.Msg1Label.Top := 30
   DownloadPage.Msg2Label.Top := -400
   DownloadPage.Msg2Label.Visible := False;
   end
