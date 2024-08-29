@@ -183,7 +183,7 @@ namespace SnaptrudeForgeExport
                     bool doesMassExist = GlobalVariables.UniqueIdToElementId.TryGetValue(mass.UniqueId, out ElementId elemId);
                     if (doesMassExist)
                     {
-                        ApplyColorOverridesToElement(doc, viewPlan, elemId, mass.MaterialHex);
+                        ApplyColorOverridesToElement(doc, viewPlan, elemId, mass.MaterialHex, mass.Storey < viewProperties.Storey);
                     }
                 });
 
@@ -192,7 +192,7 @@ namespace SnaptrudeForgeExport
                     bool doesSlabExist = GlobalVariables.UniqueIdToElementId.TryGetValue(slab.UniqueId, out ElementId elemId);
                     if (doesSlabExist)
                     {
-                        ApplyColorOverridesToElement(doc, viewPlan, elemId, slab.MaterialHex);
+                        ApplyColorOverridesToElement(doc, viewPlan, elemId, slab.MaterialHex, slab.Storey < viewProperties.Storey);
                     }
                 });
             }
@@ -202,7 +202,7 @@ namespace SnaptrudeForgeExport
             }
         }
 
-        public static void ApplyColorOverridesToElement(Document doc, View view, ElementId elemId, string materialHex)
+        public static void ApplyColorOverridesToElement(Document doc, View view, ElementId elemId, string materialHex, bool halfTone)
         {
             try
             {
@@ -221,6 +221,8 @@ namespace SnaptrudeForgeExport
                 overrideGraphicSettings.SetSurfaceForegroundPatternColor(color);
                 overrideGraphicSettings.SetSurfaceForegroundPatternId(Utils.GetSolidFillPatternElement(doc).Id);
                 overrideGraphicSettings.SetSurfaceForegroundPatternVisible(true);
+
+                overrideGraphicSettings.SetHalftone(halfTone);
 
                 view.SetElementOverrides(elemId, overrideGraphicSettings);
             } catch

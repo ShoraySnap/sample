@@ -761,6 +761,13 @@ namespace TrudeImporter
                         if (mass.AllFaceVertices != null)
                         {
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
+                            if (GlobalVariables.StoreyToElements.TryGetValue(mass.Storey, out var elements))
+                            {
+                                elements.Add(directShape);
+                            } else
+                            {
+                                GlobalVariables.StoreyToElements[mass.Storey] = new List<Element>() { directShape };
+                            }
                             GlobalVariables.UniqueIdToElementId.Add(mass.UniqueId, directShape.Id);
                             if (mass.Type == "Room" && mass.RoomType != "Site" && (mass.RoomType != "Default" || GlobalVariables.ForForgeViewsPDFExport) && mass.BottomFaceVertices != null)
                             {
