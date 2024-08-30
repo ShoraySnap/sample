@@ -50,6 +50,18 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        private bool isCancelButtonVisible = true;
+
+        public bool IsCancelButtonVisible
+        {
+            get { return isCancelButtonVisible; }
+            set
+            {
+                isCancelButtonVisible = value;
+                OnPropertyChanged("IsCancelButtonVisible");
+            }
+        }
+
         private int progressValue;
 
         public int ProgressValue
@@ -146,10 +158,17 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnProgressUpdate += UpdateProgress;
             App.OnAbort += Abort;
             App.OnFailure += OnFailure;
+            App.OnUploadStart += HideCancelButton;
+        }
+
+        private void HideCancelButton()
+        {
+            IsCancelButtonVisible = false;
         }
 
         public async void Cancel(TRUDE_EVENT trudeEvent)
         {
+            IsCancelButtonVisible = false;
             S3helper.abortFlag = true;
             TrudeEventEmitter.EmitEvent(trudeEvent);
                 UpdateProgress(0, "Rolling back changes, this could take some time...");
