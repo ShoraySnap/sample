@@ -148,12 +148,16 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnFailure += OnFailure;
         }
 
-        public void Cancel(TRUDE_EVENT trudeEvent)
+        public async void Cancel(TRUDE_EVENT trudeEvent)
         {
             S3helper.abortFlag = true;
             TrudeEventEmitter.EmitEvent(trudeEvent);
                 UpdateProgress(0, "Rolling back changes, this could take some time...");
                 IsProgressBarIndeterminate = true;
+            if (progressViewType == ProgressViewType.ExportProjectNew || progressViewType == ProgressViewType.ExportRFANew)
+            {
+                await SnaptrudeRepo.DeleteProjectAsync();
+            }
             }
 
         public void UpdateProgress(int Value, string message)

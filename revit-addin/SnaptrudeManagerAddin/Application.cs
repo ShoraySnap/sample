@@ -283,6 +283,11 @@ namespace SnaptrudeManagerAddin
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
         }
 
+        internal void EmitUploadStarted()
+        {
+            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START);
+        }
+
         internal void EmitAbortEvent()
         {
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);

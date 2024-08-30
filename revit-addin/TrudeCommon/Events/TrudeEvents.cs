@@ -43,6 +43,7 @@ namespace TrudeCommon.Events
 
         // BROWSER EVENTS
         BROWSER_LOGIN_CREDENTIALS,
+        REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START,
     }
 
     public static class TrudeEventUtils
