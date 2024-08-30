@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -23,6 +24,7 @@ using System.Windows.Media.Imaging;
 using TrudeCommon.DataTransfer;
 using TrudeCommon.Events;
 using TrudeCommon.Logging;
+using TrudeCommon.Utils;
 using TrudeImporter;
 
 namespace SnaptrudeManagerAddin
@@ -69,6 +71,7 @@ namespace SnaptrudeManagerAddin
 
             string tabName = "Snaptrude";
             string panelName = "Snaptrude";
+            FileUtils.Initialize();
 
             // Create Ribbon Tab
             application.CreateRibbonTab(tabName);
@@ -283,9 +286,9 @@ namespace SnaptrudeManagerAddin
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_PROGRESS_UPDATE, data, TransferManager);
         }
 
-        internal void EmitUploadStarted()
+        internal void EmitRequestUploads(string processId)
         {
-            TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START);
+            TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE, processId, TransferManager);
         }
 
         internal void EmitAbortEvent()

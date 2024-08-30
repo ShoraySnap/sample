@@ -14,7 +14,6 @@ using System.Text.RegularExpressions;
 using System.Security.Policy;
 using TrudeCommon.Utils;
 using Newtonsoft.Json;
-using TrudeSerializer.Uploader;
 
 namespace SnaptrudeManagerUI.ViewModels
 {

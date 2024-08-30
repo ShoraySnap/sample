@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using TrudeCommon.Utils;
 using TrudeSerializer.Uploader;
@@ -48,7 +49,14 @@ namespace TrudeSerializer.Utils
         {
             materials.Clear();
         }
+        public string SaveForUpload()
+        {
+            string fileName = FileUtils.MATERIAL_FNAME;
 
+            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(materials));
+            FileUtils.SaveCommonTempFile(fileName, bytes);
+            return fileName;
+        }
         public async void Upload()
         {
             List<string> keys = materials.Keys.ToList();

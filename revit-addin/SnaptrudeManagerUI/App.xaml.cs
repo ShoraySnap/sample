@@ -25,6 +25,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using TrudeCommon.Utils;
+using System.Text;
 
 namespace SnaptrudeManagerUI
 {
@@ -75,6 +77,8 @@ namespace SnaptrudeManagerUI
             RegisterProtocol();
             base.OnStartup(e);
             LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
+
+            FileUtils.Initialize();
 
             //WPFTODO: CHECKFORUPDATES
             var currentVersion = "4.0";
@@ -365,10 +369,41 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Changed Revit instance.");
                             }
                             break;
-                        case TRUDE_EVENT.REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START:
+                        case TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE:
                             {
                                 OnUploadStart?.Invoke();
-                                logger.Info("Export to snaptrude aborted!");
+                                logger.Info("Uploading to snaptrude!");
+
+                                string processId = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE);
+                                // Upload data
+                                var data = FileUtils.GetCommonTempFile(FileUtils.DATA_FNAME);
+                                var stringData = Encoding.UTF8.GetString(data);
+                                var deserializedData = JsonConvert.DeserializeObject<Dictionary<string, string>>(stringData);
+
+                                logger.Info("Uploading data to snaptrude!");
+                                await Uploader.UploadAndRedirectToSnaptrude(deserializedData);
+
+                                var matData = FileUtils.GetCommonTempFile(FileUtils.MATERIAL_FNAME);
+                                var matDataStr = Encoding.UTF8.GetString(matData);
+                                var materials = JsonConvert.DeserializeObject<Dictionary<string,string>>(matDataStr);
+
+                                logger.Info("Uploading materials to snaptrude!");
+                                await Uploader.UploadMaterials(materials);
+
+                                var logData = FileUtils.GetCommonTempFile(FileUtils.LOG_FNAME);
+                                var logDataStr = Encoding.UTF8.GetString(logData);
+
+                                await Uploader.UploadLog(logDataStr, processId);
+
+                                var analyticsData = FileUtils.GetCommonTempFile(FileUtils.ANALYTICS_FNAME);
+                                var aDataStr = Encoding.UTF8.GetString(analyticsData);
+
+                                await Uploader.UploadAnalytics(aDataStr, processId);
+
+                                logger.Info("Export finished, opening browser.");
+
+                                string floorkey = Store.Get("floorkey").ToString();
+                                await MainWindowViewModel.Instance.ProgressViewModel.FinishExport(floorkey);
                             }
                             break;
                     }
@@ -415,7 +450,7 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
 
-            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START);
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);

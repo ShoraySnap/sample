@@ -1,15 +1,23 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using TrudeCommon.Analytics;
-using TrudeSerializer.Uploader;
+using TrudeCommon.Utils;
 
-namespace TrudeCommon.Utils
+namespace SnaptrudeManagerUI.API
 {
-    internal class S3helper
+    internal class PreSignedURLResponse
+    {
+        public string url { get; set; }
+        public Dictionary<string, string> fields { get; set; }
+    }
+
+    internal class Uploader
     {
         private static readonly string GET_PRESIGNED_URL = "/s3/presigned-url/upload/";
         private static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
@@ -127,7 +135,7 @@ namespace TrudeCommon.Utils
             return response;
         }
 
-        public static async void UploadLog(string jsonData, string processId)
+        public static async Task UploadLog(string jsonData, string processId)
         {
             Config config = Config.GetConfigObject();
 
@@ -147,11 +155,12 @@ namespace TrudeCommon.Utils
             await uploadTask;
         }
 
-        public static async void UploadAnalytics(string processId, string folder = "revitImport")
+        public static async Task UploadAnalytics(string analyticsData, string processId, string folder = "revitImport")
         {
-            var jsonData = AnalyticsManager.GetUploadData();
+            var uploadData = JsonConvert.DeserializeObject<UploadData>(analyticsData);
+            var jsonData = JsonConvert.SerializeObject(uploadData);
 
-            var identifier = AnalyticsManager.GetIdentifier();
+            var identifier = uploadData.identifier;
             string userId = identifier.userId;
             string projectFloorKey = identifier.floorkey;
 
@@ -167,5 +176,44 @@ namespace TrudeCommon.Utils
 
             await uploadTask;
         }
+
+        public static async Task UploadMaterials(Dictionary<string, string> materials)
+        {
+            List<string> keys = materials.Keys.ToList();
+            Config config = Config.GetConfigObject();
+            string userId = config.userId;
+            string floorkey = config.floorKey;
+
+            Dictionary<string, string> materialPaths = new Dictionary<string, string>();
+
+            List<Task<HttpResponseMessage>> uploadTasks = new List<Task<HttpResponseMessage>>();
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                string key = keys[i];
+                string path = $"media/{userId}/revitImport/{floorkey}/materials/{key}";
+                materialPaths[key] = path;
+            }
+            try
+            {
+                var presignedUrlResponse = await S3helper.GetPresignedURLs(materialPaths, config);
+                var presignedUrlsResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
+                Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
+                foreach (KeyValuePair<string, string> entry in materials)
+                {
+                    string key = entry.Key;
+                    byte[] imageData = File.ReadAllBytes(entry.Value);
+                    var uploadTask = UploadUsingPresignedURL(imageData, presignedURLs[key]);
+                    uploadTasks.Add(uploadTask);
+                }
+                await Task.WhenAll(uploadTasks);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e?.Message);
+            }
+        }
+
+
     }
 }
