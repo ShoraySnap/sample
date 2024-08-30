@@ -181,7 +181,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void UpdateProgress(int Value, string message)
         {
-            App.Current.MainWindow.Focus();
+            //App.Current.MainWindow.Focus();
             ProgressValue = Value;
             ProgressMessage = message;
         }
