@@ -78,6 +78,24 @@ namespace SnaptrudeManagerUI.API
             return null;
         }
 
+        public static async Task<bool> DeleteProjectAsync(string floorkey)
+        {
+            logger.Info("Deleting Snaptrude project");
+            string endPoint = "/deleteProject/";
+
+            var data = new Dictionary<string, string>
+            {
+                { "floorkey", floorkey }
+            };
+
+            var response = await CallApiAsync(endPoint, HttpMethod.Post, data);
+
+            if (response != null && response.IsSuccessStatusCode)
+                return true;
+            else
+                return false;    
+        }
+
         public static async Task<List<Dictionary<string, string>>> GetUserWorkspacesAsync()
         {
             string endPoint = "/user/workspaces/valid-teams";

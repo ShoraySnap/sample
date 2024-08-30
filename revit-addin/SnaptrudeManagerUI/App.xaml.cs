@@ -50,6 +50,7 @@ namespace SnaptrudeManagerUI
         public static Action OnDocumentClosed;
         public static Action OnDocumentChanged;
         public static Action OnRevitClosed;
+        public static Action OnUploadStart;
 
         public static Process RevitProcess;
 
@@ -364,6 +365,12 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Changed Revit instance.");
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START:
+                            {
+                                OnUploadStart?.Invoke();
+                                logger.Info("Export to snaptrude aborted!");
+                            }
+                            break;
                     }
                 }
             }
@@ -407,6 +414,8 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_UPLOAD_TO_SNAPTRUDE_START);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
