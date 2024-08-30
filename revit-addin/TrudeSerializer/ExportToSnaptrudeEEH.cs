@@ -199,6 +199,7 @@ namespace TrudeSerializer
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 if (IsImportAborted())
                 {
+                    ComponentHandler.OnCountOutput -= CountElementAndUpdateProgress;
                     return Result.Cancelled;
                 }
 
