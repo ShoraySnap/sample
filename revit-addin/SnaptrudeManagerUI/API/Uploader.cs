@@ -24,8 +24,6 @@ namespace SnaptrudeManagerUI.API
 
         public static volatile bool abortFlag = false;
 
-        public static Action<float, string> OnUploadProgressUpdate;
-
         public static async Task UploadAndRedirectToSnaptrude(Dictionary<string,string> jsonData)
         {
             Dictionary<string, byte[]> compressedJsonData = new Dictionary<string, byte[]>();
@@ -60,7 +58,8 @@ namespace SnaptrudeManagerUI.API
                         {
                             uploadTasksDone++;
                             float p = uploadTasksDone / (float)uploadTasks.Count;
-                            OnUploadProgressUpdate?.Invoke(p, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
+                            int progress = (int)Math.Round(60.0 + p * 40.0);
+                            App.OnProgressUpdate?.Invoke(progress, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
                         });
                     uploadTasks.Add(task);
                 }

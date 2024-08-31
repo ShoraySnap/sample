@@ -287,7 +287,7 @@ namespace TrudeSerializer
                 }
                 else
                 {
-                    Application.Instance.UpdateProgressForExport(80, "Uploading Serialized Data...");
+                    Application.Instance.UpdateProgressForExport(60, "Uploading Serialized Data...");
                     Application.Instance.EmitRequestUploads(processId);
                 }
             }
