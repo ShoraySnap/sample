@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -23,6 +24,11 @@ namespace SnaptrudeManagerUI.API
         private static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
 
         public static volatile bool abortFlag = false;
+
+        public static void UpdateUploadProgressValues(int progress, string message)
+        {
+            App.OnProgressUpdate?.Invoke(progress, message);
+        }
 
         public static async Task UploadAndRedirectToSnaptrude(Dictionary<string,string> jsonData)
         {
@@ -58,8 +64,8 @@ namespace SnaptrudeManagerUI.API
                         {
                             uploadTasksDone++;
                             float p = uploadTasksDone / (float)uploadTasks.Count;
-                            int progress = (int)Math.Round(60.0 + p * 40.0);
-                            App.OnProgressUpdate?.Invoke(progress, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
+                            int progress = (int)Math.Round(60.0 + p * 30.0);
+                            UpdateUploadProgressValues(progress, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
                         });
                     uploadTasks.Add(task);
                 }

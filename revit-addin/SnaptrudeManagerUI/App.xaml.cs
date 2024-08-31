@@ -388,16 +388,21 @@ namespace SnaptrudeManagerUI
                                 var materials = JsonConvert.DeserializeObject<Dictionary<string,string>>(matDataStr);
 
                                 logger.Info("Uploading materials to snaptrude!");
+                                Uploader.UpdateUploadProgressValues(90, "Uploading materials...");
                                 await Uploader.UploadMaterials(materials);
 
                                 var logData = FileUtils.GetCommonTempFile(FileUtils.LOG_FNAME);
                                 var logDataStr = Encoding.UTF8.GetString(logData);
-
+                                
+                                logger.Info("Uploading log to snaptrude!");
+                                Uploader.UpdateUploadProgressValues(98, "Finalizing Process...");
                                 await Uploader.UploadLog(logDataStr, processId);
 
                                 var analyticsData = FileUtils.GetCommonTempFile(FileUtils.ANALYTICS_FNAME);
                                 var aDataStr = Encoding.UTF8.GetString(analyticsData);
-
+                                
+                                logger.Info("Uploading analytics to snaptrude!");
+                                Uploader.UpdateUploadProgressValues(99, "Finalizing Process...");
                                 await Uploader.UploadAnalytics(aDataStr, processId);
 
                                 logger.Info("Export finished, opening browser.");
