@@ -169,7 +169,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public async void Cancel(TRUDE_EVENT trudeEvent)
         {
             IsCancelButtonVisible = false;
-            S3helper.abortFlag = true;
+            Uploader.abortFlag = true;
             TrudeEventEmitter.EmitEvent(trudeEvent);
                 UpdateProgress(0, "Rolling back changes, this could take some time...");
                 IsProgressBarIndeterminate = true;

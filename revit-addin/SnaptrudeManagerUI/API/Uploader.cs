@@ -195,7 +195,7 @@ namespace SnaptrudeManagerUI.API
             }
             try
             {
-                var presignedUrlResponse = await S3helper.GetPresignedURLs(materialPaths, config);
+                var presignedUrlResponse = await GetPresignedURLs(materialPaths, config);
                 var presignedUrlsResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
                 Dictionary<string, PreSignedURLResponse> presignedURLs = JsonConvert.DeserializeObject<Dictionary<string, PreSignedURLResponse>>(presignedUrlsResponseData);
                 foreach (KeyValuePair<string, string> entry in materials)
@@ -212,7 +212,5 @@ namespace SnaptrudeManagerUI.API
                 System.Diagnostics.Debug.WriteLine(e?.Message);
             }
         }
-
-
     }
 }

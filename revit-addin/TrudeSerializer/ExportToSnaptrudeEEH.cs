@@ -297,11 +297,9 @@ namespace TrudeSerializer
         {
             if (Application.Instance.AbortExportFlag)
             {
-                S3helper.abortFlag = true;
                 return true;
             }
 
-            S3helper.abortFlag = false;
             return false;
         }
 

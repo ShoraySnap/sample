@@ -114,7 +114,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     if (response.Access)
                     {
                         RequestStatus = URLValidationStatus.Validated;
-                        var presignedUrlResponse = await S3helper.GetPresignedURL("media/" + response.ImagePath, Config.GetConfigObject());
+                        var presignedUrlResponse = await Uploader.GetPresignedURL("media/" + response.ImagePath, Config.GetConfigObject());
                         var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
                         PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
                         Image = new Uri(presignedURL.url + presignedURL.fields["key"]);
