@@ -53,8 +53,11 @@ namespace SnaptrudeManagerUI
         public static Action OnDocumentChanged;
         public static Action OnRevitClosed;
         public static Action OnUploadStart;
+        public static Action<string> OnUploadIssue;
 
         public static Process RevitProcess;
+
+        public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
 
         public static void RegisterProtocol()
         {
@@ -372,43 +375,6 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE:
                             {
                                 OnUploadStart?.Invoke();
-                                logger.Info("Uploading to snaptrude!");
-
-                                string processId = TransferManager.ReadString(TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE);
-                                // Upload data
-                                var data = FileUtils.GetCommonTempFile(FileUtils.DATA_FNAME);
-                                var stringData = Encoding.UTF8.GetString(data);
-                                var deserializedData = JsonConvert.DeserializeObject<Dictionary<string, string>>(stringData);
-
-                                logger.Info("Uploading data to snaptrude!");
-                                await Uploader.UploadAndRedirectToSnaptrude(deserializedData);
-
-                                var matData = FileUtils.GetCommonTempFile(FileUtils.MATERIAL_FNAME);
-                                var matDataStr = Encoding.UTF8.GetString(matData);
-                                var materials = JsonConvert.DeserializeObject<Dictionary<string,string>>(matDataStr);
-
-                                logger.Info("Uploading materials to snaptrude!");
-                                Uploader.UpdateUploadProgressValues(90, "Uploading materials...");
-                                await Uploader.UploadMaterials(materials);
-
-                                var logData = FileUtils.GetCommonTempFile(FileUtils.LOG_FNAME);
-                                var logDataStr = Encoding.UTF8.GetString(logData);
-                                
-                                logger.Info("Uploading log to snaptrude!");
-                                Uploader.UpdateUploadProgressValues(98, "Finalizing Process...");
-                                await Uploader.UploadLog(logDataStr, processId);
-
-                                var analyticsData = FileUtils.GetCommonTempFile(FileUtils.ANALYTICS_FNAME);
-                                var aDataStr = Encoding.UTF8.GetString(analyticsData);
-                                
-                                logger.Info("Uploading analytics to snaptrude!");
-                                Uploader.UpdateUploadProgressValues(99, "Finalizing Process...");
-                                await Uploader.UploadAnalytics(aDataStr, processId);
-
-                                logger.Info("Export finished, opening browser.");
-
-                                string floorkey = Store.Get("floorkey").ToString();
-                                await MainWindowViewModel.Instance.ProgressViewModel.FinishExport(floorkey);
                             }
                             break;
                     }

@@ -15,7 +15,8 @@ namespace SnaptrudeManagerUI.ViewModels
         InternetConnectionIssue,
         RevitClosed,
         StartupInternetConnectionIssue,
-        APIBlocked
+        APIBlocked,
+        UploadIssue,
     }
 
     public class WarningViewModel : ViewModelBase
@@ -105,6 +106,13 @@ namespace SnaptrudeManagerUI.ViewModels
                     {
                         App.Current.Shutdown();
                     }));
+                    break;
+                case WarningId.UploadIssue:
+                    ShowSecondaryButton = true;
+                    SecondaryButtonText = "Go back";
+                    Title = "Upload failed";
+                    Message = $"{errorMessage}";
+                    PrimaryButtonText = "Try again";
                     break;
                 default:
                     break;

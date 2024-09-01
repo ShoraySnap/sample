@@ -80,6 +80,15 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
+        public static ViewModelBase CreateUploadIssueViewModel(string errorMessage)
+        {
+            return new WarningViewModel(WarningId.UploadIssue,
+                new NavigationService(NavigationStore.Instance, CreateRetryUploadProgressViewModel),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                errorMessage
+                );
+        }
+
         public static ViewModelBase CreateSelectFolderWarningViewModel()
         {
             return new WarningViewModel(WarningId.InternetConnectionIssue,
@@ -131,13 +140,25 @@ namespace SnaptrudeManagerUI.ViewModels
             return new EndViewModel(EndViewModel.EndViewType.ExportedSucessfull);
         }
 
+        public static ProgressViewModel CreateRetryUploadProgressViewModel()
+        {
+            MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
+                App.RetryUploadProgressType,
+                new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
+                new NavigationService(NavigationStore.Instance, null),
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                true);
+            return MainWindowViewModel.Instance.ProgressViewModel;
+        }
+
         public static ProgressViewModel CreateExportToRFANewProgressViewModel()
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
                 ProgressViewModel.ProgressViewType.ExportRFANew,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateErrorViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                false);
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
         public static ProgressViewModel CreateExportToRFAExistingProgressViewModel()
@@ -146,7 +167,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 ProgressViewModel.ProgressViewType.ExportRFAExisting,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateErrorViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                false);
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
 
@@ -157,7 +179,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 ProgressViewModel.ProgressViewType.ExportProjectNew,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateErrorViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                false);
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
 
@@ -167,7 +190,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 ProgressViewModel.ProgressViewType.ExportRFAExisting,
                 new NavigationService(NavigationStore.Instance, CreateModelExportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateErrorViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                false);
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
 
@@ -177,7 +201,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 ProgressViewModel.ProgressViewType.Import,
                 new NavigationService(NavigationStore.Instance, CreateModelImportedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateErrorViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                false);
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
 
@@ -192,7 +217,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 ProgressViewModel.ProgressViewType.Update,
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
                 new NavigationService(NavigationStore.Instance, CreateRetryUpdateAvailableViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                false);
             return MainWindowViewModel.Instance.ProgressViewModel;
         }
 
