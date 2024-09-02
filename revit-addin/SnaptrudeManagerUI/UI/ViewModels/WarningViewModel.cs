@@ -83,14 +83,14 @@ namespace SnaptrudeManagerUI.ViewModels
                 case WarningId.InternetConnectionIssue:
                     ShowSecondaryButton = true;
                     Title = "Connection lost";
-                    Message = "Please check your internet connection and try again.";
+                    Message = "A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.";
                     PrimaryButtonText = "Try again";
                     SecondaryButtonText = "Go back";
                     break;
                 case WarningId.StartupInternetConnectionIssue:
                     ShowSecondaryButton = false;
                     Title = "Connection lost";
-                    Message = $"Please check your internet connection and try again.\n{errorMessage}";
+                    Message = $"A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.\n{errorMessage}";
                     PrimaryButtonText = "Close";
                     PrimaryCommand = new RelayCommand(new Action<object>((o) =>
                     {
