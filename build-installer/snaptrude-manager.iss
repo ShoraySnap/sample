@@ -34,6 +34,7 @@ OutputDir={#BaseOut}
 SetupIconFile={#Base}\snaptrude.ico
 SolidCompression=yes
 UninstallDisplayName=Snaptrude Manager
+UninstallDisplayIcon={commonappdata}\SnaptrudeManager\UI\SnaptrudeManagerUI.exe
 WizardStyle=modern
 WizardImageFile=misc\background.bmp
 
