@@ -229,7 +229,7 @@ begin
     begin
       CheckListBoxPage.Values[I] := True;
     end;
-  DownloadPage := CreateDownloadPage('Downloading Revit family files', 'Please wait while the setup downloads the required files. This could take a little while', @OnDownloadProgress);
+  DownloadPage := CreateDownloadPage('Downloading Snaptrude default Revit families', 'Please wait while the setup downloads the required files. This could take a little while.', @OnDownloadProgress);
   DownloadPage.Msg1Label.Top := 30
   DownloadPage.Msg2Label.Top := -400
   DownloadPage.Msg2Label.Visible := False;
