@@ -218,7 +218,7 @@ begin
       end
     end;
   DownloadPage := CreateDownloadPage('Downloading Snaptrude default Revit families', 'Please wait while the setup downloads the required files. This could take a little while.', @OnDownloadProgress);
-  DownloadPage.Msg1Label.Top := 30
+  DownloadPage.Msg1Label.Top := 20
   DownloadPage.Msg2Label.Top := -400
   DownloadPage.Msg2Label.Visible := False;
   end
