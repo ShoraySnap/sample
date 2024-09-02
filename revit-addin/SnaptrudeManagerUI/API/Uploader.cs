@@ -97,11 +97,13 @@ namespace SnaptrudeManagerUI.API
                 {
                     if (progressViewType == ProgressViewType.ExportProjectNew || progressViewType == ProgressViewType.ExportRFANew)
                     {
+                        logger.Info("Deleting Snaptrude project...");
                         await SnaptrudeRepo.DeleteProjectAsync();
                     }
                 }
                 catch (Exception deleteEx)
                 {
+                    logger.Info("Error Deleting Snaptrude project..." + deleteEx.Message);
                 }
             }
         }
