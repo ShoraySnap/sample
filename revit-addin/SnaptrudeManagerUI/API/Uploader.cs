@@ -82,12 +82,12 @@ namespace SnaptrudeManagerUI.API
                 var analyticsData = FileUtils.GetCommonTempFile(FileUtils.ANALYTICS_FNAME);
                 var aDataStr = Encoding.UTF8.GetString(analyticsData);
 
+                string floorkey = Store.Get("floorkey").ToString();
                 logger.Info("Uploading analytics to snaptrude!");
                 UpdateUploadProgressValues(99, "Finalizing Process...");
-                await UploadAnalytics(aDataStr, processId);
+                await UploadAnalytics(floorkey, aDataStr, processId);
 
                 logger.Info("Export finished, opening browser.");
-                string floorkey = Store.Get("floorkey").ToString();
                 await MainWindowViewModel.Instance.ProgressViewModel.FinishExport(floorkey);
             }
             catch (Exception ex)
@@ -241,15 +241,17 @@ namespace SnaptrudeManagerUI.API
             await uploadTask;
         }
 
-        public static async Task UploadAnalytics(string analyticsData, string processId, string folder = "revitImport")
+        public static async Task UploadAnalytics(string floorkey, string analyticsData, string processId, string folder = "revitImport")
         {
             var uploadData = JsonConvert.DeserializeObject<UploadData>(analyticsData);
-            var jsonData = JsonConvert.SerializeObject(uploadData);
+            uploadData.identifier.floorkey = floorkey;
 
             var identifier = uploadData.identifier;
             string userId = identifier.userId;
             string projectFloorKey = identifier.floorkey;
 
+
+            var jsonData = JsonConvert.SerializeObject(uploadData);
             Task<HttpResponseMessage> uploadTask;
 
             byte[] data = Encoding.UTF8.GetBytes(jsonData.ToString());
