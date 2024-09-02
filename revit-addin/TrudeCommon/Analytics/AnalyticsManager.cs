@@ -52,6 +52,8 @@ namespace TrudeCommon.Analytics
         public static UploadData uploadData = new UploadData();
 
         private static Logger logger = LogManager.GetCurrentClassLogger();
+
+        public static bool analyticsEnabled = true;
         public static void SetIdentifer(string email, string userId, string floorkey, string units, string env, string processId, string rvt)
         {
             uploadData.identifier = new Identifier(email, userId, floorkey, units, env, processId, rvt);
@@ -84,7 +86,13 @@ namespace TrudeCommon.Analytics
 
         public static async Task CommitExportDataToAPI()
         {
-            string url = "http://localhost:6066/metrics/revitExport";
+            if (!analyticsEnabled)
+            {
+                logger.Info("Analytics disabled, not uploading!");
+                return;
+            }
+
+            string url = "https://snaptrudemanageranalytics-977aea40ef93.herokuapp.com/metrics/revitExport";
             var config = Config.GetConfigObject();
 
             using (HttpClient client = new HttpClient())
@@ -99,6 +107,7 @@ namespace TrudeCommon.Analytics
                     {
                         string responseData = await response.Content.ReadAsStringAsync();
                         logger.Info("Response: " + responseData);
+                        logger.Info("Analytics for export uploaded!");
                     }
                     else
                     {

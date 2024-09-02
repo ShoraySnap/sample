@@ -37,7 +37,7 @@ namespace TrudeImporter
             }
             set
             {
-                lock(mutex)
+                lock (mutex)
                 {
                     abort = value;
                 }
@@ -52,7 +52,7 @@ namespace TrudeImporter
                 trudeProperties.TrudeGeneration,
                 "snaptrude"
             );
-            if(trudeProperties.Errors != null)
+            if (trudeProperties.Errors != null)
             {
                 foreach (var error in trudeProperties.Errors)
                 {
@@ -98,16 +98,16 @@ namespace TrudeImporter
             ImportDurationMessage += $"Total: {Math.Round(sw.Elapsed.TotalSeconds, 2)}s.";
             logger.Info(ImportDurationMessage);
             TrudeExportLogger.Instance.LogExportStatus(
-                sw.Elapsed.TotalSeconds, 
-                "success", 
-                trudeProperties.IsRevitImport ? "existing" : "new", 
+                sw.Elapsed.TotalSeconds,
+                "success",
+                trudeProperties.IsRevitImport ? "existing" : "new",
                 "revit"
             );
             TrudeExportLogger.Instance.Save();
 
 #if !FORGE
 
-            if(identifier != null)
+            if (identifier != null)
             {
                 Config config = Config.GetConfigObject();
                 string hash = Util.GetUniqueHash(GlobalVariables.Document.PathName, 12);
@@ -172,6 +172,7 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    logger.Error("Exception in removing deleted elements:" + e.Message);
                     System.Diagnostics.Debug.WriteLine("Exception in removing deleted elements:" + e.Message);
                 }
             }
@@ -260,7 +261,7 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                LogTrace(e.Message);
+                logger.Error(e.Message);
             }
 
 
@@ -276,7 +277,7 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                    LogTrace(e.Message);
+                    logger.Error(e.Message);
                 }
             }
 
@@ -297,14 +298,13 @@ namespace TrudeImporter
                 }
                 if (levelsToDelete.Any()) GlobalVariables.Document.Delete(levelsToDelete.Select(level => level.Id).ToList());
 
-                LogTrace("stories edited/deleted");
-
+                logger.Info("Stories edited/deleted");
             }
             catch (Exception e)
             {
-                LogTrace(e.Message);
+                logger.Error(e.Message);
             }
-            LogTrace("existing stories handled");
+            logger.Info("Existing stories handled");
 
             foreach (TrudeStorey newStorey in storiesToCreate)
             {
@@ -315,10 +315,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    logger.Error(e.Message);
                     LogTrace(e.Message);
                 }
             }
-            LogTrace("stories created");
+            logger.Info("Stories created");
 
         }
 
@@ -358,11 +359,12 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                        TrudeExportLogger.Instance.LogError(
-                            "revit wall",
-                            e.Message,
-                            props.UniqueId
-                        );
+                    TrudeExportLogger.Instance.LogError(
+                        "revit wall",
+                        e.Message,
+                        props.UniqueId
+                    );
+                    logger.Error("Exception in Importing Wall: " + props.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Wall: " + props.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -423,6 +425,7 @@ namespace TrudeImporter
                         beam.UniqueId
                     );
                     GlobalVariables.Transaction.RollBack();
+                    logger.Error("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Beam:" + beam.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -460,20 +463,21 @@ namespace TrudeImporter
                         }
                     }
 
-                        TrudeExportLogger.Instance.CountOutputElements(
-                            TrudeExportLoggerHelper.BASIC_COLUMN_KEY,
-                            column.AllFaceVertices == null,
-                            column.ExistingElementIdDS != null ? "added" : "updated"
-                        );
+                    TrudeExportLogger.Instance.CountOutputElements(
+                        TrudeExportLoggerHelper.BASIC_COLUMN_KEY,
+                        column.AllFaceVertices == null,
+                        column.ExistingElementIdDS != null ? "added" : "updated"
+                    );
                 }
                 catch (Exception e)
                 {
-                        TrudeExportLogger.Instance.LogError(
-                            "revit column",
-                            e.Message,
-                            column.UniqueIdDS
-                        );
+                    TrudeExportLogger.Instance.LogError(
+                        "revit column",
+                        e.Message,
+                        column.UniqueIdDS
+                    );
                     int logUniqueID = column.AllFaceVertices == null ? column.Instances[0].UniqueId : column.UniqueIdDS;
+                    logger.Error("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Column: " + logUniqueID + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -651,6 +655,7 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    logger.Error("Exception in generating room labels for level: " + levelId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in generating room labels for level: " + levelId + "\nError is: " + e.Message + "\n");
 
                 }
@@ -703,6 +708,7 @@ namespace TrudeImporter
                         e.Message,
                         floor.UniqueId
                     );
+                    logger.Error("Exception in Importing Floor: " + floor.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Floor: " + floor.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -746,6 +752,7 @@ namespace TrudeImporter
                         e.Message,
                         slab.UniqueId
                     );
+                    logger.Error("Exception in Importing Slab: " + slab.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Slab: " + slab.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -775,6 +782,7 @@ namespace TrudeImporter
                         e.Message,
                         door.UniqueId
                     );
+                    logger.Error("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -804,6 +812,7 @@ namespace TrudeImporter
                         e.Message,
                         window.UniqueId
                     );
+                    logger.Error("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -832,6 +841,7 @@ namespace TrudeImporter
                         e.Message,
                         furniture.UniqueId
                     );
+                    logger.Error("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -876,6 +886,7 @@ namespace TrudeImporter
                         e.Message,
                         ceiling.UniqueId
                     );
+                    logger.Error("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Ceiling: " + ceiling.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -920,6 +931,7 @@ namespace TrudeImporter
                         e.Message,
                         mass.UniqueId
                     );
+                    logger.Error("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Mass:" + mass.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -964,6 +976,7 @@ namespace TrudeImporter
                     );
                     if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.RollBack();
                     if (GlobalVariables.StairsEditScope.IsActive) GlobalVariables.StairsEditScope.Cancel();
+                    logger.Error("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Staircase: " + staircase.UniqueId + "\nError is: " + e.Message + "\n");
                 }
             }
@@ -1005,6 +1018,7 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    logger.Error("Exception in Importing Missing Families: " + "\nError is: " + e.Message + "\n");
                     System.Diagnostics.Debug.WriteLine("Exception in Importing Missing Families: " + "\nError is: " + e.Message + "\n");
                 }
             }

@@ -12,10 +12,20 @@ namespace TrudeSerializer
 {
     public static class S3UploadHelper
     {
+        public static Action<float, string> action;
+        public static void SetProgressUpdate(Action<float,string> func)
+        {
+            action = func;
+        }
         public static async void Upload(Dictionary<string, string> jsonData, string floorkey)
         {
+            if (S3helper.OnUploadProgressUpdate != null) S3helper.OnUploadProgressUpdate = null;
+            S3helper.OnUploadProgressUpdate += action;
             await S3helper.UploadAndRedirectToSnaptrude(jsonData);
-            Application.Instance.FinishExportSuccess(floorkey);
+            if (ExportToSnaptrudeEEH.IsImportAborted())
+                Application.Instance.EmitAbortEvent();
+            else
+                Application.Instance.FinishExportSuccess(floorkey);
         }
     }
 }

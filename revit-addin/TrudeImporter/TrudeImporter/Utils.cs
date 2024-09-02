@@ -274,6 +274,24 @@ namespace TrudeImporter
                     return FailureProcessingResult.Continue;
                 foreach (FailureMessageAccessor fma in fmas)
                 {
+                    if (fma.GetSeverity() == FailureSeverity.Error)
+                    {
+                        try
+                        {
+                            TrudeExportLogger.Instance.LogError(
+                            GlobalVariables.Document.GetElement(fma.GetFailingElementIds().First()).Category.Name,
+                                fma.GetDescriptionText(),
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                                (int)fma.GetFailingElementIds().First().IntegerValue
+#else
+                                (int)fma.GetFailingElementIds().First().Value
+#endif
+                            );
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
                     if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
                     {
                         GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
