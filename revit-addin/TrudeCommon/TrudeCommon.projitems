@@ -19,8 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Logging\LogsConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Compressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Config.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\FileUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\PreSignedURLResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\S3helper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\URLsConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Util.cs" />
     <Compile Include="..\TrudeCommon\Utils\TrudeLocalAppData.cs" />

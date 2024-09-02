@@ -25,6 +25,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using TrudeCommon.Utils;
+using System.Text;
 
 namespace SnaptrudeManagerUI
 {
@@ -50,8 +52,12 @@ namespace SnaptrudeManagerUI
         public static Action OnDocumentClosed;
         public static Action OnDocumentChanged;
         public static Action OnRevitClosed;
+        public static Action OnUploadStart;
+        public static Action<string> OnUploadIssue;
 
         public static Process RevitProcess;
+
+        public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
 
         public static void RegisterProtocol()
         {
@@ -74,6 +80,8 @@ namespace SnaptrudeManagerUI
             RegisterProtocol();
             base.OnStartup(e);
             LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
+
+            FileUtils.Initialize();
 
             //WPFTODO: CHECKFORUPDATES
             var currentVersion = "4.0";
@@ -364,6 +372,11 @@ namespace SnaptrudeManagerUI
                                 logger.Info("Changed Revit instance.");
                             }
                             break;
+                        case TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE:
+                            {
+                                OnUploadStart?.Invoke();
+                            }
+                            break;
                     }
                 }
             }
@@ -407,6 +420,8 @@ namespace SnaptrudeManagerUI
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_SUCCESS);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_ABORTED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_EXPORT_TO_SNAPTRUDE_FAILED);
+
+            TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_REQUEST_UPLOAD_TO_SNAPTRUDE);
 
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_OPENED);
             TrudeEventSystem.Instance.SubscribeToEvent(TRUDE_EVENT.REVIT_PLUGIN_DOCUMENT_CLOSED);
