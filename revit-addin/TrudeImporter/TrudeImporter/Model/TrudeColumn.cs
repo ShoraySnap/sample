@@ -57,7 +57,7 @@ namespace TrudeImporter
 
             string baseDir = GlobalVariables.ForForge
                 ? "."
-                : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
+                : $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
             CreateFamilyTypeIfNotExist(familyName, shapeProperties, baseDir);
             CreateFamilyInstances(familyName, shapeProperties);

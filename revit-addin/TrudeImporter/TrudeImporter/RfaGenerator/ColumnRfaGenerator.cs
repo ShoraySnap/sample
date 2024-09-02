@@ -10,8 +10,8 @@ namespace TrudeImporter
 
     public class ColumnRfaGenerator
     {
-        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\Snaptrude\tmp\tmp_columns";
-        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\{Configs.CUSTOM_FAMILY_DIRECTORY}\tmp\tmp_columns";
+        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         static string TEMPLATE_FILE_NAME = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Column.rft";
 
         //const string TEMPLATE_FILE_NAME = "resourceFile/Metric Column.rft";

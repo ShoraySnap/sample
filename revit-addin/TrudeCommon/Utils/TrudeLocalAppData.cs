@@ -17,7 +17,7 @@ namespace TrudeCommon.Utils
 
         public static void StoreData(string data, string fileName)
         {
-            string snaptrudeManagerPath = "snaptrude-manager";
+            string snaptrudeManagerPath = "SnaptrudeManager";
             string filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 snaptrudeManagerPath,

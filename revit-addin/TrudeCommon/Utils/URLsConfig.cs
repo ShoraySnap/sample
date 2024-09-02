@@ -11,7 +11,7 @@ namespace TrudeCommon.Utils
 
         private static URLsConfig GetURLObject()
         {
-            string snaptrudeManagerPath = "snaptrude-manager";
+            string snaptrudeManagerPath = "SnaptrudeManager";
             string configFileName = "urls.json";
 
             string configPath = Path.Combine(

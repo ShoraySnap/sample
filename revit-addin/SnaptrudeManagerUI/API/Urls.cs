@@ -11,7 +11,7 @@ namespace SnaptrudeManagerUI.API
 {
     public static class Urls
     {
-        private static readonly string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "snaptrude-manager");
+        private static readonly string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SnaptrudeManager");
         private static readonly string fileName = "urls.json";
         private static readonly string filePath = Path.Combine(appDataPath, fileName);
         static Logger logger = LogManager.GetCurrentClassLogger();

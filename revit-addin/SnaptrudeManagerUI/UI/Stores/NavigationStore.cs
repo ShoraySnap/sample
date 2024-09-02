@@ -14,7 +14,7 @@ namespace SnaptrudeManagerUI.Stores
     {
         private static string filePath;
         private static Dictionary<string, string> data = new Dictionary<string, string>();
-        private static readonly string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "snaptrude-manager");
+        private static readonly string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SnaptrudeManager");
         static Logger logger = LogManager.GetCurrentClassLogger(); 
 
         private static readonly object padlock = new object();

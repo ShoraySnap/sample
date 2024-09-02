@@ -10,8 +10,8 @@
     xmlns:views="clr-namespace:SnaptrudeManagerUI.Views"
     xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
     Title="Snaptrude Manager"
-    Width="620"
-    Height="400"
+    Width="600"
+    Height="360"
     AllowsTransparency="True"
     Background="Transparent"
     FontSize="13"
@@ -29,19 +29,21 @@
         Height="320"
         Cursor="{StaticResource CustomCursor}"
         MouseDown="Window_MouseDown">
-        <Grid.Effect>
-            <DropShadowEffect
-                BlurRadius="40"
-                Direction="-90"
-                Opacity=".3"
-                RenderingBias="Quality"
-                ShadowDepth="8"
-                Color="Gray" />
-        </Grid.Effect>
         <Border
             Background="White"
+            BorderBrush="{StaticResource Colors/Neutral/300}"
+            BorderThickness="1"
             CornerRadius="10"
-            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
+            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="20"
+                    Direction="-90"
+                    Opacity=".5"
+                    ShadowDepth="10"
+                    Color="Black" />
+            </Border.Effect>
+        </Border>
         <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
             <Border Background="Black" CornerRadius="10" />
             <Border CornerRadius="10">
@@ -85,6 +87,20 @@
                         VerticalAlignment="Center"
                         FontFamily="{StaticResource Inter600}">
                         Snaptrude Manager
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Typography.StylisticAlternates" Value="1" />
+                                <Setter Property="FontFamily" Value="{DynamicResource Inter400}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ImageBackground}" Value="true">
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding WhiteBackground}" Value="true">
+                                        <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/900}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
                     </TextBlock>
                 </StackPanel>
                 <Grid Grid.Column="1" Margin="10,0">
@@ -116,7 +132,6 @@
                         Padding="8"
                         BorderBrush="WhiteSmoke"
                         BorderThickness="1"
-                        DockPanel.Dock="Right"
                         Visibility="{Binding LoginButtonVisible, Converter={StaticResource BoolToVisibility}}">
                         <Button.Template>
                             <ControlTemplate>
@@ -245,7 +260,7 @@
                                     </Grid>
                                     <Border.Style>
                                         <Style TargetType="{x:Type Border}">
-                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Background" Value="White" />
                                             <Style.Triggers>
                                                 <Trigger Property="Button.IsMouseOver" Value="true">
                                                     <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />

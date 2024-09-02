@@ -13,7 +13,7 @@ namespace TrudeCommon.Utils
 
         public static Config GetConfigObject()
         {
-            string snaptrudeManagerPath = "snaptrude-manager";
+            string snaptrudeManagerPath = "SnaptrudeManager";
             string configFileName = "config.json";
 
             string configPath = Path.Combine(

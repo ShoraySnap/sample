@@ -10,8 +10,8 @@ namespace TrudeImporter
     {
         static string documentsPath = GlobalVariables.ForForge
                 ? "."
-                : Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/" + Configs.CUSTOM_FAMILY_DIRECTORY;
-        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\Snaptrude\tmp\tmp_voids";
+                : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/" + Configs.CUSTOM_FAMILY_DIRECTORY;
+        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\{Configs.CUSTOM_FAMILY_DIRECTORY}\tmp\tmp_voids";
         //string TEMPLATE_FILE_NAME = documentsPath + "/" + Configs.CUSTOM_FAMILY_DIRECTORY + "/resourceFile/Metric Generic Model wall based.rft";
         string TEMPLATE_FILE_NAME = $"{documentsPath}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Generic Model.rft";
         public double height;
