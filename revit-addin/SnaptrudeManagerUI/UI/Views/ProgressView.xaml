@@ -72,9 +72,11 @@
                             <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
                             <Setter Property="HorizontalAlignment" Value="Left" />
                             <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCancelButtonVisible}" Value="False">
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                </DataTrigger>
                                 <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
                                     <Setter Property="Foreground" Value="White" />
-                                    <Setter Property="HorizontalAlignment" Value="Center" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -85,7 +87,7 @@
                     Command="{Binding CancelCommand}"
                     Content="Cancel"
                     Style="{StaticResource Button_Cancel}"
-                    Visibility="{Binding IsProgressValueVisible, Converter={StaticResource BoolToVisibility}}" />
+                    Visibility="{Binding IsCancelButtonVisible, Converter={StaticResource BoolToVisibility}}" />
             </Grid>
         </StackPanel>
         <TextBlock

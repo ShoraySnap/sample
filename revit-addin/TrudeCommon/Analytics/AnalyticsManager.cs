@@ -74,6 +74,14 @@ namespace TrudeCommon.Analytics
             TrudeLocalAppData.StoreData(serializedUploadData, filename);
         }
 
+        public static string SaveForUpload()
+        {
+            string fileName = FileUtils.ANALYTICS_FNAME;
+            var serializedUploadData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(uploadData));
+            FileUtils.SaveCommonTempFile(fileName, serializedUploadData);
+            return fileName;
+        }
+
         public static Identifier GetIdentifier()
         {
             return uploadData.identifier;

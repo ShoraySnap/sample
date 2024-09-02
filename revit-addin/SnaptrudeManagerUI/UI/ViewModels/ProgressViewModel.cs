@@ -15,6 +15,7 @@ using NLog;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using TrudeCommon.Utils;
+using SnaptrudeManagerUI.Stores;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -25,7 +26,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         [DllImport("user32.dll")]
         private static extern bool GetForegroundWindow(IntPtr hWnd);
-        
+
         static Logger logger = LogManager.GetCurrentClassLogger();
         public enum ProgressViewType
         {
@@ -47,6 +48,18 @@ namespace SnaptrudeManagerUI.ViewModels
             {
                 progressMessage = value;
                 OnPropertyChanged("ProgressMessage");
+            }
+        }
+
+        private bool isCancelButtonVisible = true;
+
+        public bool IsCancelButtonVisible
+        {
+            get { return isCancelButtonVisible; }
+            set
+            {
+                isCancelButtonVisible = value;
+                OnPropertyChanged("IsCancelButtonVisible");
             }
         }
 
@@ -92,7 +105,7 @@ namespace SnaptrudeManagerUI.ViewModels
         /// </summary>
         /// <param name="successNavigationService"></param>
         /// <param name="failureNavigationService"></param>
-        public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService)
+        public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService, bool retryUpload)
         {
             MainWindowViewModel.Instance.TopMost = false;
             SetForegroundWindow(App.RevitProcess.MainWindowHandle);
@@ -103,62 +116,98 @@ namespace SnaptrudeManagerUI.ViewModels
             FailureCommand = new NavigateCommand(failureNavigationService);
             BackHomeCommand = new NavigateCommand(backHomeNavigationService);
 
-            switch (progressType)
-            {
-                case ProgressViewType.ExportProjectNew:
-                    progressViewType = ProgressViewType.ExportProjectNew;
-                    StartProgressCommand = new RelayCommand(async (o) => await StartExportNewProject());
-                    progressMessage = "Export has started, please ensure Revit is not busy.";
-                    StartProgressCommand.Execute(null);
-                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
-                    break;
-                case ProgressViewType.ExportRFANew:
-                    progressViewType = ProgressViewType.ExportRFANew;
-                    StartProgressCommand = new RelayCommand(async (o) => await StartExportRFANew());
-                    progressMessage = "Export has started, please ensure Revit is not busy.";
-                    StartProgressCommand.Execute(null);
-                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
-                    break;
-                case ProgressViewType.ExportRFAExisting:
-                    progressViewType = ProgressViewType.ExportRFAExisting;
-                    StartProgressCommand = new RelayCommand(async (o) => await StartExportRFAExisting());
-                    progressMessage = "Export has started, please ensure Revit is not busy.";
-                    StartProgressCommand.Execute(null);
-                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
-                    break;
-                case ProgressViewType.Import:
-                    progressViewType = ProgressViewType.Import;
-                    progressMessage = "Import has started, please ensure Revit is not busy.";
-                    CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
-                    break;
-                case ProgressViewType.Update:
-                    progressViewType = ProgressViewType.Update;
-                    MainWindowViewModel.Instance.WhiteBackground = false;
-                    OnPropertyChanged(nameof(WhiteBackground));
-                    StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
-                    progressMessage = "Update in progress, please don’t close this window.";
-                    StartProgressCommand.Execute(null);
-                    break;
-                default:
-                    break;
-            }
-            //StartProgressCommand.Execute(null);
             App.OnProgressUpdate += UpdateProgress;
             App.OnAbort += Abort;
             App.OnFailure += OnFailure;
+            App.OnUploadStart += HideCancelButton;
+            App.OnUploadStart += StartUpload;
+            App.OnUploadIssue += ShowUploadFailure;
+
+            if (retryUpload)
+            {
+                progressValue = 60;
+                progressMessage = "Uploading to Snaptrude...";
+                App.OnUploadStart.Invoke();
+            }
+            else
+            {
+                switch (progressType)
+                {
+                    case ProgressViewType.ExportProjectNew:
+                        progressViewType = ProgressViewType.ExportProjectNew;
+                        StartProgressCommand = new RelayCommand(async (o) => await StartExportNewProject());
+                        progressMessage = "Export has started, please ensure Revit is not busy.";
+                        if (!retryUpload) StartProgressCommand.Execute(null);
+                        CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
+                        break;
+                    case ProgressViewType.ExportRFANew:
+                        progressViewType = ProgressViewType.ExportRFANew;
+                        StartProgressCommand = new RelayCommand(async (o) => await StartExportRFANew());
+                        progressMessage = "Export has started, please ensure Revit is not busy.";
+                        if (!retryUpload) StartProgressCommand.Execute(null);
+                        CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
+                        break;
+                    case ProgressViewType.ExportRFAExisting:
+                        progressViewType = ProgressViewType.ExportRFAExisting;
+                        StartProgressCommand = new RelayCommand(async (o) => await StartExportRFAExisting());
+                        progressMessage = "Export has started, please ensure Revit is not busy.";
+                        if (!retryUpload) StartProgressCommand.Execute(null);
+                        CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT)));
+                        break;
+                    case ProgressViewType.Import:
+                        progressViewType = ProgressViewType.Import;
+                        progressMessage = "Import has started, please ensure Revit is not busy.";
+                        CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
+                        break;
+                    case ProgressViewType.Update:
+                        progressViewType = ProgressViewType.Update;
+                        MainWindowViewModel.Instance.WhiteBackground = false;
+                        OnPropertyChanged(nameof(WhiteBackground));
+                        StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
+                        progressMessage = "Update in progress, please don’t close this window.";
+                        StartProgressCommand.Execute(null);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
-        public void Cancel(TRUDE_EVENT trudeEvent)
+        private void StartUpload()
         {
-            S3helper.abortFlag = true;
+            Uploader.Upload(progressViewType);
+        }
+
+        private void ShowUploadFailure(string errorMessage)
+        {
+            App.RetryUploadProgressType = progressViewType;
+            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateUploadIssueViewModel(errorMessage);
+            App.OnProgressUpdate -= UpdateProgress;
+            App.OnAbort -= Abort;
+            App.OnFailure -= OnFailure;
+            App.OnUploadStart -= HideCancelButton;
+            App.OnUploadStart -= StartUpload;
+            App.OnUploadIssue -= ShowUploadFailure;
+        }
+
+        private void HideCancelButton()
+        {
+            IsCancelButtonVisible = false;
+        }
+
+        public async void Cancel(TRUDE_EVENT trudeEvent)
+        {
+            IsCancelButtonVisible = false;
+            Uploader.abortFlag = true;
             TrudeEventEmitter.EmitEvent(trudeEvent);
-                UpdateProgress(0, "Rolling back changes, this could take some time...");
-                IsProgressBarIndeterminate = true;
-            }
+            UpdateProgress(0, "Rolling back changes, this could take some time...");
+            IsProgressBarIndeterminate = true;
+            
+        }
 
         public void UpdateProgress(int Value, string message)
         {
-            App.Current.MainWindow.Focus();
+            //App.Current.MainWindow.Focus();
             ProgressValue = Value;
             ProgressMessage = message;
         }
@@ -170,25 +219,22 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void OnFailure()
         {
+            App.OnProgressUpdate -= UpdateProgress;
+            App.OnAbort -= Abort;
+            App.OnFailure -= OnFailure;
+            App.OnUploadStart -= HideCancelButton;
+            App.OnUploadStart -= StartUpload;
+            App.OnUploadIssue -= ShowUploadFailure;
             FailureCommand.Execute(new object());
         }
 
         public void Abort()
         {
-                BackHomeCommand.Execute(new object());
+            BackHomeCommand.Execute(new object());
         }
 
         public async Task StartExportNewProject()
         {
-            string floorkey = await SnaptrudeRepo.CreateProjectAsync();
-            if (string.IsNullOrEmpty(floorkey))
-            {
-                logger.Error("Project for rvt could not be created!"); //TODO: UX for handling project creation failure
-                Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
-            }
-            Store.Set("floorkey", floorkey);
-            Store.Save();
-
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
         }
 
@@ -199,15 +245,6 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public async Task StartExportRFANew()
         {
-            string floorkey = await SnaptrudeRepo.CreateProjectAsync();
-            if (string.IsNullOrEmpty(floorkey))
-            {
-                logger.Error("Project for RFA could not be created!"); //TODO: UX for handling project creation failure
-                Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_EXPORT);
-            }
-            Store.Set("floorkey", floorkey);
-            Store.Save();
-
             TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.MANAGER_UI_REQ_EXPORT_TO_SNAPTRUDE, "", App.TransferManager);
         }
 

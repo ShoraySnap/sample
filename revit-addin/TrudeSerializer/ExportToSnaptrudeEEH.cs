@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TrudeCommon.Analytics;
 using TrudeCommon.Utils;
+using TrudeImporter;
 using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
 using TrudeSerializer.Importer;
@@ -186,6 +187,8 @@ namespace TrudeSerializer
             processedElements = 0;
             elementsDone = new Dictionary<ElementId, bool>();
 
+            List<string> filesToUpload = new List<string>();
+
             try
             {
                 View3D view = Get3dView(doc);
@@ -199,6 +202,7 @@ namespace TrudeSerializer
                 SerializedTrudeData serializedData = ExportViewUsingCustomExporter(doc, view);
                 if (IsImportAborted())
                 {
+                    ComponentHandler.OnCountOutput -= CountElementAndUpdateProgress;
                     return Result.Cancelled;
                 }
 
@@ -232,15 +236,13 @@ namespace TrudeSerializer
                     return Result.Cancelled;
                 }
 
-                Application.Instance.UpdateProgressForExport(80, "Uploading Serialized Data...");
                 try
                 {
                     floorkey = Config.GetConfigObject().floorKey;
                     if(!testMode)
                     {
-                        S3UploadHelper.SetProgressUpdate(UploadProgressUpdate);
-                        S3UploadHelper.Upload(serializedData.GetSerializedObject(), floorkey);
-                        MaterialUploader.Instance.Upload();
+                        S3UploadHelper.SaveForUpload(serializedData.GetSerializedObject());
+                        MaterialUploader.Instance.SaveForUpload();
                     }
                     logger.UploadDone(true);
 
@@ -248,7 +250,6 @@ namespace TrudeSerializer
                 catch(Exception ex)
                 {
                     logger.UploadDone(false);
-                    //TaskDialog.Show("catch", ex.ToString());
                     Application.Instance.ExportFailure();
                     return Result.Failed;
                 }
@@ -276,8 +277,8 @@ namespace TrudeSerializer
 
                 if (!testMode)
                 {
-                    S3helper.UploadLog(logger.GetSerializedObject(), processId);
-                    S3helper.UploadAnalytics(processId, "revitImport");
+                    logger.SaveForUpload();
+                    AnalyticsManager.SaveForUpload();
                 }
                 isDone = true;
                 if (IsImportAborted())
@@ -286,6 +287,8 @@ namespace TrudeSerializer
                 }
                 else
                 {
+                    Application.Instance.UpdateProgressForExport(60, "Uploading Serialized Data...");
+                    Application.Instance.EmitRequestUploads(processId);
                 }
             }
         }
@@ -294,11 +297,9 @@ namespace TrudeSerializer
         {
             if (Application.Instance.AbortExportFlag)
             {
-                S3helper.abortFlag = true;
                 return true;
             }
 
-            S3helper.abortFlag = false;
             return false;
         }
 

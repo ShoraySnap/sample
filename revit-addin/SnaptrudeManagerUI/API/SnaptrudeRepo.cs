@@ -86,5 +86,20 @@ namespace SnaptrudeManagerUI.API
                 return "";
             }
         }
+
+        public static async Task<bool> DeleteProjectAsync()
+        {
+            try
+            {
+                var floorkey = Store.Get("floorkey").ToString();
+                var response = await SnaptrudeService.DeleteProjectAsync(floorkey);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                return false;
+            }
+        }
     }
 }
