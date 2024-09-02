@@ -178,7 +178,7 @@ if ($branch -eq "master") {
     
     Run-InnoSetup -name "Prod" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $prodUrlPath -includeDownloadSection "true"
     Run-InnoSetup -name "Wework" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $weworkUrlPath -includeDownloadSection "true"
-    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "false"
+    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $prodUrlPath -includeDownloadSection "false"
 
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-WeWork.exe" -certPath $certPath -plainPwd $plainPwd
