@@ -10,7 +10,7 @@ namespace TrudeCommon.Utils
     public static class FileUtils
     {
         static readonly string FOLDER_NAME =
-            $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\snaptrude-manager";
+            $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SnaptrudeManager";
 
         static readonly string TEMP_PATH =
             $"{FOLDER_NAME}\\temp\\";
