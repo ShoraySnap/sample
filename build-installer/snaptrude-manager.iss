@@ -302,6 +302,8 @@ begin
               DownloadPage.Add(FileToDownload, TargetZip, '');
               try
                 DownloadPage.Download;
+                DownloadPage.ProgressBar.Style := npbstMarquee;
+                DownloadPage.SetProgress(90,100);
                 DownloadPage.SetText('Extracting ' + InstalledVersions[I] + ' RFAs...', '');
                 WizardForm.Update;
                 ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
