@@ -30,14 +30,6 @@ namespace TrudeImporter
         ISO_A4, ISO_A3, ISO_A2, ISO_A1, ISO_A0,
     }
 
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum FontSizeEnum
-    {
-        S,
-        M,
-        L,
-    }
-
     public class OrthoCameraSettings
     {
         [JsonProperty("bottomLeft")]
@@ -51,9 +43,6 @@ namespace TrudeImporter
     {
         [JsonProperty("selected")]
         public List<LabelsEnum> Selected { get; set; }
-
-        [JsonProperty("fontSize")]
-        public FontSizeEnum FontSize { get; set; }
     }
 
     public class SheetSettings
