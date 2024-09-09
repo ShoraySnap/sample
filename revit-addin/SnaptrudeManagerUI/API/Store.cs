@@ -82,6 +82,7 @@ namespace SnaptrudeManagerUI.API
         public static void Unset(string key)
         {
             data.Remove(key);
+            Save();
         }
 
         public static void SetAllAndSave(Dictionary<string, string> dataObject)

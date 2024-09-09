@@ -72,10 +72,20 @@ namespace SnaptrudeManagerUI.API
                                 return await base.SendAsync(request, cancellationToken);
                             }
                         }
+                        else
+                        {
+                            logger.Error("Error refreshing token");
+                            Store.Unset("user");
+                            Store.Unset("refreshToken");
+                            return new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable)
+                            {
+                                Content = new StringContent($"An unexpected error occurred: Error refreshing token")
+                            };
+                        }
                     }
-                    else if (result.ContainsKey("error") && result["error"] == 2)
+                    else if (result.ContainsKey("error") && (result["error"] == 2 || result["error"] == 1))
                     {
-                        // Handle specific error
+                        logger.Error(result["message"]);
                         Store.Unset("user");
                         Store.Unset("refreshToken");
                     }
