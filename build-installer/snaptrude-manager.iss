@@ -77,6 +77,33 @@ begin
   end;
 end;
 
+function IsRevitOrSnaptrudeManagerRunning(): Boolean;
+var
+  ResultCode: Integer;
+  OutputFilePath: string;
+  Output: TStringList;
+begin
+  OutputFilePath := ExpandConstant('{tmp}\output.txt');
+  Output := TStringList.Create();
+  try
+    Exec('cmd.exe', '/C tasklist | findstr /I "Revit.exe SnaptrudeManagerUI.exe snaptrude-manager.exe" > "' + OutputFilePath + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    if (ResultCode = 0) and FileExists(OutputFilePath) then
+    begin
+      Output.LoadFromFile(OutputFilePath);
+      if (Pos('Revit.exe', Output.Text) > 0) or (Pos('SnaptrudeManagerUI.exe', Output.Text) > 0) or (Pos('snaptrude-manager.exe', Output.Text) > 0) then
+      begin
+        Result := True;
+        Exit;
+      end;
+    end;
+    Result := False;
+  finally
+    Output.Free;
+    if FileExists(OutputFilePath) then
+      DeleteFile(OutputFilePath);
+  end;
+end;
+
 procedure DeleteFolderExcept(Dir: string; ExcludeFilesAndFolders: array of string);
 var
   FindRec: TFindRec;
@@ -118,6 +145,17 @@ var
 begin
   if CurStep = ssInstall then
   begin
+    while IsRevitOrSnaptrudeManagerRunning do
+      begin
+        case MsgBox('To proceed, please ensure that all instances of Revit and Snaptrude Manager are closed.', mbCriticalError, MB_RETRYCANCEL) of
+          IDRETRY:
+            begin
+              if not IsRevitOrSnaptrudeManagerRunning then
+                Break;
+            end;
+          IDCANCEL:Abort;
+        end;
+      end;
     if ShouldRunUninstaller then
       begin
         WizardForm.StatusLabel.Caption := 'Uninstalling previous version...';
@@ -311,32 +349,7 @@ begin
   end;
 end;
 
-function IsRevitOrSnaptrudeManagerRunning(): Boolean;
-var
-  ResultCode: Integer;
-  OutputFilePath: string;
-  Output: TStringList;
-begin
-  OutputFilePath := ExpandConstant('{tmp}\output.txt');
-  Output := TStringList.Create();
-  try
-    Exec('cmd.exe', '/C tasklist | findstr /I "Revit.exe SnaptrudeManagerUI.exe snaptrude-manager.exe" > "' + OutputFilePath + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-    if (ResultCode = 0) and FileExists(OutputFilePath) then
-    begin
-      Output.LoadFromFile(OutputFilePath);
-      if (Pos('Revit.exe', Output.Text) > 0) or (Pos('SnaptrudeManagerUI.exe', Output.Text) > 0) or (Pos('snaptrude-manager.exe', Output.Text) > 0) then
-      begin
-        Result := True;
-        Exit;
-      end;
-    end;
-    Result := False;
-  finally
-    Output.Free;
-    if FileExists(OutputFilePath) then
-      DeleteFile(OutputFilePath);
-  end;
-end;
+
 
 var
   UninstallCheckBoxPage: TNewNotebookPage;
