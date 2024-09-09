@@ -90,7 +90,7 @@ namespace SnaptrudeManagerUI.ViewModels
             OnPropertyChanged(nameof(ViewIsNot3D));
             OnPropertyChanged(nameof(ExportIsEnabled));
             OnPropertyChanged(nameof(ExportIsDisabled));
-            OnPropertyChanged(nameof(InfoMessage));
+            updateInfoMessage();
         }
 
         private void BeginExport(object param, NavigationService exportNavigationService)
@@ -150,7 +150,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     }
                     addBreadcrumbs = true;
                     IsLoaderVisible = false;
-                    updateInfoMessage(parentFolder.Name);
+                    updateInfoMessage();
                 }
                 SetSelectedFolder();
             }
@@ -237,18 +237,14 @@ namespace SnaptrudeManagerUI.ViewModels
             Dispose(false);
         }
 
-        private void updateInfoMessage(string folder_name)
+        private void updateInfoMessage()
         {
             InfoMessage =
                 !MainWindowViewModel.Instance.IsView3D ?
                 "Switch to 3D view to enable export" :
-                Breadcrumb.Count == 2 ?
-                "Workspace: " + Breadcrumb[1].Name :
-                Breadcrumb.Count == 3 ?
-                "Workspace: " + Breadcrumb[1].Name + " / " + folder_name :
-                Breadcrumb.Count > 3 ?
-                "Workspace: " + Breadcrumb[1].Name + " / .. / " + folder_name :
-                "Select workspace to begin export";
+                Breadcrumb.Count < 2 ?
+                "Select workspace to begin export":
+                "";
         }
     }
 }
