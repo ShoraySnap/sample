@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using NLog;
 using SnaptrudeManagerUI.ViewModels;
+using Splitio.Services.Client.Classes;
+using Splitio.Services.Client.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +24,7 @@ namespace SnaptrudeManagerUI.API
         public Dictionary<string, string> fields { get; set; }
     }
 
-    internal class Uploader
+    internal static class Uploader
     {
         static Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -30,6 +32,46 @@ namespace SnaptrudeManagerUI.API
         private static readonly string GET_PRESIGNED_URLS = "/s3/presigned-urls/upload/";
 
         public static volatile bool abortFlag = false;
+
+        private static ISplitClient splitSdk;
+        
+        static Uploader()
+        {
+            CreateSplitIOClient();
+        }
+
+        public static void CreateSplitIOClient()
+        {
+            var config = new ConfigurationOptions();
+            var factory = new SplitFactory("pmmobn1nrap91kg11hub9kqu7rv0j536rjd9", config);
+            splitSdk = factory.Client();
+            try
+            {
+                splitSdk.BlockUntilReady(10000);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+            }
+        }
+        public static bool IsExportAnalyticsEnabled()
+        {
+            var treatment = splitSdk.GetTreatment("namrata", "export_analytics");
+            if (treatment == "on")
+            {
+                return true;
+            }
+            else if(treatment == "off")
+            {
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
         public static async void Upload(ProgressViewType progressViewType)
         {
             abortFlag = false;
