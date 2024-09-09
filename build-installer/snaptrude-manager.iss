@@ -489,6 +489,7 @@ Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2022\Revit2Snaptrude.add
 Type: files; Name: "{autoappdata}\Autodesk\Revit\Addins\2023\Revit2Snaptrude.addin"; 
 Type: filesandordirs; Name: "{commonappdata}\Snaptrude";
 Type: filesandordirs; Name: "{localappdata}\snaptrude_manager";
+Type: filesandordirs; Name: "{localappdata}\snaptrude-manager";
 Type: filesandordirs; Name: "{commonappdata}\snaptrude-manager";
 
 [UninstallDelete]
