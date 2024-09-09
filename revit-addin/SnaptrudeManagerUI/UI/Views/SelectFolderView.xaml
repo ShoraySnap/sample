@@ -51,7 +51,7 @@
                                     CommandParameter="{Binding}"
                                     Content="{Binding Name}"
                                     IsEnabled="{Binding DataContext.IsBreadcrumbEnabled, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
-                                    Style="{DynamicResource Button_6}" />
+                                    Style="{DynamicResource BreadCrumbButton}" />
                             </StackPanel>
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
