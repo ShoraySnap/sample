@@ -335,10 +335,27 @@ begin
               except
                 if DownloadPage.AbortedByUser then
                   Log('Aborted by user.')
+                else if GetExceptionMessage = 'Error sending data: (12007) The server name or address could not be resolved' then
+                begin
+                  Log('No internet connection');
+                  MsgBox('Error: It seems like you are not connected to the internet. Please check your network settings and try again.', mbCriticalError, MB_OK);
+                end
+                else if GetExceptionMessage = 'Error reading data: (12030) The connection with the server was terminated abnormally' then
+                begin
+                  Log('No internet connection');
+                  MsgBox('Error: Lost Internet Connection. Please check your network settings and try again.', mbCriticalError, MB_OK);
+                end
+                else if GetExceptionMessage = 'Error reading data: (12002) The operation timed out' then
+                begin
+                  Log('No internet connection');
+                  MsgBox('Error: Lost Internet Connection. Please check your network settings and try again.', mbCriticalError, MB_OK);
+                end
                 else
-                  SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+                begin
+                  Log('An unknown error occurred.');
+                  SuppressibleMsgBox('An unknown error occurred during the download: ' + AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+                end;
                 Result := False;
-                Exit;
               end;
             end;
         finally
