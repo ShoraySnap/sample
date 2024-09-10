@@ -11,7 +11,6 @@
 #define Base "..\build-installer"
 #define BaseRevitAddinFiles Base + "\revit-addin-files"       
 #define RevitAddinDllPath "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
-#define UIBuildPath "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 #define BaseOut Base + "\out"
 
 [Setup]

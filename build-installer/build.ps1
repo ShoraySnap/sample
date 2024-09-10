@@ -20,6 +20,11 @@ $configurations = @("2019", "2020", "2021", "2022", "2023", "2024", "2025")
 # Configuration for the extra project
 $extraConfig = "Debug"
 
+$branch = & git rev-parse --abbrev-ref HEAD
+if ($branch -eq "master") {
+    $extraConfig = "Release"
+}
+
 # Function to clear the line
 function Clear-Line {
     Write-Host "`r$( ' ' * (Get-Host).UI.RawUI.WindowSize.Width )`r" -NoNewline
@@ -97,9 +102,11 @@ foreach ($config in $configurations) {
 Write-Host "Compilation process completed for all projects." -ForegroundColor Green
 
 # Additional post-build tasks
-$branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
 $uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
+if ($branch -eq "master") {
+    $uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Release\net48"
+}
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 $version = -join($branch, "_", $date, "_", $version_number)
@@ -148,7 +155,7 @@ function Run-InnoSetup {
         $outputBaseFileName += "-WeWork"
     }
     Write-Host "Creating $name installer ..." -NoNewline
-    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName -quiet
+    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath -quiet
     if ($LASTEXITCODE -eq 0) {
         Clear-Line
         Write-Host "Creating $name installer - Done" -ForegroundColor Green
