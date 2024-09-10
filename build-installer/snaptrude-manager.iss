@@ -372,6 +372,11 @@ begin
                   Log('No internet connection');
                   MsgBox('Error: Lost Internet Connection. Please check your network settings and try again.', mbCriticalError, MB_OK);
                 end
+                else if GetExceptionMessage = 'Stream write error' then
+                begin
+                  Log('No internet connection');
+                  MsgBox('Error: Not enough disk space. Please clean some space to install Snaptrude Manager.', mbCriticalError, MB_OK);
+                end
                 else
                 begin
                   Log('An unknown error occurred.');
