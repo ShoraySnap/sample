@@ -179,7 +179,9 @@ if ($branch -eq "master") {
         Sign-File -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -plainPwd $plainPwd
     }
 
-    Sign-File -filePath "$uiRelativePath\SnaptrudeManagerUI.exe" -certPath $certPath -plainPwd $plainPwd
+    Get-ChildItem -Path $uiRelativePath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
+    	Sign-File -filePath $_.FullName -certPath $certPath -plainPwd $plainPwd
+    }
 
     $version = $version_number
     
