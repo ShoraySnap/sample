@@ -31,7 +31,7 @@
                 Direction="-90"
                 RenderingBias="Quality"
                 ShadowDepth="2"
-                Color="LightGray" />
+                Color="Black" />
         </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
