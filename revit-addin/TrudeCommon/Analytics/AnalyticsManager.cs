@@ -100,10 +100,6 @@ namespace TrudeCommon.Analytics
                 return;
             }
 
-            var analyticsData = FileUtils.GetCommonTempFile(FileUtils.ANALYTICS_FNAME);
-            var aDataStr = Encoding.UTF8.GetString(analyticsData);
-            uploadData = JsonConvert.DeserializeObject<UploadData>(aDataStr);
-
             string url = "https://snaptrudemanageranalytics-977aea40ef93.herokuapp.com/metrics/revitExport";
             var config = Config.GetConfigObject();
 

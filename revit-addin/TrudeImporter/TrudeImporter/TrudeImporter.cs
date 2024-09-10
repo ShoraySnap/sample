@@ -115,7 +115,8 @@ namespace TrudeImporter
                 AnalyticsManager.SetIdentifer(identifier.email, config.userId, identifier.floorkey, identifier.units, identifier.env, hash, version);
                 AnalyticsManager.SetData(TrudeExportLogger.Instance.GetSerializedObject());
                 AnalyticsManager.Save("export_analytics.json");
-                AnalyticsManager.SaveForUpload();
+
+                AnalyticsManager.CommitExportDataToAPI();
             }
             else
             {

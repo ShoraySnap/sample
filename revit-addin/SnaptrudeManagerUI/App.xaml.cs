@@ -27,7 +27,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using TrudeCommon.Utils;
 using System.Text;
-using TrudeCommon.Analytics;
 
 namespace SnaptrudeManagerUI
 {
@@ -331,8 +330,6 @@ namespace SnaptrudeManagerUI
                         case TRUDE_EVENT.REVIT_PLUGIN_IMPORT_TO_REVIT_SUCCESS:
                             {
                                 logger.Info("Import to revit finished!");
-                                if (Uploader.IsExportAnalyticsEnabled())
-                                    await AnalyticsManager.CommitExportDataToAPI();
                                 MainWindowViewModel.Instance.ProgressViewModel.FinishImportToRevit();
                             }
                             break;
