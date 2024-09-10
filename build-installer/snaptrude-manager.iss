@@ -502,6 +502,7 @@ Type: filesandordirs; Name: "{userappdata}\SnaptrudeManager\resourceFile";
 [Files]
 Source: "{#UrlPath}"; DestDir: "{commonappdata}\SnaptrudeManager"; DestName: "urls.json"; Flags: ignoreversion;
 Source: "{#UIBuildPath}\SnaptrudeManagerUI.exe"; DestDir: "{commonappdata}\SnaptrudeManager\UI"; Flags: ignoreversion;
+Source: "{#UIBuildPath}\*.dll"; DestDir: "{commonappdata}\SnaptrudeManager\UI"; Flags: ignoreversion;
 
 ;2019
 Source: "{#RevitAddinDllPath}\2019\*.dll"; DestDir: "{commonappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019', false);
