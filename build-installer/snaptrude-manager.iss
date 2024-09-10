@@ -414,6 +414,7 @@ end;
 procedure UninstallNextButtonClick(Sender: TObject);
 begin
   UpdateUninstallWizard;
+  UninstallNextButton.Visible := False;
 end;
 
 var 
