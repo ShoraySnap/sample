@@ -159,17 +159,6 @@ var
 begin
   if CurStep = ssInstall then
   begin
-    while IsRevitOrSnaptrudeManagerRunning do
-      begin
-        case MsgBox('To proceed, please ensure that all instances of Revit and Snaptrude Manager are closed.', mbCriticalError, MB_RETRYCANCEL) of
-          IDRETRY:
-            begin
-              if not IsRevitOrSnaptrudeManagerRunning then
-                Break;
-            end;
-          IDCANCEL:Abort;
-        end;
-      end;
     if ShouldRunUninstaller then
       begin
         WizardForm.StatusLabel.Caption := 'Uninstalling previous version...';
@@ -245,6 +234,17 @@ var
   ShowMessageStr: String;
   I: Integer;
 begin
+    while IsRevitOrSnaptrudeManagerRunning do
+      begin
+        case MsgBox('To proceed, please ensure that all instances of Revit and Snaptrude Manager are closed.', mbCriticalError, MB_RETRYCANCEL) of
+          IDRETRY:
+            begin
+              if not IsRevitOrSnaptrudeManagerRunning then
+                Break;
+            end;
+          IDCANCEL:Abort;
+        end;
+      end;
   IncludeDownloadSectionStr := ExpandConstant('{#IncludeDownloadSection}');
   IncludeDownloadSection := CompareText(IncludeDownloadSectionStr, 'true') = 0;
   if IncludeDownloadSection then
