@@ -353,7 +353,10 @@ begin
                 ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
               except
                 if DownloadPage.AbortedByUser then
-                  Log('Aborted by user.')
+                begin
+                  Log('Aborted by user.');
+                  Abort;
+                end
                 else if GetExceptionMessage = 'Error sending data: (12007) The server name or address could not be resolved' then
                 begin
                   Log('No internet connection');
