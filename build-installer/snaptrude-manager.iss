@@ -103,6 +103,21 @@ begin
   end;
 end;
 
+procedure ClearRFAFolders;
+var
+  Year: Integer;
+  FolderPath: String;
+begin
+  for Year := 2019 to 2025 do
+  begin
+    FolderPath := ExpandConstant('{tmp}\') + IntToStr(Year);
+    if DirExists(FolderPath) then
+    begin
+      DelTree(FolderPath, True, True, True);
+    end;
+  end;
+end;
+
 procedure DeleteFolderExcept(Dir: string; ExcludeFilesAndFolders: array of string);
 var
   FindRec: TFindRec;
@@ -172,6 +187,10 @@ begin
     Excludes[2] := 'logs';
 
     DeleteFolderExcept(ExpandConstant('{userappdata}\snaptrude-manager'), Excludes);
+  end
+  else if CurStep = ssPostInstall then
+  begin
+    ClearRFAFolders;
   end;
 end;
 
@@ -277,7 +296,7 @@ begin
     SrcFldr := shellobj.NameSpace(ZipFileV);
     DestFldr := shellobj.NameSpace(TargetFldrV);
     shellfldritems := SrcFldr.Items;
-    noUIOptions := 4;
+    noUIOptions := 20;
     DestFldr.CopyHere(shellfldritems, noUIOptions);  
   end;
 end;
@@ -314,6 +333,7 @@ begin
       begin
         DownloadPage.Clear;
         DownloadPage.Show;
+        ClearRFAFolders;
         try
           for I := 0 to InstalledVersions.Count - 1 do
             if CheckListBoxPage.Values[I] then
