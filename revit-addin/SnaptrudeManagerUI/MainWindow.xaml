@@ -29,31 +29,29 @@
         Height="320"
         Cursor="{StaticResource CustomCursor}"
         MouseDown="Window_MouseDown">
-        <Border
-            Background="White"
-            BorderBrush="{StaticResource Colors/Neutral/300}"
-            BorderThickness="1"
-            CornerRadius="10"
-            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}">
-            <Border.Effect>
+        <Grid>
+            <Grid.Effect>
                 <DropShadowEffect
                     BlurRadius="20"
                     Direction="-90"
-                    Opacity=".5"
-                    ShadowDepth="10"
+                    Opacity=".3"
+                    ShadowDepth="8"
                     Color="Black" />
-            </Border.Effect>
-        </Border>
-        <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
-            <Border Background="Black" CornerRadius="10" />
-            <Border CornerRadius="10">
-                <Border.Background>
-                    <ImageBrush
-                        ImageSource="/SnaptrudeManagerUI;component/UI/Images/background.png"
-                        Opacity="1"
-                        Stretch="Fill" />
-                </Border.Background>
-            </Border>
+            </Grid.Effect>
+            <Border
+                Background="White"
+                BorderBrush="{StaticResource Colors/Neutral/300}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
+            <Grid d:Visibility="Hidden" Visibility="{Binding ImageBackground, Converter={StaticResource BoolToVisibility}}">
+                <Border Background="Black" CornerRadius="10" />
+                <Border CornerRadius="10">
+                    <Border.Background>
+                        <ImageBrush ImageSource="/SnaptrudeManagerUI;component/UI/Images/background.png" Stretch="Fill" />
+                    </Border.Background>
+                </Border>
+            </Grid>
         </Grid>
         <Grid>
             <Grid.RowDefinitions>
