@@ -92,7 +92,7 @@ namespace SnaptrudeManagerUI.API
             }
             catch (Exception ex)
             {
-                ErrorHandler.HandleException(ex);
+                ErrorHandler.HandleException(ex, App.OnUploadIssue);
                 try
                 {
                     if (progressViewType == ProgressViewType.ExportProjectNew || progressViewType == ProgressViewType.ExportRFANew)
@@ -196,6 +196,14 @@ namespace SnaptrudeManagerUI.API
             request.Content = content;
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
+
+            var responseData = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
+            if (result.ContainsKey("error") && result["message"] == "Invalid Access Token.")
+            {
+                throw new InvalidTokenException("Invalid Access Token");
+            }
+
             return response;
         }
 

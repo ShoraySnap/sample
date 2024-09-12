@@ -9,6 +9,7 @@ using NLog;
 using System.Windows.Data;
 using System.Collections.Generic;
 using System;
+using SnaptrudeManagerUI.Stores;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -23,7 +24,6 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand OpenFolderCommand { get; private set; }
         public ICommand NavigateToFolderCommand { get; private set; }
         public ICommand BackCommand { get; private set; }
-        public ICommand TryAgainCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
 
         private string team_id = "";
@@ -64,11 +64,10 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private FolderViewModel AllWorkspacesViewModel = new FolderViewModel(new Folder("-1", "All Workspaces", Constants.WorkspaceType.Top, "-1"));
 
-        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService, NavigationService tryAgainNavigationService)
+        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService)
         {
             BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportNavigationService); });
             BackCommand = new NavigateCommand(backNavigationService);
-            TryAgainCommand = new NavigateCommand(tryAgainNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             CurrentPathFoldersView = new ListCollectionView(CurrentPathFolders);
             CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.FolderType), ListSortDirection.Ascending));
@@ -79,9 +78,16 @@ namespace SnaptrudeManagerUI.ViewModels
             
             App.OnActivateView2D += SetExportEnablement;
             App.OnActivateView3D += SetExportEnablement;
+            App.OnSelectFolderIssue += ShowSelectFolderIssue;
             // Initialize with root folders
             LoadRootFolders();
             SetExportEnablement();
+        }
+
+        private void ShowSelectFolderIssue(string errorMessage)
+        {
+            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateSelectFolderWarningViewModel(errorMessage);
+            Dispose();
         }
 
         private void SetExportEnablement()
@@ -161,7 +167,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     logger.Error(parentFolder.Id + " " + parentFolder.Name + " " + parentFolder.FolderType.ToString() + " " + parentFolder.TeamId);
                 }
                 logger.Error(ex.Message);
-                TryAgainCommand.Execute(null);
+                ErrorHandler.HandleException(ex, App.OnSelectFolderIssue);
             }
         }
 
@@ -231,6 +237,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             App.OnActivateView2D -= SetExportEnablement;
             App.OnActivateView3D -= SetExportEnablement;
+            App.OnSelectFolderIssue -= ShowSelectFolderIssue;
         }
         ~SelectFolderViewModel()
         {

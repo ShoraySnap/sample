@@ -14,6 +14,8 @@ using System.Text.RegularExpressions;
 using System.Security.Policy;
 using TrudeCommon.Utils;
 using Newtonsoft.Json;
+using NLog;
+using SnaptrudeManagerUI.Stores;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -27,12 +29,14 @@ namespace SnaptrudeManagerUI.ViewModels
 
     public class EnterProjectUrlViewModel : ViewModelBase
     {
-        private bool disposed = false; 
+        private bool disposed = false;
         public ICommand BackCommand { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
         public ICommand ClearURLCommand { get; private set; }
 
         private URLValidationStatus requestStatus = URLValidationStatus.None;
+
+        static Logger logger = LogManager.GetCurrentClassLogger();
 
         public URLValidationStatus RequestStatus
         {
@@ -91,47 +95,56 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private async Task ValidateURL()
         {
-            //WPFTODO: UPDATE THE VALUE 10
-            if (uRL == "")
+            try
             {
-                await Task.Delay(50);
-                RequestStatus = URLValidationStatus.None;
-            }
-            else if (!ValidateUrlWithRegex(uRL))
-            {
-                RequestStatus = URLValidationStatus.Validating;
-                await Task.Delay(200);
-                ErrorMessage = "Invalid URL";
-                RequestStatus = URLValidationStatus.Error;
-            }
-            else
-            {
-                RequestStatus = URLValidationStatus.Validating;
-                string _floorkey = extractFloorkey(uRL);
-                var response = await SnaptrudeRepo.ValidateURLAsync(_floorkey);
-                if (response != null)
+
+                //WPFTODO: UPDATE THE VALUE 10
+                if (uRL == "")
                 {
-                    if (response.Access)
-                    {
-                        RequestStatus = URLValidationStatus.Validated;
-                        var presignedUrlResponse = await Uploader.GetPresignedURL("media/" + response.ImagePath, Config.GetConfigObject());
-                        var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
-                        PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
-                        Image = new Uri(presignedURL.url + presignedURL.fields["key"]);
-                        ProjectName = response.ProjectName;
-                        floorkey = _floorkey;
-                    }
-                    else
-                    {
-                        ErrorMessage = response.Message;
-                        RequestStatus = URLValidationStatus.Error;
-                    }
+                    await Task.Delay(50);
+                    RequestStatus = URLValidationStatus.None;
+                }
+                else if (!ValidateUrlWithRegex(uRL))
+                {
+                    RequestStatus = URLValidationStatus.Validating;
+                    await Task.Delay(200);
+                    ErrorMessage = "Invalid URL";
+                    RequestStatus = URLValidationStatus.Error;
                 }
                 else
                 {
-                    ErrorMessage = "Network error, try again.";
-                    RequestStatus = URLValidationStatus.Error;
+                    RequestStatus = URLValidationStatus.Validating;
+                    string _floorkey = extractFloorkey(uRL);
+                    var response = await SnaptrudeRepo.ValidateURLAsync(_floorkey);
+                    if (response != null)
+                    {
+                        if (response.Access)
+                        {
+                            RequestStatus = URLValidationStatus.Validated;
+                            var presignedUrlResponse = await Uploader.GetPresignedURL("media/" + response.ImagePath, Config.GetConfigObject());
+                            var presignedUrlResponseData = await presignedUrlResponse.Content.ReadAsStringAsync();
+                            PreSignedURLResponse presignedURL = JsonConvert.DeserializeObject<PreSignedURLResponse>(presignedUrlResponseData);
+                            Image = new Uri(presignedURL.url + presignedURL.fields["key"]);
+                            ProjectName = response.ProjectName;
+                            floorkey = _floorkey;
+                        }
+                        else
+                        {
+                            ErrorMessage = response.Message;
+                            RequestStatus = URLValidationStatus.Error;
+                        }
+                    }
+                    else
+                    {
+                        ErrorMessage = "Network error, try again.";
+                        RequestStatus = URLValidationStatus.Error;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                ErrorHandler.HandleException(ex, App.OnEnterProjectUrlIssue);
             }
         }
 
@@ -175,7 +188,14 @@ namespace SnaptrudeManagerUI.ViewModels
             ClearURLCommand = new RelayCommand((o) => { ClearUrl(); });
             App.OnActivateView2D += SetExportEnablement;
             App.OnActivateView3D += SetExportEnablement;
+            App.OnEnterProjectUrlIssue += ShowOnEnterProjectUrlIssue;
             SetExportEnablement();
+        }
+
+        private void ShowOnEnterProjectUrlIssue(string errorMessage)
+        {
+            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateEnterProjectUrlWarningViewModel(errorMessage);
+            Dispose();
         }
 
         private void SetExportEnablement()
@@ -193,7 +213,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void BeginExport(object param, NavigationService exportToExistingNavigationService)
         {
-            Store.Set("floorkey", floorkey); 
+            Store.Set("floorkey", floorkey);
             Store.Save();
             var navCmd = new NavigateCommand(exportToExistingNavigationService);
             navCmd.Execute(param);
@@ -215,6 +235,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             App.OnActivateView2D -= SetExportEnablement;
             App.OnActivateView3D -= SetExportEnablement;
+            App.OnEnterProjectUrlIssue -= ShowOnEnterProjectUrlIssue;
         }
         ~EnterProjectUrlViewModel()
         {

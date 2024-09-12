@@ -17,6 +17,9 @@ namespace SnaptrudeManagerUI.ViewModels
         StartupInternetConnectionIssue,
         APIBlocked,
         UploadIssue,
+        SelectFolderIssue,
+        TokenExpired,
+        EnterProjectUrlIssue,
     }
 
     public class WarningViewModel : ViewModelBase
@@ -80,17 +83,10 @@ namespace SnaptrudeManagerUI.ViewModels
                         App.Current.Shutdown();
                     }));
                     break;
-                case WarningId.InternetConnectionIssue:
-                    ShowSecondaryButton = true;
-                    Title = "Connection lost";
-                    Message = "A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.";
-                    PrimaryButtonText = "Try again";
-                    SecondaryButtonText = "Go back";
-                    break;
                 case WarningId.StartupInternetConnectionIssue:
                     ShowSecondaryButton = false;
                     Title = "Connection lost";
-                    Message = $"A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.\n{errorMessage}";
+                    Message = $"Please check your internet connection and try again.";
                     PrimaryButtonText = "Close";
                     PrimaryCommand = new RelayCommand(new Action<object>((o) =>
                     {
@@ -113,6 +109,26 @@ namespace SnaptrudeManagerUI.ViewModels
                     Title = "Upload failed";
                     Message = $"{errorMessage}";
                     PrimaryButtonText = "Try again";
+                    break;
+                case WarningId.SelectFolderIssue:
+                    ShowSecondaryButton = true;
+                    SecondaryButtonText = "Go back";
+                    Title = "Error fetching folders";
+                    Message = $"{errorMessage}";
+                    PrimaryButtonText = "Try again";
+                    break;
+                case WarningId.EnterProjectUrlIssue:
+                    ShowSecondaryButton = true;
+                    SecondaryButtonText = "Go back";
+                    Title = "Error fetching existing project";
+                    Message = $"{errorMessage}";
+                    PrimaryButtonText = "Try again";
+                    break;
+                case WarningId.TokenExpired:
+                    ShowSecondaryButton = false;
+                    Title = "Invalid token";
+                    Message = $"{errorMessage}";
+                    PrimaryButtonText = "Login";
                     break;
                 default:
                     break;

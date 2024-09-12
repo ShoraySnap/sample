@@ -4,140 +4,167 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
-using SnaptrudeManagerUI;
 
-public static class ErrorHandler
+namespace SnaptrudeManagerUI.API
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-    public static void HandleException(Exception ex)
+    public static class ErrorHandler
     {
-        switch (ex)
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        public static void HandleException(Exception ex, Action<string> warningAction)
         {
-            case HttpRequestException httpRequestException:
-                HandleHttpRequestException(httpRequestException);
-                break;
+            switch (ex)
+            {
+                case HttpRequestException httpRequestException:
+                    HandleHttpRequestException(httpRequestException, warningAction);
+                    break;
 
-            case TaskCanceledException taskCanceledException:
-                HandleTaskCanceledException(taskCanceledException);
-                break;
+                case TaskCanceledException taskCanceledException:
+                    HandleTaskCanceledException(taskCanceledException, warningAction);
+                    break;
 
-            case TimeoutException timeoutException:
-                HandleTimeoutException(timeoutException);
-                break;
+                case TimeoutException timeoutException:
+                    HandleTimeoutException(timeoutException, warningAction);
+                    break;
 
-            case JsonSerializationException jsonSerializationException:
-                HandleJsonSerializationException(jsonSerializationException);
-                break;
+                case JsonSerializationException jsonSerializationException:
+                    HandleJsonSerializationException(jsonSerializationException, warningAction);
+                    break;
 
-            case ArgumentNullException argumentNullException:
-                HandleArgumentNullException(argumentNullException);
-                break;
+                case ArgumentNullException argumentNullException:
+                    HandleArgumentNullException(argumentNullException, warningAction);
+                    break;
 
-            case ArgumentException argumentException:
-                HandleArgumentException(argumentException);
-                break;
+                case ArgumentException argumentException:
+                    HandleArgumentException(argumentException, warningAction);
+                    break;
 
-            case InvalidOperationException invalidOperationException:
-                HandleInvalidOperationException(invalidOperationException);
-                break;
+                case InvalidOperationException invalidOperationException:
+                    HandleInvalidOperationException(invalidOperationException, warningAction);
+                    break;
 
-            case UnauthorizedAccessException unauthorizedAccessException:
-                HandleUnauthorizedAccessException(unauthorizedAccessException);
-                break;
+                case UnauthorizedAccessException unauthorizedAccessException:
+                    HandleUnauthorizedAccessException(unauthorizedAccessException, warningAction);
+                    break;
 
-            case NotSupportedException notSupportedException:
-                HandleNotSupportedException(notSupportedException);
-                break;
+                case NotSupportedException notSupportedException:
+                    HandleNotSupportedException(notSupportedException, warningAction);
+                    break;
 
-            case IOException ioException:
-                HandleIOException(ioException);
-                break;
+                case IOException ioException:
+                    HandleIOException(ioException, warningAction);
+                    break;
 
-            case AggregateException aggregateException:
-                HandleAggregateException(aggregateException);
-                break;
+                case AggregateException aggregateException:
+                    HandleAggregateException(aggregateException, warningAction);
+                    break;
 
-            default:
-                HandleGeneralException(ex);
-                break;
+                case InvalidTokenException invalidTokenException:
+                    HandleInvalidTokenException(invalidTokenException, warningAction);
+                    break;
+
+                case NoInternetException noInternetException:
+                    HandleNoInternetException(noInternetException, warningAction);
+                    break;
+
+                case SnaptrudeDownException snaptrudeDownException:
+                    HandleSnaptrudeDownException(snaptrudeDownException, warningAction);
+                    break;
+
+                default:
+                    HandleGeneralException(ex, warningAction);
+                    break;
+            }
         }
-    }
 
-    private static void HandleHttpRequestException(HttpRequestException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.");
-    }
-
-    private static void HandleTaskCanceledException(TaskCanceledException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("The request to Snaptrude timed out. Please try again later.");
-    }
-
-    private static void HandleTimeoutException(TimeoutException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("An operation timed out. Please try again.");
-    }
-
-    private static void HandleJsonSerializationException(JsonSerializationException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("There was an error processing the data. Please contact support.");
-    }
-
-    private static void HandleArgumentNullException(ArgumentNullException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("A required input was missing. Please check the input and try again.");
-    }
-
-    private static void HandleArgumentException(ArgumentException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("An input value is invalid. Please check the input and try again.");
-    }
-
-    private static void HandleInvalidOperationException(InvalidOperationException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("The operation is not valid in the current state. Please try again.");
-    }
-
-    private static void HandleUnauthorizedAccessException(UnauthorizedAccessException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("Access denied. Please check your credentials and try again.");
-    }
-
-    private static void HandleNotSupportedException(NotSupportedException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("An unsupported operation was attempted. Please contact support.");
-    }
-
-    private static void HandleIOException(IOException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("There was an input/output error. Please check your file system or network and try again.");
-    }
-
-    private static void HandleAggregateException(AggregateException ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("Multiple errors occurred. Please review the logs for more details.");
-
-        foreach (var innerException in ex.InnerExceptions)
+        private static void HandleHttpRequestException(HttpRequestException ex, Action<string> warningAction)
         {
-            HandleException(innerException); // Recursively handle each exception
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.");
         }
-    }
 
-    private static void HandleGeneralException(Exception ex)
-    {
-        Logger.Error("Error on upload to Snaptrude: " + ex.StackTrace);
-        App.OnUploadIssue.Invoke("An unexpected error occurred. Please try again or contact support if the issue persists.");
+        private static void HandleTaskCanceledException(TaskCanceledException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("The request to Snaptrude timed out. Please try again later.");
+        }
+
+        private static void HandleTimeoutException(TimeoutException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("An operation timed out. Please try again.");
+        }
+
+        private static void HandleJsonSerializationException(JsonSerializationException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("There was an error processing the data. Please contact support.");
+        }
+
+        private static void HandleArgumentNullException(ArgumentNullException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("A required input was missing. Please check the input and try again.");
+        }
+
+        private static void HandleArgumentException(ArgumentException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("An input value is invalid. Please check the input and try again.");
+        }
+
+        private static void HandleInvalidOperationException(InvalidOperationException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("The operation is not valid in the current state. Please try again.");
+        }
+
+        private static void HandleUnauthorizedAccessException(UnauthorizedAccessException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("Access denied. Please check your credentials and try again.");
+        }
+
+        private static void HandleNotSupportedException(NotSupportedException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("An unsupported operation was attempted. Please contact support.");
+        }
+
+        private static void HandleIOException(IOException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("There was an input/output error. Please check your file system or network and try again.");
+        }
+
+        private static void HandleAggregateException(AggregateException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke("Multiple errors occurred. Please review the logs for more details.");
+        }
+
+        private static void HandleInvalidTokenException(InvalidTokenException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            App.ShowInvalidTokenIssue("Your session token is no longer valid. Please log in again.");
+        }
+
+        private static void HandleNoInternetException(NoInternetException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error: No internet connection in {warningAction.Method.Name}" + ex.StackTrace);
+            warningAction.Invoke($"A network error occurred while connecting to Snaptrude. Please check your internet connection and try again.");
+        }
+
+        private static void HandleSnaptrudeDownException(SnaptrudeDownException ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error: Snaptrude servers are down in {warningAction.Method.Name}" + ex.StackTrace);
+            warningAction.Invoke($"Snaptrude servers are down at the moment. Please try again later.");
+        }
+
+        private static void HandleGeneralException(Exception ex, Action<string> warningAction)
+        {
+            Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
+            warningAction.Invoke($"An unexpected error occurred. {ex.Message}");
+        }
     }
 }

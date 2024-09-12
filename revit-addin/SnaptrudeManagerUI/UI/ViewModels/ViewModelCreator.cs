@@ -24,9 +24,8 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance,
                     String.Equals(Store.Get("fileType"), "rfa") ?
                     (Func<ViewModelBase>)CreateExportToRFANewProgressViewModel : CreateExportToNewProjectProgressViewModel
-                ),
-                new NavigationService(NavigationStore.Instance, CreateSelectFolderWarningViewModel)
-                );
+                ))
+                ;
         }
 
         public static LoginViewModel CreateLoginViewModel()
@@ -89,11 +88,30 @@ namespace SnaptrudeManagerUI.ViewModels
                 );
         }
 
-        public static ViewModelBase CreateSelectFolderWarningViewModel()
+        public static ViewModelBase CreateSelectFolderWarningViewModel(string errorMessage)
         {
-            return new WarningViewModel(WarningId.InternetConnectionIssue,
+            return new WarningViewModel(WarningId.SelectFolderIssue,
                 new NavigationService(NavigationStore.Instance, CreateSelectFolderViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel)
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                errorMessage
+                );
+        }
+
+        public static ViewModelBase CreateEnterProjectUrlWarningViewModel(string errorMessage)
+        {
+            return new WarningViewModel(WarningId.SelectFolderIssue,
+                new NavigationService(NavigationStore.Instance, CreateEnterProjectUrlViewModel),
+                new NavigationService(NavigationStore.Instance, CreateExportViewModel),
+                errorMessage
+                );
+        }
+
+        public static ViewModelBase CreateTokenExpiredWarningViewModel(string errorMessage)
+        {
+            return new WarningViewModel(WarningId.TokenExpired,
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel), 
+                null,
+                errorMessage
                 );
         }
         public static ViewModelBase CreateStartupInternetIssueWarningViewModel(string errorMessage)
