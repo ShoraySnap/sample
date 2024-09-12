@@ -215,22 +215,19 @@ namespace SnaptrudeManagerUI.ViewModels
         public void FinishImportToRevit()
         {
             SuccessCommand.Execute(new object());
+            Dispose();
         }
 
         public void OnFailure()
         {
-            App.OnProgressUpdate -= UpdateProgress;
-            App.OnAbort -= Abort;
-            App.OnFailure -= OnFailure;
-            App.OnUploadStart -= HideCancelButton;
-            App.OnUploadStart -= StartUpload;
-            App.OnUploadIssue -= ShowUploadFailure;
             FailureCommand.Execute(new object());
+            Dispose();
         }
 
         public void Abort()
         {
             BackHomeCommand.Execute(new object());
+            Dispose();
         }
 
         public async Task StartExportNewProject()
@@ -305,6 +302,9 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnProgressUpdate -= UpdateProgress;
             App.OnAbort -= Abort;
             App.OnFailure -= OnFailure;
+            App.OnUploadStart -= HideCancelButton;
+            App.OnUploadStart -= StartUpload;
+            App.OnUploadIssue -= ShowUploadFailure;
         }
         ~ProgressViewModel()
         {

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -31,8 +33,40 @@ namespace SnaptrudeManagerUI.API
             httpClient.DefaultRequestHeaders.Add("User-Agent", "SnaptrudeService");
         }
 
+        public static async Task<bool> IsInternetAvailableAsync()
+        {
+            try
+            {
+                var response = await httpClient.GetAsync("http://www.google.com");
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static async Task<bool> IsSnaptrudeAvailableAsync()
+        {
+            try
+            {
+                string djangoUrl = Urls.Get("snaptrudeDjangoUrl");
+                var response = await httpClient.GetAsync(djangoUrl);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private static async Task<HttpResponseMessage> CallApiAsync(string endPoint, HttpMethod httpMethod, Dictionary<string, string> data = null)
         {
+            if (!await IsInternetAvailableAsync())
+            {
+                throw new NoInternetException();
+            }
+
             string djangoUrl = Urls.Get("snaptrudeDjangoUrl");
             HttpResponseMessage response = null;
 
@@ -44,6 +78,18 @@ namespace SnaptrudeManagerUI.API
             else if (httpMethod == HttpMethod.Get)
             {
                 response = await httpClient.GetAsync($"{djangoUrl}{endPoint}");
+            }
+
+            var responseData = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("\n"+responseData);
+            }
+            
+            var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
+            if (result.ContainsKey("error") && result["message"] == "Invalid Access Token.")
+            {
+                throw new InvalidTokenException("Invalid Access Token");
             }
 
             return response;

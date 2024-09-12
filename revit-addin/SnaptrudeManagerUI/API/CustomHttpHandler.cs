@@ -46,48 +46,53 @@ namespace SnaptrudeManagerUI.API
                 if (response.IsSuccessStatusCode)
                 {
                     var responseData = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-
-                    if (result.ContainsKey("error") && result.ContainsKey("isTokenExpired") && result["isTokenExpired"])
+                    try
                     {
-                        // Handle token expired
-                        var accessToken = Store.Get("accessToken") as string;
-                        var refreshToken = Store.Get("refreshToken") as string;
-
-                        var tokenResponse = await RefreshTokenAsync(accessToken, refreshToken);
-
-                        if (tokenResponse != null && tokenResponse.IsSuccessStatusCode)
+                        var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
+                        if (result.ContainsKey("error") && result.ContainsKey("isTokenExpired") && result["isTokenExpired"])
                         {
-                            var tokenData = await tokenResponse.Content.ReadAsStringAsync();
-                            var tokenResult = JsonConvert.DeserializeObject<Dictionary<string, string>>(tokenData);
+                            // Handle token expired
+                            var accessToken = Store.Get("accessToken") as string;
+                            var refreshToken = Store.Get("refreshToken") as string;
 
-                            if (tokenResult.ContainsKey("accessToken"))
+                            var tokenResponse = await RefreshTokenAsync(accessToken, refreshToken);
+
+                            if (tokenResponse != null && tokenResponse.IsSuccessStatusCode)
                             {
-                                // Update access token and retry the original request
-                                //TODO: update config.json with refreshtoken, fullname and userId; and not just accessToken
-                                Store.Set("accessToken", tokenResult["accessToken"]);
-                                Store.Save();
+                                var tokenData = await tokenResponse.Content.ReadAsStringAsync();
+                                var tokenResult = JsonConvert.DeserializeObject<Dictionary<string, string>>(tokenData);
 
-                                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult["accessToken"]);
-                                return await base.SendAsync(request, cancellationToken);
+                                if (tokenResult.ContainsKey("accessToken"))
+                                {
+                                    // Update access token and retry the original request
+                                    //TODO: update config.json with refreshtoken, fullname and userId; and not just accessToken
+                                    Store.Set("accessToken", tokenResult["accessToken"]);
+                                    Store.Save();
+
+                                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult["accessToken"]);
+                                    return await base.SendAsync(request, cancellationToken);
+                                }
+                            }
+                            else
+                            {
+                                logger.Error("Error refreshing token");
+                                Store.Unset("user");
+                                Store.Unset("refreshToken");
+                                return new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable)
+                                {
+                                    Content = new StringContent($"An unexpected error occurred: Error refreshing token")
+                                };
                             }
                         }
-                        else
+                        else if (result.ContainsKey("error") && (result["error"] == 2 || result["error"] == 1))
                         {
-                            logger.Error("Error refreshing token");
+                            logger.Error(result["message"]);
                             Store.Unset("user");
                             Store.Unset("refreshToken");
-                            return new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable)
-                            {
-                                Content = new StringContent($"An unexpected error occurred: Error refreshing token")
-                            };
                         }
                     }
-                    else if (result.ContainsKey("error") && (result["error"] == 2 || result["error"] == 1))
+                    catch (Exception)
                     {
-                        logger.Error(result["message"]);
-                        Store.Unset("user");
-                        Store.Unset("refreshToken");
                     }
                 }
                 return response;

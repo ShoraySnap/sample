@@ -54,6 +54,9 @@ namespace SnaptrudeManagerUI
         public static Action OnRevitClosed;
         public static Action OnUploadStart;
         public static Action<string> OnUploadIssue;
+        public static Action<string> OnSelectFolderIssue;
+        public static Action<string> OnEnterProjectUrlIssue;
+        public static Action<string> OnTokenExpiredIssue;
 
         public static Process RevitProcess;
 
@@ -114,6 +117,11 @@ namespace SnaptrudeManagerUI
             
             if (currentVersion != updateVersion)
                 navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
+            else if(Store.Get("accessToken")?.ToString() == "")
+            {
+                MainWindowViewModel.Instance.IsLoaderVisible = false;
+                navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
+            }
             else
             {
                 var isUserLoggedIn = await SnaptrudeRepo.CheckIfUserLoggedInAsync();
@@ -153,6 +161,10 @@ namespace SnaptrudeManagerUI
 
         }
 
+        public static void ShowInvalidTokenIssue(string errorMessage)
+        {
+            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateTokenExpiredWarningViewModel(errorMessage);
+        }
         private void RevitProcess_Exited(object sender, EventArgs e)
         {
             OnRevitClosed?.Invoke();
