@@ -100,7 +100,7 @@ namespace TrudeCommon.Analytics
                 return;
             }
 
-            string url = "https://snaptrudemanageranalytics-977aea40ef93.herokuapp.com/metrics/revitExport";
+            string url = URLsConfig.GetSnaptrudeDjangoUrl() + "/analytics/export";
             var config = Config.GetConfigObject();
 
             using (HttpClient client = new HttpClient())
