@@ -40,7 +40,6 @@ WizardImageFile=misc\background.bmp
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-
 [UninstallRun]
 Filename: "{localappdata}\snaptrude_manager\Update.exe"; Parameters: "--uninstall"; Flags: runhidden; Check: ShouldRunUninstaller
 
@@ -245,6 +244,7 @@ begin
           IDCANCEL:Abort;
         end;
       end;
+  WizardForm.WelcomeLabel2.Caption := 'This will install Snaptrude Manager version {#MyAppVersion} on your computer' + #13#10 + #13#10 + 'Please close all your Revit instances before continuing.' + #13#10 + #13#10 +  'Click Next to continue, or Cancel to exit setup.';
   IncludeDownloadSectionStr := ExpandConstant('{#IncludeDownloadSection}');
   IncludeDownloadSection := CompareText(IncludeDownloadSectionStr, 'true') = 0;
   if IncludeDownloadSection then
@@ -261,7 +261,7 @@ begin
     ];
     AllVersions := ['2019','2020','2021','2022','2023','2024','2025'];
 
-  CheckListBoxPage := CreateInputOptionPage(wpSelectTasks, 'Select Revit versions', 'IMPORTANT: Only select the versions that you are going to use the Snaptrude <-> Revit Link. Several families will be downloaded for each selected Revit version.', '', False, True);
+  CheckListBoxPage := CreateInputOptionPage(wpSelectTasks, 'Select Revit versions', 'Important: Please select the Revit versions that you are going to use with Snaptrude.'+ #13#10 +'Revit families will be downloaded for selected Revit versions.', '', False, True);
   InstalledVersions := TStringList.Create;
   InstalledVersionsURLs := TStringList.Create;
   for I := 0 to High(AllVersions) do
@@ -273,7 +273,7 @@ begin
           CheckListBoxPage.Add('Revit ' + AllVersions[I]);
       end
     end;
-  DownloadPage := CreateDownloadPage('Downloading Snaptrude default Revit families', 'Please wait while the setup downloads the required files. This could take a little while.', @OnDownloadProgress);
+  DownloadPage := CreateDownloadPage('Downloading Snaptrude default Revit families', 'Please wait while the setup downloads the required files. This can take a little while.', @OnDownloadProgress);
   DownloadPage.Msg1Label.Top := 20
   DownloadPage.Msg2Label.Top := -400
   DownloadPage.Msg2Label.Visible := False;
@@ -304,6 +304,14 @@ end;
 procedure ExtractMe(src, target : AnsiString);
 begin
   unzip(ExpandConstant(src), ExpandConstant(target));
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if CurPageID = wpFinished then
+  begin
+    WizardForm.FinishedLabel.Caption := 'Setup has finished installing Snaptrude Manager v{#MyAppVersion} on your computer.' + #13#10 + #13#10 + 'Click Finish to exit the setup.';
+  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
