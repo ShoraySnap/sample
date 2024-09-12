@@ -233,17 +233,6 @@ var
   ShowMessageStr: String;
   I: Integer;
 begin
-    while IsRevitOrSnaptrudeManagerRunning do
-      begin
-        case MsgBox('To proceed, please ensure that all instances of Revit and Snaptrude Manager are closed.', mbCriticalError, MB_RETRYCANCEL) of
-          IDRETRY:
-            begin
-              if not IsRevitOrSnaptrudeManagerRunning then
-                Break;
-            end;
-          IDCANCEL:Abort;
-        end;
-      end;
   WizardForm.WelcomeLabel2.Caption := 'This will install Snaptrude Manager version {#MyAppVersion} on your computer' + #13#10 + #13#10 + 'Please close all your Revit instances before continuing.' + #13#10 + #13#10 +  'Click Next to continue, or Cancel to exit setup.';
   IncludeDownloadSectionStr := ExpandConstant('{#IncludeDownloadSection}');
   IncludeDownloadSection := CompareText(IncludeDownloadSectionStr, 'true') = 0;
@@ -323,6 +312,22 @@ begin
   Result := True;
   if IncludeDownloadSection then
   begin
+    if CurPageID = wpWelcome then
+    begin
+      while IsRevitOrSnaptrudeManagerRunning do
+      begin
+        case MsgBox('To proceed, please ensure that all instances of Revit and Snaptrude Manager are closed.', mbCriticalError, MB_RETRYCANCEL) of
+          IDRETRY:
+            if not IsRevitOrSnaptrudeManagerRunning then
+              Break;
+          IDCANCEL:
+            begin
+              Result := False;
+              Exit;
+            end;
+        end;
+      end;
+    end;
     if CurPageID = CheckListBoxPage.ID then
     begin
       CheckedCount := 0;
