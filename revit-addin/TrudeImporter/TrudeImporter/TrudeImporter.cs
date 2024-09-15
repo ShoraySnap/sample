@@ -124,6 +124,7 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine("Exception in getting levels to create, delete and change" + "\nError is: " + e.Message + "\n");
                 LogTrace(e.Message);
             }
 
@@ -148,6 +149,7 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    System.Diagnostics.Debug.WriteLine("Exception in creating default level" + "\nError is: " + e.Message + "\n");
                     LogTrace(e.Message);
                 }
             }
@@ -180,6 +182,7 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debug.WriteLine("Exception in editing/deleting levels" + "\nError is: " + e.Message + "\n");
                 LogTrace(e.Message);
             }
             LogTrace("existing stories handled");
@@ -202,13 +205,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
+                    System.Diagnostics.Debug.WriteLine("Exception in creating new level" + "\nError is: " + e.Message + "\n");
                     LogTrace(e.Message);
                 }
             }
             LogTrace("stories created");
-
-            
-
         }
 
         private static void ImportWalls(List<WallProperties> propsList)
