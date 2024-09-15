@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Visual;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using TrudeImporter;
@@ -54,12 +55,10 @@ namespace MaterialOperations
                     }
                 }
             }
-            System.Diagnostics.Debug.WriteLine("AppearanceAssetElement: " + appearanceAssetElement);
             if (appearanceAssetElement != null)
             {
                 Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
                 ElementId material = Material.Create(doc, matname);
-                System.Diagnostics.Debug.WriteLine("Material created: " + matname + " with Id: " + material.ToString());
                 var newmat = doc.GetElement(material) as Material;
                 newmat.AppearanceAssetId = newAppearanceAsset.Id;
                 using (AppearanceAssetEditScope editScope = new AppearanceAssetEditScope(doc))
@@ -109,67 +108,12 @@ namespace MaterialOperations
                 newmat.UseRenderAppearanceForShading = true;
                 newmat.Transparency = (1 - (int)alpha) * 100;
                 newmat.MaterialClass = "Snaptrude";
+                System.Diagnostics.Debug.WriteLine("Material created: " + matname + " with Id: " + material.ToString());
                 return newmat;
             }
             else
             {
                 return null;
-            }
-        }
-
-        public static bool CopyMaterialsFromTemplate(Document currentDoc, Autodesk.Revit.ApplicationServices.Application app)
-        {
-            string templatePath = @"C:\ProgramData\Snaptrude\resourceFile\SnaptrudeTemplate.rte";
-
-            try
-            {
-                Document templateDoc = app.OpenDocumentFile(templatePath);
-                FilteredElementCollector materialCollector = new FilteredElementCollector(templateDoc);
-
-                Material templateMaterial = materialCollector
-                    .OfClass(typeof(Material))
-                    .Cast<Material>()
-                    .FirstOrDefault(m => m.Name == "Template Snaptrude Material");
-
-                if (templateMaterial != null) {
-                    ICollection<ElementId> elementIds = new List<ElementId> { templateMaterial.Id };
-                    ICollection<ElementId> received = ElementTransformUtils.CopyElements(templateDoc, elementIds, currentDoc, null, null);
-                    ElementId newMaterialId = received.First();
-                    Material newMaterial = currentDoc.GetElement(newMaterialId) as Material;
-                    System.Diagnostics.Debug.WriteLine("Material created: " + newMaterial.Name + " with Id: " + newMaterialId.ToString());
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("Template material not found");
-                    return false;
-                }
-
-
-                //foreach (Material templateMaterial in templateMaterials)
-                //{
-                //    // Check if the material already exists in the current document
-                //    Material existingMaterial = new FilteredElementCollector(currentDoc)
-                //        .OfClass(typeof(Material))
-                //        .Cast<Material>()
-                //        .FirstOrDefault(m => m.Name == templateMaterial.Name);
-
-                //    if (existingMaterial == null)
-                //    {
-                //        // Create a new material in the current document
-                //        Material newMaterial = templateMaterial.Duplicate(templateMaterial.Name);
-                //        System.Diagnostics.Debug.WriteLine("Material created: " + newMaterial.Name);
-
-                //    }
-                //}
-
-                templateDoc.Close(false);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Error copying materials from template: " + ex.Message);
-                return false;
             }
         }
 
@@ -201,6 +145,43 @@ namespace MaterialOperations
             newmat.Transparency = (int)((1 - alpha) * 100);
             System.Diagnostics.Debug.WriteLine("Material created: " + matname + " with Id: " + material.ToString());
             return newmat;
+        }
+
+        public static bool CopyMaterialsFromTemplate(Document currentDoc, Autodesk.Revit.ApplicationServices.Application app)
+        {
+            string templatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "SnaptrudeTemplate.rte");
+            try
+            {
+                Document templateDoc = app.OpenDocumentFile(templatePath);
+                FilteredElementCollector materialCollector = new FilteredElementCollector(templateDoc);
+
+                Material templateMaterial = materialCollector
+                    .OfClass(typeof(Material))
+                    .Cast<Material>()
+                    .FirstOrDefault(m => m.Name == "Template Snaptrude Material");
+
+                if (templateMaterial != null) {
+                    ICollection<ElementId> elementIds = new List<ElementId> { templateMaterial.Id };
+                    ICollection<ElementId> received = ElementTransformUtils.CopyElements(templateDoc, elementIds, currentDoc, null, null);
+                    ElementId newMaterialId = received.First();
+                    Material newMaterial = currentDoc.GetElement(newMaterialId) as Material;
+                    System.Diagnostics.Debug.WriteLine("Material created: " + newMaterial.Name + " with Id: " + newMaterial.Id.ToString());
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Template material not found");
+                    return false;
+                }
+
+                templateDoc.Close(false);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error copying materials from template: " + ex.Message);
+                return false;
+            }
         }
 
         private static void SetTransparency(Asset editableAsset, double transparency)
