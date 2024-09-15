@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Windows.Controls;
 using System.Windows.Media.Media3D;
 using TrudeImporter;
 
@@ -34,6 +35,7 @@ namespace SnaptrudeManagerAddin
             try
             {
                 bool status = false;
+                
                 using (TransactionGroup tg = new TransactionGroup(doc, "Parse Trude"))
                 {
                     tg.Start();
@@ -111,6 +113,8 @@ namespace SnaptrudeManagerAddin
             };
             serializer.Converters.Add(new XyzConverter());
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
+
+            MaterialOperations.MaterialOperations.CopyMaterialsFromTemplate(GlobalVariables.Document, GlobalVariables.RvtApp);
             _ = new FetchTextures.FetchTextures();
             deleteRemovedElements(trudeProperties.DeletedElements);
 

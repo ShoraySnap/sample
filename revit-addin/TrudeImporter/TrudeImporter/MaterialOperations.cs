@@ -3,6 +3,7 @@ using Autodesk.Revit.DB.Visual;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Controls;
 using TrudeImporter;
 using Document = Autodesk.Revit.DB.Document;
 
@@ -40,6 +41,20 @@ namespace MaterialOperations
                 }
                 i++;
             }
+            if (appearanceAssetElement == null)
+            {
+                IEnumerable<Material> materials = new FilteredElementCollector(doc).OfClass(typeof(Material)).Cast<Material>();
+                foreach (Material material in materials)
+                {
+                    if (material.Name == "Template Snaptrude Material")
+                    {
+                        System.Diagnostics.Debug.WriteLine("Found Template Snaptrude Material");
+                        appearanceAssetElement = doc.GetElement(material.AppearanceAssetId) as AppearanceAssetElement;
+                        break;
+                    }
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("AppearanceAssetElement: " + appearanceAssetElement);
             if (appearanceAssetElement != null)
             {
                 Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
@@ -51,7 +66,7 @@ namespace MaterialOperations
                 {
                     Asset editableAsset = editScope.Start(
                       newAppearanceAsset.Id);
-                    SetTransparency(editableAsset, 1-alpha);
+                    SetTransparency(editableAsset, 1 - alpha);
                     AssetProperty assetProperty = editableAsset
                       .FindByName("generic_diffuse");
                     Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
@@ -62,7 +77,7 @@ namespace MaterialOperations
                     }
                     if (connectedAsset != null)
                     {
-                        if (connectedAsset.Name == "UnifiedBitmap")
+                        if (connectedAsset.Name.Contains("UnifiedBitmap"))
                         {
                             AssetPropertyString path = connectedAsset
                               .FindByName(UnifiedBitmap.UnifiedbitmapBitmap)
@@ -74,7 +89,7 @@ namespace MaterialOperations
                             AssetPropertyDistance scaleX = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleX) as AssetPropertyDistance;
 
                             AssetPropertyDistance scaleY = connectedAsset.FindByName(UnifiedBitmap.TextureRealWorldScaleY) as AssetPropertyDistance;
-                           
+
                             scaleX.Value = textureProps.UScale * SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR; ;
                             scaleY.Value = textureProps.VScale * SNAPTRUDE_TO_REVIT_TEXTURE_SCALING_FACTOR; ;
 
@@ -92,13 +107,69 @@ namespace MaterialOperations
                     }
                 }
                 newmat.UseRenderAppearanceForShading = true;
-                newmat.Transparency = (1-(int)alpha)*100;
+                newmat.Transparency = (1 - (int)alpha) * 100;
                 newmat.MaterialClass = "Snaptrude";
                 return newmat;
             }
             else
             {
                 return null;
+            }
+        }
+
+        public static bool CopyMaterialsFromTemplate(Document currentDoc, Autodesk.Revit.ApplicationServices.Application app)
+        {
+            string templatePath = @"C:\ProgramData\Snaptrude\resourceFile\SnaptrudeTemplate.rte";
+
+            try
+            {
+                Document templateDoc = app.OpenDocumentFile(templatePath);
+                FilteredElementCollector materialCollector = new FilteredElementCollector(templateDoc);
+
+                Material templateMaterial = materialCollector
+                    .OfClass(typeof(Material))
+                    .Cast<Material>()
+                    .FirstOrDefault(m => m.Name == "Template Snaptrude Material");
+
+                if (templateMaterial != null) {
+                    ICollection<ElementId> elementIds = new List<ElementId> { templateMaterial.Id };
+                    ICollection<ElementId> received = ElementTransformUtils.CopyElements(templateDoc, elementIds, currentDoc, null, null);
+                    ElementId newMaterialId = received.First();
+                    Material newMaterial = currentDoc.GetElement(newMaterialId) as Material;
+                    System.Diagnostics.Debug.WriteLine("Material created: " + newMaterial.Name + " with Id: " + newMaterialId.ToString());
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Template material not found");
+                    return false;
+                }
+
+
+                //foreach (Material templateMaterial in templateMaterials)
+                //{
+                //    // Check if the material already exists in the current document
+                //    Material existingMaterial = new FilteredElementCollector(currentDoc)
+                //        .OfClass(typeof(Material))
+                //        .Cast<Material>()
+                //        .FirstOrDefault(m => m.Name == templateMaterial.Name);
+
+                //    if (existingMaterial == null)
+                //    {
+                //        // Create a new material in the current document
+                //        Material newMaterial = templateMaterial.Duplicate(templateMaterial.Name);
+                //        System.Diagnostics.Debug.WriteLine("Material created: " + newMaterial.Name);
+
+                //    }
+                //}
+
+                templateDoc.Close(false);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error copying materials from template: " + ex.Message);
+                return false;
             }
         }
 
