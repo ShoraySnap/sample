@@ -509,6 +509,7 @@ namespace TrudeImporter
                                 roomMatched = true;
                                 floor.RoomMatched = true;
                                 GlobalVariables.Document.GetElement(roomId).get_Parameter(BuiltInParameter.ROOM_NAME).Set(floor.Label);
+                                if (floor.UniqueID != -1) GlobalVariables.UniqueIdToRoomId.Add(floor.UniqueID, roomId);
                                 break;
                             }
                         }
@@ -594,11 +595,13 @@ namespace TrudeImporter
                             );
                         if (slab.AllFaceVertices != null)
                         {
-                            TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            DirectShape slabShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_Floors);
+                            GlobalVariables.UniqueIdToElementId.Add(slab.UniqueId, slabShape.Id);
                         }
                         else
                         {
-                            new TrudeSlab(slab);
+                            TrudeSlab trudeSlab = new TrudeSlab(slab);
+                            GlobalVariables.UniqueIdToElementId.Add(slab.UniqueId, trudeSlab.slab.Id);
                         }
 
                         if (t.Commit() != TransactionStatus.Committed)
@@ -758,11 +761,12 @@ namespace TrudeImporter
                         if (mass.AllFaceVertices != null)
                         {
                             DirectShape directShape = TrudeDirectShape.GenerateObjectFromFaces(directShapeProps, BuiltInCategory.OST_GenericModel);
-                            if (mass.Type == "Room" && mass.RoomType != "Default" && mass.BottomFaceVertices != null)
+                            GlobalVariables.UniqueIdToElementId.Add(mass.UniqueId, directShape.Id);
+                            if (mass.Type == "Room" && mass.RoomType != "Site" && (mass.RoomType != "Default" || GlobalVariables.ForForgeViewsPDFExport) && mass.BottomFaceVertices != null)
                             {
                                 CurveArray profile = TrudeRoom.getProfile(mass.BottomFaceVertices);
                                 ElementId levelId = GlobalVariables.LevelIdByNumber[mass.Storey];
-                                TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile);
+                                TrudeRoom.StoreRoomData(levelId, mass.RoomType, directShape, profile, mass.UniqueId);
                             }
                         }
                         deleteOld(mass.ExistingElementId);

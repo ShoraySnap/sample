@@ -49,8 +49,8 @@ namespace TrudeImporter
                     }
 
                     builder.CloseConnectedFaceSet();
-                    builder.Target = TessellatedShapeBuilderTarget.AnyGeometry;
-                    builder.Fallback = TessellatedShapeBuilderFallback.Mesh;
+                    builder.Target = TessellatedShapeBuilderTarget.Mesh;
+                    builder.Fallback = TessellatedShapeBuilderFallback.Salvage;
                     builder.Build();
 
                     TessellatedShapeBuilderResult result = builder.GetBuildResult();

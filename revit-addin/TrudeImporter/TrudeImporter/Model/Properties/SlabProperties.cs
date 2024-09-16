@@ -53,5 +53,7 @@ namespace TrudeImporter
         [JsonProperty("faceMaterialIds")]
         public List<int> FaceMaterialIds { get; set; }
 
+        [JsonProperty("materialHex", NullValueHandling = NullValueHandling.Ignore)]
+        public string MaterialHex { get; set; }
     }
 }
