@@ -416,7 +416,7 @@ procedure UpdateUninstallWizard;
 begin
   if UninstallProgressForm.InnerNotebook.ActivePage = UninstallCheckBoxPage then
   begin
-    UninstallProgressForm.PageNameLabel.Caption := 'We’re sorry to see you go.';
+    UninstallProgressForm.PageNameLabel.Caption := 'Weï¿½re sorry to see you go.';
     UninstallProgressForm.PageDescriptionLabel.Caption :=
       'Thank you for being a valuable part of our community.';
   end;
@@ -544,6 +544,8 @@ Type: filesandordirs; Name: "{userappdata}\SnaptrudeManager\resourceFile";
 Source: "{#UrlPath}"; DestDir: "{commonappdata}\SnaptrudeManager"; DestName: "urls.json"; Flags: ignoreversion;
 Source: "{#UIBuildPath}\SnaptrudeManagerUI.exe"; DestDir: "{commonappdata}\SnaptrudeManager\UI"; Flags: ignoreversion;
 Source: "{#UIBuildPath}\*.dll"; DestDir: "{commonappdata}\SnaptrudeManager\UI"; Flags: ignoreversion;
+Source: "{#BaseRevitAddinFiles}\SnaptrudeTemplate.rte"; DestDir: "{userappdata}\SnaptrudeManager\resourceFile"; Flags: ignoreversion;
+
 
 ;2019
 Source: "{#RevitAddinDllPath}\2019\*.dll"; DestDir: "{commonappdata}\Autodesk\Revit\Addins\2019\SnaptrudeManagerAddin"; Flags: ignoreversion; Check: InstallVersion('2019', false);

@@ -55,6 +55,7 @@ namespace MaterialOperations
                     }
                 }
             }
+            System.Diagnostics.Debug.WriteLine("AppearanceAssetElement: " + appearanceAssetElement);
             if (appearanceAssetElement != null)
             {
                 Element newAppearanceAsset = appearanceAssetElement.Duplicate(matname + "AppearanceAsset");
@@ -65,7 +66,7 @@ namespace MaterialOperations
                 {
                     Asset editableAsset = editScope.Start(
                       newAppearanceAsset.Id);
-                    SetTransparency(editableAsset, 1 - alpha);
+                    //SetTransparency(editableAsset, 1 - alpha);
                     AssetProperty assetProperty = editableAsset
                       .FindByName("generic_diffuse");
                     Asset connectedAsset = assetProperty.GetSingleConnectedAsset();
@@ -149,7 +150,8 @@ namespace MaterialOperations
 
         public static bool CopyMaterialsFromTemplate(Document currentDoc, Autodesk.Revit.ApplicationServices.Application app)
         {
-            string templatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "SnaptrudeTemplate.rte");
+            string templatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "SnaptrudeTemplate.rte");
+            System.Diagnostics.Debug.WriteLine("Copying materials from template: " + templatePath);
             try
             {
                 Document templateDoc = app.OpenDocumentFile(templatePath);
