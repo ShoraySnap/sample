@@ -106,7 +106,7 @@ namespace TrudeSerializer.Components
                 view = doc.ActiveView;
             }
 
-            if(view == null)
+            if (view == null)
             {
                 view = doc.ActiveView;
             }
@@ -143,7 +143,7 @@ namespace TrudeSerializer.Components
                             Line curve = edge.AsCurve() as Line;
                             if (curve == null) continue;
 
-                            if (!IsEligibleLine(curve, allLinesInSolid))
+                            if (IsEligibleLine(curve, allLinesInSolid))
                             {
                                 allLinesInSolid.Add(curve);
 

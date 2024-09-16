@@ -68,7 +68,7 @@ namespace TrudeSerializer
 
         bool IExportContext.IsCanceled()
         {
-            return false;
+            return ExportToSnaptrudeEEH.IsImportAborted();
         }
 
         RenderNodeAction IExportContext.OnViewBegin(ViewNode node)

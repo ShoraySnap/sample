@@ -13,6 +13,6 @@ namespace TrudeImporter
         public const string DWG_EXPORT_DIRECTORY = "dwg_export";
         public const string PDF_EXPORT_DIRECTORY = "pdf_export";
         public const string IFC_EXPORT_DIRECTORY = "ifc_export";
-        public const string CUSTOM_FAMILY_DIRECTORY = "Snaptrude";
+        public const string CUSTOM_FAMILY_DIRECTORY = "SnaptrudeManager";
     }
 }

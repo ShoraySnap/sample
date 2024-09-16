@@ -32,7 +32,7 @@ namespace FetchTextures
                             (double)diffuseTexture["wAng"]
                             );
 
-                        string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "fetchedTextures");
+                        string baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Configs.CUSTOM_FAMILY_DIRECTORY, "resourceFile", "fetchedTextures");
                         string savedPath = DownloadTexture(textureProps.TexturePath, name, baseDir);
 
                         if (savedPath != "")

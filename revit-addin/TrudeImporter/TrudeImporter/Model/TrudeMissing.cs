@@ -13,7 +13,7 @@ namespace TrudeImporter.TrudeImporter.Model
         public static void ImportMissingDoors(List<DoorProperties> doorProps)
         {
             if (GlobalVariables.MissingDoorFamiliesCount.Count == 0) return;
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Doors"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Doors");
@@ -43,32 +43,23 @@ namespace TrudeImporter.TrudeImporter.Model
                 string doorName = door.Name.RemoveIns();
                 if (GlobalVariables.MissingDoorFamiliesCount[doorName].IsChecked)
                 {
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    deleteOld(door.ExistingElementId);
+                    try
                     {
-                        t.Start();
-                        deleteOld(door.ExistingElementId);
-                        try
-                        {
-                            new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
-                            if (t.Commit() != TransactionStatus.Committed)
-                            {
-                                t.RollBack();
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
-                            t.RollBack();
-                        }
+                        new TrudeDoor(door, GlobalVariables.LevelIdByNumber[door.Storey], index);
                     }
-                }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Door: " + door.UniqueId + "\nError is: " + e.Message + "\n");
+                    }
+            }
             }
         }
 
         public static void ImportMissingWindows(List<WindowProperties> windowProps)
         {
             if (GlobalVariables.MissingWindowFamiliesCount.Count == 0) return;
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Windows"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Windows");
@@ -98,23 +89,14 @@ namespace TrudeImporter.TrudeImporter.Model
                 string windowName = window.Name.RemoveIns();
                 if (GlobalVariables.MissingWindowFamiliesCount[windowName].IsChecked)
                 {
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    deleteOld(window.ExistingElementId);
+                    try
                     {
-                        t.Start();
-                        deleteOld(window.ExistingElementId);
-                        try
-                        {
-                            new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
-                            if (t.Commit() != TransactionStatus.Committed)
-                            {
-                                t.RollBack();
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
-                            t.RollBack();
-                        }
+                        new TrudeWindow(window, GlobalVariables.LevelIdByNumber[window.Storey], index);
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Window: " + window.UniqueId + "\nError is: " + e.Message + "\n");
                     }
                 }
             }
@@ -123,7 +105,7 @@ namespace TrudeImporter.TrudeImporter.Model
         public static void ImportMissingFurniture(List<FurnitureProperties> furnitureProps)
         {
             if (GlobalVariables.MissingFurnitureFamiliesCount.Count == 0) return;
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string directoryPath = GlobalVariables.ForForge
                 ? "resourceFile/Furniture"
                 : Path.Combine(documentsPath, $"{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Furniture");
@@ -155,31 +137,17 @@ namespace TrudeImporter.TrudeImporter.Model
                 if (furnitureName == null) furnitureName = furniture.Name;
                 if (GlobalVariables.MissingFurnitureFamiliesCount[furnitureName].IsChecked)
                 {
-                    using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
+                    try
                     {
-                        t.Start();
-                        try
-                        {
-                            new TrudeFurniture(furniture, sourceIdsToDelete, index);
-                            if (t.Commit() != TransactionStatus.Committed)
-                            {
-                                t.RollBack();
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
-                            t.RollBack();
-                        }
+                        new TrudeFurniture(furniture, sourceIdsToDelete, index);
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Exception in Importing Furniture: " + furniture.UniqueId + "\nError is: " + e.Message + "\n");
                     }
                 }
             }
-            using (SubTransaction t = new SubTransaction(GlobalVariables.Document))
-            {
-                t.Start();
-                GlobalVariables.Document.Delete(sourceIdsToDelete);
-                t.Commit();
-            }
+            GlobalVariables.Document.Delete(sourceIdsToDelete);
         }
 
         //public static void ImportMissingWindows(WindowProperties window)
@@ -198,7 +166,11 @@ namespace TrudeImporter.TrudeImporter.Model
                 return;
             if (elementId != null)
             {
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
                 ElementId id = new ElementId((int)elementId);
+#else
+                ElementId id = new ElementId((long)elementId);
+#endif
                 Element element = GlobalVariables.Document.GetElement(id);
                 if (element != null)
                 {

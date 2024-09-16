@@ -84,7 +84,7 @@ namespace TrudeImporter
 
         private void CreateStaircase()
         {
-            GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
 
             bottomLevel = (from lvl in new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>() where (lvl.Id == GlobalVariables.LevelIdByNumber[Storey]) select lvl).First();
             if (StoreyHeight != Height)
@@ -173,7 +173,7 @@ namespace TrudeImporter
             stairsId = GlobalVariables.StairsEditScope.Start(bottomLevel.Id, topLevel.Id);
             CreatedStaircase = doc.GetElement(stairsId) as Stairs;
 
-            GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
             CreatedStaircase.ChangeTypeId(stairsType.Id);
             CreatedStaircase.ActualTreadDepth = Tread;
             if (StoreyHeight != Height)
@@ -196,7 +196,7 @@ namespace TrudeImporter
             List<StaircaseBlockProperties> StairRunLandingBlocks = StaircaseBlocks.Where(b => b.Type == "Landing").ToList();
             List<ElementId> createdRunIds = new List<ElementId>();
 
-            GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
             for (int i = 0; i < StairRunBlocks.Count; i++)
             {
                 StaircaseBlockProperties props = StairRunBlocks[i];
@@ -287,7 +287,7 @@ namespace TrudeImporter
 
             GlobalVariables.Transaction.Commit();
             GlobalVariables.StairsEditScope.Commit(new StairsFailurePreprocessor());
-            GlobalVariables.Transaction.Start();
+            Utils.TryStartTransaction();
 
             ICollection<ElementId> railingIds = CreatedStaircase.GetAssociatedRailings();
             if (Scaling.Z == -1)

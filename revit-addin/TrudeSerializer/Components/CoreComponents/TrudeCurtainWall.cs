@@ -1,7 +1,5 @@
 ﻿using Autodesk.Revit.DB;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Utils;
 
@@ -34,7 +32,7 @@ namespace TrudeSerializer.Components
 
             return element.Category.Name.Contains("Curtain Panels");
         }
-        
+
         public static bool IsCurtainWallMullion(Element element)
         {
             string category = element?.Category?.Name;
@@ -45,7 +43,7 @@ namespace TrudeSerializer.Components
 
             return element.Category.Name.Contains("Curtain Wall Mullions");
         }
-        public TrudeCurtainWall(string elementId, string family, string level, string subType, double[] center) : base(elementId, "Curtain Wall", family, level)
+        public TrudeCurtainWall(string elementId, string family, string level, string subType, double[] center) : base(elementId, "CurtainWall", family, level)
         {
             this.subType = subType;
             this.center = center;

@@ -46,5 +46,17 @@ namespace TrudeImporter
 
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
+
+        [JsonProperty("snaptrudeLog")]
+        public ComponentLogData SnaptrudeLog { get; set; }
+
+        [JsonProperty("errors")]
+        public List<LogError> Errors { get; set; }
+
+        [JsonProperty("trudeGeneration")]
+        public ExportStatus TrudeGeneration { get; set; }
+
+        [JsonProperty("identifier")]
+        public ExportIdentifier Identifier { get; set; }
     }
 }
