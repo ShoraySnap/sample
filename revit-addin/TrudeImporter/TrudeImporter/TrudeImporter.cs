@@ -262,8 +262,8 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("Exception in getting levels to create, delete and change" + "\nError is: " + e.Message + "\n");
-                LogTrace(e.Message);
+                logger.Error("Exception in getting levels to create, delete and change" + "\nError is: " + e.Message + "\n");
+                LogTrace("Exception in getting levels to create, delete and change" + "\nError is: " + e.Message + "\n");
             }
 
 
@@ -279,8 +279,8 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine("Exception in creating default level" + "\nError is: " + e.Message + "\n");
-                    LogTrace(e.Message);
+                    logger.Error("Exception in creating default level" + "\nError is: " + e.Message + "\n");
+                    LogTrace("Exception in creating default level" + "\nError is: " + e.Message + "\n");
                 }
             }
 
@@ -305,8 +305,8 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("Exception in editing/deleting levels" + "\nError is: " + e.Message + "\n");
-                LogTrace(e.Message);
+                logger.Error("Exception in editing/deleting levels" + "\nError is: " + e.Message + "\n");
+                LogTrace("Exception in editing/deleting levels" + "\nError is: " + e.Message + "\n");
             }
             logger.Info("Existing stories handled");
 
@@ -319,11 +319,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine("Exception in creating new level" + "\nError is: " + e.Message + "\n");
-                    LogTrace(e.Message);
+                    logger.Error("Exception in creating new level" + "\nError is: " + e.Message + "\n");
+                    LogTrace("Exception in creating new level" + "\nError is: " + e.Message + "\n");
                 }
             }
-            LogTrace("stories created");
+            logger.Info("Stories created");
         }
 
         private static void ImportWalls(List<WallProperties> propsList)
