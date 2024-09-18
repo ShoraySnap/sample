@@ -27,7 +27,7 @@ namespace TrudeImporter
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
                 string filePath = GlobalVariables.ForForge
-                    ? $"resourceFile/Windows/{familyName}.rfa"
+                    ? $"resourceFile/{folder}/{familyName}.rfa"
                     : $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/{folder}/{familyName}.rfa";
 
                 GlobalVariables.Document.LoadFamily(filePath, new FamilyLoadOptions(), out Family family);
