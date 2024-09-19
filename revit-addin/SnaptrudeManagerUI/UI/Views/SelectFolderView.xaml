@@ -266,8 +266,9 @@
                     Visibility="Visible" />
                 <Button
                     Grid.Column="1"
-                    Command="{Binding BackCommand}"
+                    Command="{Binding BackCommand, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                     Content="Back"
+                    IsEnabled="{Binding IsBreadcrumbEnabled}"
                     Style="{DynamicResource Button_Secondary}" />
                 <Button
                     Grid.Column="2"

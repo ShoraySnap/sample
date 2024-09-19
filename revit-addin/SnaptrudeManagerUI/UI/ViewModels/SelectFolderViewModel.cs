@@ -23,7 +23,19 @@ namespace SnaptrudeManagerUI.ViewModels
         public ObservableCollection<FolderViewModel> Breadcrumb { get; private set; }
         public ICommand OpenFolderCommand { get; private set; }
         public ICommand NavigateToFolderCommand { get; private set; }
-        public ICommand BackCommand { get; private set; }
+        private ICommand backCommand;
+
+        public ICommand BackCommand
+        {
+            get { return backCommand; }
+            set 
+            { 
+                backCommand = value;
+                OnPropertyChanged(nameof(BackCommand));
+            }
+        }
+
+        public NavigationService HomeNavigationService { get; private set; }
         public ICommand BeginExportCommand { get; private set; }
 
         private string team_id = "";
@@ -64,10 +76,11 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private FolderViewModel AllWorkspacesViewModel = new FolderViewModel(new Folder("-1", "All Workspaces", Constants.WorkspaceType.Top, "-1"));
 
-        public SelectFolderViewModel(NavigationService backNavigationService, NavigationService exportNavigationService)
+        public SelectFolderViewModel(NavigationService homeNavigationService, NavigationService exportNavigationService)
         {
             BeginExportCommand = new RelayCommand((o) => { BeginExport(o, exportNavigationService); });
-            BackCommand = new NavigateCommand(backNavigationService);
+            HomeNavigationService = homeNavigationService;
+            BackCommand = new NavigateCommand(HomeNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             CurrentPathFoldersView = new ListCollectionView(CurrentPathFolders);
             CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.FolderType), ListSortDirection.Ascending));
@@ -157,6 +170,7 @@ namespace SnaptrudeManagerUI.ViewModels
                     addBreadcrumbs = true;
                     IsLoaderVisible = false;
                     updateInfoMessage();
+                    SetBackButton();
                 }
                 SetSelectedFolder();
             }
@@ -192,6 +206,21 @@ namespace SnaptrudeManagerUI.ViewModels
                 // Update the breadcrumb
             }
             setExportButton();
+        }
+
+        private void SetBackButton()
+        {
+            if (Breadcrumb.Count == 1)
+            {
+                BackCommand = new NavigateCommand(HomeNavigationService);
+            }
+            else
+            {
+                BackCommand = new RelayCommand(
+                    o => 
+                    NavigateToFolder(Breadcrumb[Breadcrumb.Count - 2])
+                );
+            }
         }
 
         private void setExportButton()

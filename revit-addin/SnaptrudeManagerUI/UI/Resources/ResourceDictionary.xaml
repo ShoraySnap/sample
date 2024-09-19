@@ -440,7 +440,7 @@
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                            <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/300}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -736,7 +736,7 @@
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/400}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Padding" Value="4,4" />
+        <Setter Property="Padding" Value="4,2" />
         <Setter Property="Margin" Value="2,0" />
         <Setter Property="FontFamily" Value="{StaticResource Inter400}" />
         <Setter Property="FontSize" Value="12" />
@@ -764,6 +764,9 @@
                             <Setter Property="Foreground" Value="{DynamicResource Colors/Neutral/900}" />
                             <Setter TargetName="border" Property="Background" Value="{DynamicResource Colors/Neutral/100}" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding Selected}" Value="true">
+                            <Setter Property="Foreground" Value="{DynamicResource Colors/Neutral/900}" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
