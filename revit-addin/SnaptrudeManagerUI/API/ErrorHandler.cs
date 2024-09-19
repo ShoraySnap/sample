@@ -164,7 +164,7 @@ namespace SnaptrudeManagerUI.API
         private static void HandleGeneralException(Exception ex, Action<string> warningAction)
         {
             Logger.Error($"Error in {warningAction.Method.Name}: " + ex.StackTrace);
-            warningAction.Invoke($"An unexpected error occurred. {ex.Message}");
+            warningAction.Invoke($"An unexpected error occurred. Please contact support. {ex.Message}");
         }
     }
 }

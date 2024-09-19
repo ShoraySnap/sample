@@ -106,21 +106,21 @@ namespace SnaptrudeManagerUI.ViewModels
                 case WarningId.UploadIssue:
                     ShowSecondaryButton = true;
                     SecondaryButtonText = "Go back";
-                    Title = "Upload failed";
+                    Title = "Upload to Snaptrude failed";
                     Message = $"{errorMessage}";
                     PrimaryButtonText = "Try again";
                     break;
                 case WarningId.SelectFolderIssue:
                     ShowSecondaryButton = true;
                     SecondaryButtonText = "Go back";
-                    Title = "Error fetching folders";
+                    Title = "Unable to load workspace";
                     Message = $"{errorMessage}";
                     PrimaryButtonText = "Try again";
                     break;
                 case WarningId.EnterProjectUrlIssue:
                     ShowSecondaryButton = true;
                     SecondaryButtonText = "Go back";
-                    Title = "Error fetching existing project";
+                    Title = "Unable to load project";
                     Message = $"{errorMessage}";
                     PrimaryButtonText = "Try again";
                     break;
