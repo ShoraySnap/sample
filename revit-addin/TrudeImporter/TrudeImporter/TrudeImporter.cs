@@ -73,6 +73,7 @@ namespace TrudeImporter
             ImportDurationMessage = "Import duration: ";
             Stopwatch sw = Stopwatch.StartNew();
 
+            MaterialOperations.MaterialOperations.CopyMaterialsFromTemplate(GlobalVariables.Document, GlobalVariables.RvtApp);
             ImportCategory("Textures", () => new FetchTextures.FetchTextures(), "Fetching textures...", 5);
             ImportCategory("Deletion", () => DeleteRemovedElements(GlobalVariables.TrudeProperties.DeletedElements), "Deleting removed elements...", 5);
             ImportCategory("Storeys", () => ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport), "Importing Stories...", 5);
@@ -261,7 +262,8 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                logger.Error(e.Message);
+                logger.Error("Exception in getting levels to create, delete and change" + "\nError is: " + e.Message + "\n");
+                LogTrace("Exception in getting levels to create, delete and change" + "\nError is: " + e.Message + "\n");
             }
 
 
@@ -277,7 +279,8 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                    logger.Error(e.Message);
+                    logger.Error("Exception in creating default level" + "\nError is: " + e.Message + "\n");
+                    LogTrace("Exception in creating default level" + "\nError is: " + e.Message + "\n");
                 }
             }
 
@@ -302,7 +305,8 @@ namespace TrudeImporter
             }
             catch (Exception e)
             {
-                logger.Error(e.Message);
+                logger.Error("Exception in editing/deleting levels" + "\nError is: " + e.Message + "\n");
+                LogTrace("Exception in editing/deleting levels" + "\nError is: " + e.Message + "\n");
             }
             logger.Info("Existing stories handled");
 
@@ -315,12 +319,11 @@ namespace TrudeImporter
                 }
                 catch (Exception e)
                 {
-                    logger.Error(e.Message);
-                    LogTrace(e.Message);
+                    logger.Error("Exception in creating new level" + "\nError is: " + e.Message + "\n");
+                    LogTrace("Exception in creating new level" + "\nError is: " + e.Message + "\n");
                 }
             }
             logger.Info("Stories created");
-
         }
 
         private static void ImportWalls(List<WallProperties> propsList)

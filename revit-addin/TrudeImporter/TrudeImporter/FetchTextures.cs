@@ -84,7 +84,7 @@ namespace FetchTextures
                 url = ValidateAndEncodeUrl(url);
                 if (string.IsNullOrEmpty(url))
                 {
-                    System.Diagnostics.Debug.WriteLine("Invalid was Null or Empty");
+                    System.Diagnostics.Debug.WriteLine("URL was Null or Empty");
                     return "";
                 }
 
