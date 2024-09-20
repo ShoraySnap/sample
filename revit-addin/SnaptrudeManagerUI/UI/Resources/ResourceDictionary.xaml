@@ -783,7 +783,7 @@
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding FolderType}" Value="TeamFreeExceedLimit">
-                                        <Setter Property="Text" Value="Team Threshold crossed, reached maximum free projects allowed limit" />
+                                        <Setter Property="Text" Value="Reached maximum free projects limit" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding FolderType}" Value="TeamWithoutPermission">
                                         <Setter Property="Text" Value="You need higher-level permissions to create a project in this team" />
