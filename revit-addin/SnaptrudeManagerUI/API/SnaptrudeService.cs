@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Windows.Documents;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -83,13 +85,19 @@ namespace SnaptrudeManagerUI.API
             var responseData = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception("\n"+responseData);
+                throw new Exception("\n" + responseData);
             }
-            
-            var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-            if (result.ContainsKey("error") && result["message"] == "Invalid Access Token.")
+
+            try
             {
-                throw new InvalidTokenException("Invalid Access Token");
+                var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
+                if (result.ContainsKey("error") && result["message"] == "Invalid Access Token.")
+                {
+                    throw new InvalidTokenException("Invalid Access Token");
+                }
+            }
+            catch (Exception)
+            {
             }
 
             return response;
@@ -139,40 +147,32 @@ namespace SnaptrudeManagerUI.API
             if (response != null && response.IsSuccessStatusCode)
                 return true;
             else
-                return false;    
+                return false;
         }
 
         public static async Task<List<Dictionary<string, string>>> GetUserWorkspacesAsync()
         {
-            string endPoint = "/user/workspaces/valid-teams";
+            string endPoint = "/user/teams/active";
             var response = await CallApiAsync(endPoint, HttpMethod.Get);
 
             if (response != null)
             {
                 var responseData = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
+                var result = JsonConvert.DeserializeObject<Dictionary<string, List<Team>>>(responseData);
 
-                var workspaces = new List<Dictionary<string, string>>();
-
-                foreach (var workspace in result["myWorkspace"])
+                var workspaces = new List<Dictionary<string, string>>
                 {
-                    workspaces.Add(new Dictionary<string, string>
-                    {
+                    new Dictionary<string, string> {
                         { "id", Constants.PERSONAL_WORKSPACE_ID },
                         { "name", Constants.PERSONAL_WORKSPACE_NAME },
-                        { "type", "workspace"}
-                    });
-                }
+                        { "type", "personal"}
+                    }
+                };
 
-                foreach (var team in result["teams"])
-                {
-                    workspaces.Add(new Dictionary<string, string>
-                    {
-                        { "id", team["id"].ToString() },
-                        { "name", team["name"].ToString() },
-                        { "type", "team" }
-                    });
-                }
+                var teamsTask = GetTeamsData(result["teams"]);
+                var teamsWorkspaces = await teamsTask;
+
+                workspaces.AddRange(teamsWorkspaces);
 
                 return workspaces;
             }
@@ -237,19 +237,98 @@ namespace SnaptrudeManagerUI.API
 
             return null;
         }
-
-
-
-        private static async Task<bool> CheckRoleForPermissionToCreateProjectAsync(Dictionary<string, string> team)
+        private static async Task<Dictionary<string, string>> GetTeamData(Team team)
         {
-            if (team["role"] == "viewer" || team["role"] == "editor")
+            var checkPermissionTask = CheckRoleForPermissionToCreateProjectAsync(team);
+
+            string endPoint = $"/team/{team.id}/project?";
+            var data = new Dictionary<string, string>
+            {
+                { "limit", "10" },
+                { "offset", "0" }
+            };
+            var queryParams = string.Join("&", data.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+            var callApiTask = CallApiAsync($"{endPoint}{queryParams}", HttpMethod.Get, data);
+
+            await Task.WhenAll(new Task[] { checkPermissionTask, callApiTask });
+
+            bool isPermissionToCreateProject = await checkPermissionTask;
+            HttpResponseMessage response = await callApiTask;
+
+            if (!isPermissionToCreateProject)
+            {
+                return new Dictionary<string, string>
+                {
+                    { "id", team.id.ToString() },
+                    { "name", team.name.ToString() },
+                    { "type", "teamWithoutPermission" },
+                };
+            }
+            if (team.isManuallyPaid)
+            {
+                return new Dictionary<string, string>
+                {
+                    { "id", team.id.ToString() },
+                    { "name", team.name.ToString() },
+                    { "type", "teamPaid" },
+                };
+            }
+
+            if (response != null)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<ProjectsResponse>(responseData);
+
+                if (result.Projects.Count < 1)
+                {
+                    return new Dictionary<string, string>
+                    {
+                        { "id", team.id.ToString() },
+                        { "name", team.name.ToString() },
+                        { "type", "teamFree" },
+                    };
+                }
+                else
+                {
+                    return new Dictionary<string, string>
+                    {
+                        { "id", team.id.ToString() },
+                        { "name", team.name.ToString() },
+                        { "type", "teamFreeExceedLimit" },
+                    };
+                }
+            }
+            return null;
+        }
+
+        private static async Task<List<Dictionary<string, string>>> GetTeamsData(List<Team> teams)
+        {
+            var teamTasks = new List<Task<Dictionary<string, string>>>();
+            //teamTasks.Add(GetTeamData(teams[3]));
+            foreach (var team in teams)
+            {
+                teamTasks.Add(GetTeamData(team));
+            }
+            await Task.WhenAll(teamTasks);
+
+            var teamsData = new List<Dictionary<string, string>>();
+            foreach (var task in teamTasks)
+            {
+                teamsData.Add(await task);
+            }
+            return teamsData;
+        }
+
+        private static async Task<bool> CheckRoleForPermissionToCreateProjectAsync(Team team)
+        {
+            if (team.role == "viewer" || team.role == "editor")
             {
                 return false;
             }
 
-            if (team["role"] != "admin" && team["role"] != "creator")
+            if (team.role != "admin" && team.role != "creator")
             {
-                string endPoint = $"/team/{team["id"]}/getrole/";
+                string endPoint = $"/team/{team.id}/getrole/";
                 var response = await CallApiAsync(endPoint, HttpMethod.Post, new Dictionary<string, string>());
 
                 if (response != null && response.IsSuccessStatusCode)
@@ -264,7 +343,7 @@ namespace SnaptrudeManagerUI.API
                         roleBasedPermissions[permission["name"].ToString()] = permission;
                     }
 
-                    if (!bool.Parse(roleBasedPermissions[team["role"]]["create_project"].ToString()))
+                    if (!bool.Parse(roleBasedPermissions[team.role]["create_project"].ToString()))
                     {
                         return false;
                     }
@@ -358,8 +437,8 @@ namespace SnaptrudeManagerUI.API
             if (response != null && response.IsSuccessStatusCode)
             {
                 var responseData = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(responseData);
-                return result["projects"].Count;
+                var result = JsonConvert.DeserializeObject<List<dynamic>>(responseData);
+                return result.Count;
             }
 
             return 0;

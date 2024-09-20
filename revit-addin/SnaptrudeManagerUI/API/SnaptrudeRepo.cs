@@ -19,8 +19,32 @@ namespace SnaptrudeManagerUI.API
 
             foreach (Dictionary<string, string> workspaceData in workspacesData)
             {
-                WorkspaceType workspaceType = workspaceData["type"] == "workspace" ? WorkspaceType.Personal : WorkspaceType.Shared;
-                string teamId = workspaceData["type"] == "workspace" ? "-1" : workspaceData["id"];
+                WorkspaceType workspaceType = WorkspaceType.Folder;
+                switch (workspaceData["type"])
+                {
+                    case "top":
+                        workspaceType = WorkspaceType.Top;
+                        break;
+                    case "personal":
+                        workspaceType = WorkspaceType.Personal;
+                        break;
+                    case "personalExceedLimit":
+                        workspaceType = WorkspaceType.PersonalExceedLimit;
+                        break;
+                    case "teamFree":
+                        workspaceType = WorkspaceType.TeamFree;
+                        break;
+                    case "teamFreeExceedLimit":
+                        workspaceType = WorkspaceType.TeamFreeExceedLimit;
+                        break;
+                    case "teamPaid":
+                        workspaceType = WorkspaceType.TeamPaid;
+                        break;
+                    case "teamWithoutPermission":
+                        workspaceType = WorkspaceType.TeamWithoutPermission;
+                        break;
+                }
+                string teamId = workspaceData["type"] == "personal" ? "-1" : workspaceData["id"];
                 Folder workspace = new Folder(workspaceData["id"], workspaceData["name"], workspaceType, teamId);
                 workspaces.Add(workspace);
             }

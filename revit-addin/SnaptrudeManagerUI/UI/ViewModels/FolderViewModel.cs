@@ -17,6 +17,8 @@ namespace SnaptrudeManagerUI.ViewModels
         public Constants.WorkspaceType FolderType { get; }
         public string Id { get; }
         public string TeamId { get; }
+        public bool IsEnabled { get; }
+
         private bool selected;
         public bool Selected
         {
@@ -35,6 +37,21 @@ namespace SnaptrudeManagerUI.ViewModels
             FolderType = folder.FolderType;
             TeamId = folder.TeamId;
             Selected = false;
+            switch (FolderType)
+            {
+                case Constants.WorkspaceType.Folder:
+                case Constants.WorkspaceType.Personal:
+                case Constants.WorkspaceType.TeamFree:
+                case Constants.WorkspaceType.TeamPaid:
+                case Constants.WorkspaceType.Top:
+                    IsEnabled = true;
+                    break;
+                case Constants.WorkspaceType.PersonalExceedLimit:
+                case Constants.WorkspaceType.TeamFreeExceedLimit:
+                case Constants.WorkspaceType.TeamWithoutPermission:
+                    IsEnabled = false;
+                    break;
+            }
         }
     }
 }

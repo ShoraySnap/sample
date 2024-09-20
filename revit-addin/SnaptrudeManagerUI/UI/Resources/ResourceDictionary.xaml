@@ -47,6 +47,7 @@
     </Storyboard>
     <Style x:Key="CustomToolTipStyle" TargetType="ToolTip">
         <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
@@ -774,6 +775,27 @@
 
     </Style>
     <Style x:Key="Button_7" TargetType="{x:Type Button}">
+        <Setter Property="ToolTip">
+            <Setter.Value>
+                <ToolTip Style="{StaticResource CustomToolTipStyle}">
+                    <TextBlock>
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding FolderType}" Value="TeamFreeExceedLimit">
+                                        <Setter Property="Text" Value="Team Threshold crossed, reached maximum free projects allowed limit" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding FolderType}" Value="TeamWithoutPermission">
+                                        <Setter Property="Text" Value="You need higher-level permissions to create a project in this team" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </ToolTip>
+            </Setter.Value>
+        </Setter>
+
         <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/600}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -785,7 +807,7 @@
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Border
                         x:Name="border"
-                        Background="Transparent"
+                        Background="White"
                         CornerRadius="6"
                         SnapsToDevicePixels="false">
                         <ContentPresenter
@@ -802,6 +824,9 @@
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="border" Property="Background" Value="#F4F4F6" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding IsEnabled}" Value="true">
+                            <Setter Property="ToolTip" Value="{x:Null}" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

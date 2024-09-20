@@ -83,8 +83,7 @@ namespace SnaptrudeManagerUI.ViewModels
             BackCommand = new NavigateCommand(HomeNavigationService);
             CurrentPathFolders = new ObservableCollection<FolderViewModel>();
             CurrentPathFoldersView = new ListCollectionView(CurrentPathFolders);
-            CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.FolderType), ListSortDirection.Ascending));
-            CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.Name), ListSortDirection.Ascending));
+            //CurrentPathFoldersView.SortDescriptions.Add(new SortDescription(nameof(FolderViewModel.Id), ListSortDirection.Ascending));
             Breadcrumb = new ObservableCollection<FolderViewModel>();
             OpenFolderCommand = new RelayCommand(GetSubFoldersAsync);
             NavigateToFolderCommand = new RelayCommand(NavigateToFolder);

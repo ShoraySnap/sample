@@ -15,10 +15,14 @@ namespace SnaptrudeManagerUI.API
         public static string SNAPTRUDE_PROTOCOL = "snaptrude";
         public enum WorkspaceType
         {
-            Top,
+            Folder,
             Personal,
-            Shared,
-            Folder
+            PersonalExceedLimit,
+            TeamFree,
+            TeamFreeExceedLimit,
+            TeamPaid,
+            TeamWithoutPermission,
+            Top,
         }
     }
 }
