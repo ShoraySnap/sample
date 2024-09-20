@@ -786,7 +786,7 @@
                                         <Setter Property="Text" Value="Reached maximum free projects limit" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding FolderType}" Value="TeamWithoutPermission">
-                                        <Setter Property="Text" Value="You need higher-level permissions to create a project in this team" />
+                                        <Setter Property="Text" Value="Need admin permission to add project" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

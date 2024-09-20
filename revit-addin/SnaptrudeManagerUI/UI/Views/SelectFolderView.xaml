@@ -78,11 +78,11 @@
                                         CommandParameter="{Binding}"
                                         IsEnabled="{Binding IsEnabled}"
                                         Style="{DynamicResource Button_7}"
-                                        ToolTipService.HorizontalOffset="30"
+                                        ToolTipService.HorizontalOffset="27"
                                         ToolTipService.InitialShowDelay="10"
-                                        ToolTipService.Placement="Center"
+                                        ToolTipService.Placement="Bottom"
                                         ToolTipService.ShowOnDisabled="True"
-                                        ToolTipService.VerticalOffset="25">
+                                        ToolTipService.VerticalOffset="-3">
 
                                         <Button.Resources>
 
