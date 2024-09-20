@@ -308,6 +308,8 @@ var
   I: Integer;
   CheckedCount: Integer;
   FileToDownload, TargetZip, ExtractFolder: string;
+  FilePath: String;
+  ExtractFolderPath: String;
 begin
   Result := True;
   if IncludeDownloadSection then
@@ -358,17 +360,34 @@ begin
               DownloadPage.Clear;
               DownloadPage.Add(FileToDownload, TargetZip, '');
               try
-                DownloadPage.Download;
-                DownloadPage.ProgressBar.Style := npbstMarquee;
-                DownloadPage.SetProgress(90,100);
-                DownloadPage.SetText('Extracting ' + InstalledVersions[I] + ' RFAs...', '');
-                WizardForm.Update;
-                ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip','{tmp}\' + InstalledVersions[I] + '\');
+                  FilePath := ExpandConstant('{tmp}\' + InstalledVersions[I] + '.zip');
+                  if FileExists(FilePath) then
+                  begin
+                    Log('File already exists: ' + FilePath);
+                  end
+                  else
+                  begin
+                    DownloadPage.Download;
+                    DownloadPage.ProgressBar.Style := npbstMarquee;
+                    DownloadPage.SetProgress(90, 100);
+                  end;
+                  
+                  ExtractFolderPath := ExpandConstant('{tmp}\' + InstalledVersions[I] + '\');
+                  if DirExists(ExtractFolderPath) then
+                  begin
+                    Log('Extraction folder already exists: ' + ExtractFolderPath);
+                  end
+                  else
+                  begin
+                    DownloadPage.SetText('Extracting ' + InstalledVersions[I] + ' RFAs...', '');
+                    WizardForm.Update;
+                    ExtractMe('{tmp}\' + InstalledVersions[I] + '.zip', ExtractFolderPath);
+                  end;
               except
                 if DownloadPage.AbortedByUser then
                 begin
                   Log('Aborted by user.');
-                  Abort;
+                  Result := False;
                 end
                 else if GetExceptionMessage = 'Error sending data: (12007) The server name or address could not be resolved' then
                 begin
