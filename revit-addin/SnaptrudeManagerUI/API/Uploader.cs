@@ -146,11 +146,11 @@ namespace SnaptrudeManagerUI.API
                         uploadTasksDone++;
                         float p = uploadTasksDone / (float)uploadTasks.Count;
                         int progress = (int)Math.Round(70.0 + p * 20.0);
-                        UpdateUploadProgressValues(progress, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
+                        UpdateUploadProgressValues(progress, $"Uploading Serialized Data... {Math.Round(p * 100, 0)}%");
                     });
                 uploadTasks.Add(task);
             }
-            UpdateUploadProgressValues(70, $"Uploading Serialized Data... {uploadTasksDone} / {uploadTasks.Count}");
+            UpdateUploadProgressValues(70, $"Uploading Serialized Data... 0%");
             await Task.WhenAll(uploadTasks);
         }
 
@@ -305,11 +305,11 @@ namespace SnaptrudeManagerUI.API
                     uploadTasksDone++;
                     float p = uploadTasksDone / (float)uploadTasks.Count;
                     int progress = (int)Math.Round(90.0 + p * 8.0);
-                    UpdateUploadProgressValues(progress, $"Uploading Materials... {uploadTasksDone} / {uploadTasks.Count}");
+                    UpdateUploadProgressValues(progress, $"Uploading Materials... {Math.Round(p * 100, 0)}%");
                 });
                 uploadTasks.Add(uploadTask);
             }
-            UpdateUploadProgressValues(90, $"Uploading Materials... {uploadTasksDone} / {uploadTasks.Count}");
+            UpdateUploadProgressValues(90, $"Uploading Materials... 0%");
             await Task.WhenAll(uploadTasks);
         }
     }

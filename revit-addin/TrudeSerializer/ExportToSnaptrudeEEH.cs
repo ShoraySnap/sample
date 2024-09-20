@@ -164,7 +164,7 @@ namespace TrudeSerializer
             float p = processedElements / (float)elementsDone.Count();
             int progress = (int)Math.Round(p * 40.0);
 
-            Application.Instance.UpdateProgressForExport(progress,$"Serializing Elements... {processedElements} / {elementsDone.Count()}");
+            Application.Instance.UpdateProgressForExport(progress,$"Serializing Elements... {Math.Round(p * 100,0)}%");
         }
 
 
