@@ -123,21 +123,14 @@ namespace TrudeSerializer
                 elementsDone.Add(item.Id, false);
             }
         }
-
-        static void UploadProgressUpdate(float p, string message)
-        {
-            if (IsImportAborted()) return;
-            int progress = (int)Math.Round(60.0 + p * 40.0);
-
-            Application.Instance.UpdateProgressForExport(progress, message);
-        }
         void CountCleansAndUpdateProgress(int cleans, int total)
         {
             if (IsImportAborted()) return;
             float p = cleans / (float)total;
             int progress = (int)Math.Round(40.0 + p * 20.0);
 
-            Application.Instance.UpdateProgressForExport(progress,$"Cleaning Serialized Data... {cleans} / {total}");
+            Application.Instance.UpdateProgressForExport(progress,$"Cleaning Serialized Data... {Math.Round(p * 100,0)}%");
+
         }
 
         void CountElementAndUpdateProgress(TrudeComponent component, Element e)
