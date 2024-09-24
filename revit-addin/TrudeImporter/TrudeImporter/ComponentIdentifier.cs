@@ -61,6 +61,7 @@ namespace TrudeImporter
                 "Lighting Fixtures",
                 "Communication Devices",
                 "Casework",
+                "Food Service Equipment",
                 "Furniture Systems",
                 "Planting",
                 "Security Devices",
