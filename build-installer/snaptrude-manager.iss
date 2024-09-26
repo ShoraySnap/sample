@@ -388,6 +388,7 @@ begin
                 begin
                   Log('Aborted by user.');
                   Result := False;
+                  Exit;
                 end
                 else if GetExceptionMessage = 'Error sending data: (12007) The server name or address could not be resolved' then
                 begin
