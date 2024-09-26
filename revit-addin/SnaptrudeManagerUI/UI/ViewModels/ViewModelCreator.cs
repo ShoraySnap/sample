@@ -155,11 +155,6 @@ namespace SnaptrudeManagerUI.ViewModels
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
         }
 
-        public static EndViewModel CreateRevitClosedViewModel()
-        {
-            return new EndViewModel(EndViewModel.EndViewType.RevitClosed);
-        }
-
         public static EndViewModel CreateDownloadFinishedViewModel()
         {
             return new EndViewModel(EndViewModel.EndViewType.CloseAndUpdate);

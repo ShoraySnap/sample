@@ -29,6 +29,13 @@ namespace SnaptrudeManagerUI.ViewModels
             UpdateAvailableCommand = new NavigateCommand(updateAvailableNavigationService);
             App.OnUpdateAvailable += NavigateToUpdateView;
             App.OnLatestVersion += NavigateToLoginView;
+            CheckForUpdates();
+            MainWindowViewModel.Instance.IsLoaderVisible = false;
+        }
+
+        private async Task<bool> CheckForUpdates()
+        {
+            return await App.Updater.IsUpdateAvailable();
         }
 
         private void NavigateToLoginView()

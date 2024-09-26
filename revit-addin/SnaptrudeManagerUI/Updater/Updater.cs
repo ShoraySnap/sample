@@ -61,7 +61,6 @@ namespace SnaptrudeManagerUI
             _sparkle.UpdateCheckStarted += _sparkle_UpdateCheckStarted;
             _sparkle.UpdateCheckFinished += _sparkle_UpdateCheckFinished;
             _sparkle.UpdateDetected += _sparkle_UpdateDetected;
-            
         }
 
         private void _sparkle_UpdateCheckFinished(object sender, UpdateStatus status)
@@ -113,25 +112,16 @@ namespace SnaptrudeManagerUI
             App.OnUpdateAvailable.Invoke();
         }
 
-        public async Task CheckUpdates()
+        public async Task<bool> IsUpdateAvailable()
         {
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
 
             _updateInfo = await _sparkle.CheckForUpdatesAtUserRequest();
-            //if (_updateInfo != null)
-            //{
-            //    switch (_updateInfo.Status)
-            //    {
-            //        case UpdateStatus.UpdateAvailable:
-            //            break;
-            //        case UpdateStatus.UpdateNotAvailable:
-            //            break;
-            //        case UpdateStatus.UserSkipped:
-            //            break;
-            //        case UpdateStatus.CouldNotDetermine:
-            //            break;
-            //    }
-            //}
+            if (_updateInfo != null)
+            {
+                return _updateInfo.Status == UpdateStatus.UpdateAvailable;
+            }
+            return false;
         }
 
         private static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)

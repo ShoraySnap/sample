@@ -108,7 +108,8 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService, bool retryUpload)
         {
             MainWindowViewModel.Instance.TopMost = false;
-            SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            if (App.RevitProcess != null)
+                SetForegroundWindow(App.RevitProcess.MainWindowHandle);
             SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
 
             IsProgressBarIndeterminate = false;

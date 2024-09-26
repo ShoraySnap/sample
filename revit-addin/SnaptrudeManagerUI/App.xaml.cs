@@ -65,8 +65,8 @@ namespace SnaptrudeManagerUI
         public static Action OnUpdateAvailable;
         public static Action OnLatestVersion;
 
+        public static Updater Updater;
         public static Process RevitProcess;
-        public Updater Updater;
 
         public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
 
@@ -165,7 +165,6 @@ namespace SnaptrudeManagerUI
                 UpdateButtonState(viewIs3D);
             }
             Application.Current.Dispatcher.Hooks.OperationCompleted += ProcessEventQueue;
-            await Updater.CheckUpdates();
 
         }
 
