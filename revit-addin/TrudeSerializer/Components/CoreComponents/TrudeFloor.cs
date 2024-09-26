@@ -1,10 +1,8 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
 using TrudeImporter;
+using TrudeSerializer.CustomDataTypes;
 using TrudeSerializer.Importer;
 using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
@@ -17,6 +15,7 @@ namespace TrudeSerializer.Components
         public double area;
         public Dictionary<string, Dictionary<string, double[][]>> voids;
         public string type;
+        public MaterialAppliedByPaint materialAppliedByPaint;
 
         private TrudeFloor(string elementId,
             string level, string family, string type,
@@ -49,9 +48,10 @@ namespace TrudeSerializer.Components
             SetFloorType(importData, floor);
             TrudeFloor serializedFloor = new TrudeFloor(elementId, levelName, family, floorType, false, true, outline, voids);
             serializedFloor.SetIsParametric(isDifferentCurve);
+            serializedFloor.materialAppliedByPaint = TrudeMaterial.GetMaterialByAppliedByPaint(element, TrudeCategory.Floor);
 
             var areaParam = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
-            if(areaParam != null && areaParam.HasValue)
+            if (areaParam != null && areaParam.HasValue)
             {
                 serializedFloor.area = UnitConversion.ConvertToSnaptrudeAreaUnits(areaParam.AsDouble());
             }

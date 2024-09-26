@@ -2,6 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Text;
+using TrudeCommon.Utils;
 using TrudeSerializer.Components;
 using TrudeSerializer.Utils;
 
@@ -69,24 +71,31 @@ namespace TrudeSerializer.Debug
         }
     }
 
-    internal class TrudeLogData
+    internal class RevitLogData
     {
         public ProcessStageLogData serialize = new ProcessStageLogData();
         public ProcessStageLogData upload = new ProcessStageLogData();
         public ComponentLogData components = new ComponentLogData();
     }
 
+    internal class SnaptrudeLogData
+    {
+        public ProcessStageLogData create = new ProcessStageLogData();
+        public ProcessStageLogData save = new ProcessStageLogData();
+        public ComponentLogData components = new ComponentLogData();
+    }
+
     internal class FullLogData
     {
-        public TrudeLogData revit = new TrudeLogData();
-        public TrudeLogData snaptrude = new TrudeLogData();
+        public RevitLogData revit = new RevitLogData();
+        public SnaptrudeLogData snaptrude = new SnaptrudeLogData();
     }
 
     internal class TrudeLogger
     {
         public static TrudeLogger Instance = new TrudeLogger();
         FullLogData fullData;
-        TrudeLogData data;
+        RevitLogData data;
 
         private static string currentKey = "";
         public void Init()
@@ -113,7 +122,15 @@ namespace TrudeSerializer.Debug
         public void Save()
         {
             var serializedLog = JsonConvert.SerializeObject(fullData);
-            TrudeDebug.StoreData(serializedLog, "log.json");
+            TrudeLocalAppData.StoreData(serializedLog, "log.json");
+        }
+
+        public string SaveForUpload()
+        {
+            string fileName = FileUtils.LOG_FNAME;
+            var serializedLog = Encoding.UTF8.GetBytes(GetSerializedObject());
+            FileUtils.SaveCommonTempFile(fileName, serializedLog);
+            return fileName;
         }
 
         private void CountInputComponent(Dictionary<string, CountData> componentDict, string key)
@@ -277,7 +294,7 @@ namespace TrudeSerializer.Debug
 
         public string GetSerializedObject()
         {
-            var serializedLog = JsonConvert.SerializeObject(fullData);
+            var serializedLog = JsonConvert.SerializeObject(fullData, Formatting.Indented);
 
             return serializedLog;
         }

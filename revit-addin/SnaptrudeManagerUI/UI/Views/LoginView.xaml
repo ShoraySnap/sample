@@ -1,0 +1,133 @@
+﻿<UserControl
+    x:Class="SnaptrudeManagerUI.Views.LoginView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SnaptrudeManagerUI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="272"
+    d:DesignWidth="560"
+    FontSize="13"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
+    </UserControl.Resources>
+    <DockPanel Margin="15">
+        <TextBlock
+            Width="296"
+            DockPanel.Dock="Bottom"
+            FontFamily="{StaticResource Inter400}"
+            Foreground="White"
+            LineHeight="18"
+            Text="{Binding Message}"
+            TextAlignment="Center"
+            TextWrapping="Wrap" />
+        <Grid>
+            <Button
+                HorizontalAlignment="Center"
+                Command="{Binding AuthCommand}"
+                FontFamily="{StaticResource Inter500}"
+                Style="{DynamicResource Button_Quaternary}"
+                Visibility="{Binding ShowButton, Converter={StaticResource BoolToVisibility}}">
+                <Button.Content>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center">Login to Snaptrude</TextBlock>
+                        <Border Height="20" Padding="8,0,0,0">
+                            <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Path
+                                    Data="M9.125 0.875L0.875 9.125"
+                                    Stroke="#484B5B"
+                                    StrokeEndLineCap="Round"
+                                    StrokeLineJoin="Round"
+                                    StrokeStartLineCap="Round"
+                                    StrokeThickness="1.25" />
+                                <Path
+                                    Data="M3.33325 0.833496L9.12492 0.874329L9.16659 6.66683"
+                                    Stroke="#484B5B"
+                                    StrokeEndLineCap="Round"
+                                    StrokeLineJoin="Round"
+                                    StrokeStartLineCap="Round"
+                                    StrokeThickness="1.25" />
+
+                            </Grid>
+
+                        </Border>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <Grid
+                Width="32"
+                Height="32"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Visibility="{Binding ShowLoader, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RenderTransform>
+                    <RotateTransform x:Name="rotationTransform" CenterX="16" CenterY="16" />
+                </Grid.RenderTransform>
+                <Grid.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard Storyboard="{StaticResource RotateStoryboard}" />
+                    </EventTrigger>
+                </Grid.Triggers>
+                <Path
+                    Data="M15.9996 28.0051V24.0034"
+                    Stroke="{DynamicResource Colors/Neutral/900}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M7.51067 24.4893L10.3398 21.6602"
+                    Stroke="{DynamicResource Colors/Neutral/800}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M3.99491 16.0004H7.99658"
+                    Stroke="{DynamicResource Colors/Neutral/600}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M10.3398 10.3404L7.51067 7.51123"
+                    Stroke="{DynamicResource Colors/Neutral/500}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M15.9996 3.99561V7.99727"
+                    Stroke="{DynamicResource Colors/Neutral/400}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M24.4888 7.51123L21.6596 10.3404"
+                    Stroke="{DynamicResource Colors/Neutral/300}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M28.0044 16.0004H24.0027"
+                    Stroke="{DynamicResource Colors/Neutral/200}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+                <Path
+                    Data="M21.6596 21.6602L24.4888 24.4893"
+                    Stroke="{DynamicResource Colors/Neutral/100}"
+                    StrokeEndLineCap="round"
+                    StrokeLineJoin="round"
+                    StrokeStartLineCap="round"
+                    StrokeThickness="1.5" />
+            </Grid>
+        </Grid>
+
+    </DockPanel>
+</UserControl>

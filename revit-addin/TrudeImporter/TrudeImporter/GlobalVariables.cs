@@ -28,6 +28,8 @@ namespace TrudeImporter
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingFurnitureFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<ElementId, List<TrudeRoom>> CreatedFloorsByLevel = new Dictionary<ElementId, List<TrudeRoom>>();
 
+        public static bool ImportLabels = false;
+
         public static List<ElementId> WallElementIdsToRecreate = new List<ElementId>();
 
         public static JArray materials;
@@ -39,7 +41,9 @@ namespace TrudeImporter
         public static List<int> MissingDoorIndexes = new List<int>();
         public static List<int> MissingWindowIndexes = new List<int>();
         public static List<int> MissingFurnitureIndexes = new List<int>();
+        public static TrudeProperties TrudeProperties;
 
+        public static bool ViewIs3D { get; internal set; }
 
         public static void cleanGlobalVariables()
         {

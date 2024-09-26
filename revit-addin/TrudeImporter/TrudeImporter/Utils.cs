@@ -277,5 +277,74 @@ namespace TrudeImporter
         {
             return ("#" + color.Red.ToString("X2") + color.Green.ToString("X2") + color.Blue.ToString("X2")).ToLower();
         }
+
+        public static TransactionStatus TryStartTransaction()
+        {
+            if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Commit();
+            var status = GlobalVariables.Transaction.Start();
+            HandleWarnings(GlobalVariables.Transaction);
+
+            return status;
+        }
+
+        public static void HandleWarnings(Transaction trans)
+        {
+            FailureHandlingOptions options = trans.GetFailureHandlingOptions();
+            PreProcessor preproccessor = new PreProcessor();
+            options.SetClearAfterRollback(true);
+            options.SetFailuresPreprocessor(preproccessor);
+            trans.SetFailureHandlingOptions(options);
+        }
+
+        class PreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+                int resolvedFailures = 0;
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+                foreach (FailureMessageAccessor fma in fmas)
+                {
+                    if (fma.GetSeverity() == FailureSeverity.Error)
+                    {
+                        try
+                        {
+                            TrudeExportLogger.Instance.LogError(
+                            GlobalVariables.Document.GetElement(fma.GetFailingElementIds().First()).Category.Name,
+                                fma.GetDescriptionText(),
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                                (int)fma.GetFailingElementIds().First().IntegerValue
+#else
+                                (int)fma.GetFailingElementIds().First().Value
+#endif
+                            );
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
+                    {
+                        GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
+                        failuresAccessor.ResolveFailure(fma);
+                    }
+                    if (fma.GetDefaultResolutionCaption() == "Unjoin Elements")
+                    {
+                        failuresAccessor.ResolveFailure(fma);
+                        resolvedFailures++;
+                    }
+                }
+                if (resolvedFailures != 0)
+                {
+                    return FailureProcessingResult.ProceedWithCommit;
+                }
+                else
+                {
+                    return FailureProcessingResult.Continue;
+                }
+            }
+        }
     }
 }

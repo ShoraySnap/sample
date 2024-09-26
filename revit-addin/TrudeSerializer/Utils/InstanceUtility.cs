@@ -331,7 +331,7 @@ namespace TrudeSerializer.Components
         {
             List<string> eligibleSubElementCategoryForCenter = new List<string> { "Furniture", "Casework", "Doors", "Windows", "FurnitureSystems_single", "Security Devices",
                 "Fire Alarm Devices", "Communication Devices", "Lighting Fixtures", "Furniture Systems", "Planting", "Electrical Fixtures", "Data Devices", "Lighting Devices",
-                "Specialty Equipment", "Stairs", "Curtain Panels", "Curtain Wall Mullions", "Generic Models", "Assemblies", "Model Groups", "Mechanical Equipment", "Railings",
+                "Specialty Equipment", "Food Service Equipment", "Stairs", "Curtain Panels", "Curtain Wall Mullions", "Generic Models", "Assemblies", "Model Groups", "Mechanical Equipment", "Railings",
                 "Top Rails", "Ramps", "Plumbing Fixtures", "Electrical Equipment", "Sprinklers" };
             Group group = element as Group;
             BoundingBoxXYZ bb = new BoundingBoxXYZ();

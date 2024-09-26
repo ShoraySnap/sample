@@ -84,13 +84,17 @@ namespace TrudeSerializer
         */
         void IExportContext.Finish()
         {
+            if(ExportToSnaptrudeEEH.ExportInterrupted)
+            {
+                ExportToSnaptrudeEEH.InterruptWithAbort();
+            }
             ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
 
         bool IExportContext.IsCanceled()
         {
-            return false;
+            return ExportToSnaptrudeEEH.IsImportAborted();
         }
 
         RenderNodeAction IExportContext.OnViewBegin(ViewNode node)
@@ -111,6 +115,8 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
+
             Document doc = node.GetDocument();
             ChangeCurrentDocument(doc);
             isRevitLink = true;
@@ -161,6 +167,8 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
+
             Element element = doc.GetElement(elementId);
             string category = element?.Category?.Name;
             if (category == "Levels")
@@ -193,7 +201,7 @@ namespace TrudeSerializer
 
                     ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component, element);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     return RenderNodeAction.Skip;
                 }
@@ -272,6 +280,7 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnInstanceBegin(InstanceNode node)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
             return RenderNodeAction.Proceed;
         }
@@ -288,6 +297,7 @@ namespace TrudeSerializer
 
         RenderNodeAction IExportContext.OnFaceBegin(FaceNode node)
         {
+            ExportToSnaptrudeEEH.InterruptsReset();
             return RenderNodeAction.Proceed;
         }
 
@@ -315,7 +325,7 @@ namespace TrudeSerializer
         {
             String materialId = node.MaterialId.ToString();
             this.currentMaterialId = materialId;
-            string category = CurrentElement.GetCategory(currentElement);
+            TrudeCategory category = CurrentElement.GetCategory(currentElement);
 
             if (this.currentElement.HasMaterial(materialId)) return;
 
