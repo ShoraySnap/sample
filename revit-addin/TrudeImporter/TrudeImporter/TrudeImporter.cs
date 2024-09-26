@@ -18,6 +18,7 @@ using Autodesk.Revit.UI;
 
 #if !FORGE
 using SnaptrudeManagerAddin;
+using System.Windows.Controls;
 #endif
 
 namespace TrudeImporter
@@ -72,8 +73,13 @@ namespace TrudeImporter
 
             ImportDurationMessage = "Import duration: ";
             Stopwatch sw = Stopwatch.StartNew();
-
-            MaterialOperations.MaterialOperations.CopyMaterialsFromTemplate(GlobalVariables.Document, GlobalVariables.RvtApp);
+            IEnumerable<AppearanceAssetElement> appearanceAssetElementEnum = new FilteredElementCollector(GlobalVariables.Document)
+                .OfClass(typeof(AppearanceAssetElement))
+                .Cast<AppearanceAssetElement>();
+            if (!appearanceAssetElementEnum.Any())
+            {
+                MaterialOperations.MaterialOperations.CopyMaterialsFromTemplate(GlobalVariables.Document, GlobalVariables.RvtApp);
+            }
             ImportCategory("Textures", () => new FetchTextures.FetchTextures(), "Fetching textures...", 5);
             ImportCategory("Deletion", () => DeleteRemovedElements(GlobalVariables.TrudeProperties.DeletedElements), "Deleting removed elements...", 5);
             ImportCategory("Storeys", () => ImportStories(trudeProperties.Storeys, trudeProperties.IsRevitImport), "Importing Stories...", 5);
