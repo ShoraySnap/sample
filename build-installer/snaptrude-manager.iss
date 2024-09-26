@@ -184,10 +184,14 @@ end;
 
 function IsRevitVersionInstalled(Version: string): Boolean;
 var
-  RevitFilePath: string;
+  RegKey: string;
+  Value: string;
 begin
-  RevitFilePath := ExpandConstant('{pf64}\Autodesk\Revit ' + Version + '\Revit.exe');
-  Result := FileExists(RevitFilePath);
+  Result := False;
+  if RegKeyExists(HKCU, 'Software\Autodesk\Revit\Autodesk Revit ' + Version) then
+  begin
+    Result := True;
+  end
 end;
 
 function InstallVersion (VersionToCheck: String; RFAs: Boolean): Boolean;
