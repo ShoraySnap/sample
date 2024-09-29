@@ -178,7 +178,7 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isLoaderVisible = value; OnPropertyChanged(nameof(IsLoaderVisible)); }
         }
 
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
+        public void ConfigMainWindowViewModel(NavigationStore navigationStore, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
             WhiteBackground = true;
             IsLoaderVisible = false;
@@ -186,10 +186,8 @@ namespace SnaptrudeManagerUI.ViewModels
             IsDocumentOpen = isDocumentOpen;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
-            CurrentVersion = currentVersion; 
             IsView3D = isView3D;
             IsDocumentRvt = isDocumentRvt;
-            UpdateVersion = updateVersion;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
             CloseCommand = new RelayCommand(new Action<object>((o) =>

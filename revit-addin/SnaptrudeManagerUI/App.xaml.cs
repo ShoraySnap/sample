@@ -96,10 +96,6 @@ namespace SnaptrudeManagerUI
 
             FileUtils.Initialize();
 
-            //WPFTODO: CHECKFORUPDATES
-            var currentVersion = "4.0";
-            var updateVersion = "4.0";
-
             string[] args = e.Args;
             int revitProcessId = 0;
             bool viewIs3D = false;
@@ -123,7 +119,7 @@ namespace SnaptrudeManagerUI
             }
 
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
             
             navigationStore.CurrentViewModel = ViewModelCreator.CreateCheckingUpdateViewModel();
             //if (currentVersion != updateVersion)
