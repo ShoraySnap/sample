@@ -42,6 +42,7 @@
   <ItemGroup>
 	<PackageReference Include="Fody" Version="6.6.1" PrivateAssets="all" />
     <PackageReference Include="Costura.Fody" Version="5.1.0" />
+    <PackageReference Include="NetSparkleUpdater.SparkleUpdater" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.3.2" />
 	<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />

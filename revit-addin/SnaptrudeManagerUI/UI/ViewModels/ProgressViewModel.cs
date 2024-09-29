@@ -163,7 +163,7 @@ namespace SnaptrudeManagerUI.ViewModels
                         progressViewType = ProgressViewType.Update;
                         MainWindowViewModel.Instance.WhiteBackground = false;
                         OnPropertyChanged(nameof(WhiteBackground));
-                        StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
+                        StartProgressCommand = new RelayCommand((o) => StartUpdate());
                         progressMessage = "Update in progress, please don’t close this window.";
                         StartProgressCommand.Execute(null);
                         break;
