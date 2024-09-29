@@ -1,11 +1,10 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.IFC;
-using TrudeSerializer.Importer;
-using TrudeSerializer.Types;
 using System.Collections.Generic;
 using TrudeImporter;
-using System;
-using System.Text;
+using TrudeSerializer.CustomDataTypes;
+using TrudeSerializer.Importer;
+using TrudeSerializer.Types;
 using TrudeSerializer.Utils;
 
 namespace TrudeSerializer.Components
@@ -16,6 +15,7 @@ namespace TrudeSerializer.Components
         public double area;
         public Dictionary<string, Dictionary<string, double[][]>> voids;
         public string type;
+        public MaterialAppliedByPaint materialAppliedByPaint;
 
         public double heightOffsetFromLevel = 0;
 
@@ -25,7 +25,7 @@ namespace TrudeSerializer.Components
             Dictionary<string, double[][]> outline,
             Dictionary<string, Dictionary<string, double[][]>> voids,
             double heightOffset
-            ) : base(elementId, "Ceilings", family, level)
+            ) : base(elementId, "Ceiling", family, level)
         {
             this.elementId = elementId;
             this.level = level;
@@ -51,7 +51,7 @@ namespace TrudeSerializer.Components
             Parameter heightOffsetParam = ceiling.LookupParameter("Height Offset From Level");
             double heightOffset = 0;
             TRUDE_UNIT_TYPE unit_type = UnitConversion.GetTrudeUnitFromParameter(heightOffsetParam);
-            if(heightOffsetParam.HasValue)
+            if (heightOffsetParam.HasValue)
             {
                 heightOffset = heightOffsetParam.AsDouble();
                 heightOffset = UnitConversion.ConvertToSnaptrudeUnits(heightOffset, unit_type);
@@ -60,6 +60,7 @@ namespace TrudeSerializer.Components
             SetCeilingType(importData, ceiling);
             TrudeCeiling serializedCeiling = new TrudeCeiling(elementId, levelName, family, floorType, false, true, outline, voids, heightOffset);
             serializedCeiling.SetIsParametric(isDifferentCurve);
+            serializedCeiling.materialAppliedByPaint = TrudeMaterial.GetMaterialByAppliedByPaint(element, TrudeCategory.Ceiling);
 
 
             return serializedCeiling;

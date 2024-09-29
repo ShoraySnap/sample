@@ -187,6 +187,13 @@ namespace TrudeImporter
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+        public static void LogProgress(double progress, string step)
+        {
+            Utils.LogTrace("!ACESAPI:acesHttpOperation({0},\"\",\"\",{1},null)",
+                    "onProgress",
+                    "{ \"current-progress\": " + progress + ", \"step\": \"" + step + "\" }");
+        }
+
         public static void LogTrace(string format, params object[] args) { System.Console.WriteLine(format, args); }
 
         public static Element FindElement(Document doc, Type targetType, string targetName = null)
@@ -243,6 +250,101 @@ namespace TrudeImporter
                 curves.Append(Line.CreateBound(pt1, pt2));
             }
             return curves;
+        }
+
+        public static bool IsElementInsideBoundingBox(Element element, BoundingBoxXYZ boundingBox)
+        {
+            BoundingBoxXYZ elementBoundingBox = element.get_BoundingBox(null);
+
+            if (elementBoundingBox == null)
+                return false;
+
+            XYZ minPoint = elementBoundingBox.Min;
+            XYZ maxPoint = elementBoundingBox.Max;
+
+            // Check if all corners of the element's bounding box are within the given bounding box
+            return IsPointInsideBoundingBox(minPoint, boundingBox) && IsPointInsideBoundingBox(maxPoint, boundingBox);
+        }
+
+        public static bool IsPointInsideBoundingBox(XYZ point, BoundingBoxXYZ boundingBox)
+        {
+            return (point.X >= boundingBox.Min.X && point.X <= boundingBox.Max.X &&
+                    point.Y >= boundingBox.Min.Y && point.Y <= boundingBox.Max.Y &&
+                    point.Z >= boundingBox.Min.Z && point.Z <= boundingBox.Max.Z);
+        }
+
+        public static string ConvertColorToHex(Color color)
+        {
+            return ("#" + color.Red.ToString("X2") + color.Green.ToString("X2") + color.Blue.ToString("X2")).ToLower();
+        }
+
+        public static TransactionStatus TryStartTransaction()
+        {
+            if (GlobalVariables.Transaction.HasStarted()) GlobalVariables.Transaction.Commit();
+            var status = GlobalVariables.Transaction.Start();
+            HandleWarnings(GlobalVariables.Transaction);
+
+            return status;
+        }
+
+        public static void HandleWarnings(Transaction trans)
+        {
+            FailureHandlingOptions options = trans.GetFailureHandlingOptions();
+            PreProcessor preproccessor = new PreProcessor();
+            options.SetClearAfterRollback(true);
+            options.SetFailuresPreprocessor(preproccessor);
+            trans.SetFailureHandlingOptions(options);
+        }
+
+        class PreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+                int resolvedFailures = 0;
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+                foreach (FailureMessageAccessor fma in fmas)
+                {
+                    if (fma.GetSeverity() == FailureSeverity.Error)
+                    {
+                        try
+                        {
+                            TrudeExportLogger.Instance.LogError(
+                            GlobalVariables.Document.GetElement(fma.GetFailingElementIds().First()).Category.Name,
+                                fma.GetDescriptionText(),
+#if REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023
+                                (int)fma.GetFailingElementIds().First().IntegerValue
+#else
+                                (int)fma.GetFailingElementIds().First().Value
+#endif
+                            );
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    if (fma.GetFailureDefinitionId() == BuiltInFailures.EditingFailures.ElementReversed)
+                    {
+                        GlobalVariables.WallElementIdsToRecreate.Add(fma.GetFailingElementIds().First());
+                        failuresAccessor.ResolveFailure(fma);
+                    }
+                    if (fma.GetDefaultResolutionCaption() == "Unjoin Elements")
+                    {
+                        failuresAccessor.ResolveFailure(fma);
+                        resolvedFailures++;
+                    }
+                }
+                if (resolvedFailures != 0)
+                {
+                    return FailureProcessingResult.ProceedWithCommit;
+                }
+                else
+                {
+                    return FailureProcessingResult.Continue;
+                }
+            }
         }
     }
 }

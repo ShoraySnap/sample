@@ -14,15 +14,21 @@ namespace TrudeImporter
         public static Autodesk.Revit.ApplicationServices.Application RvtApp;
         
         public static bool ForForge = false;
+        public static bool ForForgeViewsPDFExport = false;
+        public static UV PDFPaddingX = new UV(5, 5).Multiply(1 / (10 * 2.54 * 12));
+        public static UV PDFPaddingY = new UV(5, 30).Multiply(1 / (10 * 2.54 * 12));
         public static string TrudeFileName = "";
 
         public static IDictionary<int, ElementId> LevelIdByNumber = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> childUniqueIdToWallElementId = new Dictionary<int, ElementId>();
         public static IDictionary<int, ElementId> UniqueIdToElementId = new Dictionary<int, ElementId>();
+        public static IDictionary<int, ElementId> UniqueIdToRoomId = new Dictionary<int, ElementId>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingDoorFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingWindowFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<string, (bool IsChecked, int NumberOfElements, string path)> MissingFurnitureFamiliesCount = new Dictionary<string, (bool, int, string)>();
         public static IDictionary<ElementId, List<TrudeRoom>> CreatedFloorsByLevel = new Dictionary<ElementId, List<TrudeRoom>>();
+
+        public static bool ImportLabels = false;
 
         public static List<ElementId> WallElementIdsToRecreate = new List<ElementId>();
 
@@ -35,7 +41,9 @@ namespace TrudeImporter
         public static List<int> MissingDoorIndexes = new List<int>();
         public static List<int> MissingWindowIndexes = new List<int>();
         public static List<int> MissingFurnitureIndexes = new List<int>();
+        public static TrudeProperties TrudeProperties;
 
+        public static bool ViewIs3D { get; internal set; }
 
         public static void cleanGlobalVariables()
         {

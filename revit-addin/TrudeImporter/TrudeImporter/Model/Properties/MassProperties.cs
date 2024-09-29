@@ -33,5 +33,8 @@ namespace TrudeImporter
 
         [JsonProperty("materialName")]
         public string MaterialName { get; set; }
+
+        [JsonProperty("materialHex", NullValueHandling = NullValueHandling.Ignore)]
+        public string MaterialHex { get; set; }
     }
 }

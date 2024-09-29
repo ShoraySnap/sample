@@ -73,13 +73,13 @@ namespace TrudeImporter
                 {
                     revitId = sourceElementId;
                 }
-                using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
-                {
-                    trans.Start();
                     try
                     {
+#if (REVIT2019 || REVIT2020 || REVIT2021 || REVIT2022 || REVIT2023)
                         Element e = GlobalVariables.Document.GetElement(new ElementId((int)revitId));
-
+#else
+                        Element e = GlobalVariables.Document.GetElement(new ElementId((long)revitId));
+#endif
                         if (e != null && e.IsValidObject)
                         {
                             isExistingFurniture = true;
@@ -97,17 +97,12 @@ namespace TrudeImporter
                                 isFacingFlip = (existingFamilyInstance).FacingFlipped;
                             }
 
-                            trans.Commit();
                         }
                     }
                     catch (Exception e)
                     {
                         System.Diagnostics.Debug.WriteLine("Furniture creation ERROR", e.ToString());
                     }
-                }
-                using (SubTransaction trans = new SubTransaction(GlobalVariables.Document))
-                {
-                    trans.Start();
 
                     // Creation ...................
                     TrudeInterior st_interior = new TrudeInterior(furnitureProps);
@@ -378,9 +373,6 @@ namespace TrudeImporter
 
                     }
 
-                    TransactionStatus tstatus = trans.Commit();
-                    System.Diagnostics.Debug.WriteLine(tstatus.ToString());
-                }
                 System.Diagnostics.Debug.WriteLine("furniture created");
             }
             catch (Exception e)

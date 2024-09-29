@@ -14,6 +14,15 @@ namespace TrudeImporter
         [JsonProperty("walls")]
         public List<WallProperties> Walls { get; set; }
 
+        [JsonProperty("views", NullValueHandling = NullValueHandling.Ignore)]
+        public List<ViewProperties> Views { get; set; }
+
+        [JsonProperty("projectProperties", NullValueHandling = NullValueHandling.Ignore)]
+        public ProjectProperties Project {  get; set; }
+
+        [JsonProperty("pdfConfig", NullValueHandling = NullValueHandling.Ignore)]
+        public PDFExportProperties PDFExport { get; set; }
+
         [JsonProperty("beams")]
         public List<BeamProperties> Beams { get; set; }
 
@@ -46,5 +55,17 @@ namespace TrudeImporter
 
         [JsonProperty("deletedElements")]
         public List<int> DeletedElements { get; set; }
+
+        [JsonProperty("snaptrudeLog")]
+        public ComponentLogData SnaptrudeLog { get; set; }
+
+        [JsonProperty("errors")]
+        public List<LogError> Errors { get; set; }
+
+        [JsonProperty("trudeGeneration")]
+        public ExportStatus TrudeGeneration { get; set; }
+
+        [JsonProperty("identifier")]
+        public ExportIdentifier Identifier { get; set; }
     }
 }

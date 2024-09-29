@@ -1,0 +1,473 @@
+﻿<UserControl
+    x:Class="SnaptrudeManagerUI.Views.EnterProjectUrlView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SnaptrudeManagerUI.ViewModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vms="clr-namespace:SnaptrudeManagerUI.ViewModels"
+    d:Background="White"
+    d:DesignHeight="272"
+    d:DesignWidth="560"
+    FontSize="13"
+    Loaded="EnterProjectUrlView_Loaded"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
+    </UserControl.Resources>
+    <Grid Focusable="True">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="64" />
+        </Grid.RowDefinitions>
+        <Grid Width="320" Margin="0,52,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource Inter500}"
+                Foreground="{StaticResource Colors/Neutral/800}"
+                Text="Enter Project URL:" />
+            <Border
+                x:Name="URLBorder"
+                Grid.Row="1"
+                Height="32"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Border.Style>
+                    <Style TargetType="{x:Type Border}">
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding ElementName=URLTextBox, Path=Text.IsEmpty}" Value="True" />
+                                    <Condition Binding="{Binding ElementName=URLTextBox, Path=IsKeyboardFocusWithin}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="BorderBrush" Value="Transparent" />
+                                <Setter Property="Background" Value="{StaticResource Colors/Neutral/100}" />
+                            </MultiDataTrigger>
+                            <DataTrigger Binding="{Binding ElementName=URLTextBox, Path=IsKeyboardFocusWithin}" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Validating">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
+                                <Setter Property="BorderBrush" Value="{StaticResource Colors/Red/400}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid
+                        Width="16"
+                        Height="16"
+                        Margin="8,0,0,0">
+                        <Path
+                            Data="M11.485 9.30788L12.9463 7.8466C14.1067 6.65688 14.0949 4.75524 12.9197 3.58007C11.7445 2.40491 9.8429 2.39305 8.65317 3.55348L7.19189 5.01476"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" />
+                        <Path
+                            Data="M10.2787 6.22126L6.72119 9.77874"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" />
+                        <Path
+                            Data="M5.51481 6.69212L4.05353 8.1534C2.8931 9.34312 2.90495 11.2448 4.08012 12.4199C5.25529 13.5951 7.15693 13.6069 8.34665 12.4465L9.80793 10.9852"
+                            Stroke="#484B5B"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round" />
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <TextBox
+                            x:Name="URLTextBox"
+                            Margin="5,0"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontFamily="{StaticResource Inter400}"
+                            Text="{Binding URL, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            Typography.StylisticAlternates="1" />
+                        <TextBlock
+                            Margin="10,0,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontFamily="{StaticResource Inter400}"
+                            Foreground="DarkGray"
+                            IsHitTestVisible="False"
+                            Opacity=".8"
+                            Text="Paste link here"
+                            Typography.StylisticAlternates="1">
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=URLTextBox}" Value="">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <Grid Grid.Column="2" Margin="0,6,6,6">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RequestStatus}" Value="None">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid
+                            Width="20"
+                            Height="20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                            <Grid.RenderTransform>
+                                <RotateTransform x:Name="rotationTransform" CenterX="10.5" CenterY="10" />
+                            </Grid.RenderTransform>
+                            <Grid.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard Storyboard="{StaticResource RotateStoryboard}" />
+                                </EventTrigger>
+                            </Grid.Triggers>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RequestStatus}" Value="Validating">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Path
+                                Data="M18.003 10H15.502"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M2.99707 10H5.49811"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M10.4998 2.49687V4.99792"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M10.4998 17.5031V15.0021"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M15.8053 15.3055L14.0371 13.5373"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M5.19531 4.69446L6.96355 6.46269"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M14.0371 6.46269L15.8053 4.69446"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                            <Path
+                                Data="M6.96355 13.5373L5.19531 15.3055"
+                                Stroke="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.5" />
+                        </Grid>
+                        <Grid
+                            Width="20"
+                            Height="20"
+                            VerticalAlignment="Center">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Path
+                                Fill="#1A5EE5"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round">
+                                <Path.Data>
+                                    <EllipseGeometry
+                                        Center="10.5,10.5"
+                                        RadiusX="7.5"
+                                        RadiusY="7.5" />
+                                </Path.Data>
+                            </Path>
+                            <Path
+                                Data="M7.53516 10.2826L9.34174 12.0892L9.33007 12.0775L13.4059 8.00167"
+                                Stroke="white"
+                                StrokeEndLineCap="round"
+                                StrokeLineJoin="round"
+                                StrokeStartLineCap="round"
+                                StrokeThickness="1.25" />
+                        </Grid>
+                        <Grid Width="20" Height="18">
+                            <Button
+                                Width="20"
+                                Height="18"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="ClearValue_Button_Click"
+                                Command="{Binding ClearURLCommand}">
+                                <Button.Style>
+                                    <Style BasedOn="{StaticResource Button_ClearText}" TargetType="Button">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path
+                                        Data="M1 1L8.5 8.5M1 8.5L8.5 1"
+                                        Stroke="{StaticResource Colors/Neutral/800}"
+                                        StrokeEndLineCap="round"
+                                        StrokeLineJoin="round"
+                                        StrokeStartLineCap="round"
+                                        StrokeThickness="1.25" />
+                                </Grid>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+            <Border
+                Grid.Row="2"
+                Margin="0,8,0,0"
+                Padding="8"
+                d:Visibility="Visible"
+                BorderBrush="{StaticResource Colors/Neutral/200}"
+                BorderThickness="1"
+                CornerRadius="6">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Validated">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        Width="40"
+                        Height="40"
+                        CornerRadius="2">
+                        <Border.Background>
+                            <ImageBrush ImageSource="/SnaptrudeManagerUI;component/UI/Images/thumbnail.png" Stretch="UniformToFill" />
+                        </Border.Background>
+                    </Border>
+                    <Grid
+                        Width="20"
+                        Height="20"
+                        Margin="2,0,4,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        d:Visibility="Visible">
+                        <Grid.RenderTransform>
+                            <RotateTransform x:Name="invertedRotationTransform" CenterX="10.5" CenterY="10" />
+                        </Grid.RenderTransform>
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                <BeginStoryboard Storyboard="{StaticResource InvertedRotateStoryboard}" />
+                            </EventTrigger>
+                        </Grid.Triggers>
+                        <Path
+                            Data="M10.4998 17.5031V15.0021"
+                            Stroke="{DynamicResource Colors/Neutral/100}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M15.8053 15.3055L14.0371 13.5373"
+                            Stroke="{DynamicResource Colors/Neutral/200}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M18.003 10H15.502"
+                            Stroke="{DynamicResource Colors/Neutral/300}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M14.0371 6.46269L15.8053 4.69446"
+                            Stroke="{DynamicResource Colors/Neutral/400}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M10.4998 2.49687V4.99792"
+                            Stroke="{DynamicResource Colors/Neutral/500}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M5.19531 4.69446L6.96355 6.46269"
+                            Stroke="{DynamicResource Colors/Neutral/600}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M2.99707 10H5.49811"
+                            Stroke="{DynamicResource Colors/Neutral/600}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                        <Path
+                            Data="M6.96355 13.5373L5.19531 15.3055"
+                            Stroke="{DynamicResource Colors/Neutral/800}"
+                            StrokeEndLineCap="round"
+                            StrokeLineJoin="round"
+                            StrokeStartLineCap="round"
+                            StrokeThickness="1.5" />
+                    </Grid>
+                    <Border
+                        Width="40"
+                        Height="40"
+                        CornerRadius="2">
+                        <Border.Background>
+                            <ImageBrush ImageSource="{Binding Image}" Stretch="UniformToFill" />
+                        </Border.Background>
+                    </Border>
+                    <TextBlock
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        d:Text="ProjectName"
+                        FontFamily="{StaticResource Inter500}"
+                        Foreground="{StaticResource Colors/Neutral/600}"
+                        Text="{Binding ProjectName}" />
+                </Grid>
+
+            </Border>
+            <TextBlock
+                Grid.Row="3"
+                Margin="0,8"
+                d:Text="Invalid URL"
+                Foreground="{StaticResource Colors/Red/400}"
+                Text="{Binding ErrorMessage}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RequestStatus}" Value="Error">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+        <Grid Grid.Row="1" Margin="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Margin="12,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontWeight="Regular"
+                    Foreground="{StaticResource Colors/Neutral/600}"
+                    Text="Switch to 3D view to enable export."
+                    TextWrapping="Wrap"
+                    Visibility="{Binding ViewIsNot3D, Converter={StaticResource BoolToVisibility}}" />
+                <Button
+                    Grid.Column="1"
+                    Command="{Binding BackCommand}"
+                    Content="Back"
+                    Style="{DynamicResource Button_Secondary}" />
+                <Button
+                    Grid.Column="2"
+                    Margin="8,0,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding BeginExportCommand}"
+                    Content="Begin export">
+                    <Button.Style>
+                        <Style BasedOn="{StaticResource Button_Primary}" TargetType="Button">
+                            <Setter Property="IsEnabled" Value="False" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ExportIsEnabled}" Value="True">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
+

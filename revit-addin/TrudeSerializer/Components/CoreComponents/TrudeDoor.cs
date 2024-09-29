@@ -28,7 +28,7 @@ namespace TrudeSerializer.Components
         public double[] handOrientation;
         public double[] facingOrientation;
 
-        public TrudeDoor(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, bool hasParentElement, List<string> subComponents, string hostId) : base(elementId, "Doors", family, level)
+        public TrudeDoor(string elementId, string level, string family, string subType, string subCategory, Dimensions dimension, TransformObject transform, bool hasParentElement, List<string> subComponents, string hostId) : base(elementId, "Door", family, level)
         {
             this.subType = subType;
             this.subCategory = subCategory;

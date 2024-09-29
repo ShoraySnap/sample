@@ -93,6 +93,7 @@ namespace SnaptrudeForgeExport
             GlobalVariables.RvtApp = rvtApp;
             GlobalVariables.Document = newDoc;
             GlobalVariables.ForForge = true;
+            GlobalVariables.ForForgeViewsPDFExport = ((string)trudeData["outputFormat"] == "views_pdf");
 
             if (newDoc == null) throw new InvalidOperationException("Could not create new document.");
 
@@ -110,6 +111,9 @@ namespace SnaptrudeForgeExport
             serializer.Converters.Add(new XyzConverter());
 
             TrudeProperties trudeProperties = trudeData.ToObject<TrudeProperties>(serializer);
+
+            if (GlobalVariables.ForForgeViewsPDFExport)
+                Utils.LogProgress(5, "Importing trude objects");
 
             using (TransactionGroup tg = new TransactionGroup(newDoc, "Parse Trude"))
             {
@@ -132,15 +136,41 @@ namespace SnaptrudeForgeExport
                 {
 
                     View structuralView = Utils.GetElements(newDoc, typeof(View))
-                                               .Select(e => e as View)
-                                               .Where(e => e.Title == "Structural Plan: 0")
-                                               .ToList().First();
+                                                .Select(e => e as View)
+                                                .Where(e => e.Title == "Structural Plan: 0")
+                                                .ToList().First();
                     t.Start();
                     newDoc.Delete(structuralView.Id);
                     t.Commit();
                 }
+            } catch { }
+
+            string outputFormat = (string)trudeData["outputFormat"];
+            switch(outputFormat)
+            {
+                case "dwg":
+                    ExportAllViewsAsDWG(newDoc);
+                    break;
+                case "ifc":
+                    ExportIFC(newDoc);
+                    break;
+                case "pdf":
+                    ExportPDF(newDoc);
+                    break;
+                case "views_pdf":
+                    ExportPDFViews.Export(newDoc, trudeProperties);
+                    break;
+                default:
+                    SaveDocument(newDoc);
+                    break;
             }
-            catch { }
+        }
+
+        private void ExportPDF(Document newDoc)
+        {
+#if REVIT2019 || REVIT2020 || REVIT2021
+            return;
+#else
 
             List<View> printableViews = Utils.GetElements(newDoc, typeof(View))
                                        .Select(e => e as View)
@@ -175,32 +205,9 @@ namespace SnaptrudeForgeExport
                 t.Commit();
             }
 
-            string outputFormat = (string)trudeData["outputFormat"];
-            switch (outputFormat)
-            {
-                case "dwg":
-                    ExportAllViewsAsDWG(newDoc);
-                    break;
-                case "ifc":
-                    ExportIFC(newDoc);
-                    break;
-                case "pdf":
-                    ExportPDF(newDoc, printableViews);
-                    break;
-                default:
-                    SaveDocument(newDoc);
-                    break;
-            }
-        }
-
-        private void ExportPDF(Document newDoc, List<View> allViews)
-        {
-#if REVIT2019 || REVIT2020 || REVIT2021
-            return;
-#else
             Directory.CreateDirectory(Configs.PDF_EXPORT_DIRECTORY);
 
-            List<ElementId> allViewIds = allViews.Select(v => v.Id).ToList();
+            List<ElementId> allViewIds = printableViews.Select(v => v.Id).ToList();
 
             using (Transaction t = new Transaction(newDoc, "Export to PDF"))
             {
@@ -232,7 +239,6 @@ namespace SnaptrudeForgeExport
             Directory.Delete(Configs.PDF_EXPORT_DIRECTORY, true);
 #endif
         }
-
         private void SaveDocument(Document newDoc)
         {
             ModelPath ProjectModelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(Configs.OUTPUT_FILE);
