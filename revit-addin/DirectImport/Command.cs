@@ -39,8 +39,6 @@ namespace DirectImport
         }
         private void HandleDesignAutomationReadyEvent(object sender, DesignAutomationReadyEventArgs e)
         {
-            LogTrace("Design Automation Ready event triggered...");
-
             // Hook up a custom FailuresProcessing.
             Application rvtApp = e.DesignAutomationData.RevitApp;
             rvtApp.FailuresProcessing += OnFailuresProcessing;
@@ -227,7 +225,6 @@ namespace DirectImport
             // If no 3D view exists, create a new one
             using (Transaction trans = new Transaction(doc, "Create 3D View"))
             {
-                LogTrace("Creating a new 3D view...");
                 trans.Start();
                 ViewFamilyType viewFamilyType = new FilteredElementCollector(doc)
                     .OfClass(typeof(ViewFamilyType))

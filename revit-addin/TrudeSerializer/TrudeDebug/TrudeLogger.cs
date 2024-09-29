@@ -281,7 +281,6 @@ namespace TrudeSerializer.Debug
             {
                 System.Console.WriteLine("No data to serialize");
             }
-            System.Console.WriteLine("fullData.revit.serialize.status: ", fullData.revit.serialize.status);
             var serializedLog = JsonConvert.SerializeObject(fullData);
             return serializedLog;
         }
