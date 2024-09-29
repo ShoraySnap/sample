@@ -204,28 +204,30 @@ namespace DirectImport
 
         private View3D Get3dView(Document doc)
         {
+
             // Check if the active view is a 3D view
-            if (doc.ActiveView is View3D activeView3D)
-            { 
-                LogTrace("Using active 3D view: {0}", activeView3D.Name);
-                return activeView3D; 
-            }
+            //if (doc.ActiveView is View3D activeView3D)
+            //{ 
+            //    LogTrace("Using active 3D view: {0}", activeView3D.Name);
+            //    return activeView3D; 
+            //}
 
-            // Try to find any 3D view
-            View3D default3DView = new FilteredElementCollector(doc)
-                .OfClass(typeof(View3D))
-                .Cast<View3D>()
-                .FirstOrDefault(v => !v.IsTemplate);
+            //// Try to find any 3D view
+            //View3D default3DView = new FilteredElementCollector(doc)
+            //    .OfClass(typeof(View3D))
+            //    .Cast<View3D>()
+            //    .FirstOrDefault(v => !v.IsTemplate);
 
-            if (default3DView != null)
-            { 
-                LogTrace("Using default 3D view: {0}", default3DView.Name);
-                return default3DView; 
-            }
+            //if (default3DView != null)
+            //{ 
+            //    LogTrace("Using default 3D view: {0}", default3DView.Name);
+            //    return default3DView; 
+            //}
 
             // If no 3D view exists, create a new one
             using (Transaction trans = new Transaction(doc, "Create 3D View"))
             {
+                LogTrace("Creating a new 3D view...");
                 trans.Start();
                 ViewFamilyType viewFamilyType = new FilteredElementCollector(doc)
                     .OfClass(typeof(ViewFamilyType))
