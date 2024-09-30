@@ -12,6 +12,7 @@ using TrudeCommon.Events;
 using SnaptrudeManagerUI.UI.Helpers;
 using Newtonsoft.Json;
 using NLog;
+using System.Reflection;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -180,6 +181,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public void ConfigMainWindowViewModel(NavigationStore navigationStore, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
+            CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString().Substring(0, 5);
             WhiteBackground = true;
             IsLoaderVisible = false;
             ProjectFileName = fileName + (isDocumentOpen ? (isDocumentRvt ? ".rvt" : ".rfa") : "");
