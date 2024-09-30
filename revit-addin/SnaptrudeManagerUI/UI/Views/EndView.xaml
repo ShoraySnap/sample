@@ -34,13 +34,44 @@
                 </Style>
             </TextBlock.Style>
         </TextBlock>
-        <Button
-            Margin="20"
-            HorizontalAlignment="Center"
-            Command="{Binding LaunchCommand}"
-            Content="{Binding ButtonMessage}"
-            d:Content="Launch Snaptrude"
-            Style="{DynamicResource Button_Primary}"
-            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
+        <ContentControl Content="{Binding}">
+            <ContentControl.Style>
+                <Style TargetType="ContentControl">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Button
+                                            Margin="0,15,0,0"
+                                            HorizontalAlignment="Center"
+                                            d:Visibility="Visible"
+                                            Command="{Binding LaunchCommand}"
+                                            Content="{Binding ButtonMessage}"
+                                            Style="{DynamicResource Button_Quaternary}"
+                                            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="True">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Button
+                                            Margin="0,15,0,0"
+                                            HorizontalAlignment="Center"
+                                            Command="{Binding LaunchCommand}"
+                                            Content="{Binding ButtonMessage}"
+                                            Style="{DynamicResource Button_Primary}"
+                                            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
     </StackPanel>
 </UserControl>
