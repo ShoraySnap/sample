@@ -167,6 +167,8 @@ namespace SnaptrudeManagerUI.ViewModels
                         StartProgressCommand = new RelayCommand((o) => StartUpdate());
                         progressMessage = "Update in progress, please don’t close this window.";
                         StartProgressCommand.Execute(null);
+                        App.OnDownloadFinished += CloseAndOpenInstaller;
+
                         break;
                     default:
                         break;
@@ -318,6 +320,7 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnUploadStart -= HideCancelButton;
             App.OnUploadStart -= StartUpload;
             App.OnUploadIssue -= ShowUploadFailure;
+            App.OnDownloadFinished -= CloseAndOpenInstaller;
         }
         ~ProgressViewModel()
         {
