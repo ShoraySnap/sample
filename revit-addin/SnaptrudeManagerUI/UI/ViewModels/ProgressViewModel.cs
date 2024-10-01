@@ -168,12 +168,18 @@ namespace SnaptrudeManagerUI.ViewModels
                         progressMessage = "Update in progress, please don’t close this window.";
                         StartProgressCommand.Execute(null);
                         App.OnDownloadFinished += CloseAndOpenInstaller;
+                        App.OnDownloadError = OpenRetryDownloadView;
 
                         break;
                     default:
                         break;
                 }
             }
+        }
+
+        private void OpenRetryDownloadView()
+        {
+            FailureCommand.Execute(new object());
         }
 
         private void StartUpload()
@@ -321,6 +327,7 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnUploadStart -= StartUpload;
             App.OnUploadIssue -= ShowUploadFailure;
             App.OnDownloadFinished -= CloseAndOpenInstaller;
+            App.OnDownloadError -= OpenRetryDownloadView;
         }
         ~ProgressViewModel()
         {
