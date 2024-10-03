@@ -69,6 +69,7 @@ namespace SnaptrudeManagerUI
         public static Process RevitProcess;
 
         public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
+        public static bool UpdateAvailable { get; internal set; }
 
         public static void RegisterProtocol()
         {
@@ -90,11 +91,10 @@ namespace SnaptrudeManagerUI
         {
             RegisterProtocol();
             base.OnStartup(e);
-            LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
-            Updater = new Updater();
-
+            LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
             FileUtils.Initialize();
+            Updater = new Updater();
 
             string[] args = e.Args;
             int revitProcessId = 0;
@@ -102,13 +102,32 @@ namespace SnaptrudeManagerUI
             bool isDocumentRvt = false;
             string fileName = "";
             bool isDocumentOpen = false;
+            NavigationStore navigationStore = NavigationStore.Instance;
             if (args.Any())
             {
-                revitProcessId = int.Parse(args[0]);
-                viewIs3D = bool.Parse(args[1]);
-                isDocumentRvt = bool.Parse(args[2]);
-                fileName = args[3];
-                isDocumentOpen = true;
+                if (args[0] == "update")
+                {
+                    UpdateAvailable = await Updater.IsUpdateAvailable();
+                    if (UpdateAvailable)
+                    {
+                        MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, true);
+                        navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
+                        OnUpdateAvailable?.Invoke();
+                        return;
+                    }
+                    if (!UpdateAvailable)
+                    {
+                        App.Current.Shutdown();
+                    }
+                }
+                else
+                {
+                    revitProcessId = int.Parse(args[0]);
+                    viewIs3D = bool.Parse(args[1]);
+                    isDocumentRvt = bool.Parse(args[2]);
+                    fileName = args[3];
+                    isDocumentOpen = true;
+                }
             }
 
             if (revitProcessId != 0)
@@ -118,13 +137,10 @@ namespace SnaptrudeManagerUI
                 RevitProcess.Exited += RevitProcess_Exited;
             }
 
-            NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
-            
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, false, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
             navigationStore.CurrentViewModel = ViewModelCreator.CreateCheckingUpdateViewModel();
-            //if (currentVersion != updateVersion)
-            //    navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
-            //else if(Store.Get("accessToken")?.ToString() == "")
+
+            //else if (Store.Get("accessToken")?.ToString() == "")
             //{
             //    MainWindowViewModel.Instance.IsLoaderVisible = false;
             //    navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();

@@ -119,6 +119,7 @@ namespace SnaptrudeManagerAddin
             TrudeEventEmitter.EmitEvent(TRUDE_EVENT.REVIT_CLOSED);
             TrudeEventSystem.Instance.Shutdown();
             LogsConfig.Shutdown();
+            LaunchProcess.StartProcess(new string[] { }, true);
             return Result.Succeeded;
         }
 

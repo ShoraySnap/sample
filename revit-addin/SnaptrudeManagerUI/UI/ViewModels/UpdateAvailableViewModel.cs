@@ -38,7 +38,7 @@ namespace SnaptrudeManagerUI.ViewModels
             set { updateButtonText = value; OnPropertyChanged("UpdateButtonText"); }
         }
 
-        public UpdateAvailableViewModel(bool retry, NavigationService updateNowNavigationService, NavigationService skipUpdateNavigationService) 
+        public UpdateAvailableViewModel(bool retry, NavigationService updateNowNavigationService, NavigationService skipUpdateNavigationService, bool isShutdownUpdate) 
         {
             if (retry)
             {
@@ -50,7 +50,7 @@ namespace SnaptrudeManagerUI.ViewModels
             {
                 UpdateButtonText = "Update";
                 UpdateVersion = $" v{MainWindowViewModel.Instance.UpdateVersion}";
-                Message = $"Version {MainWindowViewModel.Instance.UpdateVersion} is ready to install. Update Snaptrude Manager to continue collaborating seamlessly with Snaptrude.";
+                Message = $"Snaptrude Manager v{MainWindowViewModel.Instance.UpdateVersion} is available.\nPlease update to get the latest features.";
             }
 
             TransformCommand transformMainWindowViewModelCommand = new TransformCommand(
@@ -61,7 +61,10 @@ namespace SnaptrudeManagerUI.ViewModels
                 }));
             transformMainWindowViewModelCommand.Execute(new object());
 
-            SkipCommand = new NavigateCommand(skipUpdateNavigationService);
+            if (isShutdownUpdate)
+                SkipCommand = new RelayCommand((o) => App.Current.Shutdown());
+            if (!isShutdownUpdate)
+                SkipCommand = new NavigateCommand(skipUpdateNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
         }
     }

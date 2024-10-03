@@ -60,7 +60,7 @@ namespace SnaptrudeManagerUI.ViewModels
             }
         }
 
-        public LoginViewModel(NavigationService homeNavigationService, NavigationService updateAvailableNavigationService)
+        public LoginViewModel(NavigationService homeNavigationService)
         {
             MainWindowViewModel.Instance.WhiteBackground = false;
             LoginCommand = new NavigateCommand(homeNavigationService);

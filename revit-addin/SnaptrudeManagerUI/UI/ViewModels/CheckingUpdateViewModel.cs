@@ -22,11 +22,10 @@ namespace SnaptrudeManagerUI.ViewModels
     {
         public ICommand LoginCommand { get; }
         public ICommand UpdateAvailableCommand { get; }
-        public CheckingUpdateViewModel(NavigationService loginNavigationService, NavigationService updateAvailableNavigationService)
+        public CheckingUpdateViewModel(NavigationService loginNavigationService)
         {
             MainWindowViewModel.Instance.WhiteBackground = false;
             LoginCommand = new NavigateCommand(loginNavigationService);
-            UpdateAvailableCommand = new NavigateCommand(updateAvailableNavigationService);
             App.OnUpdateAvailable += NavigateToUpdateView;
             App.OnLatestVersion += NavigateToLoginView;
             CheckForUpdates();
@@ -45,7 +44,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void NavigateToUpdateView()
         {
-            UpdateAvailableCommand.Execute(null);
+            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
         }
     }
 }

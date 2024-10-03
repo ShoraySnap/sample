@@ -179,8 +179,11 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isLoaderVisible = value; OnPropertyChanged(nameof(IsLoaderVisible)); }
         }
 
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
+        public bool IsShutdownUpdate { get; set; }
+
+        public void ConfigMainWindowViewModel(NavigationStore navigationStore, bool shutDownUpdate, bool isView3D = false, bool isDocumentRvt = false, bool isDocumentOpen = false, string fileName = "")
         {
+            IsShutdownUpdate = shutDownUpdate;
             CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString().Substring(0, 5);
             WhiteBackground = true;
             IsLoaderVisible = false;
