@@ -7,6 +7,8 @@ using TrudeCommon.Events;
 using TrudeCommon.Logging;
 using System.Web;
 using System.Reflection;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace SnaptrudeManagerUI
 {
@@ -26,6 +28,11 @@ namespace SnaptrudeManagerUI
             if (hWnd == IntPtr.Zero)
             {
                 var application = new App();
+                App.Updater = new Updater();
+                if (args.Any() && args[0] == "update" && !App.Updater.IsUpdateAvailable().Result)
+                {
+                    App.Current.Shutdown();
+                }
                 application.InitializeComponent();
                 application.Run();
             }
