@@ -111,8 +111,8 @@ namespace SnaptrudeManagerUI
                     if (UpdateAvailable)
                     {
                         MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, true);
-                        navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
                         OnUpdateAvailable?.Invoke();
+                        navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
                         return;
                     }
                     if (!UpdateAvailable)

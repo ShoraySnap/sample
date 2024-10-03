@@ -44,7 +44,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void NavigateToUpdateView()
         {
-            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
+            NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(false);
         }
     }
 }
