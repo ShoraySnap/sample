@@ -161,6 +161,7 @@ namespace SnaptrudeManagerUI.ViewModels
                         CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                         break;
                     case ProgressViewType.Update:
+                        IsCancelButtonVisible = false;
                         progressViewType = ProgressViewType.Update;
                         MainWindowViewModel.Instance.WhiteBackground = false;
                         OnPropertyChanged(nameof(WhiteBackground));

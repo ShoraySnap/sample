@@ -43,7 +43,7 @@
                                 <Setter.Value>
                                     <DataTemplate>
                                         <Button
-                                            Margin="0,15,0,0"
+                                            Margin="0,10,0,0"
                                             HorizontalAlignment="Center"
                                             d:Visibility="Visible"
                                             Command="{Binding LaunchCommand}"
@@ -59,7 +59,7 @@
                                 <Setter.Value>
                                     <DataTemplate>
                                         <Button
-                                            Margin="0,15,0,0"
+                                            Margin="0,10,0,0"
                                             HorizontalAlignment="Center"
                                             Command="{Binding LaunchCommand}"
                                             Content="{Binding ButtonMessage}"
