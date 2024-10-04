@@ -94,6 +94,7 @@ namespace SnaptrudeManagerUI
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
             LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
             FileUtils.Initialize();
+            Updater = new Updater();
 
             string[] args = e.Args;
             int revitProcessId = 0;
@@ -106,10 +107,18 @@ namespace SnaptrudeManagerUI
             {
                 if (args[0] == "update")
                 {
-                    MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, true);
-                    OnUpdateAvailable?.Invoke();
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
-                    return;
+                    UpdateAvailable = await Updater.IsUpdateAvailable();
+                    if (UpdateAvailable)
+                    {
+                        MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, true);
+                        OnUpdateAvailable?.Invoke();
+                        navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel(true);
+                        return;
+                    }
+                    if (!UpdateAvailable)
+                    {
+                        App.Current.Shutdown();
+                    }
                 }
                 else
                 {
