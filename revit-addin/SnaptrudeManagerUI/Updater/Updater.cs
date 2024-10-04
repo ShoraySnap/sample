@@ -109,7 +109,7 @@ namespace SnaptrudeManagerUI
         {
             Debug.WriteLine("we found an update");
             UpdateVersion = e.LatestVersion.Version;
-            App.OnUpdateAvailable?.Invoke();
+            App.OnUpdateAvailable.Invoke();
         }
 
         public async Task<bool> IsUpdateAvailable()

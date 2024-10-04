@@ -161,15 +161,15 @@ namespace SnaptrudeManagerUI.ViewModels
                         CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                         break;
                     case ProgressViewType.Update:
-                        IsCancelButtonVisible = false;
                         progressViewType = ProgressViewType.Update;
                         MainWindowViewModel.Instance.WhiteBackground = false;
                         OnPropertyChanged(nameof(WhiteBackground));
                         StartProgressCommand = new RelayCommand((o) => StartUpdate());
+                        progressMessage = "Update in progress, please don’t close this window.";
                         StartProgressCommand.Execute(null);
-                        progressMessage = "Downloading update installer...";
                         App.OnDownloadFinished += CloseAndOpenInstaller;
                         App.OnDownloadError = OpenRetryDownloadView;
+
                         break;
                     default:
                         break;
@@ -297,7 +297,7 @@ namespace SnaptrudeManagerUI.ViewModels
             //}
             //MainWindowViewModel.Instance.CurrentVersion = MainWindowViewModel.Instance.UpdateVersion;
             //SuccessCommand.Execute(new object());
-            App.OnStartDownload?.Invoke();
+            App.OnStartDownload.Invoke();
         }
 
         private void CancelUpdate()

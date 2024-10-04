@@ -14,7 +14,8 @@ namespace SnaptrudeManagerUI.ViewModels
         public static CheckingUpdateViewModel CreateCheckingUpdateViewModel()
         {
             return new CheckingUpdateViewModel(
-                new NavigationService(NavigationStore.Instance, CreateLoginViewModel));
+                new NavigationService(NavigationStore.Instance, CreateLoginViewModel),
+                new NavigationService(NavigationStore.Instance, CreateUpdateAvailableViewModel));
         }
 
         public static SelectFolderViewModel CreateSelectFolderViewModel()
@@ -36,7 +37,10 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public static LoginViewModel CreateLoginViewModel()
         {
-            return new LoginViewModel(new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+            return new LoginViewModel(
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateUpdateAvailableViewModel)
+                );
         }
 
         public static ViewModelBase CreateNoteAllVisiblePartsViewModel()
@@ -135,13 +139,12 @@ namespace SnaptrudeManagerUI.ViewModels
                 );
         }
 
-        public static UpdateAvailableViewModel CreateUpdateAvailableViewModel(bool shutdownUpdate)
+        public static UpdateAvailableViewModel CreateUpdateAvailableViewModel()
         {
             return new UpdateAvailableViewModel(
                 false,
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
-                shutdownUpdate);
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
         }
 
         public static UpdateAvailableViewModel CreateRetryUpdateAvailableViewModel()
@@ -149,8 +152,7 @@ namespace SnaptrudeManagerUI.ViewModels
             return new UpdateAvailableViewModel(
                 true,
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
-                MainWindowViewModel.Instance.IsShutdownUpdate);
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
         }
 
         public static EndViewModel CreateDownloadFinishedViewModel()

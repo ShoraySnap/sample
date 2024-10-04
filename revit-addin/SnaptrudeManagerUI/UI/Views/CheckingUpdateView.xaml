@@ -13,24 +13,10 @@
     <UserControl.Resources>
         <ResourceDictionary Source="pack://application:,,,/SnaptrudeManagerUI;component/UI/Resources/ResourceDictionary.xaml" />
     </UserControl.Resources>
-    <Grid>
-
-        <Image
-            Width="100"
-            Height="100"
-            Margin="0,0,0,24"
-            gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerUI;component/UI/Images/loaderWhite.gif"
-            Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
-        <TextBlock
-            Width="380"
-            Margin="0,0,0,15"
-            VerticalAlignment="Bottom"
-            d:Text="Checking for updates..."
-            FontFamily="{StaticResource Inter400}"
-            Foreground="White"
-            LineHeight="18"
-            Text="Checking for updates..."
-            TextAlignment="Center"
-            TextWrapping="Wrap" />
-    </Grid>
+    <Image
+        Margin="0,0,0,24"
+        Width="100"
+        Height="100"
+        gif:ImageBehavior.AnimatedSource="/SnaptrudeManagerUI;component/UI/Images/loaderWhite.gif"
+        Visibility="{Binding WhiteBackground, Converter={StaticResource BoolToVisibility}}" />
 </UserControl>

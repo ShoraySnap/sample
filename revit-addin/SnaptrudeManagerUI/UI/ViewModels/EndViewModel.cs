@@ -50,7 +50,7 @@ namespace SnaptrudeManagerUI.ViewModels
                 case EndViewType.CloseAndUpdate:
                     MainWindowViewModel.Instance.WhiteBackground = false;
                     ButtonMessage = "Install Update";
-                    Message = "Download complete!";
+                    Message = "Download complete!\nPlease close Revit to proceed with the installation.";
                     LaunchCommand = new RelayCommand((o) => App.Current.Shutdown());
                     ButtonVisible = true;
                     break;

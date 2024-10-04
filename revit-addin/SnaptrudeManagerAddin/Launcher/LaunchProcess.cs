@@ -31,60 +31,43 @@ namespace SnaptrudeManagerAddin.Launcher
             }
         }
 
-        public static void StartProcess(string[] args, bool update)
+        public static void StartProcess(string[] args)
         {
-            if (update)
+            process = CheckProcessRunning();
+            if (process != null)
             {
-                FileInfo file = new FileInfo(Assembly.GetExecutingAssembly().Location);
-                var exe = file.Directory.FullName.Contains(@"revit-addin") ?
-                    Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe") :
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"SnaptrudeManager\UI\SnaptrudeManagerUI.exe");
-                if (File.Exists(exe))
-                {
-                    process = new Process();
-                    process.StartInfo.FileName = exe;
-                    process.StartInfo.Arguments = "update";
-                    process.Start();
-                }
+                logger.Warn("UI Process already running!");
+                HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
+                Application.UpdateButtonState(bool.Parse(args[1]));
+                Application.UpdateNameAndFiletype(args[3], bool.Parse(args[2]) ? "rvt" : "rfa");
+                TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, Process.GetCurrentProcess().Id.ToString(), Application.TransferManager);
+                return;
             }
-            if (!update)
+
+            logger.Info("Trying to start UI process...");
+            FileInfo file = new FileInfo(Assembly.GetExecutingAssembly().Location);
+            var exe = file.Directory.FullName.Contains(@"revit-addin") ?
+                Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe") :
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"SnaptrudeManager\UI\SnaptrudeManagerUI.exe");
+            if (File.Exists(exe))
             {
-                process = CheckProcessRunning();
+                process = new Process();
+                process.StartInfo.FileName = exe;
+                string quotedArguments = string.Join(" ", args.Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg));
+                process.StartInfo.Arguments = quotedArguments;
+                process.Start();
                 if (process != null)
                 {
-                    logger.Warn("UI Process already running!");
+                    logger.Info("UI Process started successfully!");
                     HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
-                    Application.UpdateButtonState(bool.Parse(args[1]));
-                    Application.UpdateNameAndFiletype(args[3], bool.Parse(args[2]) ? "rvt" : "rfa");
                     TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, Process.GetCurrentProcess().Id.ToString(), Application.TransferManager);
-                    return;
                 }
-
-                logger.Info("Trying to start UI process...");
-                FileInfo file = new FileInfo(Assembly.GetExecutingAssembly().Location);
-                var exe = file.Directory.FullName.Contains(@"revit-addin") ?
-                    Path.Combine(file.Directory.FullName, @"..\..\..\..\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe") :
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"SnaptrudeManager\UI\SnaptrudeManagerUI.exe");
-                if (File.Exists(exe))
-                {
-                    process = new Process();
-                    process.StartInfo.FileName = exe;
-                    string quotedArguments = string.Join(" ", args.Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg));
-                    process.StartInfo.Arguments = quotedArguments;
-                    process.Start();
-                    if (process != null)
-                    {
-                        logger.Info("UI Process started successfully!");
-                        HandshakeManager.SetHandshakeName(Process.GetCurrentProcess().Id.ToString(), process.Id.ToString());
-                        TrudeEventEmitter.EmitEventWithStringData(TRUDE_EVENT.REVIT_PLUGIN_UPDATE_REVIT_PROCESS_ID, Process.GetCurrentProcess().Id.ToString(), Application.TransferManager);
-                    }
-                }
-                else
-                {
-                    var version = Assembly.GetExecutingAssembly().GetName().Version;
-                    MessageBox.Show("Please check installation of SnaptrudeManager! UI Application not found.", $"SnaptrudeManagerAddin {version}", MessageBoxButton.OK, MessageBoxImage.Information);
-                    logger.Error("UI Process could not start! Please start manually.");
-                }
+            }
+            else
+            {
+                var version = Assembly.GetExecutingAssembly().GetName().Version;
+                MessageBox.Show("Please check installation of SnaptrudeManager! UI Application not found.", $"SnaptrudeManagerAddin {version}", MessageBoxButton.OK, MessageBoxImage.Information);
+                logger.Error("UI Process could not start! Please start manually.");
             }
         }
 
