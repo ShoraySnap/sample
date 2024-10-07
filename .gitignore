@@ -10,6 +10,7 @@ electron-app/.env
 build-installer/installers/*
 build-installer/out/*
 build-installer/misc/custom_families
+build-installer/publish
 
 revit-addin/SnaptrudeForgeExport/assets/*
 
