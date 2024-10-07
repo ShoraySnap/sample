@@ -108,7 +108,13 @@ namespace DirectImport
             TrudeLogger logger = new TrudeLogger();
             logger.Init();
             Application rvtApp = data.RevitApp;
-            Document newDoc = rvtApp.OpenDocumentFile(filename);
+            var openOptions = new OpenOptions
+            {
+                DetachFromCentralOption = DetachFromCentralOption.DetachAndPreserveWorksets,
+                AllowOpeningLocalByWrongUser = true
+            };
+            var modelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(filename);
+            Document newDoc = rvtApp.OpenDocumentFile(modelPath, openOptions);
             GlobalVariables.Document = newDoc;
             GlobalVariables.RvtApp = rvtApp;
             GlobalVariables.isDirectImport = true;
@@ -234,6 +240,8 @@ namespace DirectImport
                 if (viewFamilyType != null)
                 {
                     View3D newView = View3D.CreateIsometric(doc, viewFamilyType.Id);
+                    newView.DetailLevel = ViewDetailLevel.Coarse;
+                    LogTrace("Level of Detail:"  + newView.DetailLevel);
                     trans.Commit();
                     LogTrace("Created a new 3D view.");
                     return newView;
