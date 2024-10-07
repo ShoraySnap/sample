@@ -57,7 +57,7 @@ namespace UnitTests.Serializer
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
             // SMOKE SERIALIZER
-            Command trudeSerializer = new Command();
+            TrudeSerializer.ExportToSnaptrudeEEH trudeSerializer = new TrudeSerializer.ExportToSnaptrudeEEH();
             var result = trudeSerializer.ExecuteWithUIApplication(uiApp, true);
             Assert.IsTrue(result == Result.Succeeded);
             Assert.IsTrue(trudeSerializer.isDone);
@@ -74,7 +74,7 @@ namespace UnitTests.Serializer
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
             // Init Serializer
-            Command trudeSerializer = new Command();
+            TrudeSerializer.ExportToSnaptrudeEEH trudeSerializer = new TrudeSerializer.ExportToSnaptrudeEEH();
             trudeSerializer.OnInit += (processId, app, doc) =>
             {
                 Assert.NotNull(processId);
@@ -99,7 +99,7 @@ namespace UnitTests.Serializer
             Assert.NotNull(uiApp.ActiveUIDocument);
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
-            Command trudeSerializer = new Command();
+            TrudeSerializer.ExportToSnaptrudeEEH trudeSerializer = new TrudeSerializer.ExportToSnaptrudeEEH();
             trudeSerializer.OnView3D += (view, doc) =>
             {
                 Assert.NotNull(view);
@@ -119,7 +119,7 @@ namespace UnitTests.Serializer
             Assert.NotNull(uiApp.ActiveUIDocument);
             Assert.NotNull(uiApp.ActiveUIDocument.Document);
 
-            Command trudeSerializer = new Command();
+            TrudeSerializer.ExportToSnaptrudeEEH trudeSerializer = new TrudeSerializer.ExportToSnaptrudeEEH();
             trudeSerializer.OnCleanSerializedTrudeData += (data) =>
             {
                 Assert.NotNull(data);

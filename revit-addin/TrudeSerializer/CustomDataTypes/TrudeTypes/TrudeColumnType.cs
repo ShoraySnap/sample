@@ -1,8 +1,6 @@
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using TrudeSerializer.Components;
 using TrudeSerializer.Utils;
 
@@ -24,16 +22,15 @@ namespace TrudeSerializer.Types
             List<TrudeLayer> layersData = new List<TrudeLayer>();
             Document document = GlobalVariables.Document;
             TrudeMaterial snaptrudeMaterial;
-            string category = "Columns";
 
             ICollection<ElementId> materialIds = column.GetMaterialIds(false);
             if (materialIds.Count == 0)
             {
-                snaptrudeMaterial = TrudeMaterial.GetMaterial(null, category);
+                snaptrudeMaterial = TrudeMaterial.GetMaterial(null, TrudeCategory.Column);
             }
             else
             {
-                snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material, category);
+                snaptrudeMaterial = TrudeMaterial.GetMaterial(document.GetElement(materialIds.First()) as Material, TrudeCategory.Column);
             }
 
             TrudeLayer Snaptrudelayer = new TrudeLayer(DEFAULT_WIDTH, DEFAULT_FUNCTION, snaptrudeMaterial);

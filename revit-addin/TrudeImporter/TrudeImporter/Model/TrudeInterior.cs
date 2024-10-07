@@ -65,6 +65,19 @@ namespace TrudeImporter
             }
         }
 
+        private void FlipHand(FamilyInstance instance)
+        {
+            bool facingFlipResult = instance.flipHand();
+
+            if (!facingFlipResult)
+            {
+                XYZ normal = instance.FacingOrientation;
+                XYZ origin = (instance.Location as LocationPoint).Point;
+                Plane pl = Plane.CreateByNormalAndOrigin(normal, origin);
+                var ids = ElementTransformUtils.MirrorElements(GlobalVariables.Document, new List<ElementId>() { instance.Id }, pl, false);
+            }
+        }
+
         public void SnaptrudeFlip(Element element, XYZ origin = null, bool isFamilyFromRevitImport = false)
         {
             Parameter offset = GetOffsetParameter(element as FamilyInstance);
@@ -93,18 +106,21 @@ namespace TrudeImporter
             bool isFamilyFromRevitImport = FamilyTypeName != null;
 
             bool isSnaptrudeFlipped = Scaling.Z < 0;
-            bool flip = (isSnaptrudeFlipped && !isFacingFlip) || (!isSnaptrudeFlipped && isFacingFlip);
             FamilyInstance instance = GlobalVariables.Document.Create.NewFamilyInstance(XYZ.Zero, familySymbol, level, level, Autodesk.Revit.DB.Structure.StructuralType.UnknownFraming);
-            instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
+            if (element != null && !element.LookupParameter("Length").IsNull())
+            {
+                instance.LookupParameter("Length")?.Set(element.LookupParameter("Length").AsDouble());
+            }
+            if (isSnaptrudeFlipped) FlipHand(instance);
 
             GlobalVariables.Document.Regenerate();
             BoundingBoxXYZ boundingBox = instance.get_BoundingBox(null);
             XYZ boundingBoxCenter = (boundingBox.Max + boundingBox.Min)/2;
-            if (flip) SnaptrudeFlip(instance, Position.IsAlmostEqualTo(CenterPosition) ? boundingBoxCenter : null, isFamilyFromRevitImport);
+            if (isFacingFlip) FlipFacing(instance);
 
             Transform offsetRotationTransform = Transform.CreateRotation(XYZ.BasisZ, familyRotation);
 
-            if (flip)
+            if (isSnaptrudeFlipped)
                 originOffset = offsetRotationTransform.OfPoint(originOffset);
             else
                 originOffset = offsetRotationTransform.OfPoint(-originOffset);
@@ -114,8 +130,7 @@ namespace TrudeImporter
             {
                 rotationAxis = Line.CreateBound(boundingBoxCenter, boundingBoxCenter + XYZ.BasisZ);
             }
-            //if (!flip)
-                instance.Location.Rotate(rotationAxis, -Rotation.Z);
+            instance.Location.Rotate(rotationAxis, -Rotation.Z);
 
 
             instance.Location.Rotate(rotationAxis, familyRotation);

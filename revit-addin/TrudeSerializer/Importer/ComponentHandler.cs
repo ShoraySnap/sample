@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using System;
 using System.Linq;
 using TrudeSerializer.Components;
 using TrudeSerializer.Debug;
@@ -41,6 +42,8 @@ namespace TrudeSerializer.Importer
                 return instance;
             }
         }
+
+        public static Action<TrudeComponent, Element> OnCountOutput;
 
         /*!
         * extracts levels from the document and adds them to the `serializedData`
@@ -193,6 +196,7 @@ namespace TrudeSerializer.Importer
                 serializedData.AddWindowInstance(instanceId, windowInstance);
             }
 
+            OnCountOutput?.Invoke(component, element);
             if (true)
             { TrudeLogger.Instance.CountOutput(component, element); }
         }

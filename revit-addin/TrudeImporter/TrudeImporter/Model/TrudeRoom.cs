@@ -10,11 +10,22 @@ namespace TrudeImporter
     {
         public string Label;
         public ElementId Id;
+        public int UniqueID; // Unique id of associated snaptrude mass/floor.
         public Solid Solid;
         public bool RoomMatched;
         public bool IsDirectShape;
         public CurveArray CurveArray;
 
+        public TrudeRoom(string label, ElementId id, CurveArray curveArray, bool isDirectShape, int uniqueID)
+        {
+            RoomMatched = false;
+            Solid = null;
+            Label = label;
+            Id = id;
+            CurveArray = curveArray;
+            IsDirectShape = isDirectShape;
+            UniqueID = uniqueID;
+        }
         public TrudeRoom(string label, ElementId id, CurveArray curveArray, bool isDirectShape)
         {
             RoomMatched = false;
@@ -68,13 +79,13 @@ namespace TrudeImporter
             return curves;
         }
 
-        public static void StoreRoomData(ElementId levelId, string roomType, Element element, CurveArray profile)
+        public static void StoreRoomData(ElementId levelId, string roomType, Element element, CurveArray profile, int uniqueId = -1)
         {
-            if (roomType != "Default")
+            if (roomType != "Default" || GlobalVariables.ForForgeViewsPDFExport)
             {
                 element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(roomType);
                 bool isDirectShape = element is DirectShape;
-                TrudeRoom trudeRoom = new TrudeRoom(roomType, element.Id, profile, isDirectShape);
+                TrudeRoom trudeRoom = new TrudeRoom(roomType, element.Id, profile, isDirectShape, uniqueId);
                 if (GlobalVariables.CreatedFloorsByLevel.ContainsKey(levelId))
                     GlobalVariables.CreatedFloorsByLevel[levelId].Add(trudeRoom);
                 else

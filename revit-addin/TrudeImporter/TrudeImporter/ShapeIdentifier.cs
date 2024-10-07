@@ -11,6 +11,15 @@ namespace TrudeImporter
 
         public abstract string ToFamilyName();
     }
+    public class CircularProperties : ShapeProperties
+    {
+        public double diameter;
+
+        public override string ToFamilyName()
+        {
+            return $"round_{UnitsAdapter.FeetToMM(diameter)}";
+        }
+    }
     public class RectangularProperties : ShapeProperties
     {
         public double depth;
@@ -73,8 +82,15 @@ namespace TrudeImporter
         }
 
         private XYZ rotationVector;
-        public ShapeProperties GetShapeProperties(List<XYZ> vertices, bool inverseDirection = false)
+        public ShapeProperties GetShapeProperties(List<XYZ> vertices, bool inverseDirection = false, double diameter = 0)
         {
+            if (diameter != 0)
+            {
+                CircularProperties circularProps = new CircularProperties();
+                circularProps.diameter = diameter;
+                return circularProps;
+            }
+
             rotationVector = planeId == XY
                            ? new XYZ(-1, 0, 0)
                            : new XYZ(0, inverseDirection ? -1 : 1, 0);

@@ -64,7 +64,7 @@ namespace TrudeImporter
 
             string baseDir = GlobalVariables.ForForge
                 ? "."
-                : $"{Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
+                : $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}/{Configs.CUSTOM_FAMILY_DIRECTORY}";
 
             CreateFamilyTypeIfNotExist(GlobalVariables.RvtApp, GlobalVariables.Document, familyName, shapeProperties, rotatedFaceVertices, baseDir);
             CreateFamilyInstances(GlobalVariables.Document, familyName, levelId, shapeProperties);

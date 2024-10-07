@@ -30,6 +30,8 @@ namespace TrudeSerializer.Importer
 
         public TrudeRFAComponent RFAComponent { get; set; }
 
+        public static Action<int, int> CleanProgressUpdate;
+
         [JsonConstructor]
         public SerializedTrudeData()
         {
@@ -53,12 +55,17 @@ namespace TrudeSerializer.Importer
 
         public void CleanSerializedData()
         {
+            int totalCleans = this.Masses.Keys.Count + this.GenericModel.Instances.Keys.Count + this.RevitLinks.Keys.Count;
+            int cleansCount = 0;
             foreach (var key in this.Masses.Keys.ToList())
             {
                 if (this.Masses[key].geometries.Count == 0)
                 {
                     this.Masses.Remove(key);
                 }
+
+                cleansCount++;
+                CleanProgressUpdate?.Invoke(cleansCount, totalCleans);
             }
             // TODO: CLEANUP UPDATE LISTENER INSTEAD OF THIS
             CountData massCountData = new CountData() { parametric = 0, nonParametric = this.Masses.Count, total = this.Masses.Count };
@@ -77,6 +84,9 @@ namespace TrudeSerializer.Importer
                 {
                     count += 1;
                 }
+
+                cleansCount++;
+                CleanProgressUpdate?.Invoke(cleansCount, totalCleans);
             }
             CountData genericModelCountData = new CountData() { parametric = 0, nonParametric = count, total = count };
             TrudeLogger.Instance.CleanupCount(ComponentLogData.GENERIC_MODELS_KEY, genericModelCountData);
@@ -95,6 +105,9 @@ namespace TrudeSerializer.Importer
                 {
                     this.RevitLinks.Remove(revitLinkKey);
                 }
+
+                cleansCount++;
+                CleanProgressUpdate?.Invoke(cleansCount, totalCleans);
             }
         }
         public void AddWall(TrudeWall wall)

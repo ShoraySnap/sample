@@ -13,7 +13,7 @@ namespace TrudeImporter
         private float thickness;
         private TrudeLayer[] Layers;
         public static FloorTypeStore TypeStore = new FloorTypeStore();
-        private Floor slab { get; set; }
+        public Floor slab { get; set; }
         private XYZ centerPosition;
         private string baseType = null;
         private string materialName = null;
@@ -182,7 +182,7 @@ namespace TrudeImporter
             if (floorType is null)
             {
                 FilteredElementCollector collector = new FilteredElementCollector(Doc).OfClass(typeof(FloorType));
-                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Foundation Slab").First() as FloorType;
+                FloorType defaultFloorType = collector.Where(type => ((FloorType)type).FamilyName == "Floor").First() as FloorType;
                 floorType = defaultFloorType;
             }
             var newFloorType = TypeStore.GetType(Layers, Doc, floorType);

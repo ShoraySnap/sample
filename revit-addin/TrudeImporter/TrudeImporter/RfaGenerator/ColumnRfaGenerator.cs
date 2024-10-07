@@ -10,8 +10,8 @@ namespace TrudeImporter
 
     public class ColumnRfaGenerator
     {
-        private const string BASE_DIRECTORY = "tmp_columns";
-        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        private static string BASE_DIRECTORY = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\{Configs.CUSTOM_FAMILY_DIRECTORY}\tmp\tmp_columns";
+        static string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         static string TEMPLATE_FILE_NAME = $"{documentsPath}/{Configs.CUSTOM_FAMILY_DIRECTORY}/resourceFile/{GlobalVariables.RvtApp.VersionNumber}/Metric Column.rft";
 
         //const string TEMPLATE_FILE_NAME = "resourceFile/Metric Column.rft";
@@ -31,6 +31,8 @@ namespace TrudeImporter
             using (Transaction transaction = new Transaction(fdoc, "create column rfa file"))
             {
                 transaction.Start();
+                Parameter joinParam = fdoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_AUTOJOIN);
+                joinParam.Set(0);
 
                 FamilyParameter depthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Depth");
                 FamilyParameter widthParam = fdoc.FamilyManager.Parameters.Cast<FamilyParameter>().First(p => p.Definition.Name == "Width");

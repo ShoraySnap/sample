@@ -84,14 +84,27 @@ namespace TrudeSerializer
         */
         void IExportContext.Finish()
         {
+#if !DIRECT_IMPORT
+
+            if (ExportToSnaptrudeEEH.ExportInterrupted)
+            {
+                ExportToSnaptrudeEEH.InterruptWithAbort();
+            }
+#endif
             ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
 
+
         bool IExportContext.IsCanceled()
         {
+#if !DIRECT_IMPORT
+            return ExportToSnaptrudeEEH.IsImportAborted();
+#else
             return false;
+#endif
         }
+
 
         RenderNodeAction IExportContext.OnViewBegin(ViewNode node)
         {
@@ -111,6 +124,10 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
+#if !DIRECT_IMPORT
+            ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
+
             Document doc = node.GetDocument();
             ChangeCurrentDocument(doc);
             isRevitLink = true;
@@ -161,6 +178,11 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
+#if !DIRECT_IMPORT
+
+            ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
+
             Element element = doc.GetElement(elementId);
             string category = element?.Category?.Name;
             if (category == "Levels")
@@ -274,6 +296,10 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnInstanceBegin(InstanceNode node)
         {
+#if !DIRECT_IMPORT
+
+            ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
             return RenderNodeAction.Proceed;
         }
@@ -290,6 +316,9 @@ namespace TrudeSerializer
 
         RenderNodeAction IExportContext.OnFaceBegin(FaceNode node)
         {
+            #if !DIRECT_IMPORT
+            ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
             return RenderNodeAction.Proceed;
         }
 
@@ -317,7 +346,7 @@ namespace TrudeSerializer
         {
             String materialId = node.MaterialId.ToString();
             this.currentMaterialId = materialId;
-            string category = CurrentElement.GetCategory(currentElement);
+            TrudeCategory category = CurrentElement.GetCategory(currentElement);
 
             if (this.currentElement.HasMaterial(materialId)) return;
 
