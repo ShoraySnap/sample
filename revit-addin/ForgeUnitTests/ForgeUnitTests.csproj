@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>SnaptrudeForgeExport.UnitTests</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<RevitVersion>2024</RevitVersion>
-	<Configurations>2019;2020;2021;2022;2023;2024</Configurations>
+	<Configurations>2019;2020;2021;2022;2023;2024;2025</Configurations>
   </PropertyGroup>
 		<Choose>
 		<When Condition="$(Configuration.Contains('2019'))">
@@ -38,12 +38,18 @@
 				<TargetFramework>net48</TargetFramework>
 			</PropertyGroup>
 		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<RevitVersion>2024</RevitVersion>
-				<TargetFramework>net48</TargetFramework>
-			</PropertyGroup>
-		</Otherwise>
+			<When Condition="$(Configuration.Contains('2024'))">
+				<PropertyGroup>
+					<RevitVersion>2024</RevitVersion>
+					<TargetFramework>net48</TargetFramework>
+				</PropertyGroup>
+			</When>
+			<Otherwise>
+				<PropertyGroup>
+					<RevitVersion>2025</RevitVersion>
+					<TargetFramework>net8.0-windows</TargetFramework>
+				</PropertyGroup>
+			</Otherwise>
 	</Choose>
 		<ItemGroup>
 		  <Compile Remove="lib\**" />
