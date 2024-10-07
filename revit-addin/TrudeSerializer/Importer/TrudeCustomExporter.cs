@@ -84,18 +84,27 @@ namespace TrudeSerializer
         */
         void IExportContext.Finish()
         {
-            if(ExportToSnaptrudeEEH.ExportInterrupted)
+#if !DIRECT_IMPORT
+
+            if (ExportToSnaptrudeEEH.ExportInterrupted)
             {
                 ExportToSnaptrudeEEH.InterruptWithAbort();
             }
+#endif
             ComponentHandler.Instance.AddLevelsToSerializedData(serializedSnaptrudeData, doc);
             return;
         }
 
+
         bool IExportContext.IsCanceled()
         {
+#if !DIRECT_IMPORT
             return ExportToSnaptrudeEEH.IsImportAborted();
+#else
+            return false;
+#endif
         }
+
 
         RenderNodeAction IExportContext.OnViewBegin(ViewNode node)
         {
@@ -115,7 +124,9 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnLinkBegin(LinkNode node)
         {
+#if !DIRECT_IMPORT
             ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
 
             Document doc = node.GetDocument();
             ChangeCurrentDocument(doc);
@@ -167,7 +178,10 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnElementBegin(ElementId elementId)
         {
+#if !DIRECT_IMPORT
+
             ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
 
             Element element = doc.GetElement(elementId);
             string category = element?.Category?.Name;
@@ -201,7 +215,7 @@ namespace TrudeSerializer
 
                     ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component, element);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     System.Console.WriteLine(e);
                     return RenderNodeAction.Skip;
@@ -282,7 +296,10 @@ namespace TrudeSerializer
         */
         RenderNodeAction IExportContext.OnInstanceBegin(InstanceNode node)
         {
+#if !DIRECT_IMPORT
+
             ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
             transforms.Push(CurrentTransform.Multiply(node.GetTransform()));
             return RenderNodeAction.Proceed;
         }
@@ -299,7 +316,9 @@ namespace TrudeSerializer
 
         RenderNodeAction IExportContext.OnFaceBegin(FaceNode node)
         {
+            #if !DIRECT_IMPORT
             ExportToSnaptrudeEEH.InterruptsReset();
+            #endif
             return RenderNodeAction.Proceed;
         }
 

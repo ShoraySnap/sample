@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.Attributes;
+﻿#if !DIRECT_IMPORT
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
@@ -351,3 +352,4 @@ namespace TrudeSerializer
 
     }
 }
+#endif
