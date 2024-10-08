@@ -67,7 +67,7 @@ namespace UnitTests.SnaptrudeForgeExport
             using (Transaction t = new Transaction(GlobalVariables.Document, "Apply color overrides"))
             {
                 t.Start();
-                ExportPDFViews.ApplyColorOverridesToElement(GlobalVariables.Document, plan, element.Id, color);
+                ExportPDFViews.ApplyColorOverridesToElement(GlobalVariables.Document, plan, element.Id, color, false);
                 t.Commit();
             }
 
