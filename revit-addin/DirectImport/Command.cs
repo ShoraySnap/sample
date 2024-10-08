@@ -211,22 +211,32 @@ namespace DirectImport
 
             // Check if the active view is a 3D view
             //if (doc.ActiveView is View3D activeView3D)
-            //{ 
+            //{
             //    LogTrace("Using active 3D view: {0}", activeView3D.Name);
-            //    return activeView3D; 
+            //    return activeView3D;
             //}
 
             //// Try to find any 3D view
-            //View3D default3DView = new FilteredElementCollector(doc)
-            //    .OfClass(typeof(View3D))
-            //    .Cast<View3D>()
-            //    .FirstOrDefault(v => !v.IsTemplate);
+            ///
+            // print all the view names in the document
+            foreach (View view in new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>())
+            {
+                LogTrace("View Name: {0}", view.Name);
+            }
 
-            //if (default3DView != null)
-            //{ 
-            //    LogTrace("Using default 3D view: {0}", default3DView.Name);
-            //    return default3DView; 
-            //}
+
+            View3D default3DView = new FilteredElementCollector(doc)
+                .OfClass(typeof(View3D))
+                .Cast<View3D>()
+                .FirstOrDefault(v => v.Name == "{3D}");
+
+
+
+            if (default3DView != null)
+            {
+                LogTrace("Using default 3D view: {0}", default3DView.Name);
+                return default3DView;
+            }
 
             // If no 3D view exists, create a new one
             using (Transaction trans = new Transaction(doc, "Create 3D View"))
@@ -240,8 +250,6 @@ namespace DirectImport
                 if (viewFamilyType != null)
                 {
                     View3D newView = View3D.CreateIsometric(doc, viewFamilyType.Id);
-                    newView.DetailLevel = ViewDetailLevel.Coarse;
-                    LogTrace("Level of Detail:"  + newView.DetailLevel);
                     trans.Commit();
                     LogTrace("Created a new 3D view.");
                     return newView;
