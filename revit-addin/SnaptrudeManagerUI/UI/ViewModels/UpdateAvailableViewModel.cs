@@ -68,7 +68,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void SetCriticalUpdateMessage()
         {
-            Message = $"Please update to {UpdateVersion}. A critical update was identified.\nProceeding without updating can lead to errors during Import and Export.";
+            Message = $"A critical update has been identified, please update to {UpdateVersion}.\nFailing to update may cause errors during Import and Export.";
         }
     }
 }
