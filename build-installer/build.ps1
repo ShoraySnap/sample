@@ -116,7 +116,7 @@ function UploadFileToS3 {
             throw "File not found: $FilePath"
         }
         Write-S3Object -BucketName $BucketName -File $FilePath -Key $KeyName -CannedACLName $CannedACL
-        
+
         $s3Url = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$KeyName"
         return $s3Url 
     }
@@ -161,6 +161,10 @@ function GenerateAppcast {
     $criticalVersion = "1.0.0"
     Write-Host "Generating appcast... " -NoNewline
 
+    if ($MandatoryUpdate -eq $false){
+        $criticalVersion = $version
+    }
+
     try {
         $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --critical-versions $criticalVersion --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -187,10 +191,12 @@ function DownloadAppcast {
     )
 
     try {
-        Write-Host "Downloading existing appcast... " -NoNewline
-        Invoke-WebRequest -Uri $AppcastUrl -OutFile $DestinationPath
-        Write-Host "✅" -ForegroundColor Green
-    } catch {
+        if (-not (Test-Path $DestinationPath)) {
+            Write-Host "Downloading existing appcast... " -NoNewline
+            Invoke-WebRequest -Uri $AppcastUrl -OutFile $DestinationPath
+            Write-Host "✅" -ForegroundColor Green
+        }
+        } catch {
         Write-Host " - Error:" -ForegroundColor Red
         Write-Host $_.Exception.Message -ForegroundColor Red
         exit 1
@@ -224,53 +230,87 @@ function CheckKeyFiles {
 
 $branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
-$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Debug\net48"
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
-$version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 $version = -join($branch, "_", $date, "_", $version_number)
-
-if ($branch -eq "feature-update-netsparkle") {
-    $ProgressPreference = 'SilentlyContinue'
-    $publishFolder = ".\publish"
-    CheckKeyFiles -FolderPath $publishFolder
-    $AppcastUrl = "https://updatemanager.s3.us-east-2.amazonaws.com/AutomatedDeployTest/appcast.xml"
-    $extraConfig = "Release"
-    $version = $version_number
-    $uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\Release\net48"
-    Write-Host "[Certificate Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
-    $certPath = Read-Host
-    Write-Host "[Certificate Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
-    $certPwd = Read-Host -AsSecureString
-    $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
-    $isMandatory = CheckMandatoryVersion -NewVersion $version;
-    DownloadAppcast -AppcastUrl $AppcastUrl -DestinationPath ".\publish\appcast.xml"
-}
-
 $msBuildPath = "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
 $dotnetPath = "C:\Program Files\dotnet\dotnet.exe"
 $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
-$projects = @{
-    "SnaptrudeManagerAddin" = "..\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
+if ($branch -eq "master") {
+    $uiBuildConfig = "Release"
+}
+else {
+    $uiBuildConfig = "Debug"
+}
+$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
+
+
+$uiProjects = @{
+    "SnaptrudeManagerUI" = "..\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
 }
 
 $extraProject = @{
     "SnaptrudeManagerUI" = "..\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
 }
-
-$configurations = @("2019", "2020", "2021", "2022", "2023", "2024", "2025")
-$extraConfig = "Debug"
-
-foreach ($projectName in $extraProject.Keys) {
-    $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${extraProject}[$projectName]
-    if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $extraConfig)) {
+foreach ($projectName in $uiProjects.Keys) {
+    $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${uiProjects}[$projectName]
+    if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $uiBuildConfig)) {
         return
     }
 }
+$version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
+
+if ($branch -eq "feature-update-netsparkle" -or $branch -eq "master") {
+
+    $publishFolder = ".\publish"
+    CheckKeyFiles -FolderPath $publishFolder
+    $version = $version_number
+    $isMandatory = CheckMandatoryVersion -NewVersion $version;
+    $ProgressPreference = 'SilentlyContinue'
+    $S3ManagerObjectFolderKey = "media/manager/";
+    $AppCastObjectKey = "appcast.xml";
+    if ($branch -eq "master") {
+        $BucketName = "snaptrude-prod-data"
+        $AWSRegion = "ap-south-1"
+        Write-Host "[Code Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
+        $certPath = Read-Host
+        Write-Host "[Code Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
+        $certPwd = Read-Host -AsSecureString
+        $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
+    }
+    if ($branch -eq "dev") {
+        $BucketName = "snaptrude-staging-data"
+        $AWSRegion = "ap-south-1"
+    }
+    if ($branch -eq "feature-update-netsparkle") {
+        $BucketName = "updatemanager"
+        $AWSRegion = "us-east-2"
+        $S3ManagerObjectFolderKey = "AutomatedDeployTest/";
+        $ObjectKey = "AutomatedDeployTest/appcast.xml"
+        Write-Host "[Certificate Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
+        $certPath = Read-Host
+        Write-Host "[Certificate Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
+        $certPwd = Read-Host -AsSecureString
+        $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
+    }
+
+    $ObjectKey = "$S3ManagerObjectFolderKey$AppCastObjectKey"
+    
+    $AppcastUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$ObjectKey"
+    $AppcastFolderUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$S3ManagerObjectFolderKey"
+    $AppCastDestinationPath = ".\publish\appcast.xml"
+    DownloadAppcast -AppcastUrl $AppcastUrl -DestinationPath $AppCastDestinationPath
+}
+
+$addinProjects = @{
+    "SnaptrudeManagerAddin" = "..\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
+}
+
+$configurations = @("2019")
 
 foreach ($config in $configurations) {
     $projectName = "SnaptrudeManagerAddin"
-    $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${projects}[$projectName]
+    $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${addinProjects}[$projectName]
     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $config)) {
         return
     }
