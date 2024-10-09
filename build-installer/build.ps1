@@ -355,9 +355,9 @@ if ($branch -eq "feature-update-netsparkle") {
     $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
     GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
 
-    Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
-    Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-WeWork.exe" -certPath $certPath -plainPwd $plainPwd
-    Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-Update.exe" -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath $prodInstallerPath -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath $weworkInstallerPath -certPath $certPath -plainPwd $plainPwd
+    Sign-File -filePath $updateInstallerPath -certPath $certPath -plainPwd $plainPwd
     
     $bucketName = "updatemanager"
     $s3ProdSetupKeyName = "AutomatedDeployTest/$version/$prodInstallerFileName"
