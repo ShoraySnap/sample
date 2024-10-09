@@ -9,17 +9,21 @@ using System.Windows;
 using NetSparkleUpdater;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
+using NLog;
 
 namespace SnaptrudeManagerUI
 {
     public class Updater
     {
+        Logger logger = LogManager.GetCurrentClassLogger();
         private SparkleUpdater _sparkle;
         public static string UpdateVersion = "";
 
         private UpdateInfo _updateInfo;
         public Updater()
         {
+            logger.Info("Initializing updater!");
+
             var uiPath48 = $@"C:\Users\ferna\source\repos\Snaptrude\snaptrudemanager\revit-addin\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe";
             var publicKey = "6xpMewsNUkGqnyQUMMoO9O/0Pb7uIDuD2jsrAGq+en8=";
             string appCastURL = "https://updatemanager.s3.us-east-2.amazonaws.com/appcast.xml";
@@ -65,7 +69,7 @@ namespace SnaptrudeManagerUI
 
         private void _sparkle_UpdateCheckFinished(object sender, UpdateStatus status)
         {
-            Debug.WriteLine("Update Check Finished!");
+            logger.Info("Update Check Finished!");
             if (UpdateVersion == "")
             {
                 App.OnLatestVersion?.Invoke();
@@ -74,40 +78,39 @@ namespace SnaptrudeManagerUI
 
         private void _sparkle_UpdateCheckStarted(object sender)
         {
-            Debug.WriteLine("Update Check Started!");
+            logger.Info("Update Check Started!");
         }
 
         private void _sparkle_DownloadCanceled(AppCastItem item, string path)
         {
-            Debug.WriteLine("Download Canceled!");
+            logger.Info("Download Canceled!");
         }
 
         private void _sparkle_DownloadFinished(AppCastItem item, string path)
         {
-            Debug.WriteLine("Download Finished!");
+            logger.Info("Download Finished!");
             App.OnDownloadFinished?.Invoke();
         }
 
         private void _sparkle_DownloadStarted(AppCastItem item, string path)
         {
-            Debug.WriteLine("Download Started!");
+            logger.Info("Download Started!");
         }
 
         private void _sparkle_DownloadError(AppCastItem item, string path, Exception exception)
         {
-            //MessageBox.Show($"Download Error! {path} : {exception}");
+            logger.Error($"Download Error! {path} : {exception}");
             App.OnDownloadError?.Invoke();
         }
 
         private void _sparkle_DownloadMadeProgress(object sender, AppCastItem item, NetSparkleUpdater.Events.ItemDownloadProgressEventArgs args)
         {
-            Debug.WriteLine("Download Making Progress!");
             App.OnProgressUpdate?.Invoke(args.ProgressPercentage, "Downloading update installer...");
         }
 
         private void _sparkle_UpdateDetected(object sender, NetSparkleUpdater.Events.UpdateDetectedEventArgs e)
         {
-            Debug.WriteLine("we found an update");
+            logger.Info("Found an Update!");
             UpdateVersion = e.LatestVersion.Version;
             App.OnUpdateAvailable.Invoke();
         }
