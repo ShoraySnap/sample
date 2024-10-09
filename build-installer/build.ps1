@@ -100,6 +100,9 @@ function UploadFileToS3 {
         [string]$BucketName,
 
         [Parameter(Mandatory=$true)]
+        [string]$AWSRegion,
+
+        [Parameter(Mandatory=$true)]
         [string]$FilePath,
 
         [Parameter(Mandatory=$true)]
@@ -114,8 +117,7 @@ function UploadFileToS3 {
         }
         Write-S3Object -BucketName $BucketName -File $FilePath -Key $KeyName -CannedACLName $CannedACL
         
-
-        $s3Url = "https://$BucketName.s3.us-east-2.amazonaws.com/$KeyName"
+        $s3Url = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$KeyName"
         return $s3Url 
     }
     catch {
@@ -321,18 +323,18 @@ if ($branch -eq "feature-update-netsparkle") {
     $s3UpdateSetupKeyName = "AutomatedDeployTest/$version/$updateInstallerFileName"
 
     Write-Host "Uploading Prod installer to S3 bucket... " -NoNewline
-    $s3ProdUrl = UploadFileToS3 -BucketName $bucketName -FilePath $prodInstallerPath -KeyName $s3ProdSetupKeyName
+    $s3ProdUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $prodInstallerPath -KeyName $s3ProdSetupKeyName
     Write-Host "✅" -ForegroundColor Green
 
     Write-Host "Uploading Update installer to S3 bucket... " -NoNewline
-    $s3UpdateUrl = UploadFileToS3 -BucketName $bucketName -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
+    $s3UpdateUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
     Write-Host "✅" -ForegroundColor Green
 
 
 
     $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
     Write-Host "Uploading AppCast file to S3 bucket... " -NoNewline
-    $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
+    $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
     Write-Host "✅" -ForegroundColor Green  
 
     #git tag -a $version -m $version
