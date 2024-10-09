@@ -33,7 +33,7 @@ function Restore-And-Build-Project {
         exit 1
     }
 
-    Write-Host "✅" -ForegroundColor Green
+    Write-Host "Done" -ForegroundColor Green
     return $true
 }
 function Sign-File {
@@ -52,7 +52,7 @@ function Sign-File {
     }
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅" -ForegroundColor Green
+        Write-Host "Done" -ForegroundColor Green
     } else {
         Write-Host " - Error" -ForegroundColor Red
         Write-Host $output
@@ -87,7 +87,7 @@ function Run-InnoSetup {
     Write-Host "Creating $name installer... " -NoNewline
     & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath /DOutDir=$outputDir -quiet
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅" -ForegroundColor Green
+        Write-Host "Done" -ForegroundColor Green
         return $outputFilePath
     } else {
         Write-Host " - Error" -ForegroundColor Red
@@ -168,7 +168,7 @@ function GenerateAppcast {
     try {
         $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --critical-versions $criticalVersion --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅" -ForegroundColor Green
+            Write-Host "Done" -ForegroundColor Green
             return $DestinationPath
         } else {
             Write-Host " - Error: $LASTEXITCODE" -ForegroundColor Red
@@ -194,7 +194,7 @@ function DownloadAppcast {
         if ((Test-Path $AppcastUrl)) {
             Write-Host "Downloading existing appcast... " -NoNewline
             Invoke-WebRequest -Uri $AppcastUrl -OutFile $DestinationPath
-            Write-Host "✅" -ForegroundColor Green
+            Write-Host "Done" -ForegroundColor Green
         }
         } catch {
         Write-Host " - Error:" -ForegroundColor Red
@@ -365,12 +365,11 @@ if ($branch -eq "feature-update-netsparkle") {
 
     Write-Host "Uploading Prod installer to S3 bucket... " -NoNewline
     $s3ProdUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $prodInstallerPath -KeyName $s3ProdSetupKeyName
-    Write-Host "✅" -ForegroundColor Green
+    Write-Host "Done" -ForegroundColor Green
 
     Write-Host "Uploading Update installer to S3 bucket... " -NoNewline
     $s3UpdateUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
-    Write-Host "✅" -ForegroundColor Green
-
+    Write-Host "Done" -ForegroundColor Green
 
 
     $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
@@ -378,7 +377,7 @@ if ($branch -eq "feature-update-netsparkle") {
     Write-Host "Uploading AppCast files to S3 bucket... " -NoNewline
     $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
     $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
-    Write-Host "✅" -ForegroundColor Green  
+    Write-Host "Done" -ForegroundColor Green  
 
     #git tag -a $version -m $version
     Write-Host "Snaptrude Manager sucessfully published!" -ForegroundColor Green  
