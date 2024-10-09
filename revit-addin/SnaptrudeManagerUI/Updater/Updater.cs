@@ -128,7 +128,7 @@ namespace SnaptrudeManagerUI
             {
                 if (appCastItem.IsCriticalUpdate)
                 {
-                    if (IsVersionHigher(appCastItem.Version, e.ApplicationConfig.InstalledVersion))
+                    if (IsVersionHigher(e.ApplicationConfig.InstalledVersion.Substring(0, 5), appCastItem.Version.Substring(0, 5)))
                     {
                         App.OnCriticalUpdateAvailable.Invoke();
                         break;
