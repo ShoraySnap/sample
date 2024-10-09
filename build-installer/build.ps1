@@ -65,22 +65,27 @@ function Run-InnoSetup {
         [string]$script = "..\build-installer\snaptrude-manager.iss",
         [string]$version, 
 	    [string]$urlPath,
-        [string]$outputDir = ".\out"
+        [string]$outputDir = ".\out\$version_number"
     )
     $includeDownloadSection = "true";
     $outputBaseFileName = "snaptrude-manager-setup-" + $version;
     if ($name -eq "Update") {
 	$includeDownloadSection = "false";
         $outputBaseFileName += "-Update"
+        $outputDir += "\Update"
     }
-    if ($name -eq "Wework") {
+    elseif ($name -eq "Wework") {
+        $outputDir += "\Wework"
         $outputBaseFileName += "-WeWork"
+    }
+    else{
+        $outputDir += "\Prod"
     }
     
     $outputFilePath = Join-Path $outputDir ($outputBaseFileName + ".exe")
 
     Write-Host "Creating $name installer... " -NoNewline
-    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath -quiet
+    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath /DOutDir=$outputDir -quiet
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅" -ForegroundColor Green
         return $outputFilePath
@@ -145,6 +150,9 @@ function GenerateAppcast {
         [Parameter(Mandatory=$true)]
         [string]$OutputFolder,
 
+        [Parameter(Mandatory=$true)]
+        [string]$AppcastFolderUrl,
+
         [Parameter(Mandatory=$false)]
         [switch]$MandatoryUpdate = $false
     )
@@ -152,7 +160,7 @@ function GenerateAppcast {
     Write-Host "Generating appcast... " -NoNewline
 
     try {
-        $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows --description-tag "Addin for Revit/Snaptrude interoperability" -u "https://updatemanager.s3.us-east-2.amazonaws.com/AutomatedDeployTest/appcast.xml" -n "Snaptrude Manager" -x true --critical-versions $criticalVersion --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
+        $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --critical-versions $criticalVersion --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "✅" -ForegroundColor Green
             return $DestinationPath
@@ -300,6 +308,10 @@ if ($branch -eq "feature-update-netsparkle") {
     $weworkInstallerFileName = Split-Path $weworkInstallerPath -Leaf
     $updateInstallerFileName = Split-Path $updateInstallerPath -Leaf
 
+    $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
+    $appcastOutputPath = ".\publish\appcast.xml"
+    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
+
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-WeWork.exe" -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version-Update.exe" -certPath $certPath -plainPwd $plainPwd
@@ -317,8 +329,6 @@ if ($branch -eq "feature-update-netsparkle") {
     Write-Host "✅" -ForegroundColor Green
 
 
-    $appcastOutputPath = ".\publish\appcast.xml"
-    GenerateAppcast -AppPath $uiRelativePath -OutputFolder $appcastOutputPath
 
     $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
     Write-Host "Uploading AppCast file to S3 bucket... " -NoNewline
