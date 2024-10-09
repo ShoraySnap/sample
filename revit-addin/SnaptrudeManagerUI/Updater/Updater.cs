@@ -124,9 +124,24 @@ namespace SnaptrudeManagerUI
             {
                 if (appCastItem.IsCriticalUpdate)
                 {
-                    App.OnCriticalUpdateAvailable.Invoke();
-                    break;
+                    if (IsVersionHigher(appCastItem.Version, e.ApplicationConfig.InstalledVersion))
+                    {
+                        App.OnCriticalUpdateAvailable.Invoke();
+                        break;
+                    }
                 }
+            }
+        }
+
+        public bool IsVersionHigher(string currentVersion, string newVersion)
+        {
+            if (Version.TryParse(currentVersion, out Version currVer) && Version.TryParse(newVersion, out Version newVer))
+            {
+                return newVer > currVer;
+            }
+            else
+            {
+                throw new ArgumentException("One or both of the version strings are not valid.");
             }
         }
 
