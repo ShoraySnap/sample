@@ -287,9 +287,9 @@ if ($branch -eq "feature-update-netsparkle" -or $branch -eq "master") {
         $AWSRegion = "us-east-2"
         $S3ManagerObjectFolderKey = "AutomatedDeployTest/";
         $ObjectKey = "AutomatedDeployTest/appcast.xml"
-        Write-Host "[Certificate Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
+        Write-Host "[Code Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
         $certPath = Read-Host
-        Write-Host "[Certificate Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
+        Write-Host "[Code Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
         $certPwd = Read-Host -AsSecureString
         $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
     }
@@ -375,7 +375,7 @@ if ($branch -eq "feature-update-netsparkle") {
 
     $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
     $s3AppCastSignatureKeyName = "AutomatedDeployTest/appcast.xml.signature"
-    Write-Host "Uploading AppCast file to S3 bucket... " -NoNewline
+    Write-Host "Uploading AppCast files to S3 bucket... " -NoNewline
     $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
     $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
     Write-Host "✅" -ForegroundColor Green  
