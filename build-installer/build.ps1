@@ -191,7 +191,7 @@ function DownloadAppcast {
     )
 
     try {
-        if (-not (Test-Path $DestinationPath)) {
+        if ((Test-Path $AppcastUrl)) {
             Write-Host "Downloading existing appcast... " -NoNewline
             Invoke-WebRequest -Uri $AppcastUrl -OutFile $DestinationPath
             Write-Host "✅" -ForegroundColor Green
@@ -352,6 +352,7 @@ if ($branch -eq "feature-update-netsparkle") {
 
     $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
     $appcastOutputPath = ".\publish\appcast.xml"
+    $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
     GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
 
     Sign-File -filePath "..\build-installer\out\snaptrude-manager-setup-$version.exe" -certPath $certPath -plainPwd $plainPwd
@@ -373,8 +374,10 @@ if ($branch -eq "feature-update-netsparkle") {
 
 
     $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
+    $s3AppCastSignatureKeyName = "AutomatedDeployTest/appcast.xml.signature"
     Write-Host "Uploading AppCast file to S3 bucket... " -NoNewline
     $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
+    $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
     Write-Host "✅" -ForegroundColor Green  
 
     #git tag -a $version -m $version
