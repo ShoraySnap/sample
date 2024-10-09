@@ -63,6 +63,12 @@ namespace SnaptrudeManagerUI.ViewModels
 
             SkipCommand = new NavigateCommand(skipUpdateNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
+            App.OnCriticalUpdateAvailable += SetCriticalUpdateMessage;
+        }
+
+        private void SetCriticalUpdateMessage()
+        {
+            Message = $"Please update to {UpdateVersion}. A critical update was identified.\nProceeding without updating can lead to errors during Import and Export.";
         }
     }
 }

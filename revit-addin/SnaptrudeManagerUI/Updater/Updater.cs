@@ -113,6 +113,14 @@ namespace SnaptrudeManagerUI
             logger.Info("Found an Update!");
             UpdateVersion = e.LatestVersion.Version;
             App.OnUpdateAvailable.Invoke();
+            foreach (var appCastItem in e.AppCastItems)
+            {
+                if (appCastItem.IsCriticalUpdate)
+                {
+                    App.OnCriticalUpdateAvailable.Invoke();
+                    break;
+                }
+            }
         }
 
         public async Task<bool> IsUpdateAvailable()

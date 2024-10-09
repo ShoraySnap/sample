@@ -63,6 +63,7 @@ namespace SnaptrudeManagerUI
         public static Action OnDownloadFinished;
         public static Action OnDownloadError;
         public static Action OnUpdateAvailable;
+        public static Action OnCriticalUpdateAvailable;
         public static Action OnLatestVersion;
 
         public static Updater Updater;
