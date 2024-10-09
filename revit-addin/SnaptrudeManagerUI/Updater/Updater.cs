@@ -10,6 +10,7 @@ using NetSparkleUpdater;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
 using NLog;
+using SnaptrudeManagerUI.API;
 
 namespace SnaptrudeManagerUI
 {
@@ -25,8 +26,14 @@ namespace SnaptrudeManagerUI
             logger.Info("Initializing updater!");
 
             var uiPath48 = $@"C:\Users\ferna\source\repos\Snaptrude\snaptrudemanager\revit-addin\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe";
-            var publicKey = "6xpMewsNUkGqnyQUMMoO9O/0Pb7uIDuD2jsrAGq+en8=";
-            string appCastURL = "https://updatemanager.s3.us-east-2.amazonaws.com/appcast.xml";
+            var publicKey = "BNmliedOVk3IBj/5XSEdxGRW5ibo3fmGIkYHX9CRju4=";
+            var awsRegion = "ap-south-1";
+            string appCastURL = $"https://snaptrude-prod.data.s3.{awsRegion}.amazonaws.com/media/manager/appcast.xml";
+            string reactUrl = Urls.Get("snaptrudeReactUrl");
+            if (reactUrl != "https://app.snaptrude.com")
+            {
+                appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
+            }
             _sparkle = new SparkleUpdater(appCastURL, new Ed25519Checker(SecurityMode.Strict, publicKey), uiPath48)
             {
                 UIFactory = null,
