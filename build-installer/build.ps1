@@ -350,14 +350,15 @@ if ($branch -eq "feature-update-netsparkle") {
     $weworkInstallerFileName = Split-Path $weworkInstallerPath -Leaf
     $updateInstallerFileName = Split-Path $updateInstallerPath -Leaf
 
-    $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
-    $appcastOutputPath = ".\publish\appcast.xml"
-    $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
-    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
 
     Sign-File -filePath $prodInstallerPath -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath $weworkInstallerPath -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath $updateInstallerPath -certPath $certPath -plainPwd $plainPwd
+    
+    $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
+    $appcastOutputPath = ".\publish\appcast.xml"
+    $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
+    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
     
     $bucketName = "updatemanager"
     $s3ProdSetupKeyName = "AutomatedDeployTest/$version/$prodInstallerFileName"
@@ -370,7 +371,6 @@ if ($branch -eq "feature-update-netsparkle") {
     Write-Host "Uploading Update installer to S3 bucket... " -NoNewline
     $s3UpdateUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
     Write-Host "Done" -ForegroundColor Green
-
 
     $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
     $s3AppCastSignatureKeyName = "AutomatedDeployTest/appcast.xml.signature"
