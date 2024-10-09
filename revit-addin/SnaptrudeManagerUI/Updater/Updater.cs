@@ -26,7 +26,7 @@ namespace SnaptrudeManagerUI
             logger.Info("Initializing updater!");
 
             var uiPath48 = $@"C:\Users\ferna\source\repos\Snaptrude\snaptrudemanager\revit-addin\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe";
-            var publicKey = "BNmliedOVk3IBj/5XSEdxGRW5ibo3fmGIkYHX9CRju4=";
+            var publicKey = "AVtJw/dp/mJhd4tEdUlIexV/Ut72lVrFhGUBX1oT/vU=";
             var awsRegion = "ap-south-1";
             string appCastURL = $"https://snaptrude-prod.data.s3.{awsRegion}.amazonaws.com/media/manager/appcast.xml";
             string reactUrl = Urls.Get("snaptrudeReactUrl");
