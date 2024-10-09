@@ -32,8 +32,12 @@ namespace SnaptrudeManagerUI
             string reactUrl = Urls.Get("snaptrudeReactUrl");
             if (reactUrl != "https://app.snaptrude.com")
             {
-                appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
+                awsRegion = "us-east-2";
+                appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/AutomatedDeployTest/appcast.xml";
             }
+            
+            //appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
+
             _sparkle = new SparkleUpdater(appCastURL, new Ed25519Checker(SecurityMode.Strict, publicKey), uiPath48)
             {
                 UIFactory = null,
