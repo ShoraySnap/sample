@@ -263,7 +263,7 @@ foreach ($projectName in $uiProjects.Keys) {
 }
 $version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 
-if ($branch -eq "feature-update-netsparkle" -or $branch -eq "master") {
+if ($branch -eq "master" -or $branch -eq "dev") {
 
     $publishFolder = ".\publish"
     CheckKeyFiles -FolderPath $publishFolder
@@ -285,17 +285,17 @@ if ($branch -eq "feature-update-netsparkle" -or $branch -eq "master") {
         $BucketName = "snaptrude-staging-data"
         $AWSRegion = "ap-south-1"
     }
-    if ($branch -eq "feature-update-netsparkle") {
-        $BucketName = "updatemanager"
-        $AWSRegion = "us-east-2"
-        $S3ManagerObjectFolderKey = "AutomatedDeployTest/";
-        $ObjectKey = "AutomatedDeployTest/appcast.xml"
-        Write-Host "[Code Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
-        $certPath = Read-Host
-        Write-Host "[Code Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
-        $certPwd = Read-Host -AsSecureString
-        $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
-    }
+    #if ($branch -eq "feature-update-netsparkle") {
+    #    $BucketName = "updatemanager"
+    #    $AWSRegion = "us-east-2"
+    #    $S3ManagerObjectFolderKey = "AutomatedDeployTest/";
+    #    $ObjectKey = "AutomatedDeployTest/appcast.xml"
+    #    Write-Host "[Code Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
+    #    $certPath = Read-Host
+    #    Write-Host "[Code Signing] Enter certificate password: " -NoNewline -ForegroundColor Yellow
+    #    $certPwd = Read-Host -AsSecureString
+    #    $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
+    #}
 
     $ObjectKey = "$S3ManagerObjectFolderKey$AppCastObjectKey"
     
@@ -323,17 +323,18 @@ $stagingUrlPath = "..\build-installer\misc\urlsstaging.json"
 $prodUrlPath = "..\build-installer\misc\urls.json"
 $weworkUrlPath = "..\build-installer\misc\urlswework.json"
 
-if ($branch -eq "feature-update-netsparkle") {
-    
-
+if ($branch -eq "master") {
+    #Sign addin files
     foreach ($config in $configurations) {
         Sign-File -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -plainPwd $plainPwd
     }
 
+    #Sign ui files
     Get-ChildItem -Path $uiRelativePath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
     	Sign-File -filePath $_.FullName -certPath $certPath -plainPwd $plainPwd
     }
-    
+
+    #Build installers
     $prodInstallerPath = Run-InnoSetup -name "Prod" `
                                     -version $version `
                                     -urlPath $prodUrlPath `
@@ -353,33 +354,35 @@ if ($branch -eq "feature-update-netsparkle") {
     $weworkInstallerFileName = Split-Path $weworkInstallerPath -Leaf
     $updateInstallerFileName = Split-Path $updateInstallerPath -Leaf
 
-
+    #Sign installers
     Sign-File -filePath $prodInstallerPath -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath $weworkInstallerPath -certPath $certPath -plainPwd $plainPwd
     Sign-File -filePath $updateInstallerPath -certPath $certPath -plainPwd $plainPwd
     
+    #Generate Appcast
     $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
     $appcastOutputPath = ".\publish\appcast.xml"
     $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
     GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
     
-    $bucketName = "updatemanager"
-    $s3ProdSetupKeyName = "AutomatedDeployTest/$version/$prodInstallerFileName"
-    $s3UpdateSetupKeyName = "AutomatedDeployTest/$version/$updateInstallerFileName"
+    $s3ProdSetupKeyName = "$S3ManagerObjectFolderKey/$version/$prodInstallerFileName"
+    $s3UpdateSetupKeyName = "$S3ManagerObjectFolderKey/$version/$updateInstallerFileName"
 
+    #Upload installers to S3
     Write-Host "Uploading Prod installer to S3 bucket... " -NoNewline
-    $s3ProdUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $prodInstallerPath -KeyName $s3ProdSetupKeyName
+    $s3ProdUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $prodInstallerPath -KeyName $s3ProdSetupKeyName
     Write-Host "Done" -ForegroundColor Green
 
     Write-Host "Uploading Update installer to S3 bucket... " -NoNewline
-    $s3UpdateUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
+    $s3UpdateUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
     Write-Host "Done" -ForegroundColor Green
-
-    $s3AppCastKeyName = "AutomatedDeployTest/appcast.xml"
-    $s3AppCastSignatureKeyName = "AutomatedDeployTest/appcast.xml.signature"
+    
+    #Upload appcast files to s3
+    $s3AppCastKeyName = "$S3ManagerObjectFolderKey/appcast.xml"
+    $s3AppCastSignatureKeyName = "$S3ManagerObjectFolderKey/appcast.xml.signature"
     Write-Host "Uploading AppCast files to S3 bucket... " -NoNewline
-    $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
-    $s3AppCastUrl = UploadFileToS3 -BucketName $bucketName -AWSRegion $AWSRegion  -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
+    $s3AppCastUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
+    $s3AppCastUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
     Write-Host "Done" -ForegroundColor Green  
 
     #git tag -a $version -m $version
@@ -388,13 +391,53 @@ if ($branch -eq "feature-update-netsparkle") {
 
 
 } elseif ($branch -eq "dev") {
+    #Build installers
     $version = -join("dev-", $version_number)
-    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "true"
-    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "false"
+    $stagingInstallerPath = Run-InnoSetup -name "Staging" `
+                                    -version $version `
+                                    -urlPath $stagingUrlPath `
+                                    -includeDownloadSection "true"
+    $updateInstallerPath = Run-InnoSetup -name "Update" `
+                                    -version $version `
+                                    -urlPath $stagingUrlPath `
+                                    -includeDownloadSection "false"
+    $stagingInstallerFileName = Split-Path $stagingInstallerPath -Leaf
+    $updateInstallerFileName = Split-Path $updateInstallerPath -Leaf
+
+    #Generate Appcast
+    $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
+    $appcastOutputPath = ".\publish\appcast.xml"
+    $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
+    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
+    
+    #Upload installers to S3
+    $s3StagingSetupKeyName = "$S3ManagerObjectFolderKey/$version/$stagingInstallerFileName"
+    $s3UpdateSetupKeyName = "$S3ManagerObjectFolderKey/$version/$updateInstallerFileName"
+    Write-Host "Uploading Staging installer to S3 bucket... " -NoNewline
+    $s3StagingUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $stagingInstallerPath -KeyName $s3StagingSetupKeyName
+    Write-Host "Done" -ForegroundColor Green
+
+    Write-Host "Uploading Update installer to S3 bucket... " -NoNewline
+    $s3UpdateUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $updateInstallerPath -KeyName $s3UpdateSetupKeyName
+    Write-Host "Done" -ForegroundColor Green
+    
+    #Upload appcast files to s3
+    $s3AppCastKeyName = "$S3ManagerObjectFolderKey/appcast.xml"
+    $s3AppCastSignatureKeyName = "$S3ManagerObjectFolderKey/appcast.xml.signature"
+    Write-Host "Uploading AppCast files to S3 bucket... " -NoNewline
+    $s3AppCastUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
+    $s3AppCastUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
+    Write-Host "Done" -ForegroundColor Green  
     
     #git tag -a $version -m $version
 
 } else {
-    Run-InnoSetup -name "Staging" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "true"
-    Run-InnoSetup -name "Update" -script "..\build-installer\snaptrude-manager.iss" -version $version -urlPath $stagingUrlPath -includeDownloadSection "false"
+    Run-InnoSetup -name "Staging" 
+                  -version $version 
+                  -urlPath $stagingUrlPath 
+                  -includeDownloadSection "true"
+    Run-InnoSetup -name "Update" 
+                  -version $version 
+                  -urlPath $stagingUrlPath 
+                  -includeDownloadSection "false"
 }
