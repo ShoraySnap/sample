@@ -138,9 +138,9 @@ function CheckMandatoryVersion {
     } until ($response -eq "Y" -or $response -eq "N")
 
     if ($response -eq "Y") {
-        return 
+        return $true
     } else {
-        $finalMinVersion = $currentMinVersion
+        return $false
     }
 }
 
@@ -155,13 +155,13 @@ function GenerateAppcast {
         [Parameter(Mandatory=$true)]
         [string]$AppcastFolderUrl,
 
-        [Parameter(Mandatory=$false)]
-        [switch]$MandatoryUpdate = $false
+        [Parameter(Mandatory=$true)]
+        [string]$MandatoryUpdate
     )
     $criticalVersion = "1.0.0"
     Write-Host "Generating appcast... " -NoNewline
 
-    if ($MandatoryUpdate -eq $false){
+    if ($MandatoryUpdate -eq "True"){
         $criticalVersion = $version
     }
 
@@ -363,7 +363,7 @@ if ($branch -eq "master") {
     $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
     $appcastOutputPath = ".\publish\appcast.xml"
     $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
-    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
+    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl -MandatoryUpdate $isMandatory
     
     $s3ProdSetupKeyName = "$S3ManagerObjectFolderKey/$version/$prodInstallerFileName"
     $s3UpdateSetupKeyName = "$S3ManagerObjectFolderKey/$version/$updateInstallerFileName"
