@@ -85,7 +85,7 @@ function Run-InnoSetup {
     $outputFilePath = Join-Path $outputDir ($outputBaseFileName + ".exe")
 
     Write-Host "Creating $name installer... " -NoNewline
-    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath /DOutDir=$outputDir -quiet
+    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath /DOutDir=$outputDir /DBuildName=$name -quiet
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Done" -ForegroundColor Green
         return $outputFilePath
