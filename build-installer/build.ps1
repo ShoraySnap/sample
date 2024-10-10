@@ -191,9 +191,6 @@ function DownloadAppcast {
     )
 
     try {
-        if (Test-Path -Path $DestinationPath) {
-            Remove-Item -Path $DestinationPath -Force
-        }
         if ((Test-Path $AppcastUrl)) {
             Write-Host "Downloading existing appcast... " -NoNewline
             Invoke-WebRequest -Uri $AppcastUrl -OutFile $DestinationPath
