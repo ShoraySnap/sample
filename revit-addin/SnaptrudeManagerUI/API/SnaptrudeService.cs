@@ -353,9 +353,10 @@ namespace SnaptrudeManagerUI.API
             return true;
         }
 
-        public static async Task<HttpResponseMessage> CheckIfUserLoggedInAsync()
+        public static async Task<bool> CheckIfUserLoggedInAsync()
         {
             string accessToken = Store.Get("accessToken")?.ToString();
+            if (string.IsNullOrEmpty(accessToken)) { return false; }
             string refreshToken = Store.Get("refreshToken")?.ToString();
 
             string djangoUrl = Urls.Get("snaptrudeDjangoUrl");
@@ -379,11 +380,11 @@ namespace SnaptrudeManagerUI.API
                 {
                     Store.Set("accessToken", result["accessToken"]);
                     Store.Save();
-                    // Update user data in your application state here
+                    return true;
                 }
             }
 
-            return response;
+            return false;
         }
 
         public static async Task<bool> IsPaidUserAccountAsync()

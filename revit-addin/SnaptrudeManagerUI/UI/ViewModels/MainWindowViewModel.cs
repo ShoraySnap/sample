@@ -46,7 +46,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
-
+        
         public string ImportPath { get; set; }
 
         private string username;
@@ -140,6 +140,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand UpdateCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
         public ICommand BackToLoginCommand { get; private set; }
+        public bool IsUserLoggedIn { get; set; }
         public ICommand RevitClosedCommand { get; private set; }
 
 
@@ -179,10 +180,10 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isLoaderVisible = value; OnPropertyChanged(nameof(IsLoaderVisible)); }
         }
 
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
+        public async void ConfigMainWindowViewModel(NavigationStore navigationStore, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
             CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString().Substring(0, 5);
-            WhiteBackground = true;
+            WhiteBackground = false;
             IsLoaderVisible = false;
             ProjectFileName = fileName + (isDocumentOpen ? (isDocumentRvt ? ".rvt" : ".rfa") : "");
             IsDocumentOpen = isDocumentOpen;
@@ -208,11 +209,17 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnDocumentChanged += NavigateBackHome;
             App.OnRevitClosed += GotoRevitCloseEndView;
             App.OnUpdateAvailable += SetUpdateVersion;
+            App.OnLoginNotFound += SetLoginNotFound;
+        }
+
+        public void SetLoginNotFound()
+        {
+            IsUserLoggedIn = false;
         }
 
         private void SetUpdateVersion()
         {
-            UpdateVersion = Updater.UpdateVersion.Substring(0,5);
+            UpdateVersion = App.Updater.UpdateVersion.Substring(0,5);
         }
 
         private void GotoRevitCloseEndView()

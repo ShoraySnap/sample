@@ -41,6 +41,7 @@ namespace SnaptrudeManagerUI
         private DispatcherTimer timer = new DispatcherTimer();
 
         public static Action<int, string> OnProgressUpdate;
+        public static Action OnLoginNotFound;
         public static Action OnSuccessfullLogin;
         public static Action OnFailedLogin;
         public static Action OnAbort;
@@ -121,8 +122,17 @@ namespace SnaptrudeManagerUI
 
             NavigationStore navigationStore = NavigationStore.Instance;
             MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
-            
-            navigationStore.CurrentViewModel = ViewModelCreator.CreateCheckingUpdateViewModel();
+
+            bool internetAvailable = await SnaptrudeService.IsInternetAvailableAsync();
+            if (internetAvailable)
+            {
+                navigationStore.CurrentViewModel = ViewModelCreator.CreateCheckingUpdateViewModel();
+            }
+            if (!internetAvailable)
+            {
+                navigationStore.CurrentViewModel = ViewModelCreator.CreateStartupInternetIssueWarningViewModel();
+            }
+
             //if (currentVersion != updateVersion)
             //    navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
             //else if(Store.Get("accessToken")?.ToString() == "")
@@ -169,6 +179,10 @@ namespace SnaptrudeManagerUI
 
         }
 
+        public static void CreateInitialViewModel() 
+        {
+
+        }
         public static void ShowInvalidTokenIssue(string errorMessage)
         {
             NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateTokenExpiredWarningViewModel(errorMessage);

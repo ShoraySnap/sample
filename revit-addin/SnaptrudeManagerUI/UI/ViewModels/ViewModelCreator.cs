@@ -14,7 +14,6 @@ namespace SnaptrudeManagerUI.ViewModels
         public static CheckingUpdateViewModel CreateCheckingUpdateViewModel()
         {
             return new CheckingUpdateViewModel(
-                new NavigationService(NavigationStore.Instance, CreateLoginViewModel),
                 new NavigationService(NavigationStore.Instance, CreateUpdateAvailableViewModel));
         }
 
@@ -121,9 +120,9 @@ namespace SnaptrudeManagerUI.ViewModels
                 errorMessage
                 );
         }
-        public static ViewModelBase CreateStartupInternetIssueWarningViewModel(string errorMessage)
+        public static ViewModelBase CreateStartupInternetIssueWarningViewModel()
         {
-            return new WarningViewModel(WarningId.StartupInternetConnectionIssue, null, null, errorMessage);
+            return new WarningViewModel(WarningId.StartupInternetConnectionIssue);
         }
 
         public static ViewModelBase CreateAPIBlockedViewModel(string errorMessage)
@@ -144,7 +143,8 @@ namespace SnaptrudeManagerUI.ViewModels
             return new UpdateAvailableViewModel(
                 false,
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateLoginViewModel));
         }
 
         public static UpdateAvailableViewModel CreateRetryUpdateAvailableViewModel()
@@ -152,7 +152,8 @@ namespace SnaptrudeManagerUI.ViewModels
             return new UpdateAvailableViewModel(
                 true,
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateLoginViewModel));
         }
 
         public static EndViewModel CreateDownloadFinishedViewModel()

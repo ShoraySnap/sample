@@ -18,7 +18,8 @@ namespace SnaptrudeManagerUI
     {
         Logger logger = LogManager.GetCurrentClassLogger();
         private SparkleUpdater _sparkle;
-        public static string UpdateVersion = "";
+        public string UpdateVersion = "";
+        public bool CriticalVersionFound = false;
 
         private UpdateInfo _updateInfo;
         public Updater()
@@ -44,6 +45,7 @@ namespace SnaptrudeManagerUI
                 SecurityProtocolType = System.Net.SecurityProtocolType.Tls12,
                 UserInteractionMode = UserInteractionMode.DownloadAndInstall
             };
+
             PrepareCallbacks();
             App.OnStartDownload += StartDownload;
             App.OnCancelDownload += CancelDownload;
@@ -81,10 +83,7 @@ namespace SnaptrudeManagerUI
         private void _sparkle_UpdateCheckFinished(object sender, UpdateStatus status)
         {
             logger.Info("Update Check Finished!");
-            if (UpdateVersion == "")
-            {
-                App.OnLatestVersion?.Invoke();
-            }
+
         }
 
         private void _sparkle_UpdateCheckStarted(object sender)
@@ -123,14 +122,13 @@ namespace SnaptrudeManagerUI
         {
             logger.Info("Found an Update!");
             UpdateVersion = e.LatestVersion.Version;
-            App.OnUpdateAvailable.Invoke();
             foreach (var appCastItem in e.AppCastItems)
             {
                 if (appCastItem.IsCriticalUpdate)
                 {
                     if (IsVersionHigher(e.ApplicationConfig.InstalledVersion.Substring(0, 5), appCastItem.Version.Substring(0, 5)))
                     {
-                        App.OnCriticalUpdateAvailable.Invoke();
+                        CriticalVersionFound = true;
                         break;
                     }
                 }

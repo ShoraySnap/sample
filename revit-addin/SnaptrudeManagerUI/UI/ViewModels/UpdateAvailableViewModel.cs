@@ -1,4 +1,5 @@
-﻿using SnaptrudeManagerUI.Commands;
+﻿using SnaptrudeManagerUI.API;
+using SnaptrudeManagerUI.Commands;
 using SnaptrudeManagerUI.Services;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace SnaptrudeManagerUI.ViewModels
             set { updateButtonText = value; OnPropertyChanged("UpdateButtonText"); }
         }
 
-        public UpdateAvailableViewModel(bool retry, NavigationService updateNowNavigationService, NavigationService skipUpdateNavigationService) 
+        public UpdateAvailableViewModel(bool retry, NavigationService updateNowNavigationService, NavigationService skipHomeNavigationService, NavigationService skipLoginNavigationService) 
         {
             if (retry)
             {
@@ -60,15 +61,17 @@ namespace SnaptrudeManagerUI.ViewModels
                     return viewmodel;
                 }));
             transformMainWindowViewModelCommand.Execute(new object());
-
-            SkipCommand = new NavigateCommand(skipUpdateNavigationService);
+            if (MainWindowViewModel.Instance.IsUserLoggedIn)
+                SkipCommand = new NavigateCommand(skipHomeNavigationService);
+            else
+                SkipCommand = new NavigateCommand(skipLoginNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
             App.OnCriticalUpdateAvailable += SetCriticalUpdateMessage;
         }
 
         private void SetCriticalUpdateMessage()
         {
-            Message = $"A critical update has been identified, please update to {UpdateVersion}.\nFailing to update may cause errors during Import and Export.";
+            Message = $"A critical update has been identified, please update to{UpdateVersion}.\nFailing to update may cause errors during Import and Export.";
         }
     }
 }
