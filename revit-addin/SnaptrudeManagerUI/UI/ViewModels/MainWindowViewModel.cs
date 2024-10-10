@@ -260,7 +260,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void NavigateBackHome()
         {
-            if (WhiteBackground)
+            if (WhiteBackground && !(CurrentViewModel is ProgressViewModel))
             {
                 NavigateHomeCommand.Execute(null);
             }
