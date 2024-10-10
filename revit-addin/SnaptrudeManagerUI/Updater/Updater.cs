@@ -26,7 +26,6 @@ namespace SnaptrudeManagerUI
         {
             logger.Info("Initializing updater!");
 
-            var uiPath48 = $@"C:\Users\ferna\source\repos\Snaptrude\snaptrudemanager\revit-addin\SnaptrudeManagerUI\bin\Debug\net48\SnaptrudeManagerUI.exe";
             var publicKey = "AVtJw/dp/mJhd4tEdUlIexV/Ut72lVrFhGUBX1oT/vU=";
             var awsRegion = "ap-south-1";
             string appCastURL = $"https://snaptrude-prod.data.s3.{awsRegion}.amazonaws.com/media/manager/appcast.xml";
@@ -36,10 +35,10 @@ namespace SnaptrudeManagerUI
                 awsRegion = "us-east-2";
                 appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/AutomatedDeployTest/appcast.xml";
             }
-            
-            //appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
 
-            _sparkle = new SparkleUpdater(appCastURL, new Ed25519Checker(SecurityMode.Strict, publicKey), uiPath48)
+            //appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
+            
+            _sparkle = new SparkleUpdater(appCastURL, new Ed25519Checker(SecurityMode.Strict, publicKey))
             {
                 UIFactory = null,
                 SecurityProtocolType = System.Net.SecurityProtocolType.Tls12,
@@ -149,8 +148,6 @@ namespace SnaptrudeManagerUI
 
         public async Task<bool> IsUpdateAvailable()
         {
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
-
             _updateInfo = await _sparkle.CheckForUpdatesAtUserRequest();
             if (_updateInfo != null)
             {
@@ -159,16 +156,5 @@ namespace SnaptrudeManagerUI
             return false;
         }
 
-        private static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            try
-            {
-                return Assembly.ReflectionOnlyLoad(args.Name);
-            }
-            catch (FileNotFoundException)
-            {
-                return null;
-            }
-        }
     }
 }
