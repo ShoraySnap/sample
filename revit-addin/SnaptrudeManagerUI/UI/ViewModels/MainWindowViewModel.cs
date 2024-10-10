@@ -224,7 +224,10 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void GotoRevitCloseEndView()
         {
+            if (WhiteBackground)
+            {
             RevitClosedCommand.Execute(null);
+        }
         }
 
         private void HandleDocumentClosed()
