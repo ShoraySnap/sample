@@ -428,6 +428,7 @@ if ($branch -eq "master") {
     $s3AppCastUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $appcastOutputPath -KeyName $s3AppCastKeyName
     $s3AppCastUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $appcastSignatureOutputPath -KeyName $s3AppCastSignatureKeyName
     Write-Host "Done" -ForegroundColor Green  
+    $ProgressPreference = 'Continue'
     
     #git tag -a $version -m $version
 
