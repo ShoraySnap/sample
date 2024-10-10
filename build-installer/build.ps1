@@ -267,7 +267,7 @@ if ($branch -eq "master" -or $branch -eq "dev") {
     $version = $version_number
     $isMandatory = CheckMandatoryVersion -NewVersion $version;
     $ProgressPreference = 'SilentlyContinue'
-    $S3ManagerObjectFolderKey = "media/manager/";
+    $S3ManagerObjectFolderKey = "media/manager";
     $AppCastObjectKey = "appcast.xml";
     if ($branch -eq "master") {
         $BucketName = "snaptrude-prod-data"
@@ -294,7 +294,7 @@ if ($branch -eq "master" -or $branch -eq "dev") {
     #    $plainPwd = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($certPwd))
     #}
 
-    $ObjectKey = "$S3ManagerObjectFolderKey$AppCastObjectKey"
+    $ObjectKey = "$S3ManagerObjectFolderKey/$AppCastObjectKey"
     
     $AppcastUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$ObjectKey"
     $AppcastFolderUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$S3ManagerObjectFolderKey"
