@@ -5,7 +5,7 @@ param (
 # Define paths
 $sourceDir = "./bin/Debug/Forge$RevitVersion"
 $bundleDir = "./assets/DirectImport.bundle/Contents"
-$zipPath = "./assets/Forge$RevitVersion/DirectImport.zip"
+$zipPath = "./assets/DirectImport$RevitVersion.zip"
 # $forgeserverPath="C:\Users\Shroy\Documents\forgeserver\bundles"
 
 # Ensure the bundle directory exists
