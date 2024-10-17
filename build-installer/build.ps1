@@ -427,12 +427,12 @@ if ($branch -eq "master") {
     #git tag -a $version -m $version
 
 } else {
-    Run-InnoSetup -name "Staging" 
-                  -version $version 
-                  -urlPath $stagingUrlPath 
+    Run-InnoSetup -name "Staging" `
+                  -version $version `
+                  -urlPath $stagingUrlPath `
                   -includeDownloadSection "true"
-    Run-InnoSetup -name "Update" 
-                  -version $version 
-                  -urlPath $stagingUrlPath 
+    Run-InnoSetup -name "Update" `
+                  -version $version `
+                  -urlPath $stagingUrlPath `
                   -includeDownloadSection "false"
 }
