@@ -256,6 +256,11 @@ end;
 var
   ShowMessage: Boolean;
 
+function ShouldRunIfSilent(): Boolean;
+begin
+  Result := WizardSilent;
+end;
+
 procedure InitializeWizard;
 var
   ShowMessageStr: String;
@@ -633,3 +638,7 @@ Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\DefaultIcon"; ValueType: s
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 Root: HKA; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".myp"; ValueData: ""
 
+#if BuildName = "Update"
+[Run]
+Filename: "{param:ExecutablePath}"; Flags: nowait; Check: ShouldRunIfSilent
+#endif
