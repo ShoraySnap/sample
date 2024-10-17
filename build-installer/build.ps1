@@ -303,7 +303,7 @@ $addinProjects = @{
     "SnaptrudeManagerAddin" = "..\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
 }
 
-$configurations = @("2019")
+$configurations = @("2019","2020","2021","2022","2023","2024","2025")
 
 foreach ($config in $configurations) {
     $projectName = "SnaptrudeManagerAddin"
