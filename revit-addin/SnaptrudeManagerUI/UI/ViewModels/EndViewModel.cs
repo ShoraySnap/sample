@@ -51,12 +51,30 @@ namespace SnaptrudeManagerUI.ViewModels
                     MainWindowViewModel.Instance.WhiteBackground = false;
                     ButtonMessage = "Install Update";
                     Message = "Setup download completed!";
-                    LaunchCommand = new RelayCommand((o) => App.Current.Shutdown());
+                    LaunchCommand = new RelayCommand((o) => StartUpdate());
                     ButtonVisible = true;
                     break;
                 default:
                     break;
             }
+        }
+
+        private void StartUpdate()
+        {
+            OpenUpdateInstaller();
+            App.Current.Shutdown();
+        }
+
+        private void OpenUpdateInstaller()
+        {
+            string installerPath = App.Updater.DownloadedFilePath;
+            string revitExecutablePath = App.RevitProcess.MainModule.FileName;
+            string arguments = $"/SILENT /ExecutablePath=\"{revitExecutablePath}\"";
+            Process process = new Process();
+            process.StartInfo.FileName = installerPath;
+            process.StartInfo.Arguments = arguments;
+            process.StartInfo.UseShellExecute = false;
+            process.Start();
         }
 
         private void OpenSnaptrudeModel()

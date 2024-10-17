@@ -21,6 +21,7 @@ namespace SnaptrudeManagerUI
         private SparkleUpdater _sparkle;
         public string UpdateVersion = "";
         public string DownloadsPath = "";
+        public string DownloadedFilePath = "";
         public bool CriticalVersionFound = false;
 
         private static readonly Guid DownloadsFolderGuid = new Guid("374DE290-123F-4565-9164-39C4925E467B");
@@ -44,7 +45,7 @@ namespace SnaptrudeManagerUI
             }
 
             //appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
-            
+
             try
             {
                 IntPtr pszPath = IntPtr.Zero;
@@ -60,7 +61,7 @@ namespace SnaptrudeManagerUI
             {
                 UIFactory = null,
                 SecurityProtocolType = System.Net.SecurityProtocolType.Tls12,
-                UserInteractionMode = UserInteractionMode.DownloadAndInstall
+                UserInteractionMode = UserInteractionMode.DownloadNoInstall,
             };
 
             if (DownloadsPath != "")
@@ -120,6 +121,7 @@ namespace SnaptrudeManagerUI
 
         private void _sparkle_DownloadFinished(AppCastItem item, string path)
         {
+            DownloadedFilePath = path;
             logger.Info("Download Finished!");
             App.OnDownloadFinished?.Invoke();
         }
