@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,7 +20,13 @@ namespace SnaptrudeManagerUI
         Logger logger = LogManager.GetCurrentClassLogger();
         private SparkleUpdater _sparkle;
         public string UpdateVersion = "";
+        public string DownloadsPath = "";
         public bool CriticalVersionFound = false;
+
+        private static readonly Guid DownloadsFolderGuid = new Guid("374DE290-123F-4565-9164-39C4925E467B");
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr pszPath);
 
         private UpdateInfo _updateInfo;
         public Updater()
@@ -38,12 +45,28 @@ namespace SnaptrudeManagerUI
 
             //appCastURL = $"https://updatemanager.s3.{awsRegion}.amazonaws.com/appcast.xml";
             
+            try
+            {
+                IntPtr pszPath = IntPtr.Zero;
+                int hr = SHGetKnownFolderPath(DownloadsFolderGuid, 0, IntPtr.Zero, out pszPath);
+                DownloadsPath = Marshal.PtrToStringAuto(pszPath);
+            }
+            catch (Exception)
+            {
+                DownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\Downloads";
+            }
+
             _sparkle = new SparkleUpdater(appCastURL, new Ed25519Checker(SecurityMode.Strict, publicKey))
             {
                 UIFactory = null,
                 SecurityProtocolType = System.Net.SecurityProtocolType.Tls12,
                 UserInteractionMode = UserInteractionMode.DownloadAndInstall
             };
+
+            if (DownloadsPath != "")
+            {
+                _sparkle.TmpDownloadFilePath = DownloadsPath;
+            }
 
             PrepareCallbacks();
             App.OnStartDownload += StartDownload;
