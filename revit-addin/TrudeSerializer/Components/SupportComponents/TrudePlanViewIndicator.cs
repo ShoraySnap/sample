@@ -108,7 +108,11 @@ namespace TrudeSerializer.Components
 
             if (view == null)
             {
-                view = doc.ActiveView;
+                #if DIRECT_IMPORT
+                                view = GlobalVariables.customActiveView;
+                #else
+                                view = doc.ActiveView;
+                #endif
             }
 
             Options options = new Options

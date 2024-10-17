@@ -316,6 +316,9 @@ namespace TrudeSerializer.Components
         {
             Document doc = GlobalVariables.Document;
             View view = doc.ActiveView;
+    #if DIRECT_IMPORT
+            view = GlobalVariables.customActiveView;
+    #endif
             BoundingBoxXYZ bbox = element.get_BoundingBox(view);
             if (bbox == null)
             {
@@ -340,6 +343,9 @@ namespace TrudeSerializer.Components
             IList<ElementId> subComponents = group.GetMemberIds();
             Document doc = GlobalVariables.CurrentDocument;
             View view = doc.ActiveView;
+#if DIRECT_IMPORT
+            view = GlobalVariables.customActiveView;
+#endif
 
             foreach (ElementId subComponentId in subComponents)
             {
@@ -407,6 +413,9 @@ namespace TrudeSerializer.Components
         {
             Document doc = GlobalVariables.CurrentDocument;
             View view = doc.ActiveView;
+            #if DIRECT_IMPORT
+            view = GlobalVariables.customActiveView;
+            #endif
             FilterRule idRule = ParameterFilterRuleFactory.CreateEqualsRule(new ElementId(BuiltInParameter.ID_PARAM), element.Id);
             ElementParameterFilter idFilter = new ElementParameterFilter(idRule);
             Category cat = element.Category;

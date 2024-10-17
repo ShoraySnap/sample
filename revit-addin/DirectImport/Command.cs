@@ -217,20 +217,10 @@ namespace DirectImport
             //}
 
             //// Try to find any 3D view
-            ///
-            // print all the view names in the document
-            foreach (View view in new FilteredElementCollector(doc).OfClass(typeof(View)).Cast<View>())
-            {
-                LogTrace("View Name: {0}", view.Name);
-            }
-
-
             View3D default3DView = new FilteredElementCollector(doc)
                 .OfClass(typeof(View3D))
                 .Cast<View3D>()
                 .FirstOrDefault(v => v.Name == "{3D}");
-
-
 
             if (default3DView != null)
             {
@@ -261,13 +251,6 @@ namespace DirectImport
                 }
             }
         }
-    }
-
-    public class data
-    {
-        public int Id { get; set; }
-        public int SSN { get; set; }
-        public string Message { get; set; }
     }
 }
 
