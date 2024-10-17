@@ -249,9 +249,6 @@ $uiProjects = @{
     "SnaptrudeManagerUI" = "..\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
 }
 
-$extraProject = @{
-    "SnaptrudeManagerUI" = "..\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
-}
 foreach ($projectName in $uiProjects.Keys) {
     $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${uiProjects}[$projectName]
     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $uiBuildConfig)) {
