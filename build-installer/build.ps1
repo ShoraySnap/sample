@@ -65,7 +65,7 @@ function Run-InnoSetup {
         [string]$script = "..\build-installer\snaptrude-manager.iss",
         [string]$version, 
 	    [string]$urlPath,
-        [string]$outputDir = ".\out\$version_number"
+        [string]$outputDir = ".\out\$version"
     )
     $includeDownloadSection = "true";
     $outputBaseFileName = "snaptrude-manager-setup-" + $version;
