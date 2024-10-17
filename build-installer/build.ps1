@@ -231,7 +231,6 @@ function CheckKeyFiles {
 $branch = & git rev-parse --abbrev-ref HEAD
 $date = Get-Date -format "yyyyMMdd"
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
-$version = -join($branch, "_", $date, "_", $version_number)
 $msBuildPath = "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
 $dotnetPath = "C:\Program Files\dotnet\dotnet.exe"
 $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
@@ -427,6 +426,7 @@ if ($branch -eq "master") {
     #git tag -a $version -m $version
 
 } else {
+    $version = -join($branch, "_", $date, "_", $version_number)
     $stagingInstallerPath = Run-InnoSetup -name "Staging" `
                   -version $version `
                   -urlPath $stagingUrlPath `
