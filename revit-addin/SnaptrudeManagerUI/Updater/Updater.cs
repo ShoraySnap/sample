@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using NetSparkleUpdater;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
@@ -22,7 +23,7 @@ namespace SnaptrudeManagerUI
         public string UpdateVersion = "";
         public string DownloadsPath = "";
         public string DownloadedFilePath = "";
-        public bool CriticalVersionFound = false;
+        public bool CriticalUpdateFound = false;
 
         private static readonly Guid DownloadsFolderGuid = new Guid("374DE290-123F-4565-9164-39C4925E467B");
 
@@ -146,29 +147,14 @@ namespace SnaptrudeManagerUI
         {
             logger.Info("Found an Update!");
             UpdateVersion = e.LatestVersion.Version;
-            foreach (var appCastItem in e.AppCastItems)
-            {
-                if (appCastItem.IsCriticalUpdate)
-                {
-                    if (IsVersionHigher(e.ApplicationConfig.InstalledVersion.Substring(0, 5), appCastItem.Version.Substring(0, 5)))
-                    {
-                        CriticalVersionFound = true;
-                        break;
-                    }
-                }
-            }
+            CriticalUpdateFound = IsCriticalUpdate(e.LatestVersion);
         }
 
-        public bool IsVersionHigher(string currentVersion, string newVersion)
+        public bool IsCriticalUpdate(AppCastItem latestVersion)
         {
-            if (Version.TryParse(currentVersion, out Version currVer) && Version.TryParse(newVersion, out Version newVer))
-            {
-                return newVer > currVer;
-            }
-            else
-            {
-                throw new ArgumentException("One or both of the version strings are not valid.");
-            }
+            int updateMajorVersion = int.Parse(latestVersion.Version.Substring(0,1));
+            int intalledMajorVersion = int.Parse(latestVersion.AppVersionInstalled.Substring(0, 1));
+            return updateMajorVersion > intalledMajorVersion;
         }
 
         public async Task<bool> IsUpdateAvailable()

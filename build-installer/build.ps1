@@ -127,22 +127,6 @@ function UploadFileToS3 {
         exit 1
     }
 }
-function CheckMandatoryVersion {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$NewVersion
-    )
-    do {
-        Write-Host "This version ($NewVersion) is a mandatory one? (Y/N) " -NoNewline -ForegroundColor Yellow
-        $response = Read-Host
-    } until ($response -eq "Y" -or $response -eq "N")
-
-    if ($response -eq "Y") {
-        return $true
-    } else {
-        return $false
-    }
-}
 
 function GenerateAppcast {
     param (
@@ -153,20 +137,13 @@ function GenerateAppcast {
         [string]$OutputFolder,
 
         [Parameter(Mandatory=$true)]
-        [string]$AppcastFolderUrl,
-
-        [Parameter(Mandatory=$true)]
-        [string]$MandatoryUpdate
+        [string]$AppcastFolderUrl
     )
     $criticalVersion = "1.0.0"
     Write-Host "Generating appcast... " -NoNewline
 
-    if ($MandatoryUpdate -eq "True"){
-        $criticalVersion = $version
-    }
-
     try {
-        $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --critical-versions $criticalVersion --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
+        $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Done" -ForegroundColor Green
             return $DestinationPath
@@ -261,7 +238,6 @@ if ($branch -eq "master" -or $branch -eq "dev") {
     $publishFolder = ".\publish"
     CheckKeyFiles -FolderPath $publishFolder
     $version = $version_number
-    $isMandatory = CheckMandatoryVersion -NewVersion $version;
     $ProgressPreference = 'SilentlyContinue'
     $S3ManagerObjectFolderKey = "media/manager";
     $AppCastObjectKey = "appcast.xml";
@@ -281,7 +257,7 @@ if ($branch -eq "master" -or $branch -eq "dev") {
     #if ($branch -eq "feature-update-netsparkle") {
     #    $BucketName = "updatemanager"
     #    $AWSRegion = "us-east-2"
-    #    $S3ManagerObjectFolderKey = "AutomatedDeployTest/";
+    #    $S3ManagerObjectFolderKey = "AutomatedDeployTest";
     #    $ObjectKey = "AutomatedDeployTest/appcast.xml"
     #    Write-Host "[Code Signing] Enter pfx file path: " -NoNewline -ForegroundColor Yellow
     #    $certPath = Read-Host
@@ -356,7 +332,7 @@ if ($branch -eq "master") {
     $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
     $appcastOutputPath = ".\publish\appcast.xml"
     $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
-    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl -MandatoryUpdate $isMandatory
+    GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
     
     $s3ProdSetupKeyName = "$S3ManagerObjectFolderKey/$version/$prodInstallerFileName"
     $s3UpdateSetupKeyName = "$S3ManagerObjectFolderKey/$version/$updateInstallerFileName"

@@ -43,7 +43,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public void InvokeUpdateActions()
         {
             App.OnUpdateAvailable.Invoke();
-            if (App.Updater.CriticalVersionFound)
+            if (App.Updater.CriticalUpdateFound)
             {
                 App.OnCriticalUpdateAvailable.Invoke();
             }

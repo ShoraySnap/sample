@@ -46,6 +46,7 @@
             <Button
                 Width="120"
                 HorizontalAlignment="Center"
+                d:IsEnabled="false"
                 Command="{Binding SkipCommand}"
                 Content="Skip for later"
                 Style="{DynamicResource Button_Tertiary}" />

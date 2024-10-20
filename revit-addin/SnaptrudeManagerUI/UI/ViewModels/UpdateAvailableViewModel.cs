@@ -15,6 +15,14 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand SkipCommand { get; }
         public ICommand UpdateCommand { get; }
 
+        private bool isSkipButtonEnabled;
+
+        public bool IsSkipButtonEnabled
+        {
+            get { return isSkipButtonEnabled; }
+            set { isSkipButtonEnabled = value; OnPropertyChanged("IsSkipButtonEnabled"); }
+        }
+
         private string message;
 
         public string Message
@@ -66,12 +74,23 @@ namespace SnaptrudeManagerUI.ViewModels
             else
                 SkipCommand = new NavigateCommand(skipLoginNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
-            App.OnCriticalUpdateAvailable += SetCriticalUpdateMessage;
+            App.OnCriticalUpdateAvailable += HideSkipButton;
+        }
+
+        private void HandleCriticalUpdateAvailable()
+        {
+            HideSkipButton();
+            SetCriticalUpdateMessage();
+        }
+
+        private void HideSkipButton()
+        {
+            throw new NotImplementedException();
         }
 
         private void SetCriticalUpdateMessage()
         {
-            Message = $"A critical update has been identified, please update to{UpdateVersion}.\nFailing to update may cause errors during Import and Export.";
+            Message = $"A critical update has been identified, please update to{UpdateVersion}.";
         }
     }
 }
