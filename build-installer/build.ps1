@@ -340,15 +340,16 @@ if ($branch -eq "master") {
 
 } elseif ($branch -eq "dev") {
     #Build installers
-    $version = -join("dev-", $version_number)
     $stagingInstallerPath = Run-InnoSetup -name "Staging" `
-                                    -version $version `
+                                    -version $version_number `
                                     -urlPath $stagingUrlPath `
-                                    -includeDownloadSection "true"
+                                    -includeDownloadSection "true" `
+                                    -outputDir ".\out\dev-$version_number"
     $updateInstallerPath = Run-InnoSetup -name "Update" `
-                                    -version $version `
+                                    -version $version_number `
                                     -urlPath $stagingUrlPath `
-                                    -includeDownloadSection "false"
+                                    -includeDownloadSection "false" `
+                                    -outputDir ".\out\dev-$version_number"
     $stagingInstallerFileName = Split-Path $stagingInstallerPath -Leaf
     $updateInstallerFileName = Split-Path $updateInstallerPath -Leaf
 
@@ -359,8 +360,8 @@ if ($branch -eq "master") {
     GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
     
     #Upload installers to S3
-    $s3StagingSetupKeyName = "$S3ManagerObjectFolderKey/$version/$stagingInstallerFileName"
-    $s3UpdateSetupKeyName = "$S3ManagerObjectFolderKey/$version/$updateInstallerFileName"
+    $s3StagingSetupKeyName = "$S3ManagerObjectFolderKey/dev-$version_number/$stagingInstallerFileName"
+    $s3UpdateSetupKeyName = "$S3ManagerObjectFolderKey/dev-$version_number/$updateInstallerFileName"
     Write-Host "Uploading Staging installer to S3 bucket... " -NoNewline
     $s3StagingUrl = UploadFileToS3 -BucketName $BucketName -AWSRegion $AWSRegion -FilePath $stagingInstallerPath -KeyName $s3StagingSetupKeyName
     Write-Host "Done" -ForegroundColor Green
