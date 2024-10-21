@@ -256,9 +256,12 @@ end;
 var
   ShowMessage: Boolean;
 
-function ShouldRunIfSilent(): Boolean;
+function IsExecutablePathProvided(): Boolean;
+var
+  ExecutablePath: String;
 begin
-  Result := WizardSilent;
+  ExecutablePath := ExpandConstant('{param:ExecutablePath}');
+  Result := ExecutablePath <> '';
 end;
 
 procedure InitializeWizard;
@@ -640,5 +643,5 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes
 
 #if BuildName = "Update"
 [Run]
-Filename: "{param:ExecutablePath}"; Flags: nowait; Check: ShouldRunIfSilent
+Filename: "{param:ExecutablePath}"; Flags: nowait; Check: IsExecutablePathProvided
 #endif

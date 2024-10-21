@@ -68,7 +68,7 @@ namespace SnaptrudeManagerUI.ViewModels
         private void OpenUpdateInstaller()
         {
             string installerPath = App.Updater.DownloadedFilePath;
-            string revitExecutablePath = App.RevitProcess.MainModule.FileName;
+            string revitExecutablePath = App.RevitProcess == null ? "" : App.RevitProcess.MainModule.FileName;
             string arguments = $"/SILENT /ExecutablePath=\"{revitExecutablePath}\"";
             Process process = new Process();
             process.StartInfo.FileName = installerPath;
