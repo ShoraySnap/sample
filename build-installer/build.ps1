@@ -143,6 +143,7 @@ function GenerateAppcast {
     Write-Host "Generating appcast... " -NoNewline
 
     try {
+        Remove-Item -Path $AppCastDestinationPath
         $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Done" -ForegroundColor Green
@@ -158,27 +159,7 @@ function GenerateAppcast {
         exit 1
     }
 }
-function DownloadAppcast {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$AppcastUrl,
 
-        [Parameter(Mandatory=$true)]
-        [string]$DestinationPath
-    )
-
-    try {
-        if ((Test-Path $AppcastUrl)) {
-            Write-Host "Downloading existing appcast... " -NoNewline
-            Invoke-WebRequest -Uri $AppcastUrl -OutFile $DestinationPath
-            Write-Host "Done" -ForegroundColor Green
-        }
-        } catch {
-        Write-Host " - Error:" -ForegroundColor Red
-        Write-Host $_.Exception.Message -ForegroundColor Red
-        exit 1
-    }
-}
 function CheckKeyFiles {
     param (
         [Parameter(Mandatory=$true)]
@@ -268,10 +249,8 @@ if ($branch -eq "master" -or $branch -eq "dev") {
 
     $ObjectKey = "$S3ManagerObjectFolderKey/$AppCastObjectKey"
     
-    $AppcastUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$ObjectKey"
     $AppcastFolderUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$S3ManagerObjectFolderKey"
     $AppCastDestinationPath = ".\publish\appcast.xml"
-    DownloadAppcast -AppcastUrl $AppcastUrl -DestinationPath $AppCastDestinationPath
 }
 
 $addinProjects = @{
