@@ -144,7 +144,7 @@ function GenerateAppcast {
 
     try {
         Remove-Item -Path $AppCastDestinationPath
-        $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows -x true --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
+        $output = netsparkle-generate-appcast -a .\publish -e exe -b $AppPath -o windows --description-tag "Addin for Revit/Snaptrude interoperability" -u $AppcastFolderUrl -n "Snaptrude Manager" --overwrite-old-items true --reparse-existing true --key-path .\publish --human-readable true *> $null 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Done" -ForegroundColor Green
             return $DestinationPath
@@ -311,6 +311,7 @@ if ($branch -eq "master") {
     $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
     $appcastOutputPath = ".\publish\appcast.xml"
     $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
+    $AppcastFolderUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$S3ManagerObjectFolderKey/$version_number"
     GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
     
     $s3ProdSetupKeyName = "$S3ManagerObjectFolderKey/$version/$prodInstallerFileName"
@@ -357,6 +358,7 @@ if ($branch -eq "master") {
     $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
     $appcastOutputPath = ".\publish\appcast.xml"
     $appcastSignatureOutputPath = ".\publish\appcast.xml.signature"
+    $AppcastFolderUrl = "https://$BucketName.s3.$AWSRegion.amazonaws.com/$S3ManagerObjectFolderKey/dev-$version_number"
     GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $appcastOutputPath -AppcastFolderUrl $AppcastFolderUrl
     
     #Upload installers to S3
