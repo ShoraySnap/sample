@@ -15,7 +15,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand SkipCommand { get; }
         public ICommand UpdateCommand { get; }
 
-        private bool isSkipButtonEnabled;
+        private bool isSkipButtonEnabled = true;
 
         public bool IsSkipButtonEnabled
         {
