@@ -74,7 +74,7 @@ namespace SnaptrudeManagerUI.ViewModels
             else
                 SkipCommand = new NavigateCommand(skipLoginNavigationService);
             UpdateCommand = new NavigateCommand(updateNowNavigationService);
-            App.OnCriticalUpdateAvailable += HideSkipButton;
+            App.OnCriticalUpdateAvailable += HandleCriticalUpdateAvailable;
         }
 
         private void HandleCriticalUpdateAvailable()
@@ -85,12 +85,12 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void HideSkipButton()
         {
-            throw new NotImplementedException();
+            IsSkipButtonEnabled = false;
         }
 
         private void SetCriticalUpdateMessage()
         {
-            Message = $"A critical update has been identified, please update to{UpdateVersion}.";
+            Message = $"A critical update has been released, please update to{UpdateVersion}";
         }
     }
 }

@@ -46,9 +46,9 @@
             <Button
                 Width="120"
                 HorizontalAlignment="Center"
-                d:IsEnabled="false"
                 Command="{Binding SkipCommand}"
                 Content="Skip for later"
+                Visibility="{Binding IsSkipButtonEnabled, Converter={StaticResource BoolToVisibility}}"
                 Style="{DynamicResource Button_Tertiary}" />
         </StackPanel>
     </DockPanel>

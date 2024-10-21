@@ -538,8 +538,9 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
-                            <Setter TargetName="border" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="border" Property="Background" Value="#10FFFFFF" />
+                            <Setter TargetName="border" Property="BorderThickness" Value="0" />
+
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter TargetName="border" Property="Background" Value="#AA5B5953" />
@@ -637,12 +638,12 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Blue/300}" />
-                            <Setter TargetName="border" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/200}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                            <Setter TargetName="border" Property="BorderThickness" Value="1" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/100}" />
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Colors/Neutral/100}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
