@@ -69,6 +69,7 @@ namespace SnaptrudeManagerUI
 
         public static Updater Updater;
         public static Process RevitProcess;
+        public static string RevitProcessFilePath;
 
         public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
 
@@ -116,6 +117,7 @@ namespace SnaptrudeManagerUI
             if (revitProcessId != 0)
             {
                 RevitProcess = Process.GetProcessById(revitProcessId);
+                RevitProcessFilePath = RevitProcess.MainModule.FileName;
                 RevitProcess.EnableRaisingEvents = true;
                 RevitProcess.Exited += RevitProcess_Exited;
             }
@@ -213,6 +215,7 @@ namespace SnaptrudeManagerUI
                 RevitProcess.Exited -= RevitProcess_Exited;
             }
             RevitProcess = Process.GetProcessById(revitProcessId);
+            RevitProcessFilePath = RevitProcess.MainModule.FileName;
             RevitProcess.EnableRaisingEvents = true;
             RevitProcess.Exited += RevitProcess_Exited;
         }

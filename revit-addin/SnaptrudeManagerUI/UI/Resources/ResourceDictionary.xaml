@@ -646,7 +646,8 @@
                             <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/100}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Colors/Neutral/300}" />
+                            <Setter TargetName="border" Property="Background" Value="#10FFFFFF" />
+                            <Setter Property="Foreground" Value="#444444" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

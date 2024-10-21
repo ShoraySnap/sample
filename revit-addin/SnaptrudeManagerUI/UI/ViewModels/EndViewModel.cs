@@ -22,11 +22,34 @@ namespace SnaptrudeManagerUI.ViewModels
             CloseAndUpdate
         }
 
-        public string Message { get; }
-        public string ButtonMessage { get; }
-        public bool ButtonVisible { get; }
+        private string message;
+        public string Message 
+        {
+            get { return message; }
+            set
+            {
+                message = value;
+                OnPropertyChanged(nameof(Message));
+            }
+        }
+        public string ButtonMessage { get; set; }
+        public bool ButtonVisible { get; set; }
+
+        private bool revitInstancesRunning;
+
+        private bool buttonEnabled;
+        public bool ButtonEnabled 
+        { 
+            get { return buttonEnabled; }
+            set
+            {
+                buttonEnabled = value;
+                OnPropertyChanged(nameof(ButtonEnabled));
+            }
+        }
+
         public bool WhiteBackground => MainWindowViewModel.Instance.WhiteBackground;
-        public ICommand LaunchCommand { get; }
+        public ICommand LaunchCommand { get; set; }
         public EndViewModel(EndViewType finalViewType)
         {
             MainWindowViewModel.Instance.TopMost = true;
@@ -49,13 +72,30 @@ namespace SnaptrudeManagerUI.ViewModels
                     break;
                 case EndViewType.CloseAndUpdate:
                     MainWindowViewModel.Instance.WhiteBackground = false;
-                    ButtonMessage = "Install Update";
-                    Message = "Setup download completed!";
                     LaunchCommand = new RelayCommand((o) => StartUpdate());
                     ButtonVisible = true;
+                    CheckForRevitInstances();
                     break;
                 default:
                     break;
+            }
+        }
+
+        private async void CheckForRevitInstances()
+        {
+            if (IsRevitRunning())
+            {
+                ButtonEnabled = false;
+                revitInstancesRunning = true;
+                ButtonMessage = "Install Update";
+                Message = "Setup download completed!\nPlease close all Revit windows to continue.";
+                await MonitorRevitClosedAsync();
+            }
+            else
+            {
+                ButtonEnabled = true;
+                ButtonMessage = "Install Update";
+                Message = "Setup download completed!";
             }
         }
 
@@ -65,10 +105,30 @@ namespace SnaptrudeManagerUI.ViewModels
             App.Current.Shutdown();
         }
 
+        private bool IsRevitRunning()
+        {
+            return Process.GetProcessesByName("Revit").Any();
+        }
+
+        private async Task MonitorRevitClosedAsync()
+        {
+            while (revitInstancesRunning)
+            {
+                if (!IsRevitRunning())
+                {
+                    revitInstancesRunning = false;
+                    ButtonEnabled = true;
+                    ButtonMessage = "Install Update";
+                    Message = "Setup download completed!";
+                }
+                await Task.Delay(500);
+            }
+        }
+
         private void OpenUpdateInstaller()
         {
             string installerPath = App.Updater.DownloadedFilePath;
-            string revitExecutablePath = App.RevitProcess == null ? "" : App.RevitProcess.MainModule.FileName;
+            string revitExecutablePath = App.RevitProcess == null ? "" : App.RevitProcessFilePath;
             string arguments = $"/SILENT /ExecutablePath=\"{revitExecutablePath}\"";
             Process process = new Process();
             process.StartInfo.FileName = installerPath;
