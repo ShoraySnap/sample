@@ -39,8 +39,11 @@ namespace SnaptrudeManagerUI.API
         {
             try
             {
-                var response = await httpClient.GetAsync("http://www.google.com");
-                return response.IsSuccessStatusCode;
+                using (var ping = new Ping())
+                {
+                    var reply = await ping.SendPingAsync("8.8.8.8", 2000);
+                    return reply.Status == IPStatus.Success;
+                }
             }
             catch
             {
