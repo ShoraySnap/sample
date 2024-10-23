@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2022
+
+SHELL ["powershell", "-Command"]
+
+RUN Invoke-WebRequest -Uri https://files.jrsoftware.org/is/6/innosetup-6.2.1.exe -OutFile innosetup.exe; \
+    Start-Process -FilePath innosetup.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait; \
+    Remove-Item -Force innosetup.exe
+
+RUN [System.Environment]::SetEnvironmentVariable('Path', $Env:Path + ';C:\Program Files (x86)\Inno Setup 6', [System.EnvironmentVariableTarget]::Machine)
+
+
+WORKDIR /
+
+COPY build-installer ./build-installer
+COPY revit-addin ./revit-addin
+
+CMD ["powershell.exe", "-File", "./build-installer/autoBuild.ps1"]
