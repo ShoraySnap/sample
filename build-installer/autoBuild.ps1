@@ -35,13 +35,13 @@ function Restore-And-Build-Project {
     return $true
 }
 
-function Run-InnoSetup {
+function RunInnoSetup {
     param (
 	    [string]$name,
         [string]$script = "..\build-installer\snaptrude-manager.iss",
         [string]$version, 
 	    [string]$urlPath,
-        [string]$outputDir = ".\out\$version"
+        [string]$outputDir = "..\build-installer\out\$version"
     )
     $includeDownloadSection = "true";
     $outputBaseFileName = "snaptrude-manager-setup-" + $version;
@@ -70,11 +70,48 @@ function Run-InnoSetup {
         exit 1
     }
 }
+function SignFile {
+    param (
+        [string]$filePath,
+        [string]$certPath,
+        [string]$certPwd
+    )
+
+    $fileName = Split-Path $filePath -Leaf
+
+    Write-Host "Signing $fileName... " -NoNewline
+    $output = & {
+        signtool.exe sign /f "$certPath" /fd SHA256 /p "$certPwd" /t http://timestamp.digicert.com "$filePath" 2>&1
+    }
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Done" -ForegroundColor Green
+    } else {
+        Write-Host " - Error" -ForegroundColor Red
+        Write-Host $output
+        exit 1
+    }
+}
+
+function DecodeAndSaveCert {
+    param (
+        [string]$base64Cert,
+        [string]$outputPath
+    )
+
+    # Decode the base64 string and save as a PFX file
+    $bytes = [Convert]::FromBase64String($base64Cert)
+    [System.IO.File]::WriteAllBytes($outputPath, $bytes)
+}
 
 $branch = "dev"
 $date = Get-Date -format "yyyyMMdd"
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+$base64Cert = $env:CERT_BASE64
+$certPwd = $env:CERT_PASSWORD
+$certPath = "C:\snaptrude_inc.pfx"
+DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
 
 if ($branch -eq "master") {
     $uiBuildConfig = "Release"
@@ -111,17 +148,29 @@ foreach ($config in $configurations) {
     }
 }
 
+foreach ($projectName in $uiProjects.Keys) {
+    Get-ChildItem -Path $uiRelativePath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
+    	SignFile -filePath $_.FullName -certPath $certPath -certPwd $certPwd
+    }
+}
+foreach ($config in $configurations) {
+    SignFile -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -certPwd $certPwd
+}
+
 $stagingUrlPath = "..\build-installer\misc\urlsstaging.json"
 
 $version = $version_number
 
-$stagingInstallerPath = Run-InnoSetup -name "Staging" `
+$stagingInstallerPath = RunInnoSetup -name "Staging" `
                 -version $version `
                 -urlPath $stagingUrlPath `
                 -includeDownloadSection "true"
                 
-$updateInstallerPath = Run-InnoSetup -name "Update" `
+$updateInstallerPath = RunInnoSetup -name "Update" `
                 -version $version `
                 -urlPath $stagingUrlPath `
                 -includeDownloadSection "false"
 
+
+SignFile -filePath $stagingInstallerPath -certPath $certPath -certPwd $certPwd
+SignFile -filePath $updateInstallerPath -certPath $certPath -certPwd $certPwd
