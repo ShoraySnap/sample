@@ -22,6 +22,15 @@ namespace TrudeSerializer
             isDirectImport = false;
             customActiveView = null;
         }
+        public static View ViewForForgeDirectImport(View view)
+        {
+#if DIRECT_IMPORT
+             return GlobalVariables.customActiveView;
+#else
+
+            return view; 
+#endif
+        }
     }
 
     public static class GlobalConstants
@@ -35,4 +44,6 @@ namespace TrudeSerializer
         public static double CM_TO_SNAP = 25.4;
         public static double MM_TO_SNAP = 254;
     }
+
+    
 }

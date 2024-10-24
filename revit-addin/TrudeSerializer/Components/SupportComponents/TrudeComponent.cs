@@ -92,9 +92,7 @@ namespace TrudeSerializer.Components
         {
             Document doc = GlobalVariables.Document;
             View view = doc.ActiveView;
-            #if DIRECT_IMPORT
-              view = GlobalVariables.customActiveView;
-            #endif
+            view = GlobalVariables.ViewForForgeDirectImport(view);
 
             BoundingBoxXYZ bbox = element.get_BoundingBox(view);
             if (bbox == null)

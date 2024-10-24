@@ -108,11 +108,8 @@ namespace TrudeSerializer.Components
 
             if (view == null)
             {
-                #if DIRECT_IMPORT
-                                view = GlobalVariables.customActiveView;
-                #else
-                                view = doc.ActiveView;
-                #endif
+                view = doc.ActiveView;
+                view = GlobalVariables.ViewForForgeDirectImport(view);
             }
 
             Options options = new Options
