@@ -1,4 +1,4 @@
-function Restore-And-Build-Project {
+﻿function Restore-And-Build-Project {
     param (
         [string]$projectName,
         [string]$projectPath,
@@ -70,6 +70,34 @@ function RunInnoSetup {
         exit 1
     }
 }
+
+function GenerateAppcast {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$AppPath,
+
+        [Parameter(Mandatory=$true)]
+        [string]$OutputFolder,
+
+        [Parameter(Mandatory=$true)]
+        [string]$AppcastFolderUrl
+    )
+
+    Write-Host "Generating appcast... " -NoNewline
+
+    netsparkle-generate-appcast `
+        -a $OutputFolder `
+        -b $AppPath `
+        --description-tag "Addin for Revit/Snaptrude interoperability" `
+        --human-readable true `
+        --key-path $OutputFolder `
+        -n "Snaptrude Manager" `
+        -u $AppcastFolderUrl `
+        *> $null 2>&1
+
+    Write-Host "Done" -ForegroundColor Green
+}
+
 function SignFile {
     param (
         [string]$filePath,
@@ -104,6 +132,16 @@ function DecodeAndSaveCert {
     [System.IO.File]::WriteAllBytes($outputPath, $bytes)
 }
 
+function SaveNetSparkleKeys {
+    param (
+        [string]$outputPath,
+        [string]$privKey,
+        [string]$pubKey
+    )
+    [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.priv", $privKey)
+    [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.pub", $pubKey)
+}
+
 $branch = "dev"
 $date = Get-Date -format "yyyyMMdd"
 $dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
@@ -111,10 +149,12 @@ $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
 $certPath = "C:\snaptrude_inc.pfx"
+$publishFolder = "..\build-installer\publish"
 DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
 $bucketName = $env:AWS_S3_BUCKET_NAME
 $awsRegion = $env:AWS_REGION
 aws configure set region $awsRegion
+SaveNetSparkleKeys -outputPath $publishFolder -privKey $env:NETSPARJKE_PRIV_KEY -pubKey $env:NETSPARJKE_PUB_KEY
 
 if ($branch -eq "master") {
     $uiBuildConfig = "Release"
@@ -178,5 +218,14 @@ $updateInstallerPath = RunInnoSetup -name "Update" `
 SignFile -filePath $stagingInstallerPath -certPath $certPath -certPwd $certPwd
 SignFile -filePath $updateInstallerPath -certPath $certPath -certPwd $certPwd
 
-aws s3 cp $stagingInstallerPath s3://$bucketName/4.1.0/
-aws s3 cp $updateInstallerPath s3://$bucketName/4.1.0/
+$updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
+$AppcastFolderUrl = "https://$bucketName.s3.$awsRegion.amazonaws.com/$version_number"
+GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder -AppcastFolderUrl $AppcastFolderUrl
+
+aws s3 cp $stagingInstallerPath s3://$bucketName/$version_number/
+aws s3 cp $updateInstallerPath s3://$bucketName/$version_number/
+
+$appcastOutputPath = "..\build-installer\publish\appcast.xml"
+aws s3 cp $appcastOutputPath s3://$bucketName/
+$appcastSignatureOutputPath = "..\build-installer\publish\appcast.xml.signature"
+aws s3 cp $appcastSignatureOutputPath s3://$bucketName/
