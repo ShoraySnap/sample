@@ -1,4 +1,4 @@
-﻿#if !DIRECT_IMPORT
+#if !DIRECT_IMPORT
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;

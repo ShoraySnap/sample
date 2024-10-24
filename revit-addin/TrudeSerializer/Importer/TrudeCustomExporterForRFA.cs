@@ -68,8 +68,7 @@ namespace TrudeSerializer
 
         bool IExportContext.IsCanceled()
         {
-#if !DIRECT_IMPORT
-
+            #if !DIRECT_IMPORT
             return ExportToSnaptrudeEEH.IsImportAborted();
             #else
             return false;

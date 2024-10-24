@@ -215,7 +215,7 @@ namespace TrudeSerializer
 
                     ComponentHandler.Instance.AddComponent(serializedSnaptrudeData, component, element);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     System.Console.WriteLine(e);
                     return RenderNodeAction.Skip;

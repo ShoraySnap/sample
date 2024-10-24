@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TrudeCommon.Utils;
 using TrudeSerializer.Importer;
-//using SnaptrudeManagerAddin;
+using SnaptrudeManagerAddin;
 using TrudeSerializer.Debug;
 using Newtonsoft.Json;
 
