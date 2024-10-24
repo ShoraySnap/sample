@@ -8,9 +8,9 @@ RUN Invoke-WebRequest -Uri https://files.jrsoftware.org/is/6/innosetup-6.2.1.exe
 
 RUN [System.Environment]::SetEnvironmentVariable('Path', $Env:Path + ';C:\Program Files (x86)\Inno Setup 6', [System.EnvironmentVariableTarget]::Machine)
 
-RUN dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator
+RUN dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator --version 2.8.2
 
-RUN Invoke-WebRequest -Uri https://awscli.amazonaws.com/AWSCLIV2.msi -OutFile AWSCLIV2.msi; \
+RUN Invoke-WebRequest -Uri https://awscli.amazonaws.com/AWSCLIV2-2.18.13.msi -OutFile AWSCLIV2.msi; \
     Start-Process msiexec.exe -ArgumentList '/i', 'AWSCLIV2.msi', '/quiet', '/norestart' -Wait; \
     Remove-Item -Force AWSCLIV2.msi
 
