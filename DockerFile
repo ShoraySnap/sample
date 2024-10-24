@@ -8,6 +8,9 @@ RUN Invoke-WebRequest -Uri https://files.jrsoftware.org/is/6/innosetup-6.2.1.exe
 
 RUN [System.Environment]::SetEnvironmentVariable('Path', $Env:Path + ';C:\Program Files (x86)\Inno Setup 6', [System.EnvironmentVariableTarget]::Machine)
 
+RUN Invoke-WebRequest -Uri https://awscli.amazonaws.com/AWSCLIV2.msi -OutFile AWSCLIV2.msi; \
+    Start-Process msiexec.exe -ArgumentList '/i', 'AWSCLIV2.msi', '/quiet', '/norestart' -Wait; \
+    Remove-Item -Force AWSCLIV2.msi
 
 WORKDIR /
 

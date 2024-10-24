@@ -112,6 +112,9 @@ $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
 $certPath = "C:\snaptrude_inc.pfx"
 DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
+$bucketName = $env:AWS_S3_BUCKET_NAME
+$awsRegion = $env:AWS_REGION
+aws configure set region $awsRegion
 
 if ($branch -eq "master") {
     $uiBuildConfig = "Release"
@@ -174,3 +177,6 @@ $updateInstallerPath = RunInnoSetup -name "Update" `
 
 SignFile -filePath $stagingInstallerPath -certPath $certPath -certPwd $certPwd
 SignFile -filePath $updateInstallerPath -certPath $certPath -certPwd $certPwd
+
+aws s3 cp $stagingInstallerPath s3://$bucketName/4.1.0/
+aws s3 cp $updateInstallerPath s3://$bucketName/4.1.0/
