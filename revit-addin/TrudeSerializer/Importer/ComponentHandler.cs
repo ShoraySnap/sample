@@ -75,8 +75,7 @@ namespace TrudeSerializer.Importer
         */
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
-            if (true)
-            { TrudeLogger.Instance.CountInput(element); }
+            TrudeLogger.Instance.CountInput(element);
 
             if (TrudeWall.IsValidWall(element))
             {
@@ -197,8 +196,7 @@ namespace TrudeSerializer.Importer
             }
 
             OnCountOutput?.Invoke(component, element);
-            if (true)
-            { TrudeLogger.Instance.CountOutput(component, element); }
+            TrudeLogger.Instance.CountOutput(component, element);
         }
 
         /*!
