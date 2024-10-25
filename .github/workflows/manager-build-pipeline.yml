@@ -13,15 +13,19 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # - name: Build Docker Image
+      #   run: |
+      #     docker build -t snaptrudemanageraddin:latest .
+
       - name: Run Commands in Container
         run: |
           docker run --rm `
-            -e CERT_BASE64="${{ env.CERT_BASE64 }} `
-            -e CERT_PASSWORD="${{ env.CERT_PASSWORD }} `
-            -e AWS_ACCESS_KEY_ID="${{ env.AWS_ACCESS_KEY_ID }}" `
-            -e AWS_SECRET_ACCESS_KEY="${{ env.AWS_SECRET_ACCESS_KEY }}" `
-            -e AWS_REGION="${{ env.AWS_REGION }}" `
-            -e AWS_S3_BUCKET_NAME="${{ env.AWS_S3_BUCKET_NAME }}" `
-            -e NETSPARJKE_PUB_KEY="${{ env.NETSPARJKE_PUB_KEY }}" `
-            -e NETSPARJKE_PRIV_KEY="${{ env.NETSPARJKE_PRIV_KEY }}" `
-            fernandinsta/snaptrudemanageraddin-base-image:1.0.8
+            -e CERT_BASE64="${{ secrets.CERT_BASE64 }}" `
+            -e CERT_PASSWORD="${{ secrets.CERT_PASSWORD }}" `
+            -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" `
+            -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" `
+            -e AWS_REGION="${{ secrets.AWS_REGION }}" `
+            -e AWS_S3_BUCKET_NAME="${{ secrets.AWS_S3_BUCKET_NAME }}" `
+            -e NETSPARJKE_PUB_KEY="${{ secrets.NETSPARJKE_PUB_KEY }}" `
+            -e NETSPARJKE_PRIV_KEY="${{ secrets.NETSPARJKE_PRIV_KEY }}" `
+            snaptrudemanageraddin:latest
