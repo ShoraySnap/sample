@@ -28,4 +28,4 @@ jobs:
             -e AWS_S3_BUCKET_NAME="${{ secrets.AWS_S3_BUCKET_NAME }}" `
             -e NETSPARJKE_PUB_KEY="${{ secrets.NETSPARJKE_PUB_KEY }}" `
             -e NETSPARJKE_PRIV_KEY="${{ secrets.NETSPARJKE_PRIV_KEY }}" `
-            snaptrudemanageraddin:latest
+            fernandinsta/snaptrudemanageraddin-base-image:1.0.8
