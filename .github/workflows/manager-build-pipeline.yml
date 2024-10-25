@@ -16,8 +16,8 @@ jobs:
       - name: Run Commands in Container
         run: |
           docker run --rm `
-            -v "${{ github.workspace }}/build-installer:/build-installer" `
-            -v "${{ github.workspace }}/revit-addin:/revit-addin" `
+            -v "./build-installer:/build-installer" `
+            -v "./revit-addin:/revit-addin" `
             -e CERT_BASE64="${{ env.CERT_BASE64 }} `
             -e CERT_PASSWORD="${{ env.CERT_PASSWORD }} `
             -e AWS_ACCESS_KEY_ID="${{ env.AWS_ACCESS_KEY_ID }}" `
