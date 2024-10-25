@@ -15,15 +15,15 @@ jobs:
 
       - name: Run Commands in Container
         run: |
-          docker run --rm \
-            -v `${{ github.workspace }}/build-installer:/build-installer` \
-            -v `${{ github.workspace }}/revit-addin:/revit-addin` \
-            -e CERT_BASE64=`${{ env.CERT_BASE64 }} \
-            -e CERT_PASSWORD=`${{ env.CERT_PASSWORD }} \
-            -e AWS_ACCESS_KEY_ID=`${{ env.AWS_ACCESS_KEY_ID }}` \
-            -e AWS_SECRET_ACCESS_KEY=`${{ env.AWS_SECRET_ACCESS_KEY }}` \
-            -e AWS_REGION=`${{ env.AWS_REGION }}` \
-            -e AWS_S3_BUCKET_NAME=`${{ env.AWS_S3_BUCKET_NAME }}` \
-            -e NETSPARJKE_PUB_KEY=`${{ env.NETSPARJKE_PUB_KEY }}` \
-            -e NETSPARJKE_PRIV_KEY=`${{ env.NETSPARJKE_PRIV_KEY }}` \
+          docker run --rm `
+            -v "${{ github.workspace }}/build-installer:/build-installer" `
+            -v "${{ github.workspace }}/revit-addin:/revit-addin" `
+            -e CERT_BASE64="${{ env.CERT_BASE64 }} `
+            -e CERT_PASSWORD="${{ env.CERT_PASSWORD }} `
+            -e AWS_ACCESS_KEY_ID="${{ env.AWS_ACCESS_KEY_ID }}" `
+            -e AWS_SECRET_ACCESS_KEY="${{ env.AWS_SECRET_ACCESS_KEY }}" `
+            -e AWS_REGION="${{ env.AWS_REGION }}" `
+            -e AWS_S3_BUCKET_NAME="${{ env.AWS_S3_BUCKET_NAME }}" `
+            -e NETSPARJKE_PUB_KEY="${{ env.NETSPARJKE_PUB_KEY }}" `
+            -e NETSPARJKE_PRIV_KEY="${{ env.NETSPARJKE_PRIV_KEY }}" `
             fernandinsta/snaptrudemanageraddin-base-image:1.0.7
