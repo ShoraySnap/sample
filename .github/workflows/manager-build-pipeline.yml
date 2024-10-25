@@ -16,8 +16,6 @@ jobs:
       - name: Run Commands in Container
         run: |
           docker run --rm `
-            -v "./build-installer:/build-installer" `
-            -v "./revit-addin:/revit-addin" `
             -e CERT_BASE64="${{ env.CERT_BASE64 }} `
             -e CERT_PASSWORD="${{ env.CERT_PASSWORD }} `
             -e AWS_ACCESS_KEY_ID="${{ env.AWS_ACCESS_KEY_ID }}" `
@@ -26,4 +24,4 @@ jobs:
             -e AWS_S3_BUCKET_NAME="${{ env.AWS_S3_BUCKET_NAME }}" `
             -e NETSPARJKE_PUB_KEY="${{ env.NETSPARJKE_PUB_KEY }}" `
             -e NETSPARJKE_PRIV_KEY="${{ env.NETSPARJKE_PRIV_KEY }}" `
-            fernandinsta/snaptrudemanageraddin-base-image:1.0.7
+            fernandinsta/snaptrudemanageraddin-base-image:1.0.8
