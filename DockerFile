@@ -14,9 +14,9 @@ RUN Invoke-WebRequest -Uri https://awscli.amazonaws.com/AWSCLIV2-2.18.13.msi -Ou
     Start-Process msiexec.exe -ArgumentList '/i', 'AWSCLIV2.msi', '/quiet', '/norestart' -Wait; \
     Remove-Item -Force AWSCLIV2.msi
 
-WORKDIR /app
+WORKDIR /
 
-# Copy the build-installer directory into the container
-COPY build-installer /app/build-installer
+COPY build-installer ./build-installer
+COPY revit-addin ./revit-addin
 
-CMD ["powershell.exe", "-File", "/app/build-installer/autoBuild.ps1"]
+CMD ["powershell.exe", "-File", "./build-installer/autoBuild.ps1"]

@@ -20,6 +20,7 @@ jobs:
       - name: Run Commands in Container
         run: |
           docker run --rm `
+            -v ${PWD}:/ `
             -e CERT_BASE64="${{ secrets.CERT_BASE64 }}" `
             -e CERT_PASSWORD="${{ secrets.CERT_PASSWORD }}" `
             -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" `
