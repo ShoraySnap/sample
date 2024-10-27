@@ -61,7 +61,7 @@ function RunInnoSetup {
     $outputFilePath = Join-Path $outputDir ($outputBaseFileName + ".exe")
 
     Write-Host "Creating $name installer... " -NoNewline
-    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiRelativePath /DOutDir=$outputDir /DBuildName=$name -quiet
+    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" $script /DMyAppVersion=$version /DUrlPath=$urlPath /DIncludeDownloadSection=$includeDownloadSection /DOutputBaseFileName=$outputBaseFileName /DUIBuildPath=$uiBuildPath /DOutDir=$outputDir /DBuildName=$name -quiet
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Done" -ForegroundColor Green
         return $outputFilePath
@@ -144,7 +144,7 @@ function SaveNetSparkleKeys {
 
 $branch = "dev"
 $date = Get-Date -format "yyyyMMdd"
-$dllRelativePath = "C:\workspace\revit-addin\SnaptrudeManagerAddin\bin\Debug"
+$dllPath = "C:\workspace\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
@@ -162,7 +162,7 @@ if ($branch -eq "master") {
 else {
     $uiBuildConfig = "Debug"
 }
-$uiRelativePath = "C:\workspace\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
+$uiBuildPath = "C:\workspace\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
 
 
 $uiProjects = @{
@@ -170,12 +170,12 @@ $uiProjects = @{
 }
 
 foreach ($projectName in $uiProjects.Keys) {
-    $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${uiProjects}[$projectName]
+    $projectPath = ${uiProjects}[$projectName]
     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $uiBuildConfig)) {
         return
     }
 }
-$version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
+$version_number = (Get-Item "$uiBuildPath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 
 $addinProjects = @{
     "SnaptrudeManagerAddin" = "C:\workspace\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
@@ -185,19 +185,19 @@ $configurations = @("2019","2020","2021","2022","2023","2024","2025")
 
 foreach ($config in $configurations) {
     $projectName = "SnaptrudeManagerAddin"
-    $projectPath = Join-Path -Path $currentScriptPath -ChildPath ${addinProjects}[$projectName]
+    $projectPath = ${addinProjects}[$projectName]
     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $config)) {
         return
     }
 }
 
 foreach ($projectName in $uiProjects.Keys) {
-    Get-ChildItem -Path $uiRelativePath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
+    Get-ChildItem -Path $uiBuildPath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
     	SignFile -filePath $_.FullName -certPath $certPath -certPwd $certPwd
     }
 }
 foreach ($config in $configurations) {
-    SignFile -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -certPwd $certPwd
+    SignFile -filePath "$dllPath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -certPwd $certPwd
 }
 
 $stagingUrlPath = "C:\workspace\build-installer\misc\urlsstaging.json"
