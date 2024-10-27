@@ -38,10 +38,10 @@
 function RunInnoSetup {
     param (
 	    [string]$name,
-        [string]$script = "..\build-installer\snaptrude-manager.iss",
+        [string]$script = "C:\workspace\build-installer\snaptrude-manager.iss",
         [string]$version, 
 	    [string]$urlPath,
-        [string]$outputDir = "..\build-installer\out\$version"
+        [string]$outputDir = "C:\workspace\build-installer\out\$version"
     )
     $includeDownloadSection = "true";
     $outputBaseFileName = "snaptrude-manager-setup-" + $version;
@@ -144,12 +144,12 @@ function SaveNetSparkleKeys {
 
 $branch = "dev"
 $date = Get-Date -format "yyyyMMdd"
-$dllRelativePath = "..\revit-addin\SnaptrudeManagerAddin\bin\Debug"
+$dllRelativePath = "C:\workspace\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
 $certPath = "C:\snaptrude_inc.pfx"
-$publishFolder = "..\build-installer\publish"
+$publishFolder = "C:\workspace\build-installer\publish"
 DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
 $bucketName = $env:AWS_S3_BUCKET_NAME
 $awsRegion = $env:AWS_REGION
@@ -162,11 +162,11 @@ if ($branch -eq "master") {
 else {
     $uiBuildConfig = "Debug"
 }
-$uiRelativePath = "..\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
+$uiRelativePath = "C:\workspace\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
 
 
 $uiProjects = @{
-    "SnaptrudeManagerUI" = "..\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
+    "SnaptrudeManagerUI" = "C:\workspace\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
 }
 
 foreach ($projectName in $uiProjects.Keys) {
@@ -178,7 +178,7 @@ foreach ($projectName in $uiProjects.Keys) {
 $version_number = (Get-Item "$uiRelativePath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 
 $addinProjects = @{
-    "SnaptrudeManagerAddin" = "..\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
+    "SnaptrudeManagerAddin" = "C:\workspace\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
 }
 
 $configurations = @("2019","2020","2021","2022","2023","2024","2025")
@@ -200,7 +200,7 @@ foreach ($config in $configurations) {
     SignFile -filePath "$dllRelativePath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -certPwd $certPwd
 }
 
-$stagingUrlPath = "..\build-installer\misc\urlsstaging.json"
+$stagingUrlPath = "C:\workspace\build-installer\misc\urlsstaging.json"
 
 $version = $version_number
 
@@ -225,7 +225,7 @@ GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder
 aws s3 cp $stagingInstallerPath s3://$bucketName/$version_number/
 aws s3 cp $updateInstallerPath s3://$bucketName/$version_number/
 
-$appcastOutputPath = "..\build-installer\publish\appcast.xml"
+$appcastOutputPath = "C:\workspace\build-installer\publish\appcast.xml"
 aws s3 cp $appcastOutputPath s3://$bucketName/
-$appcastSignatureOutputPath = "..\build-installer\publish\appcast.xml.signature"
+$appcastSignatureOutputPath = "C:\workspace\build-installer\publish\appcast.xml.signature"
 aws s3 cp $appcastSignatureOutputPath s3://$bucketName/
