@@ -138,6 +138,9 @@ function SaveNetSparkleKeys {
         [string]$privKey,
         [string]$pubKey
     )
+    if (!(Test-Path -Path $outputPath)) {
+        New-Item -ItemType Directory -Path $outputPath -Force
+    }
     [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.priv", $privKey)
     [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.pub", $pubKey)
 }
