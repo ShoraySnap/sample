@@ -1,4 +1,4 @@
-function Restore-And-Build-Project {
+﻿function Restore-And-Build-Project {
     param (
         [string]$projectName,
         [string]$projectPath,
@@ -138,9 +138,6 @@ function SaveNetSparkleKeys {
         [string]$privKey,
         [string]$pubKey
     )
-    if (!(Test-Path -Path $outputPath)) {
-        New-Item -ItemType Directory -Path $outputPath -Force
-    }
     [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.priv", $privKey)
     [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.pub", $pubKey)
 }
@@ -153,6 +150,7 @@ $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
 $certPath = "C:\snaptrude_inc.pfx"
 Write-Host "Password ${certPwd}"
+$publishFolder = "C:\"
 DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
 $bucketName = $env:AWS_S3_BUCKET_NAME
 $awsRegion = $env:AWS_REGION
@@ -228,7 +226,7 @@ GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder
 aws s3 cp $stagingInstallerPath s3://$bucketName/$version_number/
 aws s3 cp $updateInstallerPath s3://$bucketName/$version_number/
 
-$appcastOutputPath = "C:\workspace\build-installer\publish\appcast.xml"
+$appcastOutputPath = "{$publishFolder}\appcast.xml"
 aws s3 cp $appcastOutputPath s3://$bucketName/
-$appcastSignatureOutputPath = "C:\workspace\build-installer\publish\appcast.xml.signature"
+$appcastSignatureOutputPath = "{$publishFolder}\appcast.xml.signature"
 aws s3 cp $appcastSignatureOutputPath s3://$bucketName/
