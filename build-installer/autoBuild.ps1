@@ -226,7 +226,7 @@ GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder
 aws s3 cp $stagingInstallerPath s3://$bucketName/$version_number/
 aws s3 cp $updateInstallerPath s3://$bucketName/$version_number/
 
-$appcastOutputPath = "{$publishFolder}\appcast.xml"
+$appcastOutputPath = "$publishFolder\appcast.xml"
 aws s3 cp $appcastOutputPath s3://$bucketName/
-$appcastSignatureOutputPath = "{$publishFolder}\appcast.xml.signature"
+$appcastSignatureOutputPath = "$publishFolder\appcast.xml.signature"
 aws s3 cp $appcastSignatureOutputPath s3://$bucketName/
