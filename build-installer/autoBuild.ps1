@@ -1,4 +1,4 @@
-﻿function Restore-And-Build-Project {
+function Restore-And-Build-Project {
     param (
         [string]$projectName,
         [string]$projectPath,
@@ -152,7 +152,7 @@ $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
 $certPath = "C:\snaptrude_inc.pfx"
-$publishFolder = "C:\workspace\build-installer\publish"
+Write-Host "Password ${certPwd}"
 DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
 $bucketName = $env:AWS_S3_BUCKET_NAME
 $awsRegion = $env:AWS_REGION
