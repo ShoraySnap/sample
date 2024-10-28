@@ -3,7 +3,7 @@ name: SnaptrudeManagerAddin Pipeline
 on:
   push:
     branches:
-      - vars-test
+      - feature-addin-automated-deploy
 
 jobs:
   build-and-deploy:
