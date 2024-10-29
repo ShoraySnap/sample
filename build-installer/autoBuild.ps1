@@ -1,4 +1,4 @@
-function Restore-And-Build-Project {
+﻿function Restore-And-Build-Project {
     param (
         [string]$projectName,
         [string]$projectPath,
@@ -146,7 +146,7 @@ function SaveNetSparkleKeys {
     [System.IO.File]::WriteAllText("$outputPath\NetSparkle_Ed25519.pub", $pubKey)
 }
 
-$branch = "dev"
+$branch = $env:GITHUB_BRANCH
 $date = Get-Date -format "yyyyMMdd"
 $dllPath = "C:\workspace\revit-addin\SnaptrudeManagerAddin\bin\Debug"
 $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
@@ -206,31 +206,49 @@ foreach ($config in $configurations) {
 }
 
 $stagingUrlPath = "C:\workspace\build-installer\misc\urlsstaging.json"
+$prodUrlPath = "C:\workspace\build-installer\misc\urls.json"
 
 $version = $version_number
 
-$stagingInstallerPath = RunInnoSetup -name "Staging" `
+if ($branch -eq "master") 
+{
+    $branchFolder = "Prod"
+    $defaultInstallerPath = RunInnoSetup -name "Prod" `
+                -version $version `
+                -urlPath $prodUrlPath `
+                -includeDownloadSection "true"
+                
+    $updateInstallerPath = RunInnoSetup -name "Update" `
+                -version $version `
+                -urlPath $prodUrlPath `
+                -includeDownloadSection "false"
+}
+else
+{
+    $branchFolder = "Staging"
+    $defaultInstallerPath = RunInnoSetup -name "Staging" `
                 -version $version `
                 -urlPath $stagingUrlPath `
                 -includeDownloadSection "true"
                 
-$updateInstallerPath = RunInnoSetup -name "Update" `
+    $updateInstallerPath = RunInnoSetup -name "Update" `
                 -version $version `
                 -urlPath $stagingUrlPath `
                 -includeDownloadSection "false"
+}
 
 
-SignFile -filePath $stagingInstallerPath -certPath $certPath -certPwd $certPwd
+SignFile -filePath $defaultInstallerPath -certPath $certPath -certPwd $certPwd
 SignFile -filePath $updateInstallerPath -certPath $certPath -certPwd $certPwd
 
 $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
-$AppcastFolderUrl = "https://$bucketName.s3.$awsRegion.amazonaws.com/$version_number"
+$AppcastFolderUrl = "https://$bucketName.s3.$awsRegion.amazonaws.com/CICD-tests/$branchFolder"
 GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder -AppcastFolderUrl $AppcastFolderUrl
 
-aws s3 cp $stagingInstallerPath s3://$bucketName/$version_number/
-aws s3 cp $updateInstallerPath s3://$bucketName/$version_number/
+aws s3 cp $defaultInstallerPath s3://$bucketName/CICD-tests/$branchFolder/
+aws s3 cp $updateInstallerPath s3://$bucketName/CICD-tests/$branchFolder/
 
 $appcastOutputPath = "$publishFolder\appcast.xml"
-aws s3 cp $appcastOutputPath s3://$bucketName/
+aws s3 cp $appcastOutputPath s3://$bucketName/CICD-tests/$branchFolder/
 $appcastSignatureOutputPath = "$publishFolder\appcast.xml.signature"
-aws s3 cp $appcastSignatureOutputPath s3://$bucketName/
+aws s3 cp $appcastSignatureOutputPath s3://$bucketName/CICD-tests/$branchFolder/

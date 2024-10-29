@@ -21,6 +21,7 @@ jobs:
         run: |
           docker run --rm `
             -v ${PWD}:C:\workspace `
+            -e GITHUB_BRANCH=${{ github.ref_name }} `
             -e CERT_BASE64="${{ vars.CERT_BASE64 }}" `
             -e CERT_PASSWORD="${{ vars.CERT_PASSWORD }}" `
             -e AWS_ACCESS_KEY_ID="${{ vars.AWS_ACCESS_KEY_ID }}" `
