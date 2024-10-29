@@ -1,4 +1,4 @@
-﻿function Restore-And-Build-Project {
+function Restore-And-Build-Project {
     param (
         [string]$projectName,
         [string]$projectPath,
@@ -44,7 +44,7 @@ function RunInnoSetup {
         [string]$outputDir = "C:\workspace\build-installer\out\$version"
     )
     $includeDownloadSection = "true";
-    $outputBaseFileName = "snaptrude-manager-setup-" + $version;
+    $outputBaseFileName = "snaptrude-manager-setup";
     if ($name -eq "Update") {
 	$includeDownloadSection = "false";
         $outputBaseFileName += "-Update"
@@ -53,6 +53,10 @@ function RunInnoSetup {
     elseif ($name -eq "Wework") {
         $outputDir += "\Wework"
         $outputBaseFileName += "-WeWork"
+    }
+    elseif ($name -eq "Staging") {
+        $outputDir += "\Staging"
+        $outputBaseFileName += "-Staging"
     }
     else{
         $outputDir += "\Prod"
