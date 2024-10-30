@@ -29,7 +29,7 @@ Compression=lzma
 CreateAppDir=no
 OutputBaseFilename={#OutputBaseFileName}
 DisableWelcomePage=no
-OutputDir={#BaseOut}
+OutputDir={#OutDir}
 SetupIconFile={#Base}\snaptrude.ico
 SolidCompression=yes
 UninstallDisplayName=Snaptrude Manager
@@ -194,11 +194,34 @@ begin
   end
 end;
 
+function IsSnaptrudeAddinVersionInstalled(Version: string): Boolean;
+var
+  RegKey: string;
+  Value: string;
+  AddinInstallPath: string;
+begin
+  Result := False;
+  AddinInstallPath := ExpandConstant('{commonappdata}') + '\Autodesk\Revit\Addins\' + Version + '\SnaptrudeManagerAddin.addin';
+  if FileExists(AddinInstallPath) then
+  begin
+    Result := True;
+  end
+end;
+
 function InstallVersion (VersionToCheck: String; RFAs: Boolean): Boolean;
 var
   I: Integer;
   install: Boolean;
 begin
+#if BuildName = "Update"
+    begin
+      Result := false;
+      if RFAs then
+        Result := false
+      else if IsSnaptrudeAddinVersionInstalled(VersionToCheck) then
+        Result := true;
+    end;
+#else
   if IncludeDownloadSection then
     begin
       install := false;
@@ -220,6 +243,7 @@ begin
       else
         Result := true
     end
+#endif
 end;
 
 function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
@@ -231,6 +255,14 @@ end;
 
 var
   ShowMessage: Boolean;
+
+function IsExecutablePathProvided(): Boolean;
+var
+  ExecutablePath: String;
+begin
+  ExecutablePath := ExpandConstant('{param:ExecutablePath}');
+  Result := ExecutablePath <> '';
+end;
 
 procedure InitializeWizard;
 var
@@ -609,3 +641,7 @@ Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\DefaultIcon"; ValueType: s
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 Root: HKA; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".myp"; ValueData: ""
 
+#if BuildName = "Update"
+[Run]
+Filename: "{param:ExecutablePath}"; Flags: nowait; Check: IsExecutablePathProvided
+#endif

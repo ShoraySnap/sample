@@ -94,7 +94,8 @@
                     d:Content="Go back"
                     Command="{Binding SecondaryCommand}"
                     Content="{Binding SecondaryButtonText}"
-                    Style="{DynamicResource Button_Secondary}" />
+                    Style="{DynamicResource Button_Secondary}"
+                    Visibility="{Binding ShowSecondaryButton}" />
                 <Button
                     Grid.Column="2"
                     Margin="8,0,0,0"

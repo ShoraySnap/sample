@@ -11,6 +11,12 @@ namespace SnaptrudeManagerUI.ViewModels
 {
     public static class ViewModelCreator
     {
+        public static CheckingUpdateViewModel CreateCheckingUpdateViewModel()
+        {
+            return new CheckingUpdateViewModel(
+                new NavigationService(NavigationStore.Instance, CreateUpdateAvailableViewModel));
+        }
+
         public static SelectFolderViewModel CreateSelectFolderViewModel()
         {
             return new SelectFolderViewModel(
@@ -114,9 +120,9 @@ namespace SnaptrudeManagerUI.ViewModels
                 errorMessage
                 );
         }
-        public static ViewModelBase CreateStartupInternetIssueWarningViewModel(string errorMessage)
+        public static ViewModelBase CreateStartupInternetIssueWarningViewModel()
         {
-            return new WarningViewModel(WarningId.StartupInternetConnectionIssue, null, null, errorMessage);
+            return new WarningViewModel(WarningId.StartupInternetConnectionIssue);
         }
 
         public static ViewModelBase CreateAPIBlockedViewModel(string errorMessage)
@@ -137,7 +143,8 @@ namespace SnaptrudeManagerUI.ViewModels
             return new UpdateAvailableViewModel(
                 false,
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateLoginViewModel));
         }
 
         public static UpdateAvailableViewModel CreateRetryUpdateAvailableViewModel()
@@ -145,12 +152,13 @@ namespace SnaptrudeManagerUI.ViewModels
             return new UpdateAvailableViewModel(
                 true,
                 new NavigationService(NavigationStore.Instance, CreateUpdateProgressViewModel),
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel));
+                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateLoginViewModel));
         }
 
-        public static EndViewModel CreateRevitClosedViewModel()
+        public static EndViewModel CreateDownloadFinishedViewModel()
         {
-            return new EndViewModel(EndViewModel.EndViewType.RevitClosed);
+            return new EndViewModel(EndViewModel.EndViewType.CloseAndUpdate);
         }
 
         public static EndViewModel CreateModelExportedViewModel()
@@ -233,7 +241,7 @@ namespace SnaptrudeManagerUI.ViewModels
         {
             MainWindowViewModel.Instance.ProgressViewModel = new ProgressViewModel(
                 ProgressViewModel.ProgressViewType.Update,
-                new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
+                new NavigationService(NavigationStore.Instance, CreateDownloadFinishedViewModel),
                 new NavigationService(NavigationStore.Instance, CreateRetryUpdateAvailableViewModel),
                 new NavigationService(NavigationStore.Instance, CreateHomeViewModel),
                 false);

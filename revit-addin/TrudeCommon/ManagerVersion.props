@@ -1,7 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
-    <Version>4.0.1</Version>
-    <FileVersion>4.0.1</FileVersion>
-    <AssemblyVersion>4.0.1.0</AssemblyVersion>
+    <Version>4.1.0</Version>
+    <FileVersion>4.1.0</FileVersion>
+    <AssemblyVersion>4.1.0.0</AssemblyVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 </Project>

@@ -24,6 +24,7 @@
     <None Remove="UI\Images\folder-modern-style-3.png" />
     <None Remove="UI\Images\import.png" />
     <None Remove="UI\Images\loader.gif" />
+    <None Remove="UI\Images\loaderWhite.gif" />
     <None Remove="UI\Images\logoutLogo.png" />
     <None Remove="UI\Images\plus-medium.png" />
     <None Remove="UI\Images\thumbnail.png" />
@@ -42,6 +43,7 @@
   <ItemGroup>
 	<PackageReference Include="Fody" Version="6.6.1" PrivateAssets="all" />
     <PackageReference Include="Costura.Fody" Version="5.1.0" />
+    <PackageReference Include="NetSparkleUpdater.SparkleUpdater" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.3.2" />
 	<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
@@ -90,6 +92,7 @@
     <Resource Include="UI\Images\loader.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="UI\Images\loaderWhite.gif" />
     <Resource Include="UI\Images\logoutLogo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

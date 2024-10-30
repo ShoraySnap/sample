@@ -10,12 +10,12 @@ electron-app/.env
 build-installer/installers/*
 build-installer/out/*
 build-installer/misc/custom_families
+build-installer/publish
 
 revit-addin/SnaptrudeForgeExport/assets/*
 
 # Build results
 revit-addin/**/[Pp]ackages/*
-revit-addin/SnaptrudeManagerAddin/lib/IFC/*
 revit-addin/UnitTests/lib/*
 revit-addin/projects/
 #Visual Studio and unit testing updates

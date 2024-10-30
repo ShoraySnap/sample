@@ -1,0 +1,33 @@
+name: SnaptrudeManagerAddin Pipeline
+
+on:
+  push:
+    branches:
+      - feature-addin-automated-deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # - name: Build Docker Image
+      #   run: |
+      #     docker build -t snaptrudemanageraddin:latest .
+
+      - name: Run Commands in Container
+        run: |
+          docker run --rm `
+            -v ${PWD}:C:\workspace `
+            -e GITHUB_BRANCH=${{ github.ref_name }} `
+            -e CERT_BASE64="${{ vars.CERT_BASE64 }}" `
+            -e CERT_PASSWORD="${{ vars.CERT_PASSWORD }}" `
+            -e AWS_ACCESS_KEY_ID="${{ vars.AWS_ACCESS_KEY_ID }}" `
+            -e AWS_SECRET_ACCESS_KEY="${{ vars.AWS_SECRET_ACCESS_KEY }}" `
+            -e AWS_REGION="${{ vars.AWS_REGION }}" `
+            -e AWS_S3_BUCKET_NAME="${{ vars.AWS_S3_BUCKET_NAME }}" `
+            -e NETSPARJKE_PUB_KEY="${{ vars.NETSPARJKE_PUB_KEY }}" `
+            -e NETSPARJKE_PRIV_KEY="${{ vars.NETSPARJKE_PRIV_KEY }}" `
+            fernandinsta/snaptrudemanageraddin-base-image:1.0.10

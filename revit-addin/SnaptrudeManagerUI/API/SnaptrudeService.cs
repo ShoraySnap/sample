@@ -39,8 +39,11 @@ namespace SnaptrudeManagerUI.API
         {
             try
             {
-                var response = await httpClient.GetAsync("http://www.google.com");
-                return response.IsSuccessStatusCode;
+                using (var ping = new Ping())
+                {
+                    var reply = await ping.SendPingAsync("8.8.8.8", 2000);
+                    return reply.Status == IPStatus.Success;
+                }
             }
             catch
             {
@@ -353,9 +356,10 @@ namespace SnaptrudeManagerUI.API
             return true;
         }
 
-        public static async Task<HttpResponseMessage> CheckIfUserLoggedInAsync()
+        public static async Task<bool> CheckIfUserLoggedInAsync()
         {
             string accessToken = Store.Get("accessToken")?.ToString();
+            if (string.IsNullOrEmpty(accessToken)) { return false; }
             string refreshToken = Store.Get("refreshToken")?.ToString();
 
             string djangoUrl = Urls.Get("snaptrudeDjangoUrl");
@@ -379,11 +383,11 @@ namespace SnaptrudeManagerUI.API
                 {
                     Store.Set("accessToken", result["accessToken"]);
                     Store.Save();
-                    // Update user data in your application state here
+                    return true;
                 }
             }
 
-            return response;
+            return false;
         }
 
         public static async Task<bool> IsPaidUserAccountAsync()

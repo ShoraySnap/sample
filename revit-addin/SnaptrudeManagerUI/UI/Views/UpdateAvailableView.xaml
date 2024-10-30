@@ -48,6 +48,7 @@
                 HorizontalAlignment="Center"
                 Command="{Binding SkipCommand}"
                 Content="Skip for later"
+                Visibility="{Binding IsSkipButtonEnabled, Converter={StaticResource BoolToVisibility}}"
                 Style="{DynamicResource Button_Tertiary}" />
         </StackPanel>
     </DockPanel>

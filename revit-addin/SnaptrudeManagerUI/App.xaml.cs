@@ -41,6 +41,7 @@ namespace SnaptrudeManagerUI
         private DispatcherTimer timer = new DispatcherTimer();
 
         public static Action<int, string> OnProgressUpdate;
+        public static Action OnLoginNotFound;
         public static Action OnSuccessfullLogin;
         public static Action OnFailedLogin;
         public static Action OnAbort;
@@ -57,8 +58,18 @@ namespace SnaptrudeManagerUI
         public static Action<string> OnSelectFolderIssue;
         public static Action<string> OnEnterProjectUrlIssue;
         public static Action<string> OnTokenExpiredIssue;
+        public static Action OnStartDownload;
+        public static Action OnCancelDownload;
+        public static Action OnDownloadStarted;
+        public static Action OnDownloadFinished;
+        public static Action OnDownloadError;
+        public static Action OnUpdateAvailable;
+        public static Action OnCriticalUpdateAvailable;
+        public static Action OnLatestVersion;
 
+        public static Updater Updater;
         public static Process RevitProcess;
+        public static string RevitProcessFilePath;
 
         public static ProgressViewModel.ProgressViewType RetryUploadProgressType { get; internal set; }
 
@@ -83,12 +94,10 @@ namespace SnaptrudeManagerUI
             RegisterProtocol();
             base.OnStartup(e);
             LogsConfig.Initialize("ManagerUI_" + Process.GetCurrentProcess().Id);
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
+            Updater = new Updater();
 
             FileUtils.Initialize();
-
-            //WPFTODO: CHECKFORUPDATES
-            var currentVersion = "4.0";
-            var updateVersion = "4.0";
 
             string[] args = e.Args;
             int revitProcessId = 0;
@@ -108,42 +117,53 @@ namespace SnaptrudeManagerUI
             if (revitProcessId != 0)
             {
                 RevitProcess = Process.GetProcessById(revitProcessId);
+                RevitProcessFilePath = RevitProcess.MainModule.FileName;
                 RevitProcess.EnableRaisingEvents = true;
                 RevitProcess.Exited += RevitProcess_Exited;
             }
 
             NavigationStore navigationStore = NavigationStore.Instance;
-            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, currentVersion, updateVersion, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
-            
-            if (currentVersion != updateVersion)
-                navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
-            else if(Store.Get("accessToken")?.ToString() == "")
+            MainWindowViewModel.Instance.ConfigMainWindowViewModel(navigationStore, viewIs3D, isDocumentRvt, isDocumentOpen, fileName);
+
+            bool internetAvailable = await SnaptrudeService.IsInternetAvailableAsync();
+            if (internetAvailable)
             {
-                MainWindowViewModel.Instance.IsLoaderVisible = false;
-                navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
+                navigationStore.CurrentViewModel = ViewModelCreator.CreateCheckingUpdateViewModel();
             }
-            else
+            if (!internetAvailable)
             {
-                var isUserLoggedIn = await SnaptrudeRepo.CheckIfUserLoggedInAsync();
-                MainWindowViewModel.Instance.IsLoaderVisible = false;
-                string content = await isUserLoggedIn.Content.ReadAsStringAsync();
-                if (content.Contains("Snaptrude API URL is blocked or unreachable") || content.Contains("The connection to the Snaptrude API was refused"))
-                {
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateAPIBlockedViewModel(content);
-                }
-                else if (content.Contains("Network error occurred"))
-                {
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateStartupInternetIssueWarningViewModel(content);
-                }
-                else if (Equals(Store.Get("userId"), "") || !isUserLoggedIn.IsSuccessStatusCode)
-                {
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
-                }
-                else
-                {
-                    navigationStore.CurrentViewModel = ViewModelCreator.CreateHomeViewModel();
-                }
+                navigationStore.CurrentViewModel = ViewModelCreator.CreateStartupInternetIssueWarningViewModel();
             }
+
+            //if (currentVersion != updateVersion)
+            //    navigationStore.CurrentViewModel = ViewModelCreator.CreateUpdateAvailableViewModel();
+            //else if(Store.Get("accessToken")?.ToString() == "")
+            //{
+            //    MainWindowViewModel.Instance.IsLoaderVisible = false;
+            //    navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
+            //}
+            //else
+            //{
+            //    var isUserLoggedIn = await SnaptrudeRepo.CheckIfUserLoggedInAsync();
+            //    MainWindowViewModel.Instance.IsLoaderVisible = false;
+            //    string content = await isUserLoggedIn.Content.ReadAsStringAsync();
+            //    if (content.Contains("Snaptrude API URL is blocked or unreachable") || content.Contains("The connection to the Snaptrude API was refused"))
+            //    {
+            //        navigationStore.CurrentViewModel = ViewModelCreator.CreateAPIBlockedViewModel(content);
+            //    }
+            //    else if (content.Contains("Network error occurred"))
+            //    {
+            //        navigationStore.CurrentViewModel = ViewModelCreator.CreateStartupInternetIssueWarningViewModel(content);
+            //    }
+            //    else if (Equals(Store.Get("userId"), "") || !isUserLoggedIn.IsSuccessStatusCode)
+            //    {
+            //        navigationStore.CurrentViewModel = ViewModelCreator.CreateLoginViewModel();
+            //    }
+            //    else
+            //    {
+            //        navigationStore.CurrentViewModel = ViewModelCreator.CreateHomeViewModel();
+            //    }
+            //}
 
             // SnaptrudeService snaptrudeService = new SnaptrudeService();
             logger.Info("<<<UI Initialized!>>>");
@@ -161,10 +181,28 @@ namespace SnaptrudeManagerUI
 
         }
 
+        public static void CreateInitialViewModel() 
+        {
+
+        }
         public static void ShowInvalidTokenIssue(string errorMessage)
         {
             NavigationStore.Instance.CurrentViewModel = ViewModelCreator.CreateTokenExpiredWarningViewModel(errorMessage);
         }
+        private static Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            // Load the requested assembly for reflection only
+            try
+            {
+                return Assembly.ReflectionOnlyLoad(args.Name);
+            }
+            catch (FileNotFoundException)
+            {
+                // Handle the case where the assembly cannot be found
+                return null;
+            }
+        }
+
         private void RevitProcess_Exited(object sender, EventArgs e)
         {
             OnRevitClosed?.Invoke();
@@ -177,6 +215,7 @@ namespace SnaptrudeManagerUI
                 RevitProcess.Exited -= RevitProcess_Exited;
             }
             RevitProcess = Process.GetProcessById(revitProcessId);
+            RevitProcessFilePath = RevitProcess.MainModule.FileName;
             RevitProcess.EnableRaisingEvents = true;
             RevitProcess.Exited += RevitProcess_Exited;
         }

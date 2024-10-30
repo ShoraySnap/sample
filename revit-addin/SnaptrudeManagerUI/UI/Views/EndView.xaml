@@ -19,17 +19,61 @@
             d:Text="The model was exported successfully!"
             FontFamily="{StaticResource Inter500}"
             FontWeight="Medium"
-            Foreground="{StaticResource Colors/Neutral/800}"
             LineHeight="23"
-            Text="{Binding Message}"
+            Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             TextAlignment="Center"
-            TextWrapping="Wrap" />
-        <Button
-            Margin="20"
-            HorizontalAlignment="Center"
-            Command="{Binding LaunchCommand}"
-            Content="Launch Snaptrude"
-            Style="{DynamicResource Button_Primary}"
-            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
+            TextWrapping="Wrap">
+            <TextBlock.Style>
+                <Style TargetType="{x:Type TextBlock}">
+                    <Setter Property="Foreground" Value="{StaticResource Colors/Neutral/800}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
+                            <Setter Property="Foreground" Value="White" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+        <ContentControl Content="{Binding}">
+            <ContentControl.Style>
+                <Style TargetType="ContentControl">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="False">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Button
+                                            Margin="0,10,0,0"
+                                            HorizontalAlignment="Center"
+                                            d:Visibility="Visible"
+                                            Command="{Binding LaunchCommand}"
+                                            Content="{Binding ButtonMessage}"
+                                            IsEnabled="{Binding ButtonEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{DynamicResource Button_Quaternary}"
+                                            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding WhiteBackground}" Value="True">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <Button
+                                            Margin="0,10,0,0"
+                                            HorizontalAlignment="Center"
+                                            Command="{Binding LaunchCommand}"
+                                            Content="{Binding ButtonMessage}"
+                                            IsEnabled="{Binding ButtonEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{DynamicResource Button_Primary}"
+                                            Visibility="{Binding ButtonVisible, Converter={StaticResource BoolToVisibility}}" />
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
     </StackPanel>
 </UserControl>

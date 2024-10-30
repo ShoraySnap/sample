@@ -79,7 +79,7 @@ namespace SnaptrudeManagerUI.API
             return validateUrl;
         }
 
-        public static async Task<HttpResponseMessage> CheckIfUserLoggedInAsync()
+        public static async Task<bool> CheckIfUserLoggedInAsync()
         {
             var response = await SnaptrudeService.CheckIfUserLoggedInAsync();
             return response;

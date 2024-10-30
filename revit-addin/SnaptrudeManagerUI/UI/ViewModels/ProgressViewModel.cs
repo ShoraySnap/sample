@@ -108,7 +108,8 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel(ProgressViewType progressType, NavigationService successNavigationService, NavigationService failureNavigationService, NavigationService backHomeNavigationService, bool retryUpload)
         {
             MainWindowViewModel.Instance.TopMost = false;
-            SetForegroundWindow(App.RevitProcess.MainWindowHandle);
+            if (App.RevitProcess != null)
+                SetForegroundWindow(App.RevitProcess.MainWindowHandle);
             SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
 
             IsProgressBarIndeterminate = false;
@@ -160,17 +161,26 @@ namespace SnaptrudeManagerUI.ViewModels
                         CancelCommand = new RelayCommand(new Action<object>((o) => Cancel(TRUDE_EVENT.MANAGER_UI_REQ_ABORT_IMPORT)));
                         break;
                     case ProgressViewType.Update:
+                        IsCancelButtonVisible = false;
                         progressViewType = ProgressViewType.Update;
                         MainWindowViewModel.Instance.WhiteBackground = false;
                         OnPropertyChanged(nameof(WhiteBackground));
-                        StartProgressCommand = new RelayCommand(async (o) => await StartUpdate());
+                        StartProgressCommand = new RelayCommand((o) => StartUpdate());
                         progressMessage = "Update in progress, please don’t close this window.";
                         StartProgressCommand.Execute(null);
+                        App.OnDownloadFinished += CloseAndOpenInstaller;
+                        App.OnDownloadError = OpenRetryDownloadView;
+
                         break;
                     default:
                         break;
                 }
             }
+        }
+
+        private void OpenRetryDownloadView()
+        {
+            FailureCommand.Execute(new object());
         }
 
         private void StartUpload()
@@ -193,6 +203,11 @@ namespace SnaptrudeManagerUI.ViewModels
         private void HideCancelButton()
         {
             IsCancelButtonVisible = false;
+        }
+
+        private void CloseAndOpenInstaller()
+        {
+            SuccessCommand.Execute(new object());
         }
 
         public async void Cancel(TRUDE_EVENT trudeEvent)
@@ -267,22 +282,29 @@ namespace SnaptrudeManagerUI.ViewModels
             //MainWindowViewModel.Instance.ImportEvent.Raise();
         }
 
-        private async Task StartUpdate()
+        private void StartUpdate()
         {
-            Random random = new Random();
-            int randomResult = random.Next(2);
-            for (int i = 0; i <= 100; i++)
-            {
-                ProgressValue = i;
-                await Task.Delay(50);
-                if (i == 15 && randomResult == 0)
-                {
-                    FailureCommand.Execute(new object());
-                    return;
-                }
-            }
-            MainWindowViewModel.Instance.CurrentVersion = MainWindowViewModel.Instance.UpdateVersion;
-            SuccessCommand.Execute(new object());
+            //Random random = new Random();
+            //int randomResult = random.Next(2);
+            //for (int i = 0; i <= 100; i++)
+            //{
+            //    ProgressValue = i;
+            //    await Task.Delay(50);
+            //    if (i == 15 && randomResult == 0)
+            //    {
+            //        FailureCommand.Execute(new object());
+            //        return;
+            //    }
+            //}
+            //MainWindowViewModel.Instance.CurrentVersion = MainWindowViewModel.Instance.UpdateVersion;
+            //SuccessCommand.Execute(new object());
+            App.OnStartDownload.Invoke();
+        }
+
+        private void CancelUpdate()
+        {
+            App.OnCancelDownload.Invoke();
+            FailureCommand.Execute(new object());
         }
 
         protected override void Dispose(bool disposing)
@@ -305,6 +327,8 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnUploadStart -= HideCancelButton;
             App.OnUploadStart -= StartUpload;
             App.OnUploadIssue -= ShowUploadFailure;
+            App.OnDownloadFinished -= CloseAndOpenInstaller;
+            App.OnDownloadError -= OpenRetryDownloadView;
         }
         ~ProgressViewModel()
         {

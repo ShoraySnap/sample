@@ -12,6 +12,7 @@ using TrudeCommon.Events;
 using SnaptrudeManagerUI.UI.Helpers;
 using Newtonsoft.Json;
 using NLog;
+using System.Reflection;
 
 namespace SnaptrudeManagerUI.ViewModels
 {
@@ -45,7 +46,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ProgressViewModel ProgressViewModel;
 
         private NavigationStore navigationStore;
-
+        
         public string ImportPath { get; set; }
 
         private string username;
@@ -139,6 +140,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public ICommand UpdateCommand { get; private set; }
         public ICommand LogOutCommand { get; private set; }
         public ICommand BackToLoginCommand { get; private set; }
+        public bool IsUserLoggedIn { get; set; }
         public ICommand RevitClosedCommand { get; private set; }
 
 
@@ -146,7 +148,7 @@ namespace SnaptrudeManagerUI.ViewModels
         public bool IsDocumentOpen;
         public bool IsDocumentRvt;
 
-        public ViewModelBase CurrentViewModel => navigationStore.CurrentViewModel;
+        public ViewModelBase CurrentViewModel => navigationStore?.CurrentViewModel;
         public bool CloseButtonVisible =>
             CurrentViewModel?.GetType().Name != "ProgressViewModel";
 
@@ -154,7 +156,9 @@ namespace SnaptrudeManagerUI.ViewModels
             CurrentViewModel != null &&
             !ImageBackground && CurrentViewModel?.GetType().Name != "EndViewModel" &&
             CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
-            CurrentViewModel?.GetType().Name != "WarningViewModel";
+            CurrentViewModel?.GetType().Name != "WarningViewModel" &&
+            CurrentViewModel?.GetType().Name != "ProgressViewModel" &&
+            CurrentViewModel?.GetType().Name != "CheckingUpdateViewModel";
 
         private bool topMost = true;
         private bool disposed;
@@ -176,18 +180,17 @@ namespace SnaptrudeManagerUI.ViewModels
             set { isLoaderVisible = value; OnPropertyChanged(nameof(IsLoaderVisible)); }
         }
 
-        public void ConfigMainWindowViewModel(NavigationStore navigationStore, string currentVersion, string updateVersion, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
+        public async void ConfigMainWindowViewModel(NavigationStore navigationStore, bool isView3D, bool isDocumentRvt, bool isDocumentOpen, string fileName)
         {
-            WhiteBackground = true;
-            IsLoaderVisible = true;
+            CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString().Substring(0, 5);
+            WhiteBackground = false;
+            IsLoaderVisible = false;
             ProjectFileName = fileName + (isDocumentOpen ? (isDocumentRvt ? ".rvt" : ".rfa") : "");
             IsDocumentOpen = isDocumentOpen;
             NavigateHomeCommand = new NavigateCommand(new NavigationService(navigationStore, ViewModelCreator.CreateHomeViewModel));
             TopMost = true;
-            CurrentVersion = currentVersion; 
             IsView3D = isView3D;
             IsDocumentRvt = isDocumentRvt;
-            UpdateVersion = updateVersion;
             navigationStore.CurrentViewModelChanged += OnCurrentViewModelChanged;
             this.navigationStore = navigationStore;
             CloseCommand = new RelayCommand(new Action<object>((o) =>
@@ -205,11 +208,26 @@ namespace SnaptrudeManagerUI.ViewModels
             App.OnDocumentClosed += HandleDocumentClosed;
             App.OnDocumentChanged += NavigateBackHome;
             App.OnRevitClosed += GotoRevitCloseEndView;
+            App.OnUpdateAvailable += SetUpdateVersion;
+            App.OnLoginNotFound += SetLoginNotFound;
+        }
+
+        public void SetLoginNotFound()
+        {
+            IsUserLoggedIn = false;
+        }
+
+        private void SetUpdateVersion()
+        {
+            UpdateVersion = App.Updater.UpdateVersion.Substring(0,5);
         }
 
         private void GotoRevitCloseEndView()
         {
+            if (WhiteBackground)
+            {
             RevitClosedCommand.Execute(null);
+        }
         }
 
         private void HandleDocumentClosed()
@@ -242,7 +260,7 @@ namespace SnaptrudeManagerUI.ViewModels
 
         private void NavigateBackHome()
         {
-            if (WhiteBackground)
+            if (WhiteBackground && !(CurrentViewModel is ProgressViewModel))
             {
                 NavigateHomeCommand.Execute(null);
             }

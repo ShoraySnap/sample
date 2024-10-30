@@ -26,8 +26,9 @@ namespace SnaptrudeManagerUI.ViewModels
 
         public string CurrentVersion => MainWindowViewModel.Instance.CurrentVersion;
         public string UpdateVersion => MainWindowViewModel.Instance.UpdateVersion;
-        public bool UpdateAvailable => CurrentVersion != UpdateVersion;
-        
+        public bool UpdateAvailable => CurrentVersion != UpdateVersion && !string.IsNullOrEmpty(UpdateVersion);
+        public bool UpdateNotAvailable => !UpdateAvailable;
+
 
         private bool showInfoText;
         public bool ShowInfoText
