@@ -109,6 +109,7 @@ namespace TrudeSerializer.Components
             if (view == null)
             {
                 view = doc.ActiveView;
+                view = GlobalVariables.ViewForForgeDirectImport(view);
             }
 
             Options options = new Options

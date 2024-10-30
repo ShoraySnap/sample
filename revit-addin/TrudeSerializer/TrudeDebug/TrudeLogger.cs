@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TrudeCommon.Utils;
+using System.Text;
+using TrudeCommon.Utils;
 using TrudeSerializer.Components;
 using TrudeSerializer.Utils;
 
@@ -294,8 +296,11 @@ namespace TrudeSerializer.Debug
 
         public string GetSerializedObject()
         {
+            if (fullData == null)
+            {
+                System.Console.WriteLine("No data to serialize");
+            }
             var serializedLog = JsonConvert.SerializeObject(fullData, Formatting.Indented);
-
             return serializedLog;
         }
 

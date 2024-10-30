@@ -76,6 +76,7 @@ namespace TrudeSerializer.Importer
         public TrudeComponent GetComponent(SerializedTrudeData serializedData, Element element)
         {
             TrudeLogger.Instance.CountInput(element);
+
             if (TrudeWall.IsValidWall(element))
             {
                 return TrudeWall.GetSerializedComponent(serializedData, element);

@@ -69,7 +69,7 @@ namespace TrudeSerializer.Components
             }
 
             var options = new Options();
-            options.View = TrudeSerializer.GlobalVariables.Document.ActiveView;
+            options.View = TrudeSerializer.GlobalVariables.isDirectImport ? TrudeSerializer.GlobalVariables.customActiveView : TrudeSerializer.GlobalVariables.Document.ActiveView;
             GeometryElement geometry = element.get_Geometry(options);
 
             List<string> curveKeys = new List<string>();

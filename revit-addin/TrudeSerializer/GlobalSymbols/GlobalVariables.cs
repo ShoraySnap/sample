@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
+using System.Collections.Generic;
 
 namespace TrudeSerializer
 {
@@ -10,15 +11,26 @@ namespace TrudeSerializer
         // Current document of revit project (used in TrudeCustomExporter)
         public static Document CurrentDocument;
         public static Application RvtApp;
+        public static bool isDirectImport;
+        public static View customActiveView;
 
         public static void CleanGlobalVariables()
         {
             Document = null;
             RvtApp = null;
             CurrentDocument = null;
+            isDirectImport = false;
+            customActiveView = null;
         }
+        public static View ViewForForgeDirectImport(View view)
+        {
+#if DIRECT_IMPORT
+             return GlobalVariables.customActiveView;
+#else
 
-
+            return view; 
+#endif
+        }
     }
 
     public static class GlobalConstants
@@ -32,4 +44,6 @@ namespace TrudeSerializer
         public static double CM_TO_SNAP = 25.4;
         public static double MM_TO_SNAP = 254;
     }
+
+    
 }
