@@ -267,5 +267,5 @@ foreach ($config in $directImportConfigurations) {
     # print the bundle size
     $bundlePath = "C:\workspace\revit-addin\DirectImport\bin\Debug\Forge$config\DirectImport.bundle"
     $bundleSize = (Get-ChildItem -Path $bundlePath -Recurse -File | Measure-Object -Property Length -Sum).Sum
-    Write-Host "Bundle size for $config: $bundleSize bytes"
+    Write-Host "Bundle size for $config : $bundleSize bytes"
 }
