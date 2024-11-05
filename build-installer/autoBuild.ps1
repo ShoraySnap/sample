@@ -153,7 +153,6 @@ $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $base64Cert = $env:CERT_BASE64
 $certPwd = $env:CERT_PASSWORD
 $certPath = "C:\snaptrude_inc.pfx"
-Write-Host "Password ${certPwd}"
 $publishFolder = "C:\"
 DecodeAndSaveCert -base64Cert $base64Cert -outputPath $certPath         
 $bucketName = $env:AWS_S3_BUCKET_NAME
