@@ -261,10 +261,18 @@ foreach ($config in $directImportConfigurations) {
     $projectName = "DirectImport"
     $projectPath = ${addinProjects}[$projectName]
     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $config)) {
+        Write-Host 
         return
     }
-    & "C:\workspace\revit-addin\DirectImport\bundler.ps1" -RevitVersion $config
-    # print the bundle size
+    $sourceDir = "C:\workspace\revit-addin\DirectImport\bin\Debug\Forge$config"
+    $bundleDir = "C:\workspace\revit-addin\DirectImport\assets\DirectImport.bundle\Contents"
+    $zipPath = "C:\workspace\revit-addin\DirectImport\assets\DirectImport$config.zip"
+
+    New-Item -ItemType Directory -Force -Path $bundleDir
+    Copy-Item "$sourceDir/DirectImport.dll" -Destination $bundleDir -Force
+    Copy-Item "$sourceDir/DirectImport.pdb" -Destination $bundleDir -Force
+    Compress-Archive -Path "C:\workspace\revit-addin\DirectImport\assets\DirectImport.bundle" -DestinationPath $zipPath -Force
+
     $bundlePath = "C:\workspace\revit-addin\DirectImport\bin\Debug\Forge$config\DirectImport.bundle"
     $bundleSize = (Get-ChildItem -Path $bundlePath -Recurse -File | Measure-Object -Property Length -Sum).Sum
     Write-Host "Bundle size for $config : $bundleSize bytes"
