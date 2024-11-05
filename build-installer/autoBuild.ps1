@@ -183,6 +183,7 @@ $version_number = (Get-Item "$uiBuildPath\SnaptrudeManagerUI.exe").VersionInfo.F
 
 $addinProjects = @{
     "SnaptrudeManagerAddin" = "C:\workspace\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
+    "DirectImport" = "C:\workspace\revit-addin\DirectImport\DirectImport.csproj"
 }
 
 $configurations = @("2019","2020","2021","2022","2023","2024","2025")
@@ -251,3 +252,20 @@ $appcastOutputPath = "$publishFolder\appcast.xml"
 aws s3 cp $appcastOutputPath s3://$bucketName/CICD-tests/$branchFolder/
 $appcastSignatureOutputPath = "$publishFolder\appcast.xml.signature"
 aws s3 cp $appcastSignatureOutputPath s3://$bucketName/CICD-tests/$branchFolder/
+
+
+# direct import
+$directImportConfigurations = @("2022","2023","2024","2025")
+foreach ($config in $directImportConfigurations) {
+    Write-Host "Building DirectImport $config"
+    $projectName = "DirectImport"
+    $projectPath = ${addinProjects}[$projectName]
+    if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $config)) {
+        return
+    }
+    & "C:\workspace\revit-addin\DirectImport\bundler.ps1" -RevitVersion $config
+    # print the bundle size
+    $bundlePath = "C:\workspace\revit-addin\DirectImport\bin\Debug\Forge$config\DirectImport.bundle"
+    $bundleSize = (Get-ChildItem -Path $bundlePath -Recurse -File | Measure-Object -Property Length -Sum).Sum
+    Write-Host "Bundle size for $config: $bundleSize bytes"
+}

@@ -15,8 +15,6 @@ New-Item -ItemType Directory -Force -Path $bundleDir
 Copy-Item "$sourceDir/DirectImport.dll" -Destination $bundleDir -Force
 Copy-Item "$sourceDir/DirectImport.pdb" -Destination $bundleDir -Force
 
-# Compress the bundle
-New-Item -ItemType Directory -Force -Path "./assets/Forge$RevitVersion"
 Compress-Archive -Path "./assets/DirectImport.bundle" -DestinationPath $zipPath -Force
  
 # copy the file to $forgeserverPath
