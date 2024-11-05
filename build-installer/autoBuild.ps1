@@ -272,8 +272,8 @@ foreach ($config in $directImportConfigurations) {
     Copy-Item "$sourceDir/DirectImport.dll" -Destination $bundleDir -Force
     Copy-Item "$sourceDir/DirectImport.pdb" -Destination $bundleDir -Force
     Compress-Archive -Path "C:\workspace\revit-addin\DirectImport\assets\DirectImport.bundle" -DestinationPath $zipPath -Force
-
-    $bundlePath = "C:\workspace\revit-addin\DirectImport\bin\Debug\Forge$config\DirectImport.bundle"
-    $bundleSize = (Get-ChildItem -Path $bundlePath -Recurse -File | Measure-Object -Property Length -Sum).Sum
-    Write-Host "Bundle size for $config : $bundleSize bytes"
+    
+    // print the size of the zip file
+    $zipSize = (Get-Item $zipPath).length
+    Write-Host "DirectImport$config.zip size: $zipSize bytes"
 }
