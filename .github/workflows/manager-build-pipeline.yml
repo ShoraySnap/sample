@@ -36,4 +36,5 @@ jobs:
             -e STAGING_CLIENTSECRET="${{ vars.STAGING_CLIENTSECRET }}" `
             -e PROD_CLIENT_ID="${{ vars.PROD_CLIENT_ID }}" `
             -e PROD_CLIENTSECRET="${{ vars.PROD_CLIENTSECRET }}" `
+            -e IS_DIRECT_IMPORT_ENABLED="true" `
             snaptrude/snaptrudemanager:1.0.0
