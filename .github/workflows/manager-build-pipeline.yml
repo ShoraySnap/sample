@@ -30,4 +30,10 @@ jobs:
             -e AWS_S3_BUCKET_NAME="${{ vars.AWS_S3_BUCKET_NAME }}" `
             -e NETSPARJKE_PUB_KEY="${{ vars.NETSPARJKE_PUB_KEY }}" `
             -e NETSPARJKE_PRIV_KEY="${{ vars.NETSPARJKE_PRIV_KEY }}" `
+            -e TESTING_CLIENT_ID="${{ vars.TESTING_CLIENT_ID }}" `
+            -e TESTING_CLIENTSECRET="${{ vars.TESTING_CLIENTSECRET }}" `
+            -e STAGING_CLIENT_ID="${{ vars.STAGING_CLIENT_ID }}" `
+            -e STAGING_CLIENTSECRET="${{ vars.STAGING_CLIENTSECRET }}" `
+            -e PROD_CLIENT_ID="${{ vars.PROD_CLIENT_ID }}" `
+            -e PROD_CLIENTSECRET="${{ vars.PROD_CLIENTSECRET }}" `
             snaptrude/snaptrudemanager:1.0.0
