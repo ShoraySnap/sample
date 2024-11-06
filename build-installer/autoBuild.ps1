@@ -660,11 +660,11 @@ if ($direct_import_enabled -eq "true") {
         if ($environment -eq "Staging") {
             $FORGE_CLIENT_ID = $env:STAGING_CLIENT_ID
             $FORGE_CLIENT_SECRET = $env:STAGING_CLIENTSECRET
-        } else if ($environment -eq "Prod") {
+        } elseif ($environment -eq "Prod") {
             $FORGE_CLIENT_ID = $env:PROD_CLIENT_ID
             $FORGE_CLIENT_SECRET = $env:PROD_CLIENTSECRET
         }
-        else if ($environment -eq "Testing") {
+        elseif ($environment -eq "Testing") {
             $FORGE_CLIENT_ID = $env:TESTING_CLIENT_ID
             $FORGE_CLIENT_SECRET = $env:TESTING_CLIENTSECRET
         }
