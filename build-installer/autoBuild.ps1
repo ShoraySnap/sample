@@ -531,102 +531,103 @@ $awsRegion = $env:AWS_REGION
 aws configure set region $awsRegion
 SaveNetSparkleKeys -outputPath $publishFolder -privKey $env:NETSPARJKE_PRIV_KEY -pubKey $env:NETSPARJKE_PUB_KEY
 
-if ($branch -eq "master") {
-    $uiBuildConfig = "Release"
-}
-else {
-    $uiBuildConfig = "Debug"
-}
-$uiBuildPath = "C:\workspace\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
+# if ($branch -eq "master") {
+#     $uiBuildConfig = "Release"
+# }
+# else {
+#     $uiBuildConfig = "Debug"
+# }
+# $uiBuildPath = "C:\workspace\revit-addin\SnaptrudeManagerUI\bin\$uiBuildConfig\net48"
 
 
-$uiProjects = @{
-    "SnaptrudeManagerUI" = "C:\workspace\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
-}
+# $uiProjects = @{
+#     "SnaptrudeManagerUI" = "C:\workspace\revit-addin\SnaptrudeManagerUI\SnaptrudeManagerUI.csproj"
+# }
 
-foreach ($projectName in $uiProjects.Keys) {
-    $projectPath = ${uiProjects}[$projectName]
-    if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $uiBuildConfig)) {
-        return
-    }
-}
-$version_number = (Get-Item "$uiBuildPath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
+# foreach ($projectName in $uiProjects.Keys) {
+#     $projectPath = ${uiProjects}[$projectName]
+#     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $uiBuildConfig)) {
+#         return
+#     }
+# }
+# $version_number = (Get-Item "$uiBuildPath\SnaptrudeManagerUI.exe").VersionInfo.FileVersion
 
-$addinProjects = @{
-    "SnaptrudeManagerAddin" = "C:\workspace\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
-    "DirectImport" = "C:\workspace\revit-addin\DirectImport\DirectImport.csproj"
-}
+# $addinProjects = @{
+#     "SnaptrudeManagerAddin" = "C:\workspace\revit-addin\SnaptrudeManagerAddin\SnaptrudeManagerAddin.csproj"
+#     "DirectImport" = "C:\workspace\revit-addin\DirectImport\DirectImport.csproj"
+# }
 
-$configurations = @("2019","2020","2021","2022","2023","2024","2025")
+# $configurations = @("2019","2020","2021","2022","2023","2024","2025")
 
-foreach ($config in $configurations) {
-    $projectName = "SnaptrudeManagerAddin"
-    $projectPath = ${addinProjects}[$projectName]
-    if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $config)) {
-        return
-    }
-}
+# foreach ($config in $configurations) {
+#     $projectName = "SnaptrudeManagerAddin"
+#     $projectPath = ${addinProjects}[$projectName]
+#     if (-not (Restore-And-Build-Project -projectName $projectName -projectPath $projectPath -config $config)) {
+#         return
+#     }
+# }
 
-foreach ($projectName in $uiProjects.Keys) {
-    Get-ChildItem -Path $uiBuildPath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
-    	SignFile -filePath $_.FullName -certPath $certPath -certPwd $certPwd
-    }
-}
-foreach ($config in $configurations) {
-    SignFile -filePath "$dllPath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -certPwd $certPwd
-}
+# foreach ($projectName in $uiProjects.Keys) {
+#     Get-ChildItem -Path $uiBuildPath -File | Where-Object { $_.Extension -eq ".dll" -or $_.Extension -eq ".exe" } | ForEach-Object {
+#     	SignFile -filePath $_.FullName -certPath $certPath -certPwd $certPwd
+#     }
+# }
+# foreach ($config in $configurations) {
+#     SignFile -filePath "$dllPath\$config\SnaptrudeManagerAddin.dll" -certPath $certPath -certPwd $certPwd
+# }
 
-$stagingUrlPath = "C:\workspace\build-installer\misc\urlsstaging.json"
-$prodUrlPath = "C:\workspace\build-installer\misc\urls.json"
+# $stagingUrlPath = "C:\workspace\build-installer\misc\urlsstaging.json"
+# $prodUrlPath = "C:\workspace\build-installer\misc\urls.json"
 
-$version = $version_number
+# $version = $version_number
 
-if ($branch -eq "master") 
-{
-    $branchFolder = "Prod"
-    $defaultInstallerPath = RunInnoSetup -name "Prod" `
-                -version $version `
-                -urlPath $prodUrlPath `
-                -includeDownloadSection "true"
+# if ($branch -eq "master") 
+# {
+#     $branchFolder = "Prod"
+#     $defaultInstallerPath = RunInnoSetup -name "Prod" `
+#                 -version $version `
+#                 -urlPath $prodUrlPath `
+#                 -includeDownloadSection "true"
                 
-    $updateInstallerPath = RunInnoSetup -name "Update" `
-                -version $version `
-                -urlPath $prodUrlPath `
-                -includeDownloadSection "false"
-}
-else
-{
-    $branchFolder = "Staging"
-    $defaultInstallerPath = RunInnoSetup -name "Staging" `
-                -version $version `
-                -urlPath $stagingUrlPath `
-                -includeDownloadSection "true"
+#     $updateInstallerPath = RunInnoSetup -name "Update" `
+#                 -version $version `
+#                 -urlPath $prodUrlPath `
+#                 -includeDownloadSection "false"
+# }
+# else
+# {
+#     $branchFolder = "Staging"
+#     $defaultInstallerPath = RunInnoSetup -name "Staging" `
+#                 -version $version `
+#                 -urlPath $stagingUrlPath `
+#                 -includeDownloadSection "true"
                 
-    $updateInstallerPath = RunInnoSetup -name "Update" `
-                -version $version `
-                -urlPath $stagingUrlPath `
-                -includeDownloadSection "false"
-}
+#     $updateInstallerPath = RunInnoSetup -name "Update" `
+#                 -version $version `
+#                 -urlPath $stagingUrlPath `
+#                 -includeDownloadSection "false"
+# }
 
 
-SignFile -filePath $defaultInstallerPath -certPath $certPath -certPwd $certPwd
-SignFile -filePath $updateInstallerPath -certPath $certPath -certPwd $certPwd
+# SignFile -filePath $defaultInstallerPath -certPath $certPath -certPwd $certPwd
+# SignFile -filePath $updateInstallerPath -certPath $certPath -certPwd $certPwd
 
-$updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
-$AppcastFolderUrl = "https://$bucketName.s3.$awsRegion.amazonaws.com/CICD-tests/$branchFolder"
-GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder -AppcastFolderUrl $AppcastFolderUrl
+# $updateInstallerFolderPath = Split-Path -Path $updateInstallerPath
+# $AppcastFolderUrl = "https://$bucketName.s3.$awsRegion.amazonaws.com/CICD-tests/$branchFolder"
+# GenerateAppcast -AppPath $updateInstallerFolderPath -OutputFolder $publishFolder -AppcastFolderUrl $AppcastFolderUrl
 
-aws s3 cp $defaultInstallerPath s3://$bucketName/CICD-tests/$branchFolder/
-aws s3 cp $updateInstallerPath s3://$bucketName/CICD-tests/$branchFolder/
+# aws s3 cp $defaultInstallerPath s3://$bucketName/CICD-tests/$branchFolder/
+# aws s3 cp $updateInstallerPath s3://$bucketName/CICD-tests/$branchFolder/
 
-$appcastOutputPath = "$publishFolder\appcast.xml"
-aws s3 cp $appcastOutputPath s3://$bucketName/CICD-tests/$branchFolder/
-$appcastSignatureOutputPath = "$publishFolder\appcast.xml.signature"
-aws s3 cp $appcastSignatureOutputPath s3://$bucketName/CICD-tests/$branchFolder/
+# $appcastOutputPath = "$publishFolder\appcast.xml"
+# aws s3 cp $appcastOutputPath s3://$bucketName/CICD-tests/$branchFolder/
+# $appcastSignatureOutputPath = "$publishFolder\appcast.xml.signature"
+# aws s3 cp $appcastSignatureOutputPath s3://$bucketName/CICD-tests/$branchFolder/
 
 
 # direct import
 if ($direct_import_enabled -eq "true") {
+    Write-Host "Building DirectImport"
     $directImportConfigurations = @("2022","2023","2024","2025")
     foreach ($config in $directImportConfigurations) {
         Write-Host "Building DirectImport $config"
